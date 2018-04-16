@@ -26,7 +26,7 @@ You can configure Thundra using **environment variables** or **module initializa
 
 Environment variables have **higher precedence** over initialization parameters.
 
-Check out the [configuration part](https://docs.thundra.io/docs/configuration-1) of our docs for more detailed information.
+Check out the [configuration part](https://docs.thundra.io/docs/python-configuration) of our docs for more detailed information.
 
 #### 1. Environment variables
 
