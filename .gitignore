@@ -1,0 +1,8 @@
+.pytest_cache
+.coverage
+dist/
+build/
+.serverless/
+thundra.egg-info/
+.benchmarks/
+.pytest_cache/
