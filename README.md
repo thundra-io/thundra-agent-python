@@ -36,6 +36,7 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 | thundra_applicationProfile               | string |    default    |
 | thundra_disable                          |  bool  |     false     |
 | thundra_disable_trace                    |  bool  |     false     |
+| thundra_disable_metric                   |  bool  |     false     |
 | thundra_lambda_publish_cloudwatch_enable |  bool  |     false     |
 | thundra_lambda_audit_request_skip        |  bool  |     false     |
 | thundra_lambda_audit_response_skip       |  bool  |     false     |
@@ -47,6 +48,7 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 |:----------------|:------:|:-------------:|
 | api_key          | string |       -       |
 | disable_trace   |  bool  |     False     |
+| disable_metric  |  bool  |     False     |
 | request_skip    |  bool  |     False     |
 | response_skip   |  bool  |     False     |
 

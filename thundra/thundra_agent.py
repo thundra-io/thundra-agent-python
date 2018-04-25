@@ -2,6 +2,7 @@ from functools import wraps
 import time
 
 from thundra import constants
+from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.reporter import Reporter
 
@@ -9,32 +10,37 @@ import thundra.utils as utils
 
 
 class Thundra:
-    def __init__(self, api_key=None, disable_trace=False, request_skip=False, response_skip=False):
+    def __init__(self, api_key=None, disable_trace=False, disable_metric=False, request_skip=False, response_skip=False):
 
         constants.REQUEST_COUNT = 0
 
         self.plugins = []
-        api_key_from_environment_variable = utils.get_thundra_apikey()
+        api_key_from_environment_variable = utils.get_environment_variable(constants.THUNDRA_APIKEY)
         self.api_key = api_key_from_environment_variable if api_key_from_environment_variable is not None else api_key
         if self.api_key is None:
             raise Exception('Please set thundra_apiKey from environment variables in order to use Thundra')
         self.data = {}
 
-        disable_trace_by_env = utils.is_thundra_trace_disabled()
+        disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
         if not utils.should_disable(disable_trace_by_env, disable_trace):
             self.plugins.append(TracePlugin())
 
-        audit_request_skip_by_env = utils.is_thundra_lambda_audit_request_skipped()
+        disable_metric_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_METRIC)
+        if not utils.should_disable(disable_metric_by_env, disable_metric):
+            self.plugins.append(MetricPlugin())
+
+        audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_AUDIT_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)
 
-        audit_response_skip_by_env = utils.is_thundra_lambda_audit_response_skipped()
+        audit_response_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_AUDIT_RESPONSE_SKIP)
         self.response_skipped = utils.should_disable(audit_response_skip_by_env, response_skip)
 
         self.reporter = Reporter(self.api_key)
 
     def __call__(self, original_func):
 
-        should_disable_thundra = utils.is_thundra_disabled()
+        is_thundra_disabled_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE)
+        should_disable_thundra = utils.should_disable(is_thundra_disabled_by_env)
         if should_disable_thundra:
             return original_func
 

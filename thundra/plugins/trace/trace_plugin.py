@@ -17,11 +17,7 @@ class TracePlugin:
         }
         self.start_time = 0
         self.end_time = 0
-        aws_lambda_log_stream = utils.get_aws_lambda_log_stream()
-        self.log_stream = aws_lambda_log_stream.split("]")[1] if aws_lambda_log_stream is not None else ''
-        self.application_version = utils.get_aws_lambda_function_version()
-        self.application_profile = utils.get_thundra_application_profile()
-        self.aws_region = utils.get_aws_region()
+        self.common_data = utils.get_common_report_data_from_environment_variable()
         self.trace_data = {}
 
     def before_invocation(self, data):
@@ -36,9 +32,9 @@ class TracePlugin:
         self.trace_data = {
             'id': str(uuid.uuid4()),
             'applicationName': context.function_name,
-            'applicationId': self.log_stream,
-            'applicationVersion': self.application_version,
-            'applicationProfile': self.application_profile,
+            'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
+            'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
+            'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
             'applicationType': 'python',
             'duration': None,
             'startTimestamp': int(self.start_time),
@@ -60,7 +56,7 @@ class TracePlugin:
                 'request': event if data['request_skipped'] is False else None,
                 'response': {},
                 'coldStart': 'true' if TracePlugin.IS_COLD_START else 'false',
-                'functionRegion': self.aws_region,
+                'functionRegion': self.common_data[constants.AWS_REGION],
                 'functionMemoryLimitInMB': context.memory_limit_in_mb
             }
 
