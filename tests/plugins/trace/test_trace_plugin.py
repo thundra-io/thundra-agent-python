@@ -66,7 +66,7 @@ def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_eve
 
     handler(mock_event, mock_context)
 
-    assert trace_plugin.trace_data['applicationProfile'] == ''
+    assert trace_plugin.trace_data['applicationProfile'] is None
 
     e_v.stop()
 

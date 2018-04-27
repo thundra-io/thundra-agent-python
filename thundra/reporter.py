@@ -7,7 +7,7 @@ except ImportError:
     from botocore.vendored import requests
 
 from thundra import constants
-from thundra.utils import is_thundra_lambda_publish_cloudwatch_enabled
+from thundra.utils import get_environment_variable
 
 
 class Reporter:
@@ -19,7 +19,7 @@ class Reporter:
         self.reports = []
 
     def add_report(self, report):
-        if is_thundra_lambda_publish_cloudwatch_enabled() == 'true':
+        if get_environment_variable(constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE) == 'true':
             print(json.dumps(report))
         else:
             self.reports.append(report)
