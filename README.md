@@ -30,16 +30,18 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 
 #### 1. Environment variables
 
-| Name                                     | Type   | Default Value |
-|:-----------------------------------------|:------:|:-------------:|
-| thundra_apiKey                           | string |       -       |
-| thundra_applicationProfile               | string |    default    |
-| thundra_disable                          |  bool  |     false     |
-| thundra_disable_trace                    |  bool  |     false     |
-| thundra_disable_metric                   |  bool  |     false     |
-| thundra_lambda_publish_cloudwatch_enable |  bool  |     false     |
-| thundra_lambda_audit_request_skip        |  bool  |     false     |
-| thundra_lambda_audit_response_skip       |  bool  |     false     |
+| Name                                     | Type   |          Default Value           |
+|:-----------------------------------------|:------:|:--------------------------------:|
+| thundra_apiKey                           | string |                -                 |
+| thundra_applicationProfile               | string |             default              |
+| thundra_disable                          |  bool  |              false               |
+| thundra_disable_trace                    |  bool  |              false               |
+| thundra_disable_metric                   |  bool  |              false               |
+| thundra_lambda_publish_cloudwatch_enable |  bool  |              false               |
+| thundra_lambda_trace_request_skip        |  bool  |              false               |
+| thundra_lambda_trace_response_skip       |  bool  |              false               |
+| thundra_lambda_publish_rest_baseUrl      | string | https://collector.thundra.io/api |
+
 
 
 #### 2. Object initialization parameters
