@@ -54,7 +54,7 @@ class TracePlugin:
             },
             'properties': {
                 'request': event if data['request_skipped'] is False else None,
-                'response': {},
+                'response': None,
                 'coldStart': 'true' if TracePlugin.IS_COLD_START else 'false',
                 'functionRegion': self.common_data[constants.AWS_REGION],
                 'functionMemoryLimitInMB': context.memory_limit_in_mb

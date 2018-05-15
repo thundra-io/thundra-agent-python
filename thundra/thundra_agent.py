@@ -29,10 +29,10 @@ class Thundra:
         if not utils.should_disable(disable_metric_by_env, disable_metric):
             self.plugins.append(MetricPlugin())
 
-        audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_AUDIT_REQUEST_SKIP)
+        audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)
 
-        audit_response_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_AUDIT_RESPONSE_SKIP)
+        audit_response_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         self.response_skipped = utils.should_disable(audit_response_skip_by_env, response_skip)
 
         self.reporter = Reporter(self.api_key)
