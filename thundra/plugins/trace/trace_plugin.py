@@ -7,7 +7,7 @@ from thundra import constants
 
 class TracePlugin:
 
-    data_format_version = '1.1'
+    data_format_version = '1.2'
     IS_COLD_START = True
 
     def __init__(self):

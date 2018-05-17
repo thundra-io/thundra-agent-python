@@ -5,7 +5,7 @@ from thundra import constants, utils
 import json
 
 class InvocationPlugin:
-    data_format_version = '1.1'
+    data_format_version = '1.2'
     IS_COLD_START = True
 
     def __init__(self):
@@ -39,7 +39,7 @@ class InvocationPlugin:
             'errorType': '',
             'errorMessage': '',
             'coldStart': InvocationPlugin.IS_COLD_START,
-            'timeout': True,
+            'timeout': False,
             'region': self.common_data[constants.AWS_REGION],
             'memorySize': int(context.memory_limit_in_mb)
 

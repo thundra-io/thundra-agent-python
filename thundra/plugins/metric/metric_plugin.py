@@ -9,7 +9,7 @@ from thundra import utils, constants
 
 
 class MetricPlugin:
-    data_format_version = '1.1'
+    data_format_version = '1.2'
 
     def __init__(self):
         self.hooks = {
