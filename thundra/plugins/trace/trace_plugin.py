@@ -31,6 +31,7 @@ class TracePlugin:
         self.start_time = time.time() * 1000
         self.trace_data = {
             'id': str(uuid.uuid4()),
+            'transactionId': data['transactionId'],
             'applicationName': context.function_name,
             'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
             'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
@@ -38,7 +39,7 @@ class TracePlugin:
             'applicationType': 'python',
             'duration': None,
             'startTimestamp': int(self.start_time),
-            'endTime': None,
+            'endTimestamp': None,
             'errors': [],
             'thrownError': None,
             'contextType': 'ExecutionContext',
@@ -48,7 +49,7 @@ class TracePlugin:
                 'contextName': context.function_name,
                 'id': context_id,
                 'openTimestamp': int(self.start_time),
-                'closeTime': None,
+                'closeTimestamp': None,
                 'errors': [],
                 'thrownError': None
             },

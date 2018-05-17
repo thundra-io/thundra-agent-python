@@ -1,7 +1,9 @@
 from functools import wraps
 import time
+import uuid
 
 from thundra import constants
+from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.reporter import Reporter
@@ -19,7 +21,11 @@ class Thundra:
         self.api_key = api_key_from_environment_variable if api_key_from_environment_variable is not None else api_key
         if self.api_key is None:
             raise Exception('Please set thundra_apiKey from environment variables in order to use Thundra')
+        self.plugins.append(InvocationPlugin())
         self.data = {}
+
+        transaction_id = str(uuid.uuid4())
+        self.data['transactionId'] = transaction_id
 
         disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
         if not utils.should_disable(disable_trace_by_env, disable_trace):
@@ -55,7 +61,7 @@ class Thundra:
             self.execute_hook('before:invocation', self.data)
             try:
                 response = original_func(event, context)
-                if self.response_skipped is not True:
+                if self.response_skipped is False:
                     self.data['response'] = response
             except Exception as e:
                 self.data['error'] = e
