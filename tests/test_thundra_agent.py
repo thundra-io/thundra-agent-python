@@ -19,24 +19,24 @@ def test_if_api_key_is_retrieved_from_env_var(environment_variables_with_apikey)
 
 def test_if_disable_trace_is_set_to_true():
     thundra = Thundra('api key', disable_trace=True)
-    assert len(thundra.plugins) == 0
+    assert len(thundra.plugins) == 2
 
 
 def test_if_disable_trace_is_set_to_false():
     thundra = Thundra('api key', disable_trace=False)
-    assert len(thundra.plugins) > 0
+    assert len(thundra.plugins) > 2
 
 
 def test_if_disable_trace_is_not_set():
     thundra = Thundra('api key')
-    assert len(thundra.plugins) > 0
+    assert len(thundra.plugins) > 2
 
 
 def test_disable_trace_plugin_from_environment_variable(environment_variables_with_disable_trace_plugin):
     e_v = environment_variables_with_disable_trace_plugin
     e_v.start()
     thundra = Thundra('api key')
-    assert len(thundra.plugins) == 0
+    assert len(thundra.plugins) == 2
     e_v.stop()
 
 
@@ -44,7 +44,7 @@ def test_enable_trace_plugin_from_environment_variable(environment_variables_wit
     e_v = environment_variables_with_enable_trace_plugin
     e_v.start()
     thundra = Thundra('api key')
-    assert len(thundra.plugins) > 0
+    assert len(thundra.plugins) > 2
     e_v.stop()
 
 
@@ -52,7 +52,7 @@ def test_if_disable_trace_plugin_from_environment_variable_is_prior(environment_
     e_v = environment_variables_with_disable_trace_plugin
     e_v.start()
     thundra = Thundra('api key', disable_trace=False)
-    assert len(thundra.plugins) == 0
+    assert len(thundra.plugins) == 2
     e_v.stop()
 
 
@@ -60,7 +60,7 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior(environment_v
     e_v = environment_variables_with_enable_trace_plugin
     e_v.start()
     thundra = Thundra('api key', disable_trace=True)
-    assert len(thundra.plugins) > 0
+    assert len(thundra.plugins) > 2
     e_v.stop()
 
 

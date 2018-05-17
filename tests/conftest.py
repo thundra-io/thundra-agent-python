@@ -38,7 +38,7 @@ def mock_report():
 
 @pytest.fixture
 def thundra_with_apikey():
-    return Thundra('api key')
+    return Thundra('api key', disable_metric=True)
 
 
 @pytest.fixture
@@ -88,13 +88,6 @@ def environment_variables(env_var):
 
 
 @pytest.fixture
-def environment_variables_with_profile(env_var):
-    env_var[constants.THUNDRA_APPLICATION_PROFILE] = 'profile'
-    e_v = mock.patch.dict(os.environ, env_var)
-    return e_v
-
-
-@pytest.fixture
 def environment_variables_with_apikey(env_var):
     env_var[constants.THUNDRA_APIKEY] = 'api key'
     e_v = mock.patch.dict(os.environ, env_var)
@@ -125,5 +118,12 @@ def environment_variables_with_enable_async_monitoring(env_var):
 @pytest.fixture
 def environment_variables_with_disable_async_monitoring(env_var):
     env_var[constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE] = 'false'
+    e_v = mock.patch.dict(os.environ, env_var)
+    return e_v
+
+
+@pytest.fixture
+def environment_variables_with_publish_rest_baseurl(env_var):
+    env_var[constants.THUNDRA_LAMBDA_PUBLISH_REST_BAESURL] = 'different_url/api'
     e_v = mock.patch.dict(os.environ, env_var)
     return e_v

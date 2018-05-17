@@ -36,10 +36,13 @@ def test_add_report_sync_if_env_var_is_not_set(mock_report):
 
 
 @mock.patch('thundra.reporter.requests')
-def test_send_report(mock_requests):
+def test_send_report_to_url(mock_requests, environment_variables_with_publish_rest_baseurl):
+    e_v = environment_variables_with_publish_rest_baseurl
+    e_v.start()
     reporter = Reporter('api key')
     response = reporter.send_report()
-    post_url = constants.HOST + constants.PATH
+
+    post_url = 'different_url/api/monitor-datas'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'ApiKey api key'
@@ -47,6 +50,23 @@ def test_send_report(mock_requests):
     mock_requests.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
     mock_requests.post.return_value.status_code = 200
     assert response.status_code == 200
+
+    e_v.stop()
+
+
+@mock.patch('thundra.reporter.requests')
+def test_send_report(mock_requests):
+    with pytest.raises(KeyError) as e:
+        reporter = Reporter('api key')
+        response = reporter.send_report()
+        post_url = constants.HOST + constants.PATH
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'ApiKey api key'
+        }
+        mock_requests.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
+        mock_requests.post.return_value.status_code = 200
+        assert response.status_code == 200
 
 
 @mock.patch('thundra.reporter.requests')

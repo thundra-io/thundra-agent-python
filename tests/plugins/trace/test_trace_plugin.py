@@ -23,23 +23,6 @@ def test_cold_starts(handler_with_apikey, mock_context, mock_event, environment_
     e_v.stop()
 
 
-@pytest.fixture
-def thundra_with_profile(environment_variables_with_profile):
-    e_v = environment_variables_with_profile
-    e_v.start()
-    thundra = Thundra('api key')
-    e_v.stop()
-    return thundra
-
-
-@pytest.fixture
-def handler_with_profile(thundra_with_profile):
-    @thundra_with_profile.call
-    def _handler(event, context):
-        pass
-    return thundra_with_profile, _handler
-
-
 def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event):
 
     thundra, handler = handler_with_profile
@@ -66,7 +49,7 @@ def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_eve
 
     handler(mock_event, mock_context)
 
-    assert trace_plugin.trace_data['applicationProfile'] is None
+    assert trace_plugin.trace_data['applicationProfile'] is ''
 
     e_v.stop()
 
@@ -129,3 +112,19 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     assert trace_plugin.trace_data['properties']['functionRegion'] == 'region'
     assert trace_plugin.trace_data['properties']['functionMemoryLimitInMB'] == '128'
+
+
+
+def test_if_request_response_is_skipped(handler_with_request_response_skip, mock_context, mock_event):
+
+    thundra, handler = handler_with_request_response_skip
+
+    trace_plugin = None
+    for plugin in thundra.plugins:
+        if type(plugin) is TracePlugin:
+            trace_plugin = plugin
+
+    handler(mock_event, mock_context)
+
+    assert trace_plugin.trace_data['properties']['request'] is None
+    assert trace_plugin.trace_data['properties']['response'] is None
