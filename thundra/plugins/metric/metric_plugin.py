@@ -29,10 +29,10 @@ class MetricPlugin:
     def before_invocation(self, data):
         self.reporter = data['reporter']
         context = data['context']
-        event = data['event']
         stat_time = time.time() * 1000
         self.stat_data = {
             'transactionId': data['transactionId'],
+            'rootExecutionAuditContextId': data['contextId'],
             'applicationName': context.function_name,
             'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
             'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],

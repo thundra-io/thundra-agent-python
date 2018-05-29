@@ -27,7 +27,7 @@ class TracePlugin:
         context = data['context']
         event = data['event']
 
-        context_id = str(uuid.uuid4())
+        context_id = data['contextId']
         self.start_time = time.time() * 1000
         self.trace_data = {
             'id': str(uuid.uuid4()),

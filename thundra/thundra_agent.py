@@ -4,6 +4,7 @@ import uuid
 
 from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.reporter import Reporter
@@ -35,6 +36,8 @@ class Thundra:
         if not utils.should_disable(disable_metric_by_env, disable_metric):
             self.plugins.append(MetricPlugin())
 
+        self.plugins.append(LogPlugin())
+
         audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)
 
@@ -50,12 +53,16 @@ class Thundra:
         if should_disable_thundra:
             return original_func
 
+        context_id = str(uuid.uuid4())
+        self.data['contextId'] = context_id
+        self.data['reporter'] = self.reporter
+
         @wraps(original_func)
         def wrapper(event, context):
             if self.checkAndHandleWarmupRequest(event):
                 constants.REQUEST_COUNT += 1
                 return None
-            self.data['reporter'] = self.reporter
+
             self.data['event'] = event
             self.data['context'] = context
             self.execute_hook('before:invocation', self.data)
