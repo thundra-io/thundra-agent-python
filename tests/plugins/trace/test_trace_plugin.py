@@ -1,13 +1,11 @@
-
-import pytest
+from thundra import constants
 from thundra.plugins.trace.trace_plugin import TracePlugin
-from thundra.thundra_agent import Thundra
+import os
 
 
-def test_cold_starts(handler_with_apikey, mock_context, mock_event, environment_variables, monkeypatch):
-    e_v = environment_variables
-    e_v.start()
+def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch):
     monkeypatch.setattr(TracePlugin, 'IS_COLD_START', True)
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     thundra, handler = handler_with_apikey
 
     trace_plugin = None
@@ -20,7 +18,6 @@ def test_cold_starts(handler_with_apikey, mock_context, mock_event, environment_
 
     handler(mock_event, mock_context)
     assert trace_plugin.trace_data['properties']['coldStart'] is 'false'
-    e_v.stop()
 
 
 def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event):
@@ -37,9 +34,8 @@ def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event)
     assert trace_plugin.trace_data['applicationProfile'] == 'profile'
 
 
-def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event, environment_variables):
-    e_v = environment_variables
-    e_v.start()
+def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event, monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     thundra, handler = handler_with_apikey
 
     trace_plugin = None
@@ -51,12 +47,9 @@ def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_eve
 
     assert trace_plugin.trace_data['applicationProfile'] is ''
 
-    e_v.stop()
 
-
-def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, environment_variables):
-    e_v = environment_variables
-    e_v.start()
+def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     thundra, handler = handler_with_exception
 
     trace_plugin = None
@@ -74,8 +67,6 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
 
     assert trace_plugin.trace_data['auditInfo']['thrownError']['errorType'] == 'Exception'
     assert 'hello' in trace_plugin.trace_data['auditInfo']['thrownError']['args']
-
-    e_v.stop()
 
 
 def test_report(handler_with_profile, mock_context, mock_event):
@@ -112,7 +103,6 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     assert trace_plugin.trace_data['properties']['functionRegion'] == 'region'
     assert trace_plugin.trace_data['properties']['functionMemoryLimitInMB'] == '128'
-
 
 
 def test_if_request_response_is_skipped(handler_with_request_response_skip, mock_context, mock_event):

@@ -4,8 +4,6 @@ logs = []
 
 
 class ThundraLogHandler(logging.Handler):
-
-
     def __init__(self):
         logging.Handler.__init__(self)
         ThundraLogHandler.logs = []
