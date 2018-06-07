@@ -9,7 +9,6 @@ from thundra import utils, constants
 
 
 class MetricPlugin:
-    data_format_version = '1.2'
 
     def __init__(self):
         self.hooks = {
@@ -29,7 +28,6 @@ class MetricPlugin:
     def before_invocation(self, data):
         self.reporter = data['reporter']
         context = data['context']
-        event = data['event']
         stat_time = time.time() * 1000
         self.stat_data = {
             'transactionId': data['transactionId'],
@@ -45,6 +43,8 @@ class MetricPlugin:
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, data):
+        if 'contextId' in data:
+            self.stat_data['rootExecutionAuditContextId'] = data['contextId']
         self.add_thread_stat_report()
         self.add_gc_stat_report()
         self.add_memory_stat_report()
@@ -62,7 +62,7 @@ class MetricPlugin:
             'data': thread_stat_data,
             'type': 'StatData',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': MetricPlugin.data_format_version
+            'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
         self.reporter.add_report(thread_stat_report)
 
@@ -82,7 +82,7 @@ class MetricPlugin:
             'data': gc_stat_data,
             'type': 'StatData',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': MetricPlugin.data_format_version
+            'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
         self.reporter.add_report(gc_stat_report)
 
@@ -103,7 +103,7 @@ class MetricPlugin:
             'data': memory_stat_data,
             'type': 'StatData',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': MetricPlugin.data_format_version
+            'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
         self.reporter.add_report(memory_stat_report)
 
@@ -130,6 +130,6 @@ class MetricPlugin:
             'data': cpu_stat_data,
             'type': 'StatData',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': MetricPlugin.data_format_version
+            'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
         self.reporter.add_report(cpu_stat_report)

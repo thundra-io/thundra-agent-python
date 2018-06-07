@@ -1,9 +1,11 @@
+import os
+
+from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 
-def test_cold_starts(handler_with_apikey, mock_context, mock_event, environment_variables, monkeypatch):
-    e_v = environment_variables
-    e_v.start()
+def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     monkeypatch.setattr(InvocationPlugin, 'IS_COLD_START', True)
     thundra, handler = handler_with_apikey
 
@@ -17,12 +19,10 @@ def test_cold_starts(handler_with_apikey, mock_context, mock_event, environment_
 
     handler(mock_event, mock_context)
     assert invocation_plugin.invocation_data['coldStart'] is False
-    e_v.stop()
 
 
-def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, environment_variables):
-    e_v = environment_variables
-    e_v.start()
+def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     thundra, handler = handler_with_exception
 
     invocation_plugin = None
@@ -38,8 +38,6 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
     assert invocation_plugin.invocation_data['erroneous'] is True
     assert invocation_plugin.invocation_data['errorType'] == 'Exception'
     assert invocation_plugin.invocation_data['errorMessage'] == 'hello'
-
-    e_v.stop()
 
 
 def test_report(handler_with_profile, mock_context, mock_event):
@@ -85,9 +83,8 @@ def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event)
     assert invocation_plugin.invocation_data['applicationProfile'] == 'profile'
 
 
-def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event, environment_variables):
-    e_v = environment_variables
-    e_v.start()
+def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event, monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     thundra, handler = handler_with_apikey
 
     invocation_plugin = None
@@ -98,6 +95,3 @@ def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_eve
     handler(mock_event, mock_context)
 
     assert invocation_plugin.invocation_data['applicationProfile'] is ''
-
-    e_v.stop()
-

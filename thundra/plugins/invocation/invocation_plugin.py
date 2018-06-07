@@ -5,7 +5,7 @@ from thundra import constants, utils
 import json
 
 class InvocationPlugin:
-    data_format_version = '1.2'
+
     IS_COLD_START = True
 
     def __init__(self):
@@ -63,7 +63,7 @@ class InvocationPlugin:
         report_data = {
             'apiKey': reporter.api_key,
             'type': 'InvocationData',
-            'dataFormatVersion': InvocationPlugin.data_format_version,
+            'dataFormatVersion': constants.DATA_FORMAT_VERSION,
             'data': self.invocation_data
         }
         reporter.add_report(json.loads(json.dumps(report_data)))

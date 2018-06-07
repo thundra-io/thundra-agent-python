@@ -59,3 +59,43 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 By default, Thundra agent reports by making an HTTPS request. This adds an overhead to your lambda function.
 
 Instead, you can [setup async monitoring](https://docs.thundra.io/docs/how-to-setup-async-monitoring) in **2 minutes** and monitor your lambda functions with **zero overhead**!
+
+## Log Plugin
+Log plugin is added by default, but in order to enable it, you should add ThundraLogHandler to your logger.
+
+You can either add it via logging.conf or add during getting logger object.
+
+#### Configure via logging.conf
+An example of configuration file is as follows:
+
+```
+[loggers]
+keys=root
+
+[handlers]
+keys=thundraHandler
+
+[formatters]
+keys=simpleFormatter
+
+[logger_root]
+level=NOTSET
+handlers=thundraHandler
+
+[handler_thundraHandler]
+class=ThundraLogHandler
+level=NOTSET
+formatter=simpleFormatter
+args=()
+
+[formatter_simpleFormatter]
+format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+datefmt=
+```
+
+#### Configure during getting logger object
+You should add the followings after getting the logger object:
+```python
+handler = ThundraLogHandler()
+logger.addHandler(handler)
+```

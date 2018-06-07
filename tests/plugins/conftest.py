@@ -1,23 +1,17 @@
 import os
 import pytest
-from mock import mock
 
 from thundra import constants
 from thundra.thundra_agent import Thundra
 
-@pytest.fixture
-def environment_variables_with_profile(env_var):
-    env_var[constants.THUNDRA_APPLICATION_PROFILE] = 'profile'
-    e_v = mock.patch.dict(os.environ, env_var)
-    return e_v
-
 
 @pytest.fixture
-def thundra_with_profile(environment_variables_with_profile):
-    e_v = environment_variables_with_profile
-    e_v.start()
+def thundra_with_profile(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_LOG_STREAM_NAME, '[]test')
+    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
     thundra = Thundra('api key', disable_metric=True)
-    e_v.stop()
     return thundra
 
 
@@ -30,19 +24,13 @@ def handler_with_profile(thundra_with_profile):
 
 
 @pytest.fixture
-def environment_variables_with_request_response_skip(env_var):
-    env_var[constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP] = 'true'
-    env_var[constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP] = 'true'
-    e_v = mock.patch.dict(os.environ, env_var)
-    return e_v
-
-
-@pytest.fixture
-def thundra_with_request_response_skip(environment_variables_with_request_response_skip):
-    e_v = environment_variables_with_request_response_skip
-    e_v.start()
+def thundra_with_request_response_skip(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_LOG_STREAM_NAME, '[]test')
+    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP, 'true')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP, 'true')
     thundra = Thundra('api key', disable_metric=True)
-    e_v.stop()
     return thundra
 
 
@@ -52,5 +40,3 @@ def handler_with_request_response_skip(thundra_with_request_response_skip):
     def _handler(event, context):
         pass
     return thundra_with_request_response_skip, _handler
-
-
