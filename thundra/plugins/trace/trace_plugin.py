@@ -7,7 +7,6 @@ from thundra import constants
 
 class TracePlugin:
 
-    data_format_version = '1.2'
     IS_COLD_START = True
 
     def __init__(self):
@@ -27,7 +26,8 @@ class TracePlugin:
         context = data['context']
         event = data['event']
 
-        context_id = data['contextId']
+        context_id = str(uuid.uuid4())
+        data['contextId'] = context_id
         self.start_time = time.time() * 1000
         self.trace_data = {
             'id': str(uuid.uuid4()),
@@ -91,7 +91,7 @@ class TracePlugin:
         report_data = {
             'apiKey': reporter.api_key,
             'type': 'AuditData',
-            'dataFormatVersion': TracePlugin.data_format_version,
+            'dataFormatVersion': constants.DATA_FORMAT_VERSION,
             'data': self.trace_data
         }
         reporter.add_report(report_data)
