@@ -1,6 +1,7 @@
 from functools import wraps
 import time
 import uuid
+import logging
 
 from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
@@ -11,9 +12,10 @@ from thundra.reporter import Reporter
 
 import thundra.utils as utils
 
+logger = logging.getLogger(__name__)
 
 class Thundra:
-    def __init__(self, api_key=None, disable_trace=False, disable_metric=False, request_skip=False, response_skip=False):
+    def __init__(self, api_key=None, disable_trace=False, disable_metric=False, disable_log=False, request_skip=False, response_skip=False):
 
         constants.REQUEST_COUNT = 0
 
@@ -21,7 +23,7 @@ class Thundra:
         api_key_from_environment_variable = utils.get_environment_variable(constants.THUNDRA_APIKEY)
         self.api_key = api_key_from_environment_variable if api_key_from_environment_variable is not None else api_key
         if self.api_key is None:
-            raise Exception('Please set thundra_apiKey from environment variables in order to use Thundra')
+            logger.error('Please set thundra_apiKey from environment variables in order to use Thundra')
         self.plugins.append(InvocationPlugin())
         self.data = {}
 
@@ -36,7 +38,9 @@ class Thundra:
         if not utils.should_disable(disable_metric_by_env, disable_metric):
             self.plugins.append(MetricPlugin())
 
-        self.plugins.append(LogPlugin())
+        disable_log_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_LOG)
+        if not utils.should_disable(disable_log_by_env, disable_log):
+            self.plugins.append(LogPlugin())
 
         audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)
@@ -53,8 +57,6 @@ class Thundra:
         if should_disable_thundra:
             return original_func
 
-        context_id = str(uuid.uuid4())
-        self.data['contextId'] = context_id
         self.data['reporter'] = self.reporter
 
         @wraps(original_func)
