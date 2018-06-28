@@ -40,4 +40,5 @@ class Reporter:
 
         response = requests.post(request_url, headers=headers, data=json.dumps(self.reports))
         logger.info(response)
+        self.reports.clear()
         return response
