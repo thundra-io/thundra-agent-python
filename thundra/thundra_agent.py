@@ -27,8 +27,6 @@ class Thundra:
         self.plugins.append(InvocationPlugin())
         self.data = {}
 
-        transaction_id = str(uuid.uuid4())
-        self.data['transactionId'] = transaction_id
 
         disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
         if not utils.should_disable(disable_trace_by_env, disable_trace):
@@ -67,6 +65,10 @@ class Thundra:
 
             self.data['event'] = event
             self.data['context'] = context
+
+            transaction_id = str(uuid.uuid4())
+            self.data['transactionId'] = transaction_id
+
             self.execute_hook('before:invocation', self.data)
             try:
                 response = original_func(event, context)
