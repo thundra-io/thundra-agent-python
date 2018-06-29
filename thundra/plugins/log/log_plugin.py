@@ -20,7 +20,7 @@ class LogPlugin:
         self.log_data = {
             'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
-            'applicationName': context.function_name,
+            'applicationName': getattr(context, 'function_name', None),
             'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
             'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
             'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
