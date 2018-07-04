@@ -32,7 +32,7 @@ class TracePlugin:
         self.trace_data = {
             'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
-            'applicationName': context.function_name,
+            'applicationName': getattr(context, 'function_name', None),
             'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
             'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
             'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
@@ -43,10 +43,10 @@ class TracePlugin:
             'errors': [],
             'thrownError': None,
             'contextType': 'ExecutionContext',
-            'contextName': context.function_name,
+            'contextName': getattr(context, 'function_name', None),
             'contextId': context_id,
             'auditInfo': {
-                'contextName': context.function_name,
+                'contextName': getattr(context, 'function_name', None),
                 'id': context_id,
                 'openTimestamp': int(self.start_time),
                 'closeTimestamp': None,
@@ -58,7 +58,7 @@ class TracePlugin:
                 'response': None,
                 'coldStart': 'true' if TracePlugin.IS_COLD_START else 'false',
                 'functionRegion': self.common_data[constants.AWS_REGION],
-                'functionMemoryLimitInMB': context.memory_limit_in_mb
+                'functionMemoryLimitInMB': getattr(context, 'memory_limit_in_mb', None)
             }
 
         }

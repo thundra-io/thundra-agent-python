@@ -23,11 +23,12 @@ class InvocationPlugin:
             InvocationPlugin.IS_COLD_START = False
 
         context = data['context']
+        memory_size = getattr(context, 'memory_limit_in_mb', None)
         self.start_time = time.time() * 1000
         self.invocation_data = {
             'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
-            'applicationName': context.function_name,
+            'applicationName': getattr(context, 'function_name', None),
             'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
             'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
             'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
@@ -41,7 +42,7 @@ class InvocationPlugin:
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
             'region': self.common_data[constants.AWS_REGION],
-            'memorySize': int(context.memory_limit_in_mb)
+            'memorySize': int(memory_size) if memory_size is not None else None
 
         }
         InvocationPlugin.IS_COLD_START = False
@@ -53,6 +54,8 @@ class InvocationPlugin:
             self.invocation_data['erroneous'] = True
             self.invocation_data['errorType'] = error_type.__name__
             self.invocation_data['errorMessage'] = str(error)
+
+        self.invocation_data['timeout'] = data.get('timeout', False)
 
         self.end_time = time.time() * 1000
         duration = self.end_time - self.start_time

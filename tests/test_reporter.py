@@ -31,7 +31,7 @@ def test_add_report_sync_if_env_var_is_not_set(mock_report):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url(mock_requests, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_REST_BAESURL, 'different_url/api')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL, 'different_url/api')
     reporter = Reporter('api key')
     response = reporter.send_report()
 

@@ -13,10 +13,14 @@ THUNDRA_DISABLE_LOG = 'thundra_disable_log'
 THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE = 'thundra_lambda_publish_cloudwatch_enable'
 THUNDRA_LAMBDA_TRACE_REQUEST_SKIP = 'thundra_lambda_trace_request_skip'
 THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra_lambda_trace_response_skip'
+THUNDRA_LAMBDA_WARMUP_WARMUPAWARE = 'thundra_lambda_warmup_warmupAware'
+THUNDRA_LAMBDA_PUBLISH_REST_BASEURL = 'thundra_lambda_publish_rest_baseUrl'
+THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra_lambda_timeout_margin'
+
 THUNDRA_APPLICATION_PROFILE = 'thundra_applicationProfile'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
 AWS_LAMBDA_FUNCTION_VERSION = 'AWS_LAMBDA_FUNCTION_VERSION'
 AWS_REGION = 'AWS_REGION'
-THUNDRA_LAMBDA_PUBLISH_REST_BAESURL = 'thundra_lambda_publish_rest_baseUrl'
 
+DEFAULT_LAMBDA_TIMEOUT_MARGIN = 180
 DATA_FORMAT_VERSION = '1.2'

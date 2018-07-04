@@ -1,3 +1,4 @@
+import signal
 from functools import wraps
 import time
 import uuid
@@ -27,7 +28,6 @@ class Thundra:
         self.plugins.append(InvocationPlugin())
         self.data = {}
 
-
         disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
         if not utils.should_disable(disable_trace_by_env, disable_trace):
             self.plugins.append(TracePlugin())
@@ -46,6 +46,16 @@ class Thundra:
         audit_response_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         self.response_skipped = utils.should_disable(audit_response_skip_by_env, response_skip)
 
+        is_warmup_aware_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE)
+        self.warmup_aware = utils.should_disable(is_warmup_aware_by_env)
+
+        timeout_margin = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
+        self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
+        if self.timeout_margin <= 0:
+            self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+            logger.warning('Timeout margin is set to default value (' + str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) +
+                           ') since nonpositive value cannot be given')
+
         self.reporter = Reporter(self.api_key)
 
     def __call__(self, original_func):
@@ -59,28 +69,37 @@ class Thundra:
 
         @wraps(original_func)
         def wrapper(event, context):
-            if self.checkAndHandleWarmupRequest(event):
+            if self.warmup_aware and self.check_and_handle_warmup_request(event):
                 constants.REQUEST_COUNT += 1
                 return None
 
             self.data['event'] = event
             self.data['context'] = context
 
-            transaction_id = str(uuid.uuid4())
-            self.data['transactionId'] = transaction_id
+            self.data['transactionId'] = str(uuid.uuid4())
 
             self.execute_hook('before:invocation', self.data)
+            signal.signal(signal.SIGALRM, self.timeout_handler)
+
+            if hasattr(context, 'get_remaining_time_in_millis'):
+                timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
+                if timeout_duration <= 0:
+                    timeout_duration = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                    logger.warning('Given timeout margin is bigger than lambda timeout duration and '
+                                   'since the difference is negative, it is set to default value (' +
+                                   str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+                signal.setitimer(signal.ITIMER_REAL, timeout_duration/1000.0)
             try:
                 response = original_func(event, context)
                 if self.response_skipped is False:
                     self.data['response'] = response
             except Exception as e:
                 self.data['error'] = e
-                self.execute_hook('after:invocation', self.data)
-                self.reporter.send_report()
+                self.prepare_and_send_reports()
                 raise e
-            self.execute_hook('after:invocation', self.data)
-            self.reporter.send_report()
+            finally:
+                signal.setitimer(signal.ITIMER_REAL, 0)
+            self.prepare_and_send_reports()
             return response
 
         return wrapper
@@ -90,7 +109,7 @@ class Thundra:
     def execute_hook(self, name, data):
         [plugin.hooks[name](data) for plugin in self.plugins if hasattr(plugin, 'hooks') and name in plugin.hooks]
 
-    def checkAndHandleWarmupRequest(self, event):
+    def check_and_handle_warmup_request(self, event):
 
         # Check whether it is empty request which is used as default warmup request
         if (not event):
@@ -123,4 +142,12 @@ class Thundra:
                     return True
             return False
 
+    def timeout_handler(self, signum, frame):
+        if signum == signal.SIGALRM:
+            self.data['timeout'] = True
+            self.prepare_and_send_reports()
+
+    def prepare_and_send_reports(self):
+        self.execute_hook('after:invocation', self.data)
+        self.reporter.send_report()
 

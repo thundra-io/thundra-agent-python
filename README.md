@@ -38,8 +38,10 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 | thundra_disable_trace                    |  bool  |              false               |
 | thundra_disable_metric                   |  bool  |              false               |
 | thundra_lambda_publish_cloudwatch_enable |  bool  |              false               |
+| thundra_lambda_warmup_warmupAware        |  bool  |              false               |
 | thundra_lambda_trace_request_skip        |  bool  |              false               |
 | thundra_lambda_trace_response_skip       |  bool  |              false               |
+| thundra_lambda_timeout_margin            |  int   |               180                |
 | thundra_lambda_publish_rest_baseUrl      | string | https://collector.thundra.io/api |
 
 
@@ -98,4 +100,6 @@ You should add the followings after getting the logger object:
 ```python
 handler = ThundraLogHandler()
 logger.addHandler(handler)
+...
+logger.removeHandler(handler)
 ```
