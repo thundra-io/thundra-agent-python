@@ -13,19 +13,18 @@ def should_disable(disable_by_env, disable_by_param=False):
         return True
     elif disable_by_env == 'false':
         return False
-    else:
-        return disable_by_param
+    return disable_by_param
 
 
 def get_common_report_data_from_environment_variable():
     aws_lambda_log_stream = get_environment_variable(constants.AWS_LAMBDA_LOG_STREAM_NAME)
     log_stream = aws_lambda_log_stream.split("]")[1] if aws_lambda_log_stream is not None else ''
     aws_lambda_function_version = get_environment_variable(constants.AWS_LAMBDA_FUNCTION_VERSION)
-    application_version = aws_lambda_function_version if aws_lambda_function_version is not None else ''
+    application_version = aws_lambda_function_version or ''
     thundra_application_profile = get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE)
-    application_profile = thundra_application_profile if thundra_application_profile is not None else ''
+    application_profile = thundra_application_profile or ''
     aws_region = get_environment_variable(constants.AWS_REGION)
-    region = aws_region if aws_region is not None else ''
+    region = aws_region or ''
     data = {
         constants.AWS_LAMBDA_LOG_STREAM_NAME: log_stream,
         constants.AWS_LAMBDA_FUNCTION_VERSION: application_version,
@@ -101,4 +100,3 @@ def system_cpu_usage():
     except IOError as e:
         print('ERROR: %s' % e)
         sys.exit(3)
-
