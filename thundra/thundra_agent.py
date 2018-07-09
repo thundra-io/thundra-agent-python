@@ -112,15 +112,15 @@ class Thundra:
     def check_and_handle_warmup_request(self, event):
 
         # Check whether it is empty request which is used as default warmup request
-        if (not event):
+        if not event:
             print("Received warmup request as empty message. " +
                   "Handling with 100 milliseconds delay ...")
             time.sleep(0.1)
             return True
         else:
-            if (isinstance(event, str)):
+            if isinstance(event, str):
                 # Check whether it is warmup request
-                if (event.startswith('#warmup')):
+                if event.startswith('#warmup'):
                     delayTime = 100
                     args = event[len('#warmup'):].strip().split()
                     # Warmup messages are in '#warmup wait=<waitTime>' format
@@ -128,12 +128,12 @@ class Thundra:
                     for arg in args:
                         argParts = arg.split('=')
                         # Check whether argument is in key=value format
-                        if (len(argParts) == 2):
+                        if len(argParts) == 2:
                             argName = argParts[0]
                             argValue = argParts[1]
                             # Check whether argument is "wait" argument
                             # which specifies extra wait time before returning from request
-                            if (argName == 'wait'):
+                            if argName == 'wait':
                                 waitTime = int(argValue)
                                 delayTime += waitTime
                     print("Received warmup request as warmup message. " +
