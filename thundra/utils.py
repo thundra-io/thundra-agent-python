@@ -4,8 +4,8 @@ import sys
 from thundra import constants
 
 
-def get_environment_variable(key):
-    return os.environ.get(key)
+def get_environment_variable(key, default=None):
+    return os.environ.get(key, default=default)
 
 
 def should_disable(disable_by_env, disable_by_param=False):

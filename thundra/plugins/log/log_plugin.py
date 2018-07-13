@@ -22,7 +22,7 @@ class LogPlugin:
             'applicationName': getattr(context, 'function_name', None),
             'applicationId': utils.get_application_id(context),
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE) or '',
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, ''),
             'applicationType': 'python'
         }
 

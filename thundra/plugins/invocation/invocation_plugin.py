@@ -30,7 +30,7 @@ class InvocationPlugin:
             'applicationName': getattr(context, 'function_name', None),
             'applicationId': utils.get_application_id(context),
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE) or '',
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, default=''),
             'applicationType': 'python',
             'duration': None,
             'startTimestamp': int(self.start_time),
@@ -40,7 +40,7 @@ class InvocationPlugin:
             'errorMessage': '',
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
-            'region': utils.get_environment_variable(constants.AWS_REGION) or '',
+            'region': utils.get_environment_variable(constants.AWS_REGION, default=''),
             'memorySize': int(memory_size) if memory_size is not None else None
 
         }

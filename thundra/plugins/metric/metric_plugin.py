@@ -33,9 +33,9 @@ class MetricPlugin:
             'applicationName': getattr(context, 'function_name', None),
             'applicationId': utils.get_application_id(context),
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE) or '',
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, ''),
             'applicationType': 'python',
-            'functionRegion': utils.get_environment_variable(constants.AWS_REGION) or '',
+            'functionRegion': utils.get_environment_variable(constants.AWS_REGION, ''),
             'statTimestamp': int(stat_time)
         }
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
