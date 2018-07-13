@@ -5,6 +5,11 @@ from thundra.thundra_agent import Thundra
 
 class MockContext:
     memory_limit_in_mb = '128'
+    log_group_name = 'log_group_name'
+    log_stream_name = 'log_stream_name[]id'
+    aws_request_id = 'aws_request_id'
+    invoked_function_arn = 'invoked_function_arn'
+    function_version = 'function_version'
 
     def __init__(self, f_name='test_func'):
         self.function_name = f_name

@@ -34,8 +34,7 @@ def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event)
     assert trace_plugin.trace_data['applicationProfile'] == 'profile'
 
 
-def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event):
     thundra, handler = handler_with_apikey
 
     trace_plugin = None
@@ -94,8 +93,8 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert trace_plugin.trace_data['auditInfo']['closeTimestamp'] == end_time
 
     assert trace_plugin.trace_data['applicationName'] == 'test_func'
-    assert trace_plugin.trace_data['applicationId'] == 'test'
-    assert trace_plugin.trace_data['applicationVersion'] == 'version'
+    assert trace_plugin.trace_data['applicationId'] == 'id'
+    assert trace_plugin.trace_data['applicationVersion'] == 'function_version'
     assert trace_plugin.trace_data['applicationType'] == 'python'
 
     assert trace_plugin.trace_data['contextName'] == 'test_func'

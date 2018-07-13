@@ -83,8 +83,7 @@ def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event)
     assert invocation_plugin.invocation_data['applicationProfile'] == 'profile'
 
 
-def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event):
     thundra, handler = handler_with_apikey
 
     invocation_plugin = None

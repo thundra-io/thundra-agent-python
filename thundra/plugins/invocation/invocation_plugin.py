@@ -15,7 +15,6 @@ class InvocationPlugin:
         }
         self.start_time = 0
         self.end_time = 0
-        self.common_data = utils.get_common_report_data_from_environment_variable()
         self.invocation_data = {}
 
     def before_invocation(self, data):
@@ -29,9 +28,9 @@ class InvocationPlugin:
             'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
             'applicationName': getattr(context, 'function_name', None),
-            'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
-            'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
-            'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
+            'applicationId': utils.get_application_id(context),
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, default=''),
             'applicationType': 'python',
             'duration': None,
             'startTimestamp': int(self.start_time),
@@ -41,7 +40,7 @@ class InvocationPlugin:
             'errorMessage': '',
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
-            'region': self.common_data[constants.AWS_REGION],
+            'region': utils.get_environment_variable(constants.AWS_REGION, default=''),
             'memorySize': int(memory_size) if memory_size is not None else None
 
         }
