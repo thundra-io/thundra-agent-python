@@ -16,22 +16,10 @@ def should_disable(disable_by_env, disable_by_param=False):
     return disable_by_param
 
 
-def get_common_report_data_from_environment_variable():
-    aws_lambda_log_stream = get_environment_variable(constants.AWS_LAMBDA_LOG_STREAM_NAME)
-    log_stream = aws_lambda_log_stream.split("]")[1] if aws_lambda_log_stream is not None else ''
-    aws_lambda_function_version = get_environment_variable(constants.AWS_LAMBDA_FUNCTION_VERSION)
-    application_version = aws_lambda_function_version or ''
-    thundra_application_profile = get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE)
-    application_profile = thundra_application_profile or ''
-    aws_region = get_environment_variable(constants.AWS_REGION)
-    region = aws_region or ''
-    data = {
-        constants.AWS_LAMBDA_LOG_STREAM_NAME: log_stream,
-        constants.AWS_LAMBDA_FUNCTION_VERSION: application_version,
-        constants.THUNDRA_APPLICATION_PROFILE: application_profile,
-        constants.AWS_REGION: region
-    }
-    return data
+def get_application_id(context):
+    aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
+    applicationId = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
+    return applicationId
 
 
 #### memory ####

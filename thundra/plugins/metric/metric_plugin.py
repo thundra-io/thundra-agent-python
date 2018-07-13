@@ -21,7 +21,6 @@ class MetricPlugin:
         self.system_cpu_total_end = float(0)
         self.process_cpu_usage_start = float(0)
         self.process_cpu_usage_end = float(0)
-        self.common_data = utils.get_common_report_data_from_environment_variable()
         self.stat_data = {}
         self.reporter = {}
 
@@ -32,11 +31,11 @@ class MetricPlugin:
         self.stat_data = {
             'transactionId': data['transactionId'],
             'applicationName': getattr(context, 'function_name', None),
-            'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
-            'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
-            'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
+            'applicationId': utils.get_application_id(context),
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE) or '',
             'applicationType': 'python',
-            'functionRegion': self.common_data[constants.AWS_REGION],
+            'functionRegion': utils.get_environment_variable(constants.AWS_REGION) or '',
             'statTimestamp': int(stat_time)
         }
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()

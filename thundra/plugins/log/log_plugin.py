@@ -11,7 +11,6 @@ class LogPlugin:
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
-        self.common_data = utils.get_common_report_data_from_environment_variable()
         self.log_data = {}
 
     def before_invocation(self, data):
@@ -21,9 +20,9 @@ class LogPlugin:
             'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
             'applicationName': getattr(context, 'function_name', None),
-            'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
-            'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
-            'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
+            'applicationId': utils.get_application_id(context),
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE) or '',
             'applicationType': 'python'
         }
 

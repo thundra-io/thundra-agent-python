@@ -16,7 +16,6 @@ class TracePlugin:
         }
         self.start_time = 0
         self.end_time = 0
-        self.common_data = utils.get_common_report_data_from_environment_variable()
         self.trace_data = {}
 
     def before_invocation(self, data):
@@ -28,14 +27,15 @@ class TracePlugin:
 
         context_id = str(uuid.uuid4())
         data['contextId'] = context_id
+
         self.start_time = time.time() * 1000
         self.trace_data = {
             'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
-            'applicationName': getattr(context, 'function_name', None),
-            'applicationId': self.common_data[constants.AWS_LAMBDA_LOG_STREAM_NAME],
-            'applicationVersion': self.common_data[constants.AWS_LAMBDA_FUNCTION_VERSION],
-            'applicationProfile': self.common_data[constants.THUNDRA_APPLICATION_PROFILE],
+            'applicationName': getattr(context, constants.CONTEXT_FUNCTION_NAME, None),
+            'applicationId': utils.get_application_id(context),
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE) or '',
             'applicationType': 'python',
             'duration': None,
             'startTimestamp': int(self.start_time),
@@ -43,10 +43,10 @@ class TracePlugin:
             'errors': [],
             'thrownError': None,
             'contextType': 'ExecutionContext',
-            'contextName': getattr(context, 'function_name', None),
+            'contextName': getattr(context, constants.CONTEXT_FUNCTION_NAME, None),
             'contextId': context_id,
             'auditInfo': {
-                'contextName': getattr(context, 'function_name', None),
+                'contextName': getattr(context, constants.CONTEXT_FUNCTION_NAME, None),
                 'id': context_id,
                 'openTimestamp': int(self.start_time),
                 'closeTimestamp': None,
@@ -57,8 +57,12 @@ class TracePlugin:
                 'request': event if data['request_skipped'] is False else None,
                 'response': None,
                 'coldStart': 'true' if TracePlugin.IS_COLD_START else 'false',
-                'functionRegion': self.common_data[constants.AWS_REGION],
-                'functionMemoryLimitInMB': getattr(context, 'memory_limit_in_mb', None)
+                'functionRegion': utils.get_environment_variable(constants.AWS_REGION) or '',
+                'functionMemoryLimitInMB': getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None),
+                'logGroupName': getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None),
+                'logStreamName': getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None),
+                'functionARN': getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN),
+                'requestId': getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
             }
 
         }

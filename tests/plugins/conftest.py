@@ -7,7 +7,7 @@ from thundra.thundra_agent import Thundra
 
 @pytest.fixture
 def thundra_with_profile(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_LOG_STREAM_NAME, '[]test')
+    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_APPLICATION_ID, '[]test')
     monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
@@ -25,7 +25,7 @@ def handler_with_profile(thundra_with_profile):
 
 @pytest.fixture
 def thundra_with_request_response_skip(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_LOG_STREAM_NAME, '[]test')
+    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_APPLICATION_ID, '[]test')
     monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP, 'true')
