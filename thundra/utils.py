@@ -76,11 +76,10 @@ def system_cpu_usage():
             system_cpu_used = 0
             system_cpu_total = 0
             count = 0
-            # count from /proc/stat: user, nice, system, idle, iowait, irc, softirq, steal, guest
             for usage in system_cpu_usages.split(' ')[2:]:
-                if count == 10:
+                if count == 5:
                     break
-                elif count == 0 or count == 2:
+                elif count != 3 and count != 4:
                     system_cpu_used += int(usage)
                 system_cpu_total += int(usage)
                 count += 1

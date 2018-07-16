@@ -107,16 +107,18 @@ class MetricPlugin:
         self.reporter.add_report(memory_stat_report)
 
     def add_cpu_stat_report(self):
-        self.system_cpu_total_end, self.system_cpu_usage_end = utils.system_cpu_usage()
         self.process_cpu_usage_end = utils.process_cpu_usage()
+        self.system_cpu_total_end, self.system_cpu_usage_end = utils.system_cpu_usage()
         process_cpu_load = 0
         system_cpu_load = 0
         system_cpu_total = self.system_cpu_total_end - self.system_cpu_total_start
         system_cpu_usage = self.system_cpu_usage_end - self.system_cpu_usage_start
         process_cpu_usage = self.process_cpu_usage_end - self.process_cpu_usage_start
         if system_cpu_total != 0:
-            process_cpu_load = process_cpu_usage/system_cpu_total
-            system_cpu_load = system_cpu_usage/system_cpu_total
+            cpu_load = process_cpu_usage/system_cpu_total
+            process_cpu_load = 1 if cpu_load > 1 else cpu_load
+            cpu_load = system_cpu_usage/system_cpu_total
+            system_cpu_load = 1 if cpu_load > 1 else cpu_load
 
         cpu_stat_data = {
             'id': str(uuid.uuid4()),
