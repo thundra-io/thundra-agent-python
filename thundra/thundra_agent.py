@@ -16,7 +16,13 @@ import thundra.utils as utils
 logger = logging.getLogger(__name__)
 
 class Thundra:
-    def __init__(self, api_key=None, disable_trace=False, disable_metric=False, disable_log=False, request_skip=False, response_skip=False):
+    def __init__(self,
+                 api_key=None,
+                 disable_trace=False,
+                 disable_metric=False,
+                 disable_log=False,
+                 request_skip=False,
+                 response_skip=False):
 
         constants.REQUEST_COUNT = 0
 
