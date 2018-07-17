@@ -145,6 +145,7 @@ class Thundra:
     def timeout_handler(self, signum, frame):
         if signum == signal.SIGALRM:
             self.data['timeout'] = True
+            self.data['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
 
     def prepare_and_send_reports(self):
