@@ -1,7 +1,12 @@
 import os
 import sys
+import copy
 
 from thundra import constants
+
+from importlib.machinery import PathFinder, ModuleSpec, SourceFileLoader
+from thundra.plugins.trace.traceable import Traceable
+
 
 
 def get_environment_variable(key, default=None):
@@ -87,3 +92,38 @@ def system_cpu_usage():
     except IOError as e:
         print('ERROR: %s' % e)
         sys.exit(3)
+
+#####################################################################
+##Utils for automatic instrumentation
+#####################################################################
+#gettig the list of the functions
+def string_to_list(target, indicator):
+    return target.split(indicator)
+
+def get_function_list():
+    target_functions = string_to_list(get_environment_variable(constants.THUDRA_INSTRUMENT_FUNCTION), constants.LIST_SEPARATOR)
+    return target_functions
+
+class ThundraFinder(PathFinder):
+
+    def __init__(self, module_name):
+        self.module_name = module_name
+
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname == self.module_name:
+            spec = super().find_spec(fullname, path, target)
+            loader = ThundraLoader(fullname, spec.origin)
+            return ModuleSpec(fullname, loader)
+
+#Loading the module in a load time
+class ThundraLoader(SourceFileLoader):
+
+    def exec_module(self, module):
+        super().exec_module(module)
+        #TO DO catch not found exception
+        allowed_functions = get_function_list()
+        for function in allowed_functions:
+            if function[0] != '_':
+                setattr(module, function, Traceable()(getattr(module, function))) 
+        
+        return module

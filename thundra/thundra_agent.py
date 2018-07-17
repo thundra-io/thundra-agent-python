@@ -4,6 +4,7 @@ from functools import wraps
 import time
 import uuid
 import logging
+import sys
 
 from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
@@ -170,4 +171,8 @@ class Thundra:
     def prepare_and_send_reports(self):
         self.execute_hook('after:invocation', self.data)
         self.reporter.send_report()
+
+    def patch(self):
+        sys.meta_path.insert(0, utils.ThundraFinder('businessLogic'))
+
 
