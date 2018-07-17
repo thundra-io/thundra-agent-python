@@ -173,4 +173,8 @@ class Thundra:
         self.execute_hook('after:invocation', self.data)
         self.reporter.send_report()
 
+    def patch(self):
+        sys.meta_path.insert(0, utils.ThundraFinder('businessLogic'))
+
+
 

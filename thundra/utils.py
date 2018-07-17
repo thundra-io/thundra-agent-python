@@ -141,4 +141,3 @@ def get_allowed_functions(module):
         if isinstance(prop, types.FunctionType):
             allowed_functions.append(str(prop))
     return allowed_functions
-    
