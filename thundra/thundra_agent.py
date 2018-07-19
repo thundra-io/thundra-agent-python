@@ -11,6 +11,7 @@ from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.plugins.patch.patcher import ImportPatcher
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
@@ -25,7 +26,8 @@ class Thundra:
                  disable_metric=False,
                  disable_log=False,
                  request_skip=False,
-                 response_skip=False):
+                 response_skip=False,
+                 patch_import=True):
 
         constants.REQUEST_COUNT = 0
 
@@ -66,6 +68,9 @@ class Thundra:
                            ') since nonpositive value cannot be given')
 
         self.reporter = Reporter(self.api_key)
+
+        if patch_import:
+            self.import_patcher = ImportPatcher()
 
     def __call__(self, original_func):
 
@@ -171,8 +176,5 @@ class Thundra:
     def prepare_and_send_reports(self):
         self.execute_hook('after:invocation', self.data)
         self.reporter.send_report()
-
-    def patch(self):
-        sys.meta_path.insert(0, utils.ThundraFinder('businessLogic'))
 
 

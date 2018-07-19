@@ -94,36 +94,49 @@ def system_cpu_usage():
         sys.exit(3)
 
 #####################################################################
-##Utils for automatic instrumentation
+###
 #####################################################################
-#gettig the list of the functions
+
+
+class Singleton(object):
+  _instances = {}
+  def __new__(class_, *args, **kwargs):
+    if class_ not in class_._instances:
+        class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
+    return class_._instances[class_]
+
+def get_all_env_variables():
+    return os.environ
+
+def get_module_name(module):
+    return module.__name__
+
 def string_to_list(target, indicator):
     return target.split(indicator)
 
-def get_function_list():
-    target_functions = string_to_list(get_environment_variable(constants.THUDRA_INSTRUMENT_FUNCTION), constants.LIST_SEPARATOR)
-    return target_functions
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
 
-class ThundraFinder(PathFinder):
+def process_trace_def_env_var(value):
+    value = value.strip().split('[')
+    path = value[0].split('.')
+    trace_args = {}
 
-    def __init__(self, module_name):
-        self.module_name = module_name
+    function_prefix = path[-1][:-1] if path[-1] != '*' else ''
+    module_path = ".".join(path[:-1])
+    trace_string = value[1].strip(']').split(',')
+    for arg  in trace_string:
+        arg = arg.split('=')
+        try:
+            trace_args[arg[0]] = arg[1]
+        except:
+            pass
 
-    def find_spec(self, fullname, path=None, target=None):
-        if fullname == self.module_name:
-            spec = super().find_spec(fullname, path, target)
-            loader = ThundraLoader(fullname, spec.origin)
-            return ModuleSpec(fullname, loader)
+    return module_path, function_prefix, trace_args
 
-#Loading the module in a load time
-class ThundraLoader(SourceFileLoader):
-
-    def exec_module(self, module):
-        super().exec_module(module)
-        #TO DO catch not found exception
-        allowed_functions = get_function_list()
-        for function in allowed_functions:
-            if function[0] != '_':
-                setattr(module, function, Traceable()(getattr(module, function))) 
-        
-        return module
+def get_allowed_functions(module):
+    allowed_functions = []
+    for prop in vars(module):
+        allowed_functions.append(str(prop))
+    return allowed_functions
+    
