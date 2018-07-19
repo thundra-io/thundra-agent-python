@@ -17,6 +17,7 @@ THUNDRA_LAMBDA_WARMUP_WARMUPAWARE = 'thundra_lambda_warmup_warmupAware'
 THUNDRA_LAMBDA_PUBLISH_REST_BASEURL = 'thundra_lambda_publish_rest_baseUrl'
 THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra_lambda_timeout_margin'
 THUDRA_INSTRUMENT_FUNCTION = 'thundra_instrument_function'
+THUDRA_TRACE_DEF = 'thundra_trace_def'
 
 THUNDRA_APPLICATION_PROFILE = 'thundra_applicationProfile'
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
@@ -31,6 +32,10 @@ CONTEXT_INVOKED_FUNCTION_ARN = 'invoked_function_arn'
 CONTEXT_AWS_REQUEST_ID = 'aws_request_id'
 CONTEXT_LOG_GROUP_NAME = 'log_group_name'
 CONTEXT_LOG_STREAM_NAME = 'log_stream_name'
+
+TRACE_ARGS = 'trace_args'
+TRACE_RETURN_VALUE = 'trace_return_value'
+TRACE_ERROR = 'trace_error'
 
 LIST_SEPARATOR = ','
 
