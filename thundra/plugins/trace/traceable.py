@@ -19,7 +19,8 @@ class Traceable:
         @wraps(original_func)
         def trace(*args, **kwargs):
             parent_span = self.tracer.get_active_span()
-            span = self.tracer.start_span(original_func.__name__, child_of=parent_span)
+            scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span, ignore_active_span=False)
+            span = scope.span
             try:
                 if self._trace_args is True:
                     function_args_list = []
@@ -53,6 +54,6 @@ class Traceable:
                     span.set_tag('thrownError', type(e).__name__)
                 raise e
             finally:
-                span.finish()
+                scope.close()
             return response
         return trace

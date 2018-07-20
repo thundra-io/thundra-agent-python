@@ -1,4 +1,5 @@
-from threading import Lock
+from threading import Lock, local
+
 
 class RecordEvents:
     START_SPAN = 'start_span'
@@ -49,32 +50,29 @@ class InMemoryRecorder:
                 self._record_finish_span()
 
     def _record_start_span(self, span):
-        self._add_span(span)
-        self._active_span_stack.append(Node(span))
+        node = Node(span)
+        self._add_span(node)
+        self._active_span_stack.append(node)
 
     def _record_finish_span(self):
         self._active_span_stack.pop()
 
     def _add_span(self, span):
-        parent_node = None
-        parent_span_id = span.context.parent_span_id
+        parent_span_id = span.key.context.parent_span_id
         if parent_span_id is not None:
             for key in self.nodes:
                 if key.span_id == parent_span_id:
                     parent_node = key
+                    parent_node.add_child(span)
         elif self._active_span_stack is not None:
             if len(self._active_span_stack) == 0:
-                self._span_tree = Node(span)
-                self._add_node(span, parent_node)
+                self._span_tree = span
+                self.nodes[span.key] = span
                 return
             if len(self._active_span_stack) > 0:
                 parent_node = self._active_span_stack[-1]
-        self._span_tree = parent_node
-        self._span_tree.add_child(Node(span))
-        self._add_node(span, parent_node)
+                parent_node.add_child(span)
+        self.nodes[span.key] = span
 
-    def _add_node(self, key, parent=None):
-        node = Node(key)
-        self.nodes[key] = node
-        if parent is not None:
-            self.nodes[parent.key].add_child(key)
+
+
