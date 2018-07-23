@@ -21,7 +21,6 @@ def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch)
 
 
 def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event):
-
     thundra, handler = handler_with_profile
 
     trace_plugin = None
@@ -69,7 +68,6 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
 
 
 def test_report(handler_with_profile, mock_context, mock_event):
-
     thundra, handler = handler_with_profile
 
     trace_plugin = None
@@ -102,10 +100,10 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     assert trace_plugin.trace_data['properties']['functionRegion'] == 'region'
     assert trace_plugin.trace_data['properties']['functionMemoryLimitInMB'] == '128'
+    assert trace_plugin.trace_data['properties']['timeout'] == 'false'
 
 
 def test_if_request_response_is_skipped(handler_with_request_response_skip, mock_context, mock_event):
-
     thundra, handler = handler_with_request_response_skip
 
     trace_plugin = None

@@ -145,6 +145,8 @@ class Thundra:
     def timeout_handler(self, signum, frame):
         if signum == signal.SIGALRM:
             self.data['timeout'] = True
+            # Pass it to trace plugin, ES currently doesn't allow boolean so pass it as a string.
+            self.data['timeoutString'] = 'true'
             self.data['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
 
