@@ -6,7 +6,6 @@ from thundra import constants
 
 
 class TracePlugin:
-
     IS_COLD_START = True
 
     def __init__(self):
@@ -62,7 +61,8 @@ class TracePlugin:
                 'logGroupName': getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None),
                 'logStreamName': getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None),
                 'functionARN': getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN),
-                'requestId': getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
+                'requestId': getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None),
+                'timeout': 'false'
             }
 
         }
@@ -90,6 +90,7 @@ class TracePlugin:
         self.trace_data['duration'] = int(duration)
         self.trace_data['endTimestamp'] = int(self.end_time)
         self.trace_data['auditInfo']['closeTimestamp'] = int(self.end_time)
+        self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
 
         reporter = data['reporter']
         report_data = {
@@ -99,6 +100,3 @@ class TracePlugin:
             'data': self.trace_data
         }
         reporter.add_report(report_data)
-
-
-
