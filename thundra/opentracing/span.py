@@ -43,6 +43,10 @@ class ThundraSpan(opentracing.Span):
     def context(self):
         return self._context
 
+    @context.setter
+    def context(self, value):
+        self._context = value
+
     def set_operation_name(self, operation_name):
         with self._lock:
             self.operation_name = operation_name

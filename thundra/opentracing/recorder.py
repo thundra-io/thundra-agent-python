@@ -62,7 +62,7 @@ class InMemoryRecorder:
         if parent_span_id is not None:
             for key in self.nodes:
                 if key.span_id == parent_span_id:
-                    parent_node = key
+                    parent_node = self.nodes[key]
                     parent_node.add_child(span)
         elif self._active_span_stack is not None:
             if len(self._active_span_stack) == 0:

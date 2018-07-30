@@ -23,6 +23,10 @@ class ThundraSpanContext(opentracing.SpanContext):
         with self._lock:
          return self._span_id
 
+    @span_id.setter
+    def span_id(self, value):
+        self._span_id = value
+
     @property
     def parent_span_id(self):
         with self._lock:

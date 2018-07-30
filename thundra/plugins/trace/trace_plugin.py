@@ -15,7 +15,7 @@ class TracePlugin:
             'after:invocation': self.after_invocation
         }
         self.tracer = ThundraTracer.getInstance()
-        self.span = None
+        self.scope = None
         self.start_time = 0
         self.end_time = 0
         self.trace_data = {}
@@ -62,7 +62,11 @@ class TracePlugin:
             }
 
         }
-        self.span = self.tracer.start_span(function_name, start_time=self.start_time)
+        self.scope = self.tracer.start_active_span(operation_name=function_name,
+                                                   start_time=self.start_time,
+                                                   finish_on_close=True)
+
+
         TracePlugin.IS_COLD_START = False
 
     def after_invocation(self, data):
@@ -70,8 +74,9 @@ class TracePlugin:
         duration = self.end_time - self.start_time
         self.trace_data['duration'] = duration
         self.trace_data['endTimestamp'] = self.end_time
+        self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
 
-        self.span.finish(f_time=self.end_time)
+        self.scope.close()
         span_tree = self.tracer.recorder.span_tree if self.tracer is not None else None
         if span_tree is not None:
             self.trace_data['auditInfo'] = self.build_audit_info(span_tree)
@@ -99,7 +104,6 @@ class TracePlugin:
             self.trace_data['properties']['response'] = data['response']
             self.trace_data['auditInfo']['props']['RESPONSE'] = data['response']
 
-        self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
 
         reporter = data['reporter']
         report_data = {

@@ -1,4 +1,5 @@
 import signal
+import threading
 from functools import wraps
 import time
 import uuid
@@ -85,16 +86,17 @@ class Thundra:
             self.data['transactionId'] = str(uuid.uuid4())
 
             self.execute_hook('before:invocation', self.data)
-            signal.signal(signal.SIGALRM, self.timeout_handler)
+            if threading.current_thread().__class__.__name__ == '_MainThread':
+                signal.signal(signal.SIGALRM, self.timeout_handler)
 
-            if hasattr(context, 'get_remaining_time_in_millis'):
-                timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
-                if timeout_duration <= 0:
-                    timeout_duration = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
-                    logger.warning('Given timeout margin is bigger than lambda timeout duration and '
-                                   'since the difference is negative, it is set to default value (' +
-                                   str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
-                signal.setitimer(signal.ITIMER_REAL, timeout_duration/1000.0)
+                if hasattr(context, 'get_remaining_time_in_millis'):
+                    timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
+                    if timeout_duration <= 0:
+                        timeout_duration = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                        logger.warning('Given timeout margin is bigger than lambda timeout duration and '
+                                       'since the difference is negative, it is set to default value (' +
+                                       str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+                    signal.setitimer(signal.ITIMER_REAL, timeout_duration/1000.0)
             try:
                 response = original_func(event, context)
                 if self.response_skipped is False:
@@ -104,7 +106,8 @@ class Thundra:
                 self.prepare_and_send_reports()
                 raise e
             finally:
-                signal.setitimer(signal.ITIMER_REAL, 0)
+                if threading.current_thread().__class__.__name__ == '_MainThread':
+                    signal.setitimer(signal.ITIMER_REAL, 0)
             self.prepare_and_send_reports()
             return response
 
@@ -149,7 +152,8 @@ class Thundra:
             return False
 
     def timeout_handler(self, signum, frame):
-        if signum == signal.SIGALRM:
+        current_thread = threading.current_thread().__class__.__name__
+        if current_thread == '_MainThread' and signum == signal.SIGALRM:
             self.data['timeout'] = True
             # Pass it to trace plugin, ES currently doesn't allow boolean so pass it as a string.
             self.data['timeoutString'] = 'true'
