@@ -12,12 +12,12 @@ from importlib.machinery import PathFinder, ModuleSpec, SourceFileLoader
 class ImportPatcher(utils.Singleton):
 
     def __init__(self):
-        self.modules_map = self.process_env_var_modules_to_instrument()
+        self.modules_map = self.__process_env_var_modules_to_instrument()
 
         for module_path in self.modules_map.keys():
             sys.meta_path.insert(0, ThundraFinder(module_path))
 
-    def process_env_var_modules_to_instrument(self):
+    def __process_env_var_modules_to_instrument(self):
         modules = {}
         for env_variable, value in utils.get_all_env_variables().items():
             if env_variable.startswith(constants.THUDRA_TRACE_DEF):
@@ -74,7 +74,7 @@ class ThundraLoader(SourceFileLoader):
         try:
             trace_error= utils.str2bool(trace_args_list[constants.TRACE_ERROR])
         except:
-            trace_error = False
+            trace_error = True
 
         allowed_functions = utils.get_allowed_functions(module)
 

@@ -1,6 +1,7 @@
 import os
 import sys
 import copy
+import types
 
 from thundra import constants
 
@@ -137,6 +138,7 @@ def process_trace_def_env_var(value):
 def get_allowed_functions(module):
     allowed_functions = []
     for prop in vars(module):
-        allowed_functions.append(str(prop))
+        if isinstance(prop, types.FunctionType):
+            allowed_functions.append(str(prop))
     return allowed_functions
     
