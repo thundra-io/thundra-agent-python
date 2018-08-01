@@ -5,13 +5,6 @@ from threading import Lock
 import opentracing
 from thundra.opentracing.recorder import RecordEvents
 
-class SpanLog:
-    def __init__(self,
-                 key_values,
-                 timestamp=None):
-        self.timestamp = timestamp or time.time()
-        self.key_values = key_values
-
 
 class ThundraSpan(opentracing.Span):
     def __init__(self,
@@ -70,7 +63,9 @@ class ThundraSpan(opentracing.Span):
 
     def log_kv(self, key_values, timestamp=None):
         with self._lock:
-            self.logs.append(SpanLog(key_values, timestamp))
+            log = key_values
+            log['timestamp'] = timestamp
+            self.logs.append(log)
         return super(ThundraSpan, self).log_kv(key_values, timestamp)
 
     def set_baggage_item(self, key, value):

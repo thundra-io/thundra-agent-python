@@ -58,7 +58,7 @@ class ThundraTracer(opentracing.Tracer):
 
         if not ignore_active_span and parent_context is None:
             scope = self.scope_manager.active
-            if scope is not None:
+            if scope is not None and scope.span is not None:
                 parent_context = scope.span.context
 
         parent_span_id = None

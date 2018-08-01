@@ -37,6 +37,10 @@ class InMemoryRecorder:
     def span_tree(self):
         return self._span_tree
 
+    @property
+    def active_span_stack(self):
+        return self._active_span_stack
+
     def get_active_span(self):
         if self._active_span_stack is not None and len(self._active_span_stack) > 0:
             return self._active_span_stack[-1].key
@@ -55,7 +59,8 @@ class InMemoryRecorder:
         self._active_span_stack.append(node)
 
     def _record_finish_span(self):
-        self._active_span_stack.pop()
+        if len(self._active_span_stack) > 0:
+            self._active_span_stack.pop()
 
     def _add_span(self, span):
         parent_span_id = span.key.context.parent_span_id

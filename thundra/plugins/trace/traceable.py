@@ -15,6 +15,18 @@ class Traceable:
     def tracer(self):
         return self._tracer
 
+    @property
+    def trace_args(self):
+        return self._trace_args
+
+    @property
+    def trace_return_value(self):
+        return self._trace_return_value
+
+    @property
+    def trace_error(self):
+        return self._trace_error
+
     def __call__(self, original_func):
         @wraps(original_func)
         def trace(*args, **kwargs):
@@ -22,7 +34,6 @@ class Traceable:
             parent_span = parent_scope.span if parent_scope is not None else None
 
             scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span)
-            print(original_func.__name__ + ' is child of ' + parent_span.operation_name)
             try:
                 if self._trace_args is True:
                     function_args_list = []
@@ -52,10 +63,24 @@ class Traceable:
                     }
                     scope.span.set_tag('RETURN_VALUE', return_value)
             except Exception as e:
+                error_type = type(e)
+                exception = {
+                    'errorType': error_type.__name__,
+                    'errorMessage': str(e),
+                    'args': e.args,
+                    'cause': e.__cause__
+                }
                 if self._trace_error is True:
-                    scope.span.set_tag('thrownError', type(e).__name__)
+                    scope.span.set_tag('thrownError', type(error_type).__name__)
+                    errors = []
+                    if scope.span.get_tag('errors') is not None:
+                        errors = scope.span.get_tag('errors')
+                    errors.append(exception)
+                    scope.span.set_tag('errors', errors)
                 raise e
             finally:
                 scope.close()
             return response
         return trace
+
+    call = __call__

@@ -47,7 +47,16 @@ class TracePlugin:
             'contextType': 'ExecutionContext',
             'contextName': function_name,
             'contextId': context_id,
-            'auditInfo': {},
+            'auditInfo': {
+                'id': str(uuid.uuid4()),
+                'contextName': function_name,
+                'openTimestamp': self.start_time,
+                'props': {
+                    'REQUEST': data['event'] if data['request_skipped'] is False else None
+                },
+                'children': []
+
+            },
             'properties': {
                 'request': data['event'] if data['request_skipped'] is False else None,
                 'response': None,
@@ -71,17 +80,19 @@ class TracePlugin:
 
     def after_invocation(self, data):
         self.end_time = int(time.time() * 1000)
+        self.scope.close()
+
         duration = self.end_time - self.start_time
+
         self.trace_data['duration'] = duration
+        self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['endTimestamp'] = self.end_time
         self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
 
-        self.scope.close()
         span_tree = self.tracer.recorder.span_tree if self.tracer is not None else None
-        if span_tree is not None:
-            self.trace_data['auditInfo'] = self.build_audit_info(span_tree)
 
-        self.trace_data['auditInfo']['props']['REQUEST'] = data['event'] if data['request_skipped'] is False else None
+        self.trace_data['auditInfo']['closeTimestamp'] = self.end_time
+        self.trace_data['auditInfo']['children'] = self.create_children_audtit_info(span_tree)
 
         if 'error' in data:
             error = data['error']
@@ -95,7 +106,10 @@ class TracePlugin:
             self.trace_data['errors'] = self.trace_data['errors'] or []
             self.trace_data['errors'].append(error_type.__name__)
             self.trace_data['thrownError'] = error_type.__name__
-            self.trace_data['auditInfo']['errors'] = self.trace_data['auditInfo']['errors'] or []
+            errors = []
+            if 'errors' in self.trace_data['auditInfo']:
+                errors = self.trace_data['auditInfo']['errors']
+            self.trace_data['auditInfo']['errors'] = errors
             self.trace_data['auditInfo']['errors'].append(exception)
             self.trace_data['auditInfo']['thrownError'] = exception
             self.trace_data['auditInfo']['closeTimestamp'] = self.end_time
@@ -114,10 +128,19 @@ class TracePlugin:
         }
         reporter.add_report(report_data)
 
+
+    def create_children_audtit_info(self, node):
+        auditInfos = []
+        children = node.children
+        for child in children:
+            auditInfos.append(self.build_audit_info(child))
+
+        return auditInfos
+
     def build_audit_info(self, node):
         if node is None:
             return None
-        root_audit_info = self.convert_to_audit(node)
+        root_audit_info= self.convert_to_audit(node)
         children = node.children
         visited = [node]
         for child in children:
@@ -130,11 +153,19 @@ class TracePlugin:
     @staticmethod
     def convert_to_audit(node):
         close_time = node.key.start_time + node.key.duration
+        thrownError = None
+        if 'thrownError' in node.key.tags:
+            thrownError = node.key.tags['thrownError']
+        errors = None
+        if 'errors' in node.key.tags:
+            errors = node.key.tags['errors']
         audit_info = {
             'contextName': node.key.operation_name,
             'id': node.key.span_id,
             'openTimestamp': int(node.key.start_time),
             'closeTimestamp': int(close_time),
+            'thrownError': thrownError,
+            'errors': errors,
             'props': node.key.tags,
             'children': []
         }
