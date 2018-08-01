@@ -27,7 +27,7 @@ class Thundra:
                  disable_log=False,
                  request_skip=False,
                  response_skip=False,
-                 patch_import=True):
+                 trace_instrument_disable=False):
 
         constants.REQUEST_COUNT = 0
 
@@ -60,6 +60,9 @@ class Thundra:
         is_warmup_aware_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE)
         self.warmup_aware = utils.should_disable(is_warmup_aware_by_env)
 
+        thundra_lambda_trace_instrument_disable = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)
+        self.trace_instrument_disable = utils.should_disable(thundra_lambda_trace_instrument_disable)
+
         timeout_margin = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
         self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
         if self.timeout_margin <= 0:
@@ -69,7 +72,7 @@ class Thundra:
 
         self.reporter = Reporter(self.api_key)
 
-        if patch_import:
+        if not trace_instrument_disable:
             self.import_patcher = ImportPatcher()
 
     def __call__(self, original_func):
