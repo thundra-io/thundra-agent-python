@@ -71,15 +71,32 @@ class TracePlugin:
 
     def after_invocation(self, data):
         self.end_time = int(time.time() * 1000)
+        self.scope.close()
+        if self.scope.span is not None and self.scope.span.duration != -1:
+            self.end_time = self.scope.span.start_time + self.scope.span.duration
+
         duration = self.end_time - self.start_time
+
         self.trace_data['duration'] = duration
+        self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['endTimestamp'] = self.end_time
         self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
 
-        self.scope.close()
         span_tree = self.tracer.recorder.span_tree if self.tracer is not None else None
         if span_tree is not None:
-            self.trace_data['auditInfo'] = self.build_audit_info(span_tree)
+            if span_tree.key.operation_name == self.trace_data['applicationName']:
+                self.trace_data['auditInfo'] = self.build_audit_info(span_tree)
+            else:
+                auditInfo = {
+                    'contextName': self.scope.span.operation_name,
+                    'id': self.scope.span.span_id,
+                    'openTimestamp': self.start_time,
+                    'closeTimestamp': self.end_time,
+                    'props': self.scope.span.tags,
+                    'children': []
+                }
+                self.trace_data['auditInfo'] = auditInfo
+                self.trace_data['auditInfo']['children'].append(self.build_audit_info(span_tree))
 
         self.trace_data['auditInfo']['props']['REQUEST'] = data['event'] if data['request_skipped'] is False else None
 
@@ -95,7 +112,10 @@ class TracePlugin:
             self.trace_data['errors'] = self.trace_data['errors'] or []
             self.trace_data['errors'].append(error_type.__name__)
             self.trace_data['thrownError'] = error_type.__name__
-            self.trace_data['auditInfo']['errors'] = self.trace_data['auditInfo']['errors'] or []
+            errors = []
+            if 'errors' in self.trace_data['auditInfo']:
+                errors = self.trace_data['auditInfo']['errors']
+            self.trace_data['auditInfo']['errors'] = errors
             self.trace_data['auditInfo']['errors'].append(exception)
             self.trace_data['auditInfo']['thrownError'] = exception
             self.trace_data['auditInfo']['closeTimestamp'] = self.end_time

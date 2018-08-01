@@ -84,9 +84,8 @@ def test_report(handler_with_profile, mock_context, mock_event):
     end_time = trace_plugin.trace_data['endTimestamp']
 
     duration = end_time - start_time
-    duration_in_ms = int(duration * 1000)
 
-    assert trace_plugin.trace_data['duration'] == duration_in_ms
+    assert trace_plugin.trace_data['duration'] == duration
     assert trace_plugin.trace_data['auditInfo']['openTimestamp'] == start_time
     assert trace_plugin.trace_data['auditInfo']['closeTimestamp'] == end_time
 
