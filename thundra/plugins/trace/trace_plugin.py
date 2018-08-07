@@ -99,9 +99,7 @@ class TracePlugin:
             error_type = type(error)
             exception = {
                 'errorType': error_type.__name__,
-                'errorMessage': str(error),
-                'args': error.args,
-                'cause': error.__cause__
+                'errorMessage': str(error)
             }
             self.trace_data['errors'] = self.trace_data['errors'] or []
             self.trace_data['errors'].append(error_type.__name__)
@@ -153,18 +151,21 @@ class TracePlugin:
     @staticmethod
     def convert_to_audit(node):
         close_time = node.key.start_time + node.key.duration
-        thrownError = None
-        if 'thrownError' in node.key.tags:
-            thrownError = node.key.tags['thrownError']
+        thrown_error = None
         errors = None
-        if 'errors' in node.key.tags:
-            errors = node.key.tags['errors']
+        if node.key.get_tag('error'):
+            thrown_error = {
+                'errorMessage': node.key.get_tag('error.message'),
+                'errorType': node.key.get_tag('error.kind')
+            }
+            errors = [thrown_error]
+
         audit_info = {
             'contextName': node.key.operation_name,
             'id': node.key.span_id,
             'openTimestamp': int(node.key.start_time),
             'closeTimestamp': int(close_time),
-            'thrownError': thrownError,
+            'thrownError': thrown_error,
             'errors': errors,
             'props': node.key.tags,
             'children': []
