@@ -20,7 +20,7 @@ class ImportPatcher(utils.Singleton):
     def __process_env_var_modules_to_instrument(self):
         modules = {}
         for env_variable, value in utils.get_all_env_variables().items():
-            if env_variable.startswith(constants.THUDRA_TRACE_DEF):
+            if env_variable.startswith(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE):
                 try:
                     module_path, function_prefix, arguments = utils.process_trace_def_env_var(value)
                 except:
@@ -30,14 +30,16 @@ class ImportPatcher(utils.Singleton):
         return modules
     
     def get_module_function_prefix(self, module_name):
-        if self.modules_map[module_name]:
+        try: 
             return self.modules_map[module_name][0]
-        return None
+        except:
+            return None
     
     def get_trace_arguments(self, module_name):
-        if self.modules_map[module_name]:
+        try: 
             return self.modules_map[module_name][1]
-        return None
+        except:
+            return None
     
 class ThundraFinder(PathFinder):
 
