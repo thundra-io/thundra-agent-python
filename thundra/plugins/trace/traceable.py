@@ -1,6 +1,7 @@
 from functools import wraps
 
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.serializable import Serializable
 
 
 class Traceable:
@@ -39,28 +40,43 @@ class Traceable:
                     function_args_list = []
                     count = 0
                     for arg in args:
+                        argument = arg
+                        if hasattr(arg, '__dict__'):
+                            if isinstance(arg, Serializable):
+                                argument = arg.serialize()
+                            else:
+                                argument = 'Not json serializable object'
                         function_args_dict = {
                             'argName': 'arg-' + str(count),
                             'argType': type(arg).__name__,
-                            'argValue': arg
+                            'argValue': argument
                         }
                         count += 1
                         function_args_list.append(function_args_dict)
                     if kwargs is not None:
                         for key, value in kwargs.items():
+                            argument = value
+                            if '__dict__' in value.__dir__():
+                                argument = value.__dict__
                             function_args_dict = {
                                 'argName': key,
                                 'argType': type(value).__name__,
-                                'argValue': value
+                                'argValue': argument
                             }
                             function_args_list.append(function_args_dict)
                     scope.span.set_tag('ARGS', function_args_list)
-                response = original_func(*args, **kwargs)
-                if self._trace_return_value is True and response is not None:
-                    return_value = {
-                        'returnValueType': type(response).__name__,
-                        'returnValue': response
-                    }
+                    response = original_func(*args, **kwargs)
+                    if self._trace_return_value is True and response is not None:
+                        resp = response
+                        if hasattr(response, '__dict__'):
+                            if isinstance(response, Serializable):
+                                resp = response.serialize()
+                            else:
+                                resp = 'Not json serializable object'
+                        return_value = {
+                            'returnValueType': type(response).__name__,
+                            'returnValue': resp
+                        }
                     scope.span.set_tag('RETURN_VALUE', return_value)
             except Exception as e:
                 error_type = type(e)

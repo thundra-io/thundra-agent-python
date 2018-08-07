@@ -13,6 +13,7 @@ from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
+from thundra.serializable import Serializable
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +101,13 @@ class Thundra:
             try:
                 response = original_func(event, context)
                 if self.response_skipped is False:
-                    self.data['response'] = response
+                    resp = response
+                    if hasattr(response, '__dict__'):
+                        if isinstance(response, Serializable):
+                            resp = response.serialize()
+                        else:
+                            resp = 'Not json serializable object'
+                    self.data['response'] = resp
             except Exception as e:
                 self.data['error'] = e
                 self.prepare_and_send_reports()
