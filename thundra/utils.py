@@ -138,6 +138,6 @@ def process_trace_def_env_var(value):
 def get_allowed_functions(module):
     allowed_functions = []
     for prop in vars(module):
-        if isinstance(prop, types.FunctionType):
-            allowed_functions.append(str(prop))
+        #TO DO: differentiate functions
+        allowed_functions.append(str(prop))
     return allowed_functions
