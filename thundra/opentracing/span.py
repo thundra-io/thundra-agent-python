@@ -77,3 +77,9 @@ class ThundraSpan(opentracing.Span):
     def get_baggage_item(self, key):
         with self._lock:
             return self.context.baggage.get(key)
+
+    def set_error_to_tag(self, err):
+        error_type = type(err)
+        self.set_tag('error', True)
+        self.set_tag('error.kind', error_type.__name__)
+        self.set_tag('error.message', str(err))
