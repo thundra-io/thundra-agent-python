@@ -20,7 +20,7 @@ class ImportPatcher(utils.Singleton):
     def __process_env_var_modules_to_instrument(self):
         modules = {}
         for env_variable, value in utils.get_all_env_variables().items():
-            if env_variable.startswith(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE):
+            if env_variable.startswith(constants.THUDRA_TRACE_DEF):
                 try:
                     module_path, function_prefix, arguments = utils.process_trace_def_env_var(value)
                 except:
