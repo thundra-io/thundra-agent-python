@@ -24,17 +24,32 @@ class InvocationPlugin:
         context = data['context']
         memory_size = getattr(context, 'memory_limit_in_mb', None)
         self.start_time = time.time() * 1000
+
+        function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+
+        self.start_time = int(time.time() * 1000)
+        active_span = self.tracer.get_active_span()
+
         self.invocation_data = {
-            #'id': str(uuid.uuid4()),
-            'traceId': '',
+            'id': str(uuid.uuid4()),
+            'type': "Log",
+            'agentVersion': '',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
+            'applicationId': utils.get_application_id(context),
+            'applicationDomainName': active_span.domain_name,
+            'applicationClassName': active_span.class_name,
+            'applicationName': function_name,
+            'applicationStage': '',
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationTags': {},
+
+            'traceId': active_span.trace_id,
             'transactionId': data['transactionId'],
-            'spanId': '',
+            'spanId': active_span.trace_id,
             'functionPlatform': 'python' #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
-            #'applicationId': utils.get_application_id(context),
-            #'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            #'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, default=''),
             'duration': None, 
             'startTimestamp': int(self.start_time),
             'finishTimestamp': None, #old name: endTimestamp

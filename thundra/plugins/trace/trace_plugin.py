@@ -32,18 +32,19 @@ class TracePlugin:
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
         self.start_time = int(time.time() * 1000)
+        active_span = self.tracer.get_active_span()
         self.trace_data = {
             'id': str(uuid.uuid4()),
-            'type': "Trace",
+            'type': "Log",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName':'',
-            'applicationClassName': 'ExecutionContext',
+            'applicationDomainName': active_span.domain_name,
+            'applicationClassName': active_span.class_name,
             'applicationName': function_name,
-            'applicationStage': '',
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationStage':'',
+            'applicationRuntime':'python',
+            'applicationRuntimeVersion':getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationTags': {},
 
             'rootSpanId': None,
@@ -88,14 +89,35 @@ class TracePlugin:
         reporter.add_report(report_data)
         reporter.add_report(self.span_data_list)
 
-    def build_span(self, span):
-        close_time = span.key.start_time + span.key.duration
+    def build_span(self, span, data):
+        close_time = span.start_time + span.duration
+        context = data['context']
+        function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+
         span_data = {
-            'contextName': span.operation_name,
-            'id': span.span_id,
-            'openTimestamp': int(span.key.start_time),
-            'closeTimestamp': int(close_time),
-            'props': span.tags,
-            'children': []
+            'id': str(uuid.uuid4()),
+            'type': "Span",
+            'agentVersion': '',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
+            'applicationId': utils.get_application_id(context),
+            'applicationDomainName': span.domain_name,
+            'applicationClassName': span.class_name,
+            'applicationName': function_name,
+            'applicationStage': '',
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationTags': {},
+
+            'traceId': span.trace_id,
+            'transactionID': data['transactionId'],
+            'parentSpanId': span.context.parent_span_id,
+            'spanOrder': -1,
+            'domainName': span.domain_name,
+            'className': span.class_name,
+            'serviceName': span.service_name,
+            'startTimestamp': span.start_time,
+            'finishTimestamp': close_time,
+            'duration': span.duration,
+            'tags':{}
         }
         return span_data
