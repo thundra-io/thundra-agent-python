@@ -50,7 +50,7 @@ class TracePlugin:
             'startTimestamp': self.start_time,
             'endTimestamp': None,
             'duration': None,
-            'tags' = {}
+            'tags': {},
         }
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
