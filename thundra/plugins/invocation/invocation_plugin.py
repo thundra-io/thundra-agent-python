@@ -3,6 +3,7 @@ import uuid
 
 from thundra import constants, utils
 import json
+from thundra.opentracing.tracer import ThundraTracer
 
 class InvocationPlugin:
 
@@ -27,6 +28,7 @@ class InvocationPlugin:
 
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
+        tracer = ThundraTracer()
         self.start_time = int(time.time() * 1000)
         active_span = self.tracer.get_active_span()
 
@@ -46,7 +48,7 @@ class InvocationPlugin:
 
             'traceId': active_span.trace_id,
             'transactionId': data['transactionId'],
-            'spanId': active_span.trace_id,
+            'spanId': active_span.span_id,
             'functionPlatform': 'python', #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
