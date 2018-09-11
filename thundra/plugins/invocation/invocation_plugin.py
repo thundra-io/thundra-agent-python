@@ -29,7 +29,7 @@ class InvocationPlugin:
             'traceId': '',
             'transactionId': data['transactionId'],
             'spanId': '',
-            'functionPlatform': 'python' #old name: applicationType
+            'functionPlatform': 'python', #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
             #'applicationId': utils.get_application_id(context),
