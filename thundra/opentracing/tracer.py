@@ -85,9 +85,6 @@ class ThundraTracer(opentracing.Tracer):
     def get_active_span(self):
         return self.recorder.get_active_span()
 
-    def get_span_tree(self):
-        return self.recorder.span_tree
-
     def record(self, event, span):
         self.recorder.record(event, span)
 

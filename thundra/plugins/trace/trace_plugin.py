@@ -19,6 +19,7 @@ class TracePlugin:
         self.start_time = 0
         self.end_time = 0
         self.trace_data = {}
+        self.span_data_list = []
 
     def before_invocation(self, data):
 
@@ -33,34 +34,23 @@ class TracePlugin:
         self.start_time = int(time.time() * 1000)
         self.trace_data = {
             'id': str(uuid.uuid4()),
-            'transactionId': data['transactionId'],
-            'applicationName': function_name,
+            'type': "Trace",
+            'agentVersion': '',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, ''),
-            'applicationType': 'python',
-            'duration': None,
+            'applicationDomainName':'',
+            'applicationClassName': 'ExecutionContext',
+            'applicationName': function_name,
+            'applicationStage': '',
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationTags': {},
+
+            'rootSpanId': None,
             'startTimestamp': self.start_time,
             'endTimestamp': None,
-            'errors': None,
-            'thrownError': None,
-            'contextType': 'ExecutionContext',
-            'contextName': function_name,
-            'contextId': context_id,
-            'auditInfo': {},
-            'properties': {
-                'request': data['event'] if data['request_skipped'] is False else None,
-                'response': None,
-                'coldStart': 'true' if TracePlugin.IS_COLD_START else 'false',
-                'functionRegion': utils.get_environment_variable(constants.AWS_REGION, ''),
-                'functionMemoryLimitInMB': getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None),
-                'logGroupName': getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None),
-                'logStreamName': getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None),
-                'functionARN': getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN),
-                'requestId': getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None),
-                'timeout': 'false'
-            }
-
+            'duration': None,
+            'tags' = {}
         }
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
@@ -77,87 +67,35 @@ class TracePlugin:
 
         duration = self.end_time - self.start_time
 
+        self.trace_data['root_span'] = self.scope
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['endTimestamp'] = self.end_time
-        self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
 
-        span_tree = self.tracer.recorder.span_tree if self.tracer is not None else None
-        if span_tree is not None:
-            if span_tree.key.operation_name == self.trace_data['applicationName']:
-                self.trace_data['auditInfo'] = self.build_audit_info(span_tree)
-            else:
-                auditInfo = {
-                    'contextName': self.scope.span.operation_name,
-                    'id': self.scope.span.span_id,
-                    'openTimestamp': self.start_time,
-                    'closeTimestamp': self.end_time,
-                    'props': self.scope.span.tags,
-                    'children': []
-                }
-                self.trace_data['auditInfo'] = auditInfo
-                self.trace_data['auditInfo']['children'].append(self.build_audit_info(span_tree))
-
-        self.trace_data['auditInfo']['props']['REQUEST'] = data['event'] if data['request_skipped'] is False else None
-
-        if 'error' in data:
-            error = data['error']
-            error_type = type(error)
-            exception = {
-                'errorType': error_type.__name__,
-                'errorMessage': str(error),
-                'args': error.args,
-                'cause': error.__cause__
-            }
-            self.trace_data['errors'] = self.trace_data['errors'] or []
-            self.trace_data['errors'].append(error_type.__name__)
-            self.trace_data['thrownError'] = error_type.__name__
-            errors = []
-            if 'errors' in self.trace_data['auditInfo']:
-                errors = self.trace_data['auditInfo']['errors']
-            self.trace_data['auditInfo']['errors'] = errors
-            self.trace_data['auditInfo']['errors'].append(exception)
-            self.trace_data['auditInfo']['thrownError'] = exception
-            self.trace_data['auditInfo']['closeTimestamp'] = self.end_time
-
-        if 'response' in data:
-            self.trace_data['properties']['response'] = data['response']
-            self.trace_data['auditInfo']['props']['RESPONSE'] = data['response']
+        span_stack = self.tracer.recorder.active_span_stack if self.tracer is not None else None
+        for span in span_stack:
+            current_span = self.build_span(span)
+            self.span_data_list.append(current_span)
 
 
         reporter = data['reporter']
         report_data = {
             'apiKey': reporter.api_key,
-            'type': 'AuditData',
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION,
+            'type': 'Trace',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'data': self.trace_data
         }
         reporter.add_report(report_data)
+        reporter.add_report(self.span_data_list)
 
-    def build_audit_info(self, node):
-        if node is None:
-            return None
-        root_audit_info = self.convert_to_audit(node)
-        children = node.children
-        visited = [node]
-        for child in children:
-            if child not in visited:
-                child_audit_info = self.build_audit_info(child)
-                root_audit_info['children'].append(child_audit_info)
-        return root_audit_info
-
-
-    @staticmethod
-    def convert_to_audit(node):
-        close_time = node.key.start_time + node.key.duration
-        audit_info = {
-            'contextName': node.key.operation_name,
-            'id': node.key.span_id,
-            'openTimestamp': int(node.key.start_time),
+    def build_span(self, span):
+        close_time = span.key.start_time + span.key.duration
+        span_data = {
+            'contextName': span.operation_name,
+            'id': span.span_id,
+            'openTimestamp': int(span.key.start_time),
             'closeTimestamp': int(close_time),
-            'props': node.key.tags,
+            'props': span.tags,
             'children': []
         }
-        if node.key.logs is not None and len(node.key.logs) > 0:
-            audit_info['props']['LOGS'] = node.key.logs
-        return audit_info
+        return span_data
