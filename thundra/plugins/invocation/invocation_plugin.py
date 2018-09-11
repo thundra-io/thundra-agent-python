@@ -46,8 +46,13 @@ class InvocationPlugin:
 
             'traceId': active_span.trace_id,
             'transactionId': data['transactionId'],
+<<<<<<< HEAD
             'spanId': active_span.trace_id,
             'functionPlatform': 'python' #old name: applicationType
+=======
+            'spanId': '',
+            'functionPlatform': 'python', #old name: applicationType
+>>>>>>> b134f7579aa4facac1e9ef6e1a2e5bf713a7fdab
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
             'duration': None, 
