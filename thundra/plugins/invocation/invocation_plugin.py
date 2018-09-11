@@ -58,7 +58,7 @@ class InvocationPlugin:
             'erroneous': False,
             'errorType': '',
             'errorMessage': '',
-            'errorCode': '', #new addition
+            'errorCode': -1, #new addition
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
             'tags': {}, #new addition
