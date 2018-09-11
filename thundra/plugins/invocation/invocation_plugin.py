@@ -25,24 +25,27 @@ class InvocationPlugin:
         memory_size = getattr(context, 'memory_limit_in_mb', None)
         self.start_time = time.time() * 1000
         self.invocation_data = {
-            'id': str(uuid.uuid4()),
+            #'id': str(uuid.uuid4()),
+            'traceId': '',
             'transactionId': data['transactionId'],
-            'applicationName': getattr(context, 'function_name', None),
-            'applicationId': utils.get_application_id(context),
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, default=''),
-            'applicationType': 'python',
-            'duration': None,
+            'spanId': '',
+            'functionPlatform': 'python' #old name: applicationType
+            'functionName': getattr(context, 'function_name', None), #old name: applicationName
+            'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
+            #'applicationId': utils.get_application_id(context),
+            #'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            #'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, default=''),
+            'duration': None, 
             'startTimestamp': int(self.start_time),
-            'endTimestamp': None,
+            'finishTimestamp': None, #old name: endTimestamp
             'erroneous': False,
             'errorType': '',
             'errorMessage': '',
+            'errorCode': '', #new addition
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
-            'region': utils.get_environment_variable(constants.AWS_REGION, default=''),
-            'memorySize': int(memory_size) if memory_size is not None else None
-
+            'tags': {}, #new addition
+            #'memorySize': int(memory_size) if memory_size is not None else None,
         }
         InvocationPlugin.IS_COLD_START = False
 
@@ -59,7 +62,7 @@ class InvocationPlugin:
         self.end_time = time.time() * 1000
         duration = self.end_time - self.start_time
         self.invocation_data['duration'] = int(duration)
-        self.invocation_data['endTimestamp'] = int(self.end_time)
+        self.invocation_data['finishTimestamp'] = int(self.end_time) # change: endTimestamp -> finishTimestamp
 
         reporter = data['reporter']
         report_data = {
