@@ -19,24 +19,22 @@ class LogPlugin:
         context = data['context']
         logs.clear()
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+        active_span = self.tracer.get_active_span()
         self.log_data = {
             'id': str(uuid.uuid4()),
             'type': "Log",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName':'',
-            'applicationClassName':'ExecutionContext',
+            'applicationDomainName': active_span.domain_name,
+            'applicationClassName': active_span.class_name,
             'applicationName': function_name,
             'applicationStage':'dev',
             'applicationRuntime':'python',
             'applicationRuntimeVersion':getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationTags': {},
 
-            #'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, ''),
-            'traceId': '',
             'transactionId': data['transactionId'],
-            'spanId':'',
             'tags': {}
         }
 
