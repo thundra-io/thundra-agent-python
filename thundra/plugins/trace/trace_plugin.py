@@ -112,9 +112,10 @@ class TracePlugin:
             'applicationDomainName': span.domain_name or '',
             'applicationClassName': span.class_name or '',
             'applicationName': function_name,
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
             'applicationRuntime': 'python',
-            'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationRuntimeVersion': '',
             'applicationTags': {},
 
             'traceId': span.trace_id,
