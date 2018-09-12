@@ -29,9 +29,10 @@ class LogPlugin:
             'applicationDomainName': active_span.domain_name,
             'applicationClassName': active_span.class_name,
             'applicationName': function_name,
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage':'dev',
             'applicationRuntime':'python',
-            'applicationRuntimeVersion':getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationRuntimeVersion': '',
             'applicationTags': {},
 
             'transactionId': data['transactionId'],

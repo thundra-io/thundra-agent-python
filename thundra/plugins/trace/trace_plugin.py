@@ -41,9 +41,10 @@ class TracePlugin:
             'applicationDomainName': 'root_{}'.format(str(uuid.uuid4())),
             'applicationClassName': 'root_{}'.format(str(uuid.uuid4())),
             'applicationName': function_name,
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage':'',
             'applicationRuntime':'python',
-            'applicationRuntimeVersion':getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationRuntimeVersion':'',
             'applicationTags': {},
 
             'rootSpanId': None,

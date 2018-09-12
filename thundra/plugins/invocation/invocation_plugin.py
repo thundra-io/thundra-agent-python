@@ -42,9 +42,10 @@ class InvocationPlugin:
             'applicationDomainName': 'root_{}'.format(str(uuid.uuid4())),
             'applicationClassName': 'root_{}'.format(str(uuid.uuid4())),
             'applicationName': function_name,
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
             'applicationRuntime': 'python',
-            'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationRuntimeVersion': '',
             'applicationTags': {},
 
             'traceId': 'root_trace_id_{}'.format(str(uuid.uuid4())),
@@ -59,7 +60,7 @@ class InvocationPlugin:
             'erroneous': False,
             'errorType': '',
             'errorMessage': '',
-            'errorCode': '', #new addition
+            'errorCode': -1, #new addition
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
             'tags': {}, #new addition
@@ -85,6 +86,8 @@ class InvocationPlugin:
             self.invocation_data['erroneous'] = True
             self.invocation_data['errorType'] = error_type.__name__
             self.invocation_data['errorMessage'] = str(error)
+            if hasattr(error, 'code'):
+                self.invocation_data['errorCode'] = error.code
 
         self.invocation_data['timeout'] = data.get('timeout', False)
 
