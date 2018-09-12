@@ -76,13 +76,11 @@ class TracePlugin:
         duration = self.end_time - self.start_time
 
         self.trace_data['rootSpanId'] = root_span.span_id
-        self.trace_data['applicationDomainName'] = root_span.domain_name if root_span is not None \
-                                        else self.trace_data['applicationDomainName']
-        self.trace_data['applicationClassName'] = root_span.class_name if root_span is not None \
-                                                        else self.trace_data['applicationClassName']
+        self.trace_data['applicationDomainName'] = root_span.domain_name or ''
+        self.trace_data['applicationClassName'] = root_span.class_name or ''
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
-        self.trace_data['endTimestamp'] = self.end_time
+        self.trace_data['finishTimestamp'] = self.end_time
 
 
 
