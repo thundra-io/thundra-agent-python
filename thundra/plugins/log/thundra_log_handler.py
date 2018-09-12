@@ -19,10 +19,10 @@ class ThundraLogHandler(logging.Handler):
             'span_id': active_span.span_id,
             'log': formatted_message,
             'logMessage': record.msg,
-            'loggerName': record.name,
+            'logContextName': record.name,
             'logTimestamp': int(record.created * 1000),
             'logLevel': record.levelname,
-            'logLevelId': record.levelno / 10
+            'logLevelCode': record.levelno / 10
         }
         logs.append(log)
 

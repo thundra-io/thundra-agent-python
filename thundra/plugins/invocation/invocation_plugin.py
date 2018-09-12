@@ -96,7 +96,7 @@ class InvocationPlugin:
         reporter = data['reporter']
         report_data = {
             'apiKey': reporter.api_key,
-            'type': 'InvocationData',
+            'type': 'Invocation',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'data': self.invocation_data
         }

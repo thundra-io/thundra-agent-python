@@ -53,13 +53,13 @@ class MetricPlugin:
         active_thread_counts = threading.active_count()
         thread_stat_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'ThreadStat',
+            'statName': 'ThreadMetric',
             'threadCount': active_thread_counts
         }
         thread_stat_data.update(self.stat_data)
         thread_stat_report = {
             'data': thread_stat_data,
-            'type': 'StatData',
+            'type': 'Metric',
             'apiKey': self.reporter.api_key,
             'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
@@ -69,7 +69,7 @@ class MetricPlugin:
         gc_stats = gc.get_stats()
         gc_stat_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'GCStat'
+            'statName': 'GCMetric'
         }
         gen = 0
         for stat in gc_stats:
@@ -79,7 +79,7 @@ class MetricPlugin:
         gc_stat_data.update(self.stat_data)
         gc_stat_report = {
             'data': gc_stat_data,
-            'type': 'StatData',
+            'type': 'Metric',
             'apiKey': self.reporter.api_key,
             'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
@@ -91,7 +91,7 @@ class MetricPlugin:
         used_mem = total_mem - free_mem
         memory_stat_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'MemoryStat',
+            'statName': 'MemoryMetric',
             'size': size,
             'resident': resident,
             'totalMemory': total_mem,
@@ -100,7 +100,7 @@ class MetricPlugin:
         memory_stat_data.update(self.stat_data)
         memory_stat_report = {
             'data': memory_stat_data,
-            'type': 'StatData',
+            'type': 'Metric',
             'apiKey': self.reporter.api_key,
             'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }
@@ -122,14 +122,14 @@ class MetricPlugin:
 
         cpu_stat_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'CPUStat',
+            'statName': 'CPUMetric',
             'processCpuLoad': process_cpu_load,
             'systemCpuLoad': system_cpu_load
         }
         cpu_stat_data.update(self.stat_data)
         cpu_stat_report = {
             'data': cpu_stat_data,
-            'type': 'StatData',
+            'type': 'Metric',
             'apiKey': self.reporter.api_key,
             'dataFormatVersion': constants.DATA_FORMAT_VERSION
         }

@@ -48,7 +48,7 @@ class TracePlugin:
 
             'rootSpanId': None,
             'startTimestamp': self.start_time,
-            'endTimestamp': None,
+            'finishTimestamp': None,
             'duration': None,
             'tags': {},
         }
