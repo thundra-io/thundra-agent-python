@@ -39,8 +39,8 @@ class InvocationPlugin:
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': 'root_{}'.format(str(uuid.uuid4())),
-            'applicationClassName': 'root_{}'.format(str(uuid.uuid4())),
+            'applicationDomainName': '',
+            'applicationClassName': '',
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
@@ -75,10 +75,8 @@ class InvocationPlugin:
                                                         else self.invocation_data['trace_id']
         self.invocation_data['spanId'] = active_span.span_id if active_span is not None \
                                                         else self.invocation_data['span_id']
-        self.invocation_data['applicationDomainName'] = active_span.domain_name if active_span is not None \
-                                                        else self.invocation_data['domain_name']
-        self.invocation_data['applicationClassName'] = active_span.class_name if active_span is not None \
-                                                        else self.invocation_data['class_name']
+        self.invocation_data['applicationDomainName'] = active_span.domain_name or ''
+        self.invocation_data['applicationClassName'] = active_span.class_name or ''
 
         if 'error' in data:
             error = data['error']
