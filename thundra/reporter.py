@@ -40,7 +40,7 @@ class Reporter:
         request_url = constants.HOST + constants.PATH
         base_url = utils.get_environment_variable(constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL)
         if base_url is not None:
-            request_url = base_url + '/monitor-data'
+            request_url = base_url + '/monitoring-data'
 
         response = requests.post(request_url, headers=headers, data=json.dumps(self.reports))
         logger.info(response)

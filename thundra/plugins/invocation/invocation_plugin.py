@@ -17,6 +17,7 @@ class InvocationPlugin:
         self.start_time = 0
         self.end_time = 0
         self.invocation_data = {}
+        self.tracer = ThundraTracer()
 
     def before_invocation(self, data):
         if constants.REQUEST_COUNT > 0:
@@ -28,27 +29,27 @@ class InvocationPlugin:
 
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
-        tracer = ThundraTracer()
+
         self.start_time = int(time.time() * 1000)
-        active_span = self.tracer.get_active_span()
+
 
         self.invocation_data = {
             'id': str(uuid.uuid4()),
-            'type': "Log",
+            'type': "Invocation",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': active_span.domain_name,
-            'applicationClassName': active_span.class_name,
+            'applicationDomainName': 'root_{}'.format(str(uuid.uuid4())),
+            'applicationClassName': 'root_{}'.format(str(uuid.uuid4())),
             'applicationName': function_name,
             'applicationStage': '',
             'applicationRuntime': 'python',
             'applicationRuntimeVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationTags': {},
 
-            'traceId': active_span.trace_id,
+            'traceId': 'root_trace_id_{}'.format(str(uuid.uuid4())),
             'transactionId': data['transactionId'],
-            'spanId': active_span.span_id,
+            'spanId': 'root_span_id{}'.format(str(uuid.uuid4())),
             'functionPlatform': 'python', #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
@@ -67,6 +68,17 @@ class InvocationPlugin:
         InvocationPlugin.IS_COLD_START = False
 
     def after_invocation(self, data):
+        active_span = self.tracer.get_active_span()
+
+        self.invocation_data['traceId'] = active_span.trace_id if active_span is not None \
+                                                        else self.invocation_data['trace_id']
+        self.invocation_data['spanId'] = active_span.span_id if active_span is not None \
+                                                        else self.invocation_data['span_id']
+        self.invocation_data['applicationDomainName'] = active_span.domain_name if active_span is not None \
+                                                        else self.invocation_data['domain_name']
+        self.invocation_data['applicationClassName'] = active_span.class_name if active_span is not None \
+                                                        else self.invocation_data['class_name']
+
         if 'error' in data:
             error = data['error']
             error_type = type(error)
@@ -85,7 +97,7 @@ class InvocationPlugin:
         report_data = {
             'apiKey': reporter.api_key,
             'type': 'InvocationData',
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION,
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'data': self.invocation_data
         }
         reporter.add_report(json.loads(json.dumps(report_data)))

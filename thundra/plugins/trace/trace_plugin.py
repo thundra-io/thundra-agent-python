@@ -32,15 +32,14 @@ class TracePlugin:
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
         self.start_time = int(time.time() * 1000)
-        active_span = self.tracer.get_active_span()
         self.trace_data = {
             'id': str(uuid.uuid4()),
             'type': "Log",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': active_span.domain_name,
-            'applicationClassName': active_span.class_name,
+            'applicationDomainName': 'root_{}'.format(str(uuid.uuid4())),
+            'applicationClassName': 'root_{}'.format(str(uuid.uuid4())),
             'applicationName': function_name,
             'applicationStage':'',
             'applicationRuntime':'python',
@@ -62,24 +61,33 @@ class TracePlugin:
 
     def after_invocation(self, data):
         self.end_time = int(time.time() * 1000)
+        root_span = self.tracer.recorder.get_root_span()
+        reporter = data['reporter']
+        span_stack = self.tracer.recorder.active_span_stack if self.tracer is not None else None
+        for span in span_stack:
+            current_span_data = self.wrap_span(self.build_span(span, data), reporter.api_key)
+            self.span_data_list.append(current_span_data)
+
         self.scope.close()
         if self.scope.span is not None and self.scope.span.duration != -1:
             self.end_time = self.scope.span.start_time + self.scope.span.duration
 
         duration = self.end_time - self.start_time
 
-        self.trace_data['root_span'] = self.scope
+        self.trace_data['rootSpanId'] = root_span.span_id
+        self.trace_data['applicationDomainName'] = root_span.domain_name if root_span is not None \
+                                        else self.trace_data['applicationDomainName']
+        self.trace_data['applicationClassName'] = root_span.class_name if root_span is not None \
+                                                        else self.trace_data['applicationClassName']
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['endTimestamp'] = self.end_time
 
-        span_stack = self.tracer.recorder.active_span_stack if self.tracer is not None else None
-        for span in span_stack:
-            current_span = self.build_span(span)
-            self.span_data_list.append(current_span)
 
 
-        reporter = data['reporter']
+
+
+
         report_data = {
             'apiKey': reporter.api_key,
             'type': 'Trace',
@@ -114,10 +122,20 @@ class TracePlugin:
             'spanOrder': -1,
             'domainName': span.domain_name,
             'className': span.class_name,
-            'serviceName': span.service_name,
+            'serviceName': '',
             'startTimestamp': span.start_time,
             'finishTimestamp': close_time,
             'duration': span.duration,
             'tags':{}
         }
         return span_data
+
+    def wrap_span(self, span_data, api_key):
+        report_data = {
+            'apiKey': api_key,
+            'type': 'Span',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
+            'data': span_data
+        }
+
+        return report_data
