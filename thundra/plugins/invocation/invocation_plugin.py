@@ -88,6 +88,17 @@ class InvocationPlugin:
             if hasattr(error, 'code'):
                 self.invocation_data['errorCode'] = error.code
 
+            #Adding tags
+            self.invocation_data['tags']['error'] = True
+            self.invocation_data['tags']['error.kind'] = error_type.__name__
+            self.invocation_data['tags']['error.message'] = str(error)
+            if hasattr(error, 'code'):
+                self.invocation_data['tags']['error.code'] = error.code
+            if hasattr(error, 'object'):
+                self.invocation_data['tags']['error.object'] = error.object
+            if hasattr(error, 'stack'):
+                self.invocation_data['tags']['error.stack'] = error.stack
+
         self.invocation_data['timeout'] = data.get('timeout', False)
 
         self.end_time = time.time() * 1000

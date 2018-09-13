@@ -92,6 +92,19 @@ class TracePlugin:
         }
         reporter.add_report(report_data)
         reporter.add_report(self.span_data_list)
+        if 'error' in data:
+            error = data['error']
+            error_type = type(error)
+            #Adding tags
+            self.trace_data['tags']['error'] = True
+            self.trace_data['tags']['error.kind'] = error_type.__name__
+            self.trace_data['tags']['error.message'] = str(error)
+            if hasattr(error, 'code'):
+                self.trace_data['tags']['error.code'] = error.code
+            if hasattr(error, 'object'):
+                self.trace_data['tags']['error.object'] = error.object
+            if hasattr(error, 'stack'):
+                self.trace_data['tags']['error.stack'] = error.stack
 
     def build_span(self, span, data):
         close_time = span.start_time + span.duration

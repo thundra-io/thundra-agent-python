@@ -55,4 +55,19 @@ class LogPlugin:
                 'dataModelVersion': constants.DATA_FORMAT_VERSION
             }
             reporter.add_report(log_report)
+
+        if 'error' in data:
+            error = data['error']
+            error_type = type(error)
+            #Adding tags
+            self.log_data['tags']['error'] = True
+            self.log_data['tags']['error.kind'] = error_type.__name__
+            self.log_data['tags']['error.message'] = str(error)
+            if hasattr(error, 'code'):
+                self.log_data['tags']['error.code'] = error.code
+            if hasattr(error, 'object'):
+                self.log_data['tags']['error.object'] = error.object
+            if hasattr(error, 'stack'):
+                self.log_data['tags']['error.stack'] = error.stack
+
         logs.clear()
