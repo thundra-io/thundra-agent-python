@@ -4,7 +4,7 @@ import uuid
 import thundra.utils as utils
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
-
+import sys
 
 
 class TracePlugin:
@@ -46,7 +46,7 @@ class TracePlugin:
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage':'',
             'applicationRuntime':'python',
-            'applicationRuntimeVersion':'',
+            'applicationRuntimeVersion': sys.version_info[0],
             'applicationTags': {},
 
             'rootSpanId': None,
@@ -110,7 +110,7 @@ class TracePlugin:
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
             'applicationRuntime': 'python',
-            'applicationRuntimeVersion': '',
+            'applicationRuntimeVersion': sys.version_info[0],
             'applicationTags': {},
 
             'traceId': span.trace_id,

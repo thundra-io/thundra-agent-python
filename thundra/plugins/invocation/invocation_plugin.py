@@ -1,5 +1,6 @@
 import time
 import uuid
+import sys
 
 from thundra import constants, utils
 import json
@@ -45,7 +46,7 @@ class InvocationPlugin:
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
             'applicationRuntime': 'python',
-            'applicationRuntimeVersion': '',
+            'applicationRuntimeVersion': sys.version_info[0],
             'applicationTags': {},
 
             'traceId': 'root_trace_id_{}'.format(str(uuid.uuid4())),

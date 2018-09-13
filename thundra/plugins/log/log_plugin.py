@@ -1,4 +1,5 @@
 import uuid
+import sys
 
 from thundra import utils, constants
 from thundra.plugins.log.thundra_log_handler import logs
@@ -32,7 +33,7 @@ class LogPlugin:
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage':'dev',
             'applicationRuntime':'python',
-            'applicationRuntimeVersion': '',
+            'applicationRuntimeVersion': sys.version_info[0],
             'applicationTags': {},
 
             'transactionId': data['transactionId'],
