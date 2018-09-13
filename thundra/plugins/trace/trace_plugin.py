@@ -139,6 +139,19 @@ class TracePlugin:
             'duration': span.duration,
             'tags':{}
         }
+        if 'error' in data:
+            error = data['error']
+            error_type = type(error)
+            # Adding tags
+            self.span_data['tags']['error'] = True
+            self.span_data['tags']['error.kind'] = error_type.__name__
+            self.span_data['tags']['error.message'] = str(error)
+            if hasattr(error, 'code'):
+                self.span_data['tags']['error.code'] = error.code
+            if hasattr(error, 'object'):
+                self.span_data['tags']['error.object'] = error.object
+            if hasattr(error, 'stack'):
+                self.span_data['tags']['error.stack'] = error.stack
         return span_data
 
     def wrap_span(self, span_data, api_key):
