@@ -6,6 +6,7 @@ from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
 
 
+
 class TracePlugin:
     IS_COLD_START = True
 
@@ -20,6 +21,7 @@ class TracePlugin:
         self.end_time = 0
         self.trace_data = {}
         self.span_data_list = []
+        self.root_span = None
 
     def before_invocation(self, data):
 
@@ -34,7 +36,7 @@ class TracePlugin:
         self.start_time = int(time.time() * 1000)
         self.trace_data = {
             'id': str(uuid.uuid4()),
-            'type': "Log",
+            'type': "Trace",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
@@ -56,24 +58,24 @@ class TracePlugin:
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
                                                    finish_on_close=True)
-
+        self.root_span = self.tracer.recorder.get_active_span()
 
         TracePlugin.IS_COLD_START = False
 
     def after_invocation(self, data):
         self.end_time = int(time.time() * 1000)
-        root_span = self.tracer.recorder.get_root_span()
-        reporter = data['reporter']
-        span_stack = self.tracer.recorder.active_span_stack if self.tracer is not None else None
-        for span in span_stack:
-            current_span_data = self.wrap_span(self.build_span(span, data), reporter.api_key)
-            self.span_data_list.append(current_span_data)
-
         self.scope.close()
         if self.scope.span is not None and self.scope.span.duration != -1:
             self.end_time = self.scope.span.start_time + self.scope.span.duration
 
         duration = self.end_time - self.start_time
+
+        root_span = self.root_span
+        reporter = data['reporter']
+        span_stack = self.tracer.recorder.finished_span_stack if self.tracer is not None else None
+        for span in span_stack:
+            current_span_data = self.wrap_span(self.build_span(span, data), reporter.api_key)
+            self.span_data_list.append(current_span_data)
 
         self.trace_data['rootSpanId'] = root_span.span_id
         self.trace_data['applicationDomainName'] = root_span.domain_name or ''
@@ -81,11 +83,6 @@ class TracePlugin:
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['finishTimestamp'] = self.end_time
-
-
-
-
-
 
         report_data = {
             'apiKey': reporter.api_key,
@@ -102,7 +99,7 @@ class TracePlugin:
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
         span_data = {
-            'id': str(uuid.uuid4()),
+            'id': span.context.span_id,
             'type': "Span",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
@@ -117,12 +114,13 @@ class TracePlugin:
             'applicationTags': {},
 
             'traceId': span.trace_id,
-            'transactionID': data['transactionId'],
+            'transactionId': data['transactionId'],
             'parentSpanId': span.context.parent_span_id or '',
             'spanOrder': -1,
             'domainName': span.domain_name or '',
             'className': span.class_name or '',
             'serviceName': '',
+            'operationName': span.operation_name,
             'startTimestamp': span.start_time,
             'finishTimestamp': close_time,
             'duration': span.duration,

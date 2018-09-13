@@ -10,14 +10,21 @@ class InMemoryRecorder:
     def __init__(self):
         self._lock = Lock()
         self._active_span_stack = []
+        self._finished_span_stack = []
 
     @property
     def active_span_stack(self):
         return self._active_span_stack
 
+    @property
+    def finished_span_stack(self):
+        return self._finished_span_stack
+
     def get_active_span(self):
         if self._active_span_stack is not None and len(self._active_span_stack) > 0:
             return self._active_span_stack[-1]
+        if self._finished_span_stack is not None and len(self._finished_span_stack) > 0:
+            return self.finished_span_stack[0]
         return None
 
     def get_root_span(self):
@@ -37,6 +44,7 @@ class InMemoryRecorder:
 
     def _record_finish_span(self):
         if len(self._active_span_stack) > 0:
+            self._finished_span_stack.append(self.active_span_stack[-1])
             self._active_span_stack.pop()
 
 
