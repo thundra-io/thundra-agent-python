@@ -15,6 +15,8 @@ class ThundraLogHandler(logging.Handler):
         formatted_message = self.format(record)
         active_span = self.tracer.get_active_span()
         log = {
+            'applicationDomainName': active_span.domain_name or '',
+            'applicationClassName': active_span.class_name or '',
             'trace_id': active_span.trace_id,
             'span_id': active_span.span_id,
             'log': formatted_message,

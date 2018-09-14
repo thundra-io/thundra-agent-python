@@ -2,10 +2,11 @@ import uuid
 import threading
 import gc
 import time
-
+import sys
 
 
 from thundra import utils, constants
+from thundra.opentracing.tracer import ThundraTracer
 
 
 class MetricPlugin:
@@ -21,92 +22,114 @@ class MetricPlugin:
         self.system_cpu_total_end = float(0)
         self.process_cpu_usage_start = float(0)
         self.process_cpu_usage_end = float(0)
-        self.stat_data = {}
+        self.metric_data = {}
         self.reporter = {}
+        self.tracer = ThundraTracer()
 
     def before_invocation(self, data):
         self.reporter = data['reporter']
         context = data['context']
-        stat_time = time.time() * 1000
-        self.stat_data = {
-            'transactionId': data['transactionId'],
-            'applicationName': getattr(context, 'function_name', None),
+        metric_time = time.time() * 1000
+        function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+
+        self.metric_data = {
+
+            'type': "Metric",
+            'agentVersion': '',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
+            'applicationDomainName': '',
+            'applicationClassName': '',
+            'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, ''),
-            'applicationType': 'python',
-            'functionRegion': utils.get_environment_variable(constants.AWS_REGION, ''),
-            'statTimestamp': int(stat_time)
+            'applicationStage': '',
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': str(sys.version_info[0]),
+            'applicationTags': {},
+
+            'traceId': '',
+            'transactionId': data['transactionId'],
+            'spanId': '',
+            'metricTimestamp': int(metric_time),
+            'tags':{}
         }
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, data):
         if 'contextId' in data:
-            self.stat_data['rootExecutionAuditContextId'] = data['contextId']
-        self.add_thread_stat_report()
-        self.add_gc_stat_report()
-        self.add_memory_stat_report()
-        self.add_cpu_stat_report()
+            self.metric_data['rootExecutionAuditContextId'] = data['contextId']
+        self.add_thread_metric_report()
+        self.add_gc_metric_report()
+        self.add_memory_metric_report()
+        self.add_cpu_metric_report()
 
-    def add_thread_stat_report(self):
+    def add_thread_metric_report(self):
         active_thread_counts = threading.active_count()
-        thread_stat_data = {
+        thread_metric_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'ThreadMetric',
-            'threadCount': active_thread_counts
+            'metricName': 'ThreadMetric',
         }
-        thread_stat_data.update(self.stat_data)
-        thread_stat_report = {
-            'data': thread_stat_data,
+        metrics = {
+            'threadCount': active_thread_counts or -1
+        }
+        thread_metric_data.update(self.metric_data)
+        thread_metric_data['metrics'] = metrics
+        thread_metric_report = {
+            'data': thread_metric_data,
             'type': 'Metric',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION
+            'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(thread_stat_report)
+        self.reporter.add_report(thread_metric_report)
 
-    def add_gc_stat_report(self):
-        gc_stats = gc.get_stats()
-        gc_stat_data = {
+    def add_gc_metric_report(self):
+        gc_metrics = gc.get_stats()
+        gc_metric_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'GCMetric'
+            'metricName': 'GCMetric'
         }
         gen = 0
-        for stat in gc_stats:
+        metrics = {}
+        for metric in gc_metrics:
             key = 'generation' + str(gen) + 'Collections'
-            gc_stat_data[key] = stat['collections']
+            metrics[key] = metric['collections']
             gen += 1
-        gc_stat_data.update(self.stat_data)
-        gc_stat_report = {
-            'data': gc_stat_data,
+        gc_metric_data.update(self.metric_data)
+        gc_metric_data['metrics'] = metrics
+        gc_metric_report = {
+            'data': gc_metric_data,
             'type': 'Metric',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION
+            'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(gc_stat_report)
+        self.reporter.add_report(gc_metric_report)
 
-    def add_memory_stat_report(self):
+    def add_memory_metric_report(self):
         size, resident = utils.process_memory_usage()
         total_mem, free_mem = utils.system_memory_usage()
         used_mem = total_mem - free_mem
-        memory_stat_data = {
+        memory_metric_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'MemoryMetric',
-            'size': size,
-            'resident': resident,
-            'totalMemory': total_mem,
-            'usedMemory': used_mem
+            'metricName': 'MemoryMetric',
         }
-        memory_stat_data.update(self.stat_data)
-        memory_stat_report = {
-            'data': memory_stat_data,
+        metrics = {
+            'app.maxMemory': float(size) or -1,
+            'app.usedMemory': float(resident) or -1,
+            'sys.maxMemory': float(total_mem) or -1,
+            'sys.usedMemory': float(used_mem) or -1
+        }
+        memory_metric_data.update(self.metric_data)
+        memory_metric_data['metrics'] = metrics
+        memory_metric_report = {
+            'data': memory_metric_data,
             'type': 'Metric',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION
+            'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(memory_stat_report)
+        self.reporter.add_report(memory_metric_report)
 
-    def add_cpu_stat_report(self):
+    def add_cpu_metric_report(self):
         self.process_cpu_usage_end = utils.process_cpu_usage()
         self.system_cpu_total_end, self.system_cpu_usage_end = utils.system_cpu_usage()
         process_cpu_load = 0
@@ -120,17 +143,21 @@ class MetricPlugin:
             cpu_load = system_cpu_usage/system_cpu_total
             system_cpu_load = 1 if cpu_load > 1 else cpu_load
 
-        cpu_stat_data = {
+        cpu_metric_data = {
             'id': str(uuid.uuid4()),
-            'statName': 'CPUMetric',
-            'processCpuLoad': process_cpu_load,
-            'systemCpuLoad': system_cpu_load
+            'metricName': 'CPUMetric'
         }
-        cpu_stat_data.update(self.stat_data)
-        cpu_stat_report = {
-            'data': cpu_stat_data,
+
+        metrics = {
+            'app.cpuLoad': process_cpu_load or -1,
+            'sys.cpuLoad': system_cpu_load or -1
+        }
+        cpu_metric_data.update(self.metric_data)
+        cpu_metric_data['metrics'] = metrics
+        cpu_metric_report = {
+            'data': cpu_metric_data,
             'type': 'Metric',
             'apiKey': self.reporter.api_key,
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION
+            'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(cpu_stat_report)
+        self.reporter.add_report(cpu_metric_report)

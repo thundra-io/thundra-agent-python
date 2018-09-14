@@ -46,7 +46,7 @@ class TracePlugin:
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage':'',
             'applicationRuntime':'python',
-            'applicationRuntimeVersion': sys.version_info[0],
+            'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
             'rootSpanId': None,
@@ -76,6 +76,7 @@ class TracePlugin:
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, data), reporter.api_key)
             self.span_data_list.append(current_span_data)
+        self.tracer.flush_finished_spans()
 
         self.trace_data['rootSpanId'] = root_span.span_id
         self.trace_data['applicationDomainName'] = root_span.domain_name or ''
@@ -123,7 +124,7 @@ class TracePlugin:
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
             'applicationRuntime': 'python',
-            'applicationRuntimeVersion': sys.version_info[0],
+            'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
             'traceId': span.trace_id,

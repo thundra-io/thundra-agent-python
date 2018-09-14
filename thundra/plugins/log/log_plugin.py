@@ -23,17 +23,15 @@ class LogPlugin:
         active_span = self.tracer.get_active_span()
         self.log_data = {
             'id': str(uuid.uuid4()),
-            'type': "Log",
+            'type': "Span",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': active_span.domain_name,
-            'applicationClassName': active_span.class_name,
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage':'dev',
-            'applicationRuntime':'python',
-            'applicationRuntimeVersion': sys.version_info[0],
+            'applicationStage': '',
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
             'transactionId': data['transactionId'],

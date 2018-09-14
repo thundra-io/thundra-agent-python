@@ -93,3 +93,6 @@ class ThundraTracer(opentracing.Tracer):
 
     def extract(self, format, carrier):
         raise NotImplemented('extract method not implemented yet')
+
+    def flush_finished_spans(self):
+        self.recorder.flush_finished_spans()
