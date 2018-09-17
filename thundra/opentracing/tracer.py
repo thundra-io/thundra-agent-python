@@ -86,7 +86,7 @@ class ThundraTracer(opentracing.Tracer):
         return span
 
     def get_active_span(self):
-        return self.scope_manager.active.span
+        return self.recorder.get_active_span()
 
     def get_finished_stack(self):
         return self.recorder.finished_span_stack

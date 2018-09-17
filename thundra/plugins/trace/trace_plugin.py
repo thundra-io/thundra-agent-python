@@ -176,19 +176,19 @@ class TracePlugin:
                 self.span_data['tags']['error.stack'] = error.stack
 
         #### ADDING TAGS ####
-        self.span_data['tags']['aws.region'] = \
+        span_data['tags']['aws.region'] = \
             (getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)).split(':')[3]
-        self.span_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME,
+        span_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME,
                                                            None)
-        self.span_data['tags']['aws.lambda.arn'] = getattr(context,
+        span_data['tags']['aws.lambda.arn'] = getattr(context,
                                                           constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
-        self.span_data['tags']['aws.lambda.memory.limit'] = getattr(context,
+        span_data['tags']['aws.lambda.memory.limit'] = getattr(context,
                                                                    constants.CONTEXT_MEMORY_LIMIT_IN_MB,
                                                                    None)
-        self.span_data['tags']['aws.lambda.log_group_name'] = getattr(context,
+        span_data['tags']['aws.lambda.log_group_name'] = getattr(context,
                                                                      constants.CONTEXT_LOG_GROUP_NAME,
                                                                      None)
-        self.span_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
+        span_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
                                                                       constants.CONTEXT_LOG_STREAM_NAME,
                                                                               None)
         return span_data
