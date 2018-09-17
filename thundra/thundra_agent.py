@@ -36,12 +36,13 @@ class Thundra:
         if self.api_key is None:
             logger.error('Please set thundra_apiKey from environment variables in order to use Thundra')
 
-        self.plugins.append(InvocationPlugin())
-        self.data = {}
-
         disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
         if not utils.should_disable(disable_trace_by_env, disable_trace):
             self.plugins.append(TracePlugin())
+
+        self.plugins.append(InvocationPlugin())
+        self.data = {}
+
 
         disable_metric_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_METRIC)
         if not utils.should_disable(disable_metric_by_env, disable_metric):

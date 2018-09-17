@@ -32,7 +32,7 @@ class InvocationPlugin:
 
 
         self.start_time = int(time.time() * 1000)
-
+        active_span = self.tracer.get_active_span()
 
         self.invocation_data = {
             'id': str(uuid.uuid4()),
