@@ -86,15 +86,30 @@ class TracePlugin:
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['finishTimestamp'] = self.end_time
+        context = data['context']
 
+        #### ADDING TAGS ####
+        self.trace_data['tags']['aws.region'] = \
+            (getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)).split(':')[3]
+        self.trace_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME,
+                                                            None)
+        self.trace_data['tags']['aws.lambda.arn'] = getattr(context,
+                                                           constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
+        self.trace_data['tags']['aws.lambda.memory.limit'] = getattr(context,
+                                                                    constants.CONTEXT_MEMORY_LIMIT_IN_MB,
+                                                                    None)
+        self.trace_data['tags']['aws.lambda.log_group_name'] = getattr(context,
+                                                                      constants.CONTEXT_LOG_GROUP_NAME,
+                                                                      None)
+        self.trace_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
+                                                                       constants.CONTEXT_LOG_STREAM_NAME,
+                                                                       None)
         report_data = {
             'apiKey': reporter.api_key,
             'type': 'Trace',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'data': self.trace_data
         }
-        reporter.add_report(report_data)
-        reporter.add_report(self.span_data_list)
         if 'error' in data:
             error = data['error']
             error_type = type(error)
@@ -108,6 +123,9 @@ class TracePlugin:
                 self.trace_data['tags']['error.object'] = error.object
             if hasattr(error, 'stack'):
                 self.trace_data['tags']['error.stack'] = error.stack
+        reporter.add_report(report_data)
+        reporter.add_report(self.span_data_list)
+
 
     def build_span(self, span, data):
         close_time = span.start_time + span.duration
@@ -155,6 +173,24 @@ class TracePlugin:
                 span_data['tags']['error.object'] = error.object
             if hasattr(error, 'stack'):
                 span_data['tags']['error.stack'] = error.stack
+                self.span_data['tags']['error.stack'] = error.stack
+
+        #### ADDING TAGS ####
+        self.span_data['tags']['aws.region'] = \
+            (getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)).split(':')[3]
+        self.span_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME,
+                                                           None)
+        self.span_data['tags']['aws.lambda.arn'] = getattr(context,
+                                                          constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
+        self.span_data['tags']['aws.lambda.memory.limit'] = getattr(context,
+                                                                   constants.CONTEXT_MEMORY_LIMIT_IN_MB,
+                                                                   None)
+        self.span_data['tags']['aws.lambda.log_group_name'] = getattr(context,
+                                                                     constants.CONTEXT_LOG_GROUP_NAME,
+                                                                     None)
+        self.span_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
+                                                                      constants.CONTEXT_LOG_STREAM_NAME,
+                                                                              None)
         return span_data
 
     def wrap_span(self, span_data, api_key):

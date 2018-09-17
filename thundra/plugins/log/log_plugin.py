@@ -43,6 +43,24 @@ class LogPlugin:
     def after_invocation(self, data):
         if 'contextId' in data:
             self.log_data['rootExecutionAuditContextId'] = data['contextId']
+            context = data['context']
+
+            #### ADDING TAGS ####
+            self.log_data['tags']['aws.region'] = \
+                (getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)).split(':')[3]
+            self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME,
+                                                                None)
+            self.log_data['tags']['aws.lambda.arn'] = getattr(context,
+                                                               constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
+            self.log_data['tags']['aws.lambda.memory.limit'] = getattr(context,
+                                                                        constants.CONTEXT_MEMORY_LIMIT_IN_MB,
+                                                                        None)
+            self.log_data['tags']['aws.lambda.log_group_name'] = getattr(context,
+                                                                          constants.CONTEXT_LOG_GROUP_NAME,
+                                                                          None)
+            self.log_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
+                                                                           constants.CONTEXT_LOG_STREAM_NAME,
+                                                                           None)
         reporter = data['reporter']
         for log in logs:
             log.update(self.log_data)
@@ -67,5 +85,7 @@ class LogPlugin:
                 self.log_data['tags']['error.object'] = error.object
             if hasattr(error, 'stack'):
                 self.log_data['tags']['error.stack'] = error.stack
+
+
 
         logs.clear()

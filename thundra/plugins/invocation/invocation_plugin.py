@@ -30,9 +30,9 @@ class InvocationPlugin:
 
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
+
         self.start_time = int(time.time() * 1000)
 
-        active_span = self.tracer.get_active_span()
 
         self.invocation_data = {
             'id': str(uuid.uuid4()),
@@ -49,13 +49,13 @@ class InvocationPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': active_span.trace_id if active_span is not None else '',
+            'traceId': 'root_trace_id_{}'.format(str(uuid.uuid4())),
             'transactionId': data['transactionId'],
-            'spanId': active_span.span_id if active_span is not None else '',
+            'spanId': 'root_span_id{}'.format(str(uuid.uuid4())),
             'functionPlatform': 'python', #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
-            'duration': None,
+            'duration': None, 
             'startTimestamp': int(self.start_time),
             'finishTimestamp': None, #old name: endTimestamp
             'erroneous': False,
@@ -71,12 +71,15 @@ class InvocationPlugin:
 
     def after_invocation(self, data):
 
+
+        context = data['context']
         active_span = self.tracer.get_active_span()
 
         self.invocation_data['traceId']: active_span.trace_id if active_span is not None else ''
         self.invocation_data['transactionId']: data['transactionId']
         self.invocation_data['spanId']: active_span.span_id if active_span is not None else ''
 
+        #### ERROR ####
         if 'error' in data:
             error = data['error']
             error_type = type(error)
@@ -103,6 +106,19 @@ class InvocationPlugin:
         duration = self.end_time - self.start_time
         self.invocation_data['duration'] = int(duration)
         self.invocation_data['finishTimestamp'] = int(self.end_time) # change: endTimestamp -> finishTimestamp
+
+        #### ADDING TAGS ####
+        self.invocation_data['tags']['aws.region'] = (getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)).split(':')[3]
+        self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+        self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
+        self.invocation_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
+        self.invocation_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
+        self.invocation_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
+        self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = InvocationPlugin.IS_COLD_START
+        self.invocation_data['tags']['aws.lambda.invocation.timeout'] = data.get('timeout', False)
+        self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
+        self.invocation_data['tags']['aws.lambda.invocation.request'] = data['event']
+        self.invocation_data['tags']['aws.lambda.invocation.response'] = data['response']
 
         reporter = data['reporter']
         report_data = {
