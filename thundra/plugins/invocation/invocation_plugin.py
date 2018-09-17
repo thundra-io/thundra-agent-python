@@ -109,7 +109,7 @@ class InvocationPlugin:
 
         #### ADDING TAGS ####
         default = {}
-        self.invocation_data['tags']['aws.region'] = (getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)).split(':')[3]
+        self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
         self.invocation_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)

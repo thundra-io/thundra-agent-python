@@ -141,3 +141,6 @@ def get_allowed_functions(module):
         #TO DO: differentiate functions
         allowed_functions.append(str(prop))
     return allowed_functions
+
+def get_aws_region_from_arn(func_arn):
+    return func_arn.split(':')[3] if len(func_arn.split(':')) >= 3 else ""
