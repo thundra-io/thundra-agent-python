@@ -30,9 +30,9 @@ class InvocationPlugin:
 
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
-
         self.start_time = int(time.time() * 1000)
 
+        active_span = self.tracer.get_active_span()
 
         self.invocation_data = {
             'id': str(uuid.uuid4()),
@@ -40,8 +40,8 @@ class InvocationPlugin:
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': '',
-            'applicationClassName': '',
+            'applicationDomainName': active_span.domain_name if active_span is not None else '',
+            'applicationClassName': active_span.class_name if active_span is not None else '',
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
@@ -49,13 +49,13 @@ class InvocationPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': 'root_trace_id_{}'.format(str(uuid.uuid4())),
+            'traceId': active_span.trace_id if active_span is not None else '',
             'transactionId': data['transactionId'],
-            'spanId': 'root_span_id{}'.format(str(uuid.uuid4())),
+            'spanId': active_span.span_id if active_span is not None else '',
             'functionPlatform': 'python', #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
-            'duration': None, 
+            'duration': None,
             'startTimestamp': int(self.start_time),
             'finishTimestamp': None, #old name: endTimestamp
             'erroneous': False,
@@ -70,14 +70,12 @@ class InvocationPlugin:
         InvocationPlugin.IS_COLD_START = False
 
     def after_invocation(self, data):
+
         active_span = self.tracer.get_active_span()
 
-        self.invocation_data['traceId'] = active_span.trace_id if active_span is not None \
-                                                        else self.invocation_data['trace_id']
-        self.invocation_data['spanId'] = active_span.span_id if active_span is not None \
-                                                        else self.invocation_data['span_id']
-        self.invocation_data['applicationDomainName'] = active_span.domain_name or ''
-        self.invocation_data['applicationClassName'] = active_span.class_name or ''
+        self.invocation_data['traceId']: active_span.trace_id if active_span is not None else ''
+        self.invocation_data['transactionId']: data['transactionId']
+        self.invocation_data['spanId']: active_span.span_id if active_span is not None else ''
 
         if 'error' in data:
             error = data['error']

@@ -34,8 +34,9 @@ class TracePlugin:
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
         self.start_time = int(time.time() * 1000)
+        created_trace_id = str(uuid.uuid4())
         self.trace_data = {
-            'id': str(uuid.uuid4()),
+            'id': created_trace_id,
             'type': "Trace",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
@@ -57,8 +58,9 @@ class TracePlugin:
         }
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
-                                                   finish_on_close=True)
-        self.root_span = self.tracer.recorder.get_active_span()
+                                                   finish_on_close=True,
+                                                   trace_id=created_trace_id)
+        self.root_span = self.tracer.get_active_span()
 
         TracePlugin.IS_COLD_START = False
 
@@ -72,11 +74,11 @@ class TracePlugin:
 
         root_span = self.root_span
         reporter = data['reporter']
-        span_stack = self.tracer.recorder.finished_span_stack if self.tracer is not None else None
+        span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, data), reporter.api_key)
             self.span_data_list.append(current_span_data)
-        self.tracer.flush_finished_spans()
+        # self.tracer.flush_finished_spans()
 
         self.trace_data['rootSpanId'] = root_span.span_id
         self.trace_data['applicationDomainName'] = root_span.domain_name or ''
@@ -144,15 +146,15 @@ class TracePlugin:
             error = data['error']
             error_type = type(error)
             # Adding tags
-            self.span_data['tags']['error'] = True
-            self.span_data['tags']['error.kind'] = error_type.__name__
-            self.span_data['tags']['error.message'] = str(error)
+            span_data['tags']['error'] = True
+            span_data['tags']['error.kind'] = error_type.__name__
+            span_data['tags']['error.message'] = str(error)
             if hasattr(error, 'code'):
-                self.span_data['tags']['error.code'] = error.code
+                span_data['tags']['error.code'] = error.code
             if hasattr(error, 'object'):
-                self.span_data['tags']['error.object'] = error.object
+                span_data['tags']['error.object'] = error.object
             if hasattr(error, 'stack'):
-                self.span_data['tags']['error.stack'] = error.stack
+                span_data['tags']['error.stack'] = error.stack
         return span_data
 
     def wrap_span(self, span_data, api_key):

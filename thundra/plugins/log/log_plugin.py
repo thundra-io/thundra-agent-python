@@ -23,7 +23,7 @@ class LogPlugin:
         active_span = self.tracer.get_active_span()
         self.log_data = {
             'id': str(uuid.uuid4()),
-            'type': "Span",
+            'type': "Log",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),

@@ -13,7 +13,7 @@ import thundra.utils as utils
 logger = logging.getLogger(__name__)
 
 
-class Reporter:
+class Reporter():
     def __init__(self, api_key):
         if api_key is not None:
             self.api_key = api_key

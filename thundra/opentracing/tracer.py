@@ -25,6 +25,7 @@ class ThundraTracer(opentracing.Tracer):
                           operation_name,
                           child_of=None,
                           references=None,
+                          trace_id=None,
                           tags=None,
                           start_time=None,
                           ignore_active_span=False,
@@ -33,6 +34,7 @@ class ThundraTracer(opentracing.Tracer):
             operation_name=operation_name,
             child_of=child_of,
             references=references,
+            trace_id=trace_id,
             tags=tags,
             start_time=start_time,
             ignore_active_span=ignore_active_span
@@ -46,6 +48,7 @@ class ThundraTracer(opentracing.Tracer):
                    domain_name=None,
                    child_of=None,
                    references=None,
+                   trace_id=None,
                    tags=None,
                    start_time=None,
                    ignore_active_span=False):
@@ -62,7 +65,7 @@ class ThundraTracer(opentracing.Tracer):
                 parent_context = scope.span.context
 
         parent_span_id = None
-        trace_id = None
+        trace_id = trace_id
         if parent_context is not None:
             trace_id = parent_context.trace_id
             parent_span_id = parent_context.span_id
@@ -83,7 +86,10 @@ class ThundraTracer(opentracing.Tracer):
         return span
 
     def get_active_span(self):
-        return self.recorder.get_active_span()
+        return self.scope_manager.active.span
+
+    def get_finished_stack(self):
+        return self.recorder.finished_span_stack
 
     def record(self, event, span):
         self.recorder.record(event, span)

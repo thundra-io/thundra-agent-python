@@ -32,14 +32,16 @@ class MetricPlugin:
         metric_time = time.time() * 1000
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
+        active_span = self.tracer.get_active_span()
+
         self.metric_data = {
 
             'type': "Metric",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': '',
-            'applicationClassName': '',
+            'applicationDomainName':active_span.domain_name if active_span is not None else '',
+            'applicationClassName': active_span.class_name if active_span is not None else '',
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
@@ -47,9 +49,9 @@ class MetricPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': '',
+            'traceId': active_span.trace_id if active_span is not None else '',
             'transactionId': data['transactionId'],
-            'spanId': '',
+            'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
             'tags':{}
         }
@@ -114,10 +116,10 @@ class MetricPlugin:
             'metricName': 'MemoryMetric',
         }
         metrics = {
-            'app.maxMemory': float(size) or -1,
-            'app.usedMemory': float(resident) or -1,
-            'sys.maxMemory': float(total_mem) or -1,
-            'sys.usedMemory': float(used_mem) or -1
+            'app.maxMemory': int(size) or -1,
+            'app.usedMemory': int(resident) or -1,
+            'sys.maxMemory': int(total_mem) or -1,
+            'sys.usedMemory': int(used_mem) or -1
         }
         memory_metric_data.update(self.metric_data)
         memory_metric_data['metrics'] = metrics

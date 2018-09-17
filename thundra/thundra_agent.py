@@ -35,6 +35,7 @@ class Thundra:
         self.api_key = api_key_from_environment_variable if api_key_from_environment_variable is not None else api_key
         if self.api_key is None:
             logger.error('Please set thundra_apiKey from environment variables in order to use Thundra')
+
         self.plugins.append(InvocationPlugin())
         self.data = {}
 
