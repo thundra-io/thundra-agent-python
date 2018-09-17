@@ -66,18 +66,18 @@ class Traceable:
                             }
                             function_args_list.append(function_args_dict)
                     scope.span.set_tag('ARGS', function_args_list)
-                response = original_func(*args, **kwargs)
-                if self._trace_return_value is True and response is not None:
-                    resp = response
-                    if hasattr(response, '__dict__'):
-                        if isinstance(response, Serializable):
-                            resp = response.serialize()
-                        else:
-                            resp = 'Not json serializable object'
-                    return_value = {
-                        'returnValueType': type(response).__name__,
-                        'returnValue': resp
-                    }
+                    response = original_func(*args, **kwargs)
+                    if self._trace_return_value is True and response is not None:
+                        resp = response
+                        if hasattr(response, '__dict__'):
+                            if isinstance(response, Serializable):
+                                resp = response.serialize()
+                            else:
+                                resp = 'Not json serializable object'
+                        return_value = {
+                            'returnValueType': type(response).__name__,
+                            'returnValue': resp
+                        }
                     scope.span.set_tag('RETURN_VALUE', return_value)
             except Exception as e:
                 if self._trace_error is True:
