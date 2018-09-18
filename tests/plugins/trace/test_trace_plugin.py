@@ -64,7 +64,6 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
     assert 'Exception' in trace_plugin.trace_data['errors']
 
     assert trace_plugin.trace_data['auditInfo']['thrownError']['errorType'] == 'Exception'
-    assert 'hello' in trace_plugin.trace_data['auditInfo']['thrownError']['args']
 
 
 def test_report(handler_with_profile, mock_context, mock_event):
