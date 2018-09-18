@@ -40,7 +40,7 @@ class InMemoryRecorder:
                 self._record_finish_span()
 
     def flush_finished_spans(self):
-        self._finished_span_stack = []
+        self._finished_span_stack.clear()
 
     def _record_start_span(self, span):
         self._active_span_stack.append(span)

@@ -1,4 +1,3 @@
-import uuid
 import sys
 
 from thundra import utils, constants
@@ -23,7 +22,6 @@ class LogPlugin:
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         active_span = self.tracer.get_active_span()
         self.log_data = {
-            'id': str(uuid.uuid4()),
             'type': "Log",
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
