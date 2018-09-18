@@ -35,7 +35,7 @@ def test_send_report_to_url(mock_requests, monkeypatch):
     reporter = Reporter('api key')
     response = reporter.send_report()
 
-    post_url = 'different_url/api/monitor-datas'
+    post_url = 'different_url/api/monitoring-data'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'ApiKey api key'

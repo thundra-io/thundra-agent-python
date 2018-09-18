@@ -70,8 +70,7 @@ class InvocationPlugin:
         InvocationPlugin.IS_COLD_START = False
 
     def after_invocation(self, data):
-
-
+        self.end_time = time.time() * 1000
         context = data['context']
         active_span = self.tracer.get_active_span()
 
@@ -102,7 +101,6 @@ class InvocationPlugin:
 
         self.invocation_data['timeout'] = data.get('timeout', False)
 
-        self.end_time = time.time() * 1000
         duration = self.end_time - self.start_time
         self.invocation_data['duration'] = int(duration)
         self.invocation_data['finishTimestamp'] = int(self.end_time) # change: endTimestamp -> finishTimestamp
