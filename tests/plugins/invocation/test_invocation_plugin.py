@@ -56,11 +56,9 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     start_time = invocation_plugin.invocation_data['startTimestamp']
     end_time = invocation_plugin.invocation_data['endTimestamp']
+    duration = int(end_time - start_time)
 
-    duration = end_time - start_time
-    duration_in_ms = int(duration * 1000)
-
-    #assert invocation_plugin.invocation_data['duration'] == duration_in_ms
+    assert invocation_plugin.invocation_data['duration'] == duration
     assert invocation_plugin.invocation_data['erroneous'] is False
     assert invocation_plugin.invocation_data['errorType'] == ''
     assert invocation_plugin.invocation_data['errorMessage'] == ''
