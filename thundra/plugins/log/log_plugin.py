@@ -1,5 +1,3 @@
-import uuid
-
 from thundra import utils, constants
 from thundra.plugins.log.thundra_log_handler import logs
 
@@ -17,7 +15,6 @@ class LogPlugin:
         context = data['context']
         logs.clear()
         self.log_data = {
-            'id': str(uuid.uuid4()),
             'transactionId': data['transactionId'],
             'applicationName': getattr(context, 'function_name', None),
             'applicationId': utils.get_application_id(context),

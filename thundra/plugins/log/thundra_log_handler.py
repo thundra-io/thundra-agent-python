@@ -1,4 +1,5 @@
 import logging
+import uuid
 
 logs = []
 
@@ -11,6 +12,7 @@ class ThundraLogHandler(logging.Handler):
     def emit(self, record):
         formatted_message = self.format(record)
         log = {
+            'id': str(uuid.uuid4()),
             'log': formatted_message,
             'logMessage': record.msg,
             'loggerName': record.name,
