@@ -20,7 +20,9 @@ def thundra_with_profile(monkeypatch):
 def handler_with_profile(thundra_with_profile):
     @thundra_with_profile.call
     def _handler(event, context):
-        pass
+        return {
+            'message': 'Hello'
+        }
     return thundra_with_profile, _handler
 
 

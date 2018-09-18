@@ -23,16 +23,16 @@ def test_log_plugin_with_initialization():
     log = logs[0]
 
     assert log['log'] == "This is an info log"
-    assert log['loggerName'] == 'test_handler'
+    assert log['logContextName'] == 'test_handler'              #Old: loggerName
     assert log['logLevel'] == "INFO"
-    assert log['logLevelId'] == 2
+    assert log['logLevelCode'] == 2                             #Old: loggerLevelId
 
     logs.clear()
 
 
 def test_log_plugin_with_config_file():
 
-    fileConfig('tests/plugins/log/test_log_config.ini') # config file path
+    fileConfig('tests/plugins/log/test_log_config.ini')         # config file path. Make sure path is correct with respect to where test is invoked
     logger = logging.getLogger('test_config_handler')
     logger.debug("This is a debug log")
 
@@ -40,6 +40,6 @@ def test_log_plugin_with_config_file():
     log = logs[0]
 
     assert log['log'] == "This is a debug log"
-    assert log['loggerName'] == 'test_config_handler'
+    assert log['logContextName'] == 'test_config_handler'       #Old: loggerName
     assert log['logLevel'] == "DEBUG"
-    assert log['logLevelId'] == 1
+    assert log['logLevelCode'] == 1                             #Old: loggerLevelId

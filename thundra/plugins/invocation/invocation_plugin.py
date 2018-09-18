@@ -113,7 +113,7 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
         self.invocation_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
         self.invocation_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-        self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = InvocationPlugin.IS_COLD_START
+        self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = self.invocation_data['coldStart']
         self.invocation_data['tags']['aws.lambda.invocation.timeout'] = data.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
         self.invocation_data['tags']['aws.lambda.invocation.request'] = data.get('event', default)
