@@ -40,8 +40,8 @@ class InvocationPlugin:
             'agentVersion': '',
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': active_span.domain_name if active_span is not None else '',
-            'applicationClassName': active_span.class_name if active_span is not None else '',
+            'applicationDomainName': active_span.domain_name or '' if active_span is not None else '',
+            'applicationClassName': active_span.class_name or '' if active_span is not None else '',
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
             'applicationStage': '',
@@ -49,9 +49,9 @@ class InvocationPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': 'root_trace_id_{}'.format(str(uuid.uuid4())),
+            'traceId': '',
             'transactionId': data['transactionId'],
-            'spanId': 'root_span_id{}'.format(str(uuid.uuid4())),
+            'spanId': '',
             'functionPlatform': 'python', #old name: applicationType
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
             'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region

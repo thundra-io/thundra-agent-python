@@ -36,10 +36,6 @@ class Thundra:
         if self.api_key is None:
             logger.error('Please set thundra_apiKey from environment variables in order to use Thundra')
 
-        disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
-        if not utils.should_disable(disable_trace_by_env, disable_trace):
-            self.plugins.append(TracePlugin())
-
         self.plugins.append(InvocationPlugin())
         self.data = {}
 
@@ -51,6 +47,10 @@ class Thundra:
         disable_log_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_LOG)
         if not utils.should_disable(disable_log_by_env, disable_log):
             self.plugins.append(LogPlugin())
+
+        disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
+        if not utils.should_disable(disable_trace_by_env, disable_trace):
+            self.plugins.append(TracePlugin())
 
         audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)

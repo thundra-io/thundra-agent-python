@@ -157,6 +157,7 @@ class TracePlugin:
             'startTimestamp': span.start_time,
             'finishTimestamp': close_time,
             'duration': span.duration,
+            'logs': span.logs,
             'tags':{}
         }
         if 'error' in data:
