@@ -22,12 +22,12 @@ def test_trace_args(trace_args):
 
     args = active_span.get_tag('ARGS')
     assert len(args) == 2
-    assert args[0]['argValue'] == 'arg1'
-    assert args[0]['argName'] == 'arg-0'
-    assert args[0]['argType'] == 'str'
-    assert args[1]['argValue'] == 'arg2'
-    assert args[1]['argName'] == 'arg2'
-    assert args[1]['argType'] == 'str'
+    assert args[0]['value'] == 'arg1'
+    assert args[0]['name'] == 'arg-0'
+    assert args[0]['type'] == 'str'
+    assert args[1]['value'] == 'arg2'
+    assert args[1]['name'] == 'arg2'
+    assert args[1]['type'] == 'str'
 
     return_value = active_span.get_tag('RETURN_VALUE')
     assert return_value is None
@@ -64,8 +64,8 @@ def test_trace_return_values(trace_return_val):
     assert args is None
 
     return_value = active_span.get_tag('RETURN_VALUE')
-    assert return_value['returnValueType'] == type(response).__name__
-    assert return_value['returnValue'] == response
+    assert return_value['type'] == type(response).__name__
+    assert return_value['value'] == response
 
     error = active_span.get_tag('thrownError')
     assert error is None
