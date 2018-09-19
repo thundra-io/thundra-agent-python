@@ -125,6 +125,12 @@ class TracePlugin:
         reporter.add_report(report_data)
         reporter.add_report(self.span_data_list)
 
+        self.tracer.flush_finished_spans()
+        self.flush_current_span_data()
+
+
+    def flush_current_span_data(self):
+        self.span_data_list.clear()
 
     def build_span(self, span, data):
         close_time = span.start_time + span.duration
