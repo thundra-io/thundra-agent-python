@@ -201,6 +201,9 @@ class TracePlugin:
                                                                               None)
         span_data['tags']['method.args'] = (span.get_tag('ARGS'))
         span_data['tags']['method.return_value'] = (span.get_tag('RETURN_VALUE'))
+        if function_name == span.operation_name:
+            span_data['tags']['aws.lambda.invocation.request'] = data.get('event', None)
+            span_data['tags']['aws.lambda.invocation.response'] = data.get('response', None)
 
         return span_data
 
