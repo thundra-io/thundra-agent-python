@@ -3,8 +3,8 @@ from thundra.opentracing.tracer import ThundraTracer
 
 def test_trace_args(trace_args):
     tracer = ThundraTracer.getInstance()
-    nodes = tracer.recorder.nodes
-    count = 0
+    nodes = tracer.recorder.finished_span_stack
+    count=0
     for key in nodes:
         if key.operation_name == 'func_args':
             count += 1
@@ -43,7 +43,7 @@ def test_trace_args(trace_args):
 
 def test_trace_return_values(trace_return_val):
     tracer = ThundraTracer.getInstance()
-    nodes = tracer.recorder.nodes
+    nodes = tracer.recorder.finished_span_stack
     count = 0
     for key in nodes:
         if key.operation_name == 'func_return_val':
@@ -78,7 +78,7 @@ def test_trace_return_values(trace_return_val):
 
 def test_trace_error(trace_error):
     tracer = ThundraTracer.getInstance()
-    nodes = tracer.recorder.nodes
+    nodes = tracer.recorder.finished_span_stack
     count = 0
     for key in nodes:
         if key.operation_name == 'func_with_error':
@@ -113,7 +113,7 @@ def test_trace_error(trace_error):
 
 def test_trace_with_default_configs(trace):
     tracer = ThundraTracer.getInstance()
-    nodes = tracer.recorder.nodes
+    nodes = tracer.recorder.finished_span_stack
     count = 0
     for key in nodes:
         if key.operation_name == 'func':

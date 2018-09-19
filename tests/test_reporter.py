@@ -40,8 +40,9 @@ def test_send_report_to_url(mock_requests, monkeypatch):
         'Content-Type': 'application/json',
         'Authorization': 'ApiKey api key'
     }
-    mock_requests.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
-    mock_requests.post.return_value.status_code = 200
+    s = mock_requests.Session()
+    s.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
+    s.post.return_value.status_code = 200
     assert response.status_code == 200
 
 
@@ -54,6 +55,7 @@ def test_send_report(mock_requests):
         'Content-Type': 'application/json',
         'Authorization': 'ApiKey unauthorized api key'
     }
-    mock_requests.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
-    mock_requests.post.return_value.status_code = 401
+    s = mock_requests.Session()
+    s.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
+    s.post.return_value.status_code = 401
     assert response.status_code == 401
