@@ -42,7 +42,8 @@ class Reporter():
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
 
-        response = requests.post(request_url, headers=headers, data=json.dumps(self.reports))
+        s = requests.Session()
+        response = s.post(request_url, headers=headers, data=json.dumps(self.reports))
         logger.info(response)
         self.reports.clear()
         return response
