@@ -40,26 +40,26 @@ class Traceable:
                     count = 0
                     for arg in args:
                         function_args_dict = {
-                            'argName': 'arg-' + str(count),
-                            'argType': type(arg).__name__,
-                            'argValue': arg
+                            'name': 'arg-' + str(count),
+                            'type': type(arg).__name__,
+                            'value': arg
                         }
                         count += 1
                         function_args_list.append(function_args_dict)
                     if kwargs is not None:
                         for key, value in kwargs.items():
                             function_args_dict = {
-                                'argName': key,
-                                'argType': type(value).__name__,
-                                'argValue': value
+                                'name': key,
+                                'type': type(value).__name__,
+                                'value': value
                             }
                             function_args_list.append(function_args_dict)
                     scope.span.set_tag('ARGS', function_args_list)
                 response = original_func(*args, **kwargs)
                 if self._trace_return_value is True and response is not None:
                     return_value = {
-                        'returnValueType': type(response).__name__,
-                        'returnValue': response
+                        'type': type(response).__name__,
+                        'value': response
                     }
                     scope.span.set_tag('RETURN_VALUE', return_value)
             except Exception as e:

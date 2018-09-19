@@ -66,6 +66,9 @@ class TracePlugin:
 
     def after_invocation(self, data):
         self.end_time = int(time.time() * 1000)
+        active_span = self.tracer.get_active_span()
+        setattr(data['reporter'], 'ARGS', active_span.get_tag('ARGS'))
+        setattr(data['reporter'], 'RETURN_VALUE', active_span.get_tag('RETURN_VALUE'))
         self.scope.close()
         if self.scope.span is not None and self.scope.span.duration != -1:
             self.end_time = self.scope.span.start_time + self.scope.span.duration
@@ -196,6 +199,9 @@ class TracePlugin:
         span_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
                                                                       constants.CONTEXT_LOG_STREAM_NAME,
                                                                               None)
+        span_data['tags']['method.args'] = (span.get_tag('ARGS'))
+        span_data['tags']['method.return_value'] = (span.get_tag('RETURN_VALUE'))
+
         return span_data
 
     def wrap_span(self, span_data, api_key):
