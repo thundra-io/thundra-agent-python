@@ -11,7 +11,7 @@ from thundra.utils import get_environment_variable
 import thundra.utils as utils
 
 logger = logging.getLogger(__name__)
-
+s = requests.Session()
 
 class Reporter():
     def __init__(self, api_key):
@@ -42,7 +42,6 @@ class Reporter():
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
 
-        s = requests.Session()
         response = s.post(request_url, headers=headers, data=json.dumps(self.reports))
         logger.info(response)
         self.reports.clear()
