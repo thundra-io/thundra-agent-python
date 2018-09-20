@@ -10,9 +10,7 @@ def test_when_thundra_log_handler_is_not_added_to_logger(handler_with_apikey, mo
     handler(mock_event, mock_context)
     assert len(logs) == 0
 
-
 def test_log_plugin_with_initialization():
-
     logger = logging.getLogger('test_handler')
     log_handler = ThundraLogHandler()
     logger.addHandler(log_handler)
@@ -23,12 +21,11 @@ def test_log_plugin_with_initialization():
     log = logs[0]
 
     assert log['log'] == "This is an info log"
-    assert log['logContextName'] == 'test_handler'              #Old: loggerName
+    assert log['logContextName'] == 'test_handler'  # Old: loggerName
     assert log['logLevel'] == "INFO"
-    assert log['logLevelCode'] == 2                             #Old: loggerLevelId
+    assert log['logLevelCode'] == 2  # Old: loggerLevelId
 
     logs.clear()
-
 
 def test_log_plugin_with_config_file():
 
@@ -43,3 +40,8 @@ def test_log_plugin_with_config_file():
     assert log['logContextName'] == 'test_config_handler'       #Old: loggerName
     assert log['logLevel'] == "DEBUG"
     assert log['logLevelCode'] == 1                             #Old: loggerLevelId
+
+
+
+
+

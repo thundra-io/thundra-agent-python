@@ -14,23 +14,23 @@ def test_via_threadpool():
     assert squared_numbers == expected_result
 
     tracer = ThundraTracer.getInstance()
-    nodes = tracer.recorder.nodes
+    nodes = tracer.recorder.finished_span_stack
     active_span = None
     for key in nodes:
         if key.operation_name == 'calculate_parallel':
             active_span = key
 
     args = active_span.get_tag('ARGS')
-    assert args[0]['argName'] == 'arg-0'
-    assert args[0]['argValue'] == numbers
-    assert args[0]['argType'] == 'list'
-    assert args[1]['argName'] == 'arg-1'
-    assert args[1]['argValue'] == 4
-    assert args[1]['argType'] == 'int'
+    assert args[0]['name'] == 'arg-0'
+    assert args[0]['value'] == numbers
+    assert args[0]['type'] == 'list'
+    assert args[1]['name'] == 'arg-1'
+    assert args[1]['value'] == 4
+    assert args[1]['type'] == 'int'
 
     return_value = active_span.get_tag('RETURN_VALUE')
-    assert return_value['returnValue'] == squared_numbers
-    assert return_value['returnValueType'] == 'list'
+    assert return_value['value'] == squared_numbers
+    assert return_value['type'] == 'list'
 
     error = active_span.get_tag('thrownError')
     assert error is None
@@ -46,20 +46,21 @@ def test_via_threading():
     thread.join()
 
     tracer = ThundraTracer.getInstance()
-    nodes = tracer.recorder.nodes
+    nodes = tracer.recorder.finished_span_stack
     active_span = None
     for key in nodes:
         if key.operation_name == 'calculate_in_parallel':
             active_span = key
 
+    assert active_span is not None
     args = active_span.get_tag('ARGS')
-    assert args[0]['argName'] == 'arg-0'
-    assert args[0]['argValue'] == numbers
-    assert args[0]['argType'] == 'list'
+    assert args[0]['name'] == 'arg-0'
+    assert args[0]['value'] == numbers
+    assert args[0]['type'] == 'list'
 
     return_value = active_span.get_tag('RETURN_VALUE')
-    assert return_value['returnValue'] == expected_result
-    assert return_value['returnValueType'] == 'list'
+    assert return_value['value'] == expected_result
+    assert return_value['type'] == 'list'
 
     error = active_span.get_tag('thrownError')
     assert error is None

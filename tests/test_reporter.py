@@ -31,11 +31,11 @@ def test_add_report_sync_if_env_var_is_not_set(mock_report):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url(mock_requests, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL, 'different_url/api')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL, 'http://different_url/api')
     reporter = Reporter('api key')
-    response = reporter.send_report()
+    response = reporter.send_report(test_mode=True)
 
-    post_url = 'different_url/api/monitoring-data'
+    post_url = 'http://different_url/api/monitoring-data'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'ApiKey api key'
@@ -49,7 +49,7 @@ def test_send_report_to_url(mock_requests, monkeypatch):
 @mock.patch('thundra.reporter.requests')
 def test_send_report(mock_requests):
     reporter = Reporter('unauthorized api key')
-    response = reporter.send_report()
+    response = reporter.send_report(test_mode=True)
     post_url = constants.HOST + constants.PATH
     headers = {
         'Content-Type': 'application/json',
