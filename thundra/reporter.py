@@ -11,10 +11,9 @@ from thundra.utils import get_environment_variable
 import thundra.utils as utils
 
 logger = logging.getLogger(__name__)
-session = requests.Session()
 
 class Reporter:
-    def __init__(self, api_key):
+    def __init__(self, api_key, session=None):
         if api_key is not None:
             self.api_key = api_key
         else:
@@ -22,13 +21,17 @@ class Reporter:
             logger.error('Please set an API key!')
         self.reports = []
 
+        if not session:
+            session = requests.Session()
+        self.session=session
+
     def add_report(self, report):
         if get_environment_variable(constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE) == 'true':
             print(json.dumps(report))
         else:
             self.reports.append(report)
 
-    def send_report(self, test_mode=False):
+    def send_report(self):
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
@@ -38,12 +41,6 @@ class Reporter:
         if base_url is not None:
             request_url = base_url + '/monitor-datas'
 
-        if test_mode:
-            s = requests.Session()
-        else:
-            s = session  # to avoid local reference confusion
-
-        response = s.post(request_url, headers=headers, data=json.dumps(self.reports))
-        logger.info(response)
+        response = self.session.post(request_url, headers=headers, data=json.dumps(self.reports))
         self.reports.clear()
         return response
