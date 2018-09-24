@@ -73,7 +73,7 @@ class MetricPlugin:
             'metricName': 'ThreadMetric',
         }
         metrics = {
-            'threadCount': active_thread_counts or -1
+            'threadCount': active_thread_counts if active_thread_counts is not None else -1
         }
         thread_metric_data.update(self.metric_data)
         thread_metric_data['metrics'] = metrics
@@ -116,10 +116,10 @@ class MetricPlugin:
             'metricName': 'MemoryMetric',
         }
         metrics = {
-            'app.maxMemory': int(size) or -1,
-            'app.usedMemory': int(resident) or -1,
-            'sys.maxMemory': int(total_mem) or -1,
-            'sys.usedMemory': int(used_mem) or -1
+            'app.maxMemory': int(size) if size is not None else -1,
+            'app.usedMemory': int(resident) if resident is not None else -1,
+            'sys.maxMemory': int(total_mem) if total_mem is not None else -1,
+            'sys.usedMemory': int(used_mem) if used_mem is not None else -1
         }
         memory_metric_data.update(self.metric_data)
         memory_metric_data['metrics'] = metrics
@@ -151,8 +151,8 @@ class MetricPlugin:
         }
 
         metrics = {
-            'app.cpuLoad': process_cpu_load or -1,
-            'sys.cpuLoad': system_cpu_load or -1
+            'app.cpuLoad': process_cpu_load if process_cpu_load is not None else -1,
+            'sys.cpuLoad': system_cpu_load if system_cpu_load is not None else -1
         }
         cpu_metric_data.update(self.metric_data)
         cpu_metric_data['metrics'] = metrics

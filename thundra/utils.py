@@ -27,21 +27,27 @@ def get_application_id(context):
     applicationId = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
     return applicationId
 
+def get_aws_lambda_function_memory_size():
+    return os.environ.get(constants.AWS_LAMBDA_FUNCTION_MEMORY_SIZE)
 
 #### memory ####
 def process_memory_usage():
     try:
         with open('/proc/self/statm', 'r') as procfile:
             process_memory_usages = procfile.readline()
-            size = process_memory_usages.split(' ')[0]
-            size_in_bytes = float(size)*1024
+            size_from_env_var = get_aws_lambda_function_memory_size()
+            if not size_from_env_var:
+                size = process_memory_usages.split(' ')[0]
+                size_in_bytes = float(size) * 1024
+            else:
+                size_in_bytes = float(size_from_env_var) * 1000000
+
             resident = process_memory_usages.split(' ')[1]
             resident_in_bytes = float(resident)*1024
             return size_in_bytes, resident_in_bytes
     except IOError as e:
         print('ERROR: %s' % e)
         sys.exit(2)
-
 
 def system_memory_usage():
     try:
