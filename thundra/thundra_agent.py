@@ -18,6 +18,7 @@ import thundra.utils as utils
 
 logger = logging.getLogger(__name__)
 
+
 class Thundra:
     def __init__(self,
                  api_key=None,
@@ -36,9 +37,12 @@ class Thundra:
         if self.api_key is None:
             logger.error('Please set thundra_apiKey from environment variables in order to use Thundra')
 
+        disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
+        if not utils.should_disable(disable_trace_by_env, disable_trace):
+            self.plugins.append(TracePlugin())
+
         self.plugins.append(InvocationPlugin())
         self.data = {}
-
 
         disable_metric_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_METRIC)
         if not utils.should_disable(disable_metric_by_env, disable_metric):
@@ -47,10 +51,6 @@ class Thundra:
         disable_log_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_LOG)
         if not utils.should_disable(disable_log_by_env, disable_log):
             self.plugins.append(LogPlugin())
-
-        disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
-        if not utils.should_disable(disable_trace_by_env, disable_trace):
-            self.plugins.append(TracePlugin())
 
         audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)
@@ -61,9 +61,10 @@ class Thundra:
         is_warmup_aware_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE)
         self.warmup_aware = utils.should_disable(is_warmup_aware_by_env)
 
-
-        thundra_lambda_trace_instrument_disable = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)
-        self.trace_instrument_disable = utils.should_disable(thundra_lambda_trace_instrument_disable, trace_instrument_disable)
+        thundra_lambda_trace_instrument_disable = utils.get_environment_variable(
+            constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)
+        self.trace_instrument_disable = utils.should_disable(thundra_lambda_trace_instrument_disable,
+                                                             trace_instrument_disable)
 
         timeout_margin = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
         self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
@@ -108,7 +109,7 @@ class Thundra:
                         logger.warning('Given timeout margin is bigger than lambda timeout duration and '
                                        'since the difference is negative, it is set to default value (' +
                                        str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
-                    signal.setitimer(signal.ITIMER_REAL, timeout_duration/1000.0)
+                    signal.setitimer(signal.ITIMER_REAL, timeout_duration / 1000.0)
             try:
                 response = original_func(event, context)
                 if self.response_skipped is False:
