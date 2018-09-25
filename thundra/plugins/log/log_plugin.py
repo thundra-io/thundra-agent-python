@@ -1,6 +1,6 @@
+from thundra import utils, constants
 import sys
 
-from thundra import utils, constants
 from thundra.plugins.log.thundra_log_handler import logs
 from thundra.opentracing.tracer import ThundraTracer
 

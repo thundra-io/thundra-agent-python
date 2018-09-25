@@ -2,6 +2,7 @@ import logging
 from thundra.opentracing.tracer import ThundraTracer
 import uuid
 
+import uuid
 logs = []
 
 

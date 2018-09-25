@@ -70,8 +70,6 @@ class Thundra:
         self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
         if self.timeout_margin <= 0:
             self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
-            logger.warning('Timeout margin is set to default value (' + str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) +
-                           ') since nonpositive value cannot be given')
 
         self.reporter = Reporter(self.api_key)
 
@@ -105,7 +103,7 @@ class Thundra:
                 if hasattr(context, 'get_remaining_time_in_millis'):
                     timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
                     if timeout_duration <= 0:
-                        timeout_duration = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                        timeout_duration = context.get_remaining_time_in_millis() - constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
                         logger.warning('Given timeout margin is bigger than lambda timeout duration and '
                                        'since the difference is negative, it is set to default value (' +
                                        str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
