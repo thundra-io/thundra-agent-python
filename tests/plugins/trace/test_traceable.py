@@ -32,7 +32,7 @@ def test_trace_args(trace_args):
     return_value = active_span.get_tag('RETURN_VALUE')
     assert return_value is None
 
-    error = active_span.get_tag('error.kind')
+    error = active_span.get_tag('thrownError')
     assert error is None
 
     assert count == 1
@@ -67,7 +67,7 @@ def test_trace_return_values(trace_return_val):
     assert return_value['type'] == type(response).__name__
     assert return_value['value'] == response
 
-    error = active_span.get_tag('error.kind')
+    error = active_span.get_tag('thrownError')
     assert error is None
 
     assert count == 1
@@ -102,7 +102,7 @@ def test_trace_error(trace_error):
         return_value = active_span.get_tag('RETURN_VALUE')
         assert return_value is None
 
-        thrown_error = active_span.get_tag('error.kind')
+        thrown_error = active_span.get_tag('thrownError')
         assert thrown_error == 'Exception'
 
         assert count == 1
