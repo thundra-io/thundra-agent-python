@@ -11,7 +11,7 @@ def thundra_with_profile(monkeypatch):
     monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_APPLICATION_ID, '[]test')
     monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra = Thundra('api key', disable_metric=True)
     return thundra
 

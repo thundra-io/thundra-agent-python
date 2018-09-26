@@ -16,31 +16,34 @@ class LogPlugin:
         self.tracer = ThundraTracer.getInstance()
         self.scope = None
 
-    def before_invocation(self, data):
-        context = data['context']
+    def before_invocation(self, plugin_context):
+        context = plugin_context['context']
+        transaction_id = plugin_context['transaction_id'] or context.aws_request_id
         logs.clear()
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-        active_span = self.tracer.get_active_span()
+
         self.log_data = {
             'type': "Log",
-            'agentVersion': '',
+            'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
+            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
+            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': '',
+            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
             'applicationRuntime': 'python',
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'transactionId': data['transactionId'],
+            'transactionId': transaction_id,
             'tags': {}
         }
 
-    def after_invocation(self, data):
-        if 'contextId' in data:
-            self.log_data['rootExecutionAuditContextId'] = data['contextId']
-            context = data['context']
+    def after_invocation(self, plugin_context):
+        if 'contextId' in plugin_context:
+            self.log_data['rootExecutionAuditContextId'] = plugin_context['contextId']
+            context = plugin_context['context']
 
             #### ADDING TAGS ####
             self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
@@ -57,19 +60,8 @@ class LogPlugin:
             self.log_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
                                                                           constants.CONTEXT_LOG_STREAM_NAME,
                                                                           None)
-        reporter = data['reporter']
-        for log in logs:
-            log.update(self.log_data)
-            log_report = {
-                'data': log,
-                'type': 'Log',
-                'apiKey': reporter.api_key,
-                'dataModelVersion': constants.DATA_FORMAT_VERSION
-            }
-            reporter.add_report(log_report)
-
-        if 'error' in data:
-            error = data['error']
+        if 'error' in plugin_context:
+            error = plugin_context['error']
             error_type = type(error)
             # Adding tags
             self.log_data['tags']['error'] = True
@@ -81,5 +73,18 @@ class LogPlugin:
                 self.log_data['tags']['error.object'] = error.object
             if hasattr(error, 'stack'):
                 self.log_data['tags']['error.stack'] = error.stack
+
+        reporter = plugin_context['reporter']
+        for log in logs:
+            log.update(self.log_data)
+            log_report = {
+                'data': log,
+                'type': 'Log',
+                'apiKey': reporter.api_key,
+                'dataModelVersion': constants.DATA_FORMAT_VERSION
+            }
+            reporter.add_report(log_report)
+
+
 
         logs.clear()

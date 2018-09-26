@@ -5,7 +5,7 @@ from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 
 def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     monkeypatch.setattr(InvocationPlugin, 'IS_COLD_START', True)
     thundra, handler = handler_with_apikey
 
@@ -24,7 +24,7 @@ def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch)
 
 
 def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_exception
 
     invocation_plugin = None
@@ -67,10 +67,9 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert invocation_plugin.invocation_data['errorMessage'] == ''
 
     assert invocation_plugin.invocation_data['functionRegion'] == 'region'
-    # assert invocation_plugin.invocation_data['memorySize'] == 128  ## Does not exist in new data model
 
 def test_tags_error(handler_with_exception, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_exception
 
     invocation_plugin = None
@@ -88,7 +87,7 @@ def test_tags_error(handler_with_exception, mock_context, mock_event, monkeypatc
     assert invocation_plugin.invocation_data['tags']['error.message'] == 'hello'
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_profile
 
     invocation_plugin = None
@@ -111,28 +110,28 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
 
 
 
-# def test_when_app_profile_exists(handler_with_profile, mock_context, mock_event):
-#
-#     thundra, handler = handler_with_profile
-#
-#     invocation_plugin = None
-#     for plugin in thundra.plugins:
-#         if type(plugin) is InvocationPlugin:
-#             invocation_plugin = plugin
-#
-#     handler(mock_event, mock_context)
-#
-#     assert invocation_plugin.invocation_data['applicationProfile'] == 'profile'
-#
-#
-# def test_when_app_profile_not_exists(handler_with_apikey, mock_context, mock_event):
-#     thundra, handler = handler_with_apikey
-#
-#     invocation_plugin = None
-#     for plugin in thundra.plugins:
-#         if type(plugin) is InvocationPlugin:
-#             invocation_plugin = plugin
-#
-#     handler(mock_event, mock_context)
-#
-#     assert invocation_plugin.invocation_data['applicationProfile'] is ''
+def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
+
+    thundra, handler = handler_with_profile
+
+    invocation_plugin = None
+    for plugin in thundra.plugins:
+        if type(plugin) is InvocationPlugin:
+            invocation_plugin = plugin
+
+    handler(mock_event, mock_context)
+
+    assert invocation_plugin.invocation_data['applicationStage'] == 'dev'
+
+
+def test_when_app_stage_not_exists(handler_with_apikey, mock_context, mock_event):
+    thundra, handler = handler_with_apikey
+
+    invocation_plugin = None
+    for plugin in thundra.plugins:
+        if type(plugin) is InvocationPlugin:
+            invocation_plugin = plugin
+
+    handler(mock_event, mock_context)
+
+    assert invocation_plugin.invocation_data['applicationStage'] is ''

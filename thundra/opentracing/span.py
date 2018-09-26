@@ -13,17 +13,12 @@ class ThundraSpan(opentracing.Span):
                  class_name=None,
                  domain_name=None,
                  context=None,
-                 trace_id=None,
-                 span_id=None,
                  tags=None,
                  start_time=None):
         super(ThundraSpan, self).__init__(tracer, context)
         self._tracer = tracer
         self._context = context
         self._lock = Lock()
-
-        self.trace_id = trace_id
-        self.span_id = span_id or str(uuid.uuid4())
         self.operation_name = operation_name
         self.class_name = class_name
         self.domain_name = domain_name

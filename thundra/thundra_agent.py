@@ -32,41 +32,41 @@ class Thundra:
         constants.REQUEST_COUNT = 0
 
         self.plugins = []
-        api_key_from_environment_variable = utils.get_environment_variable(constants.THUNDRA_APIKEY)
+        api_key_from_environment_variable = utils.get_configuration(constants.THUNDRA_APIKEY)
         self.api_key = api_key_from_environment_variable if api_key_from_environment_variable is not None else api_key
         if self.api_key is None:
             logger.error('Please set thundra_apiKey from environment variables in order to use Thundra')
 
-        disable_trace_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_TRACE)
+        disable_trace_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_TRACE)
         if not utils.should_disable(disable_trace_by_env, disable_trace):
             self.plugins.append(TracePlugin())
 
         self.plugins.append(InvocationPlugin())
         self.data = {}
 
-        disable_metric_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_METRIC)
+        disable_metric_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_METRIC)
         if not utils.should_disable(disable_metric_by_env, disable_metric):
             self.plugins.append(MetricPlugin())
 
-        disable_log_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE_LOG)
+        disable_log_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_LOG)
         if not utils.should_disable(disable_log_by_env, disable_log):
             self.plugins.append(LogPlugin())
 
-        audit_request_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
+        audit_request_skip_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         self.data['request_skipped'] = utils.should_disable(audit_request_skip_by_env, request_skip)
 
-        audit_response_skip_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
+        audit_response_skip_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         self.response_skipped = utils.should_disable(audit_response_skip_by_env, response_skip)
 
-        is_warmup_aware_by_env = utils.get_environment_variable(constants.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE)
+        is_warmup_aware_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE)
         self.warmup_aware = utils.should_disable(is_warmup_aware_by_env)
 
-        thundra_lambda_trace_instrument_disable = utils.get_environment_variable(
+        thundra_lambda_trace_instrument_disable = utils.get_configuration(
             constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)
         self.trace_instrument_disable = utils.should_disable(thundra_lambda_trace_instrument_disable,
                                                              trace_instrument_disable)
 
-        timeout_margin = utils.get_environment_variable(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
+        timeout_margin = utils.get_configuration(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
         self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
         if self.timeout_margin <= 0:
             self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
@@ -78,7 +78,7 @@ class Thundra:
 
     def __call__(self, original_func):
 
-        is_thundra_disabled_by_env = utils.get_environment_variable(constants.THUNDRA_DISABLE)
+        is_thundra_disabled_by_env = utils.get_configuration(constants.THUNDRA_DISABLE)
         should_disable_thundra = utils.should_disable(is_thundra_disabled_by_env)
         if should_disable_thundra:
             return original_func
@@ -94,7 +94,6 @@ class Thundra:
             self.data['event'] = event
             self.data['context'] = context
 
-            self.data['transactionId'] = str(uuid.uuid4())
 
             self.execute_hook('before:invocation', self.data)
             if threading.current_thread().__class__.__name__ == '_MainThread':
@@ -103,7 +102,8 @@ class Thundra:
                 if hasattr(context, 'get_remaining_time_in_millis'):
                     timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
                     if timeout_duration <= 0:
-                        timeout_duration = context.get_remaining_time_in_millis() - constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                        timeout_duration = context.get_remaining_time_in_millis() - \
+                                                    constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
                         logger.warning('Given timeout margin is bigger than lambda timeout duration and '
                                        'since the difference is negative, it is set to default value (' +
                                        str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
@@ -127,7 +127,11 @@ class Thundra:
     call = __call__
 
     def execute_hook(self, name, data):
-        [plugin.hooks[name](data) for plugin in self.plugins if hasattr(plugin, 'hooks') and name in plugin.hooks]
+        if name == 'after:invocation':
+            [plugin.hooks[name](data) for plugin in reversed(self.plugins) if hasattr(plugin, 'hooks') \
+                                                                                and name in plugin.hooks]
+        else:
+            [plugin.hooks[name](data) for plugin in self.plugins if hasattr(plugin, 'hooks') and name in plugin.hooks]
 
     def check_and_handle_warmup_request(self, event):
 

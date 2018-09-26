@@ -1,6 +1,7 @@
 import logging
 from thundra.opentracing.tracer import ThundraTracer
 import uuid
+from thundra import constants
 
 import uuid
 logs = []
@@ -18,10 +19,8 @@ class ThundraLogHandler(logging.Handler):
         active_span = self.tracer.get_active_span()
         log = {
             'id': str(uuid.uuid4()),
-            'applicationDomainName': active_span.domain_name or '' if active_span is not None else '',
-            'applicationClassName': active_span.class_name or '' if active_span is not None else '',
-            'trace_id': active_span.trace_id if active_span is not None else '',
-            'span_id': active_span.span_id if active_span is not None else '',
+            'trace_id': active_span.context.trace_id if active_span is not None else '',
+            'span_id': active_span.context.span_id if active_span is not None else '',
             'log': formatted_message,
             'logMessage': record.msg,
             'logContextName': record.name,

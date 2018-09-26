@@ -26,6 +26,7 @@ class ThundraTracer(opentracing.Tracer):
                           child_of=None,
                           references=None,
                           trace_id=None,
+                          transaction_id=None,
                           tags=None,
                           start_time=None,
                           ignore_active_span=False,
@@ -35,6 +36,7 @@ class ThundraTracer(opentracing.Tracer):
             child_of=child_of,
             references=references,
             trace_id=trace_id,
+            transaction_id=transaction_id,
             tags=tags,
             start_time=start_time,
             ignore_active_span=ignore_active_span
@@ -49,6 +51,7 @@ class ThundraTracer(opentracing.Tracer):
                    child_of=None,
                    references=None,
                    trace_id=None,
+                   transaction_id=None,
                    tags=None,
                    start_time=None,
                    ignore_active_span=False):
@@ -71,16 +74,14 @@ class ThundraTracer(opentracing.Tracer):
             parent_span_id = parent_context.span_id
 
         trace_id = trace_id or str(uuid.uuid4())
+        context = ThundraSpanContext(trace_id=trace_id, transaction_id=transaction_id, parent_span_id=parent_span_id)
         span = ThundraSpan(self,
                            operation_name=operation_name,
                            class_name=class_name,
                            domain_name=domain_name,
-                           trace_id=trace_id,
+                           context=context,
                            tags=tags,
                            start_time=start_time)
-
-        context = ThundraSpanContext(trace_id=trace_id, parent_span_id=parent_span_id, span_id=span.span_id)
-        span.context = context
 
         self.recorder.record(RecordEvents.START_SPAN, span)
         return span

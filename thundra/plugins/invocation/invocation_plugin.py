@@ -4,7 +4,6 @@ import sys
 
 from thundra import constants, utils
 import json
-from thundra.opentracing.tracer import ThundraTracer
 
 class InvocationPlugin:
 
@@ -18,43 +17,41 @@ class InvocationPlugin:
         self.start_time = 0
         self.end_time = 0
         self.invocation_data = {}
-        self.tracer = ThundraTracer().getInstance()
 
-    def before_invocation(self, data):
+    def before_invocation(self, plugin_context):
         if constants.REQUEST_COUNT > 0:
             InvocationPlugin.IS_COLD_START = False
 
-        context = data['context']
-        memory_size = getattr(context, 'memory_limit_in_mb', None)
+        context = plugin_context['context']
+        transaction_id = plugin_context['transaction_id'] or context.aws_request_id
         self.start_time = time.time() * 1000
 
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
 
         self.start_time = int(time.time() * 1000)
-        active_span = self.tracer.get_active_span()
 
         self.invocation_data = {
             'id': str(uuid.uuid4()),
             'type': "Invocation",
-            'agentVersion': '',
+            'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName': active_span.domain_name or '' if active_span is not None else '',
-            'applicationClassName': active_span.class_name or '' if active_span is not None else '',
+            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
+            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': '',
+            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
             'applicationRuntime': 'python',
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': '',
-            'transactionId': data['transactionId'],
-            'spanId': '',
-            'functionPlatform': 'python', #old name: applicationType
+            'traceId': plugin_context['trace_id'],
+            'transactionId': transaction_id,
+            'spanId': plugin_context['span_id'],
+            'functionPlatform': constants.CONTEXT_FUNCTION_PLATFORM,
             'functionName': getattr(context, 'function_name', None), #old name: applicationName
-            'functionRegion': utils.get_environment_variable(constants.AWS_REGION, default=''), #old name: region
+            'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''), #old name: region
             'duration': None, 
             'startTimestamp': int(self.start_time),
             'finishTimestamp': None, #old name: endTimestamp
@@ -65,22 +62,16 @@ class InvocationPlugin:
             'coldStart': InvocationPlugin.IS_COLD_START,
             'timeout': False,
             'tags': {}, #new addition
-            #'memorySize': int(memory_size) if memory_size is not None else None,
         }
         InvocationPlugin.IS_COLD_START = False
 
-    def after_invocation(self, data):
+    def after_invocation(self, plugin_context):
         self.end_time = time.time() * 1000
-        context = data['context']
-        active_span = self.tracer.get_active_span()
-
-        self.invocation_data['traceId']: active_span.trace_id if active_span is not None else ''
-        self.invocation_data['transactionId']: data['transactionId']
-        self.invocation_data['spanId']: active_span.span_id if active_span is not None else ''
+        context = plugin_context['context']
 
         #### ERROR ####
-        if 'error' in data:
-            error = data['error']
+        if 'error' in plugin_context:
+            error = plugin_context['error']
             error_type = type(error)
             self.invocation_data['erroneous'] = True
             self.invocation_data['errorType'] = error_type.__name__
@@ -99,7 +90,7 @@ class InvocationPlugin:
             if hasattr(error, 'stack'):
                 self.invocation_data['tags']['error.stack'] = error.stack
 
-        self.invocation_data['timeout'] = data.get('timeout', False)
+        self.invocation_data['timeout'] = plugin_context.get('timeout', False)
 
         duration = self.end_time - self.start_time
         self.invocation_data['duration'] = int(duration)
@@ -114,12 +105,12 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
         self.invocation_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
         self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = self.invocation_data['coldStart']
-        self.invocation_data['tags']['aws.lambda.invocation.timeout'] = data.get('timeout', False)
+        self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
-        self.invocation_data['tags']['aws.lambda.invocation.request'] = data.get('event', default)
-        self.invocation_data['tags']['aws.lambda.invocation.response'] = data.get('response', default)
+        self.invocation_data['tags']['aws.lambda.invocation.request'] = plugin_context.get('event', default)
+        self.invocation_data['tags']['aws.lambda.invocation.response'] = plugin_context.get('response', default)
 
-        reporter = data['reporter']
+        reporter = plugin_context['reporter']
         report_data = {
             'apiKey': reporter.api_key,
             'type': 'Invocation',

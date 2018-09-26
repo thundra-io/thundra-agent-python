@@ -7,7 +7,7 @@ except ImportError:
     from botocore.vendored import requests
 
 from thundra import constants
-from thundra.utils import get_environment_variable
+from thundra.utils import get_configuration
 import thundra.utils as utils
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class Reporter():
         self.session = session
 
     def add_report(self, report):
-        if get_environment_variable(constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE) == 'true':
+        if get_configuration(constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE) == 'true':
             print(json.dumps(report))
         else:
             if isinstance(report, list):
@@ -41,7 +41,7 @@ class Reporter():
             'Authorization': 'ApiKey ' + self.api_key
         }
         request_url = constants.HOST + constants.PATH
-        base_url = utils.get_environment_variable(constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL)
+        base_url = utils.get_configuration(constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL)
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
 

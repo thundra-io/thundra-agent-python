@@ -26,9 +26,10 @@ class MetricPlugin:
         self.reporter = {}
         self.tracer = ThundraTracer()
 
-    def before_invocation(self, data):
-        self.reporter = data['reporter']
-        context = data['context']
+    def before_invocation(self, plugin_context):
+        self.reporter = plugin_context['reporter']
+        context = plugin_context['context']
+        transaction_id = plugin_context['transaction_id'] or context.aws_request_id
         metric_time = time.time() * 1000
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
@@ -37,20 +38,20 @@ class MetricPlugin:
         self.metric_data = {
 
             'type': "Metric",
-            'agentVersion': '',
+            'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
-            'applicationDomainName':active_span.domain_name if active_span is not None else '',
-            'applicationClassName': active_span.class_name if active_span is not None else '',
+            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
+            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
             'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': '',
+            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
             'applicationRuntime': 'python',
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
             'traceId': active_span.trace_id if active_span is not None else '',
-            'transactionId': data['transactionId'],
+            'transactionId': transaction_id,
             'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
             'tags':{}

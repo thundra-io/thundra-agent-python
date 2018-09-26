@@ -21,8 +21,8 @@ def test_start_acitve_span(mock_recorder, mock_scope_manager, span):
 
         assert active_span.operation_name == 'test'
         assert active_span.start_time == start_time
-        assert active_span.context.parent_span_id == span.span_id
-        assert active_span.trace_id == span.trace_id
+        assert active_span.context.parent_span_id == span.context.span_id
+        assert active_span.context.trace_id == span.context.trace_id
 
         mock_scope_manager.activate.assert_called_once
         mock_recorder.record.assert_called_once
@@ -35,8 +35,8 @@ def test_start_span(mock_recorder, span):
     with tracer.start_span(operation_name='test', child_of=span, start_time=start_time) as active_span:
         assert active_span.operation_name == 'test'
         assert active_span.start_time == start_time
-        assert active_span.context.parent_span_id == span.span_id
-        assert active_span.trace_id == span.trace_id
+        assert active_span.context.parent_span_id == span.context.span_id
+        assert active_span.context.trace_id == span.context.trace_id
 
         mock_recorder.record.assert_called_once
 

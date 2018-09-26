@@ -10,7 +10,7 @@ from thundra.plugins.trace.traceable import Traceable
 
 
 
-def get_environment_variable(key, default=None):
+def get_configuration(key, default=None):
     return os.environ.get(key, default=default)
 
 
