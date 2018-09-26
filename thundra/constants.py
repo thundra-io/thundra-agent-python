@@ -16,7 +16,6 @@ THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra_lambda_trace_response_skip'
 THUNDRA_LAMBDA_WARMUP_WARMUPAWARE = 'thundra_lambda_warmup_warmupAware'
 THUNDRA_LAMBDA_PUBLISH_REST_BASEURL = 'thundra_lambda_publish_rest_baseUrl'
 THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra_lambda_timeout_margin'
-THUDRA_INSTRUMENT_FUNCTION = 'thundra_instrument_function'
 THUDRA_TRACE_DEF = 'thundra_trace_def'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE = 'thundra_lambda_trace_instrument_disable'
 

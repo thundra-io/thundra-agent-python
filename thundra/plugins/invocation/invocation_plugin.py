@@ -18,7 +18,7 @@ class InvocationPlugin:
         self.start_time = 0
         self.end_time = 0
         self.invocation_data = {}
-        self.tracer = ThundraTracer()
+        self.tracer = ThundraTracer().getInstance()
 
     def before_invocation(self, data):
         if constants.REQUEST_COUNT > 0:

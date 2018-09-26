@@ -11,17 +11,14 @@ class ThundraSpanContext(opentracing.SpanContext):
         self._span_id = span_id
         self._parent_span_id = parent_span_id
         self._baggage = baggage or opentracing.SpanContext.EMPTY_BAGGAGE
-        self._lock = Lock()
 
     @property
     def trace_id(self):
-        with self._lock:
-            return self._trace_id
+        return self._trace_id
 
     @property
     def span_id(self):
-        with self._lock:
-         return self._span_id
+        return self._span_id
 
     @span_id.setter
     def span_id(self, value):
@@ -29,8 +26,7 @@ class ThundraSpanContext(opentracing.SpanContext):
 
     @property
     def parent_span_id(self):
-        with self._lock:
-            return self._parent_span_id
+        return self._parent_span_id
 
     @property
     def baggage(self):
