@@ -4,7 +4,7 @@ from thundra.opentracing.tracer import ThundraTracer
 
 
 def test_set_operation_name():
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
         assert span.operation_name == 'operation name'
@@ -14,7 +14,7 @@ def test_set_operation_name():
 
 
 def test_tag():
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
         assert bool(span.tags) == False
@@ -24,9 +24,9 @@ def test_tag():
         assert tag == 'test'
 
 
-@mock.patch('thundra.opentracing.recorder.InMemoryRecorder')
+@mock.patch('thundra.opentracing.recorder.ThundraRecorder')
 def test_finish(mock_recorder):
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
         assert span.duration == -1
@@ -41,7 +41,7 @@ def test_finish(mock_recorder):
 
 
 def test_log_kv():
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
         assert len(span.logs) == 0
@@ -62,7 +62,7 @@ def test_log_kv():
 
 
 def test_baggage_item():
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
         assert bool(span.context.baggage) == False

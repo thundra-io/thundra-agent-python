@@ -1,4 +1,4 @@
-from threading import Lock, local
+from threading import Lock
 
 
 class RecordEvents:
@@ -6,7 +6,8 @@ class RecordEvents:
     FINISH_SPAN = 'finish_span'
 
 
-class InMemoryRecorder:
+class ThundraRecorder:
+
     def __init__(self):
         self._lock = Lock()
         self._active_span_stack = []
@@ -39,7 +40,7 @@ class InMemoryRecorder:
             elif event == RecordEvents.FINISH_SPAN:
                 self._record_finish_span()
 
-    def flush_finished_spans(self):
+    def clear(self):
         self._finished_span_stack.clear()
 
     def _record_start_span(self, span):
@@ -49,6 +50,3 @@ class InMemoryRecorder:
         if len(self._active_span_stack) > 0:
             self._finished_span_stack.append(self.active_span_stack[-1])
             self._active_span_stack.pop()
-
-
-

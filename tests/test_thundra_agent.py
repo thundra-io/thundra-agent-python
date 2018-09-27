@@ -92,7 +92,8 @@ def test_if_exception_is_handled(handler_with_exception, mock_context, mock_even
         handler(mock_event, mock_context)
     except Exception as e:
         pass
-    assert 'error' in thundra.data
+    print(thundra.plugin_context)
+    assert 'error' in thundra.plugin_context
 
 
 @mock.patch('thundra.reporter.Reporter')

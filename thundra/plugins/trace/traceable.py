@@ -1,6 +1,7 @@
 from functools import wraps
 
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.serializable import Serializable
 
 
 class Traceable:
@@ -9,7 +10,7 @@ class Traceable:
         self._trace_args = trace_args
         self._trace_return_value = trace_return_value
         self._trace_error = trace_error
-        self._tracer = ThundraTracer.getInstance()
+        self._tracer = ThundraTracer.get_instance()
 
     @property
     def tracer(self):
@@ -27,6 +28,17 @@ class Traceable:
     def trace_error(self):
         return self._trace_error
 
+    def __is_serializable__(self, value):
+        return value is None or isinstance(value, (str, int, float, bool))
+
+    def __serialize_value__(self, value):
+        if self.__is_serializable__(value):
+            return value
+        elif isinstance(value, Serializable):
+            return value.serialize()
+        else:
+            return 'Not serializable'
+
     def __call__(self, original_func):
         @wraps(original_func)
         def trace(*args, **kwargs):
@@ -42,7 +54,7 @@ class Traceable:
                         function_args_dict = {
                             'name': 'arg-' + str(count),
                             'type': type(arg).__name__,
-                            'value': arg
+                            'value': self.__serialize_value__(arg)
                         }
                         count += 1
                         function_args_list.append(function_args_dict)
@@ -51,24 +63,25 @@ class Traceable:
                             function_args_dict = {
                                 'name': key,
                                 'type': type(value).__name__,
-                                'value': value
+                                'value': self.__serialize_value__(value)
                             }
                             function_args_list.append(function_args_dict)
-                    scope.span.set_tag('ARGS', function_args_list)
+                    scope.span.set_tag('method.args', function_args_list)
                 response = original_func(*args, **kwargs)
                 if self._trace_return_value is True and response is not None:
                     return_value = {
                         'type': type(response).__name__,
-                        'value': response
+                        'value': self.__serialize_value__(response)
                     }
-                    scope.span.set_tag('RETURN_VALUE', return_value)
+                    scope.span.set_tag('method.return_value', return_value)
             except Exception as e:
                 if self._trace_error is True:
-                    scope.span.set_tag('thrownError', type(e).__name__)
+                    scope.span.set_error_to_tag(e)
                 raise e
             finally:
                 scope.close()
             return response
+
         return trace
 
     call = __call__

@@ -5,15 +5,16 @@ import os
 from thundra import constants
 from thundra.reporter import Reporter
 
+
 def test_add_report_async(mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE, 'true')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'true')
     reporter = Reporter('api key')
     reporter.add_report(mock_report)
     assert len(reporter.reports) is 0
 
 
 def test_add_report_sync(mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_CLOUDWATCH_ENABLE, 'false')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'false')
     reporter = Reporter('api key')
     reporter.add_report(mock_report)
 
@@ -31,7 +32,7 @@ def test_add_report_sync_if_env_var_is_not_set(mock_report):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url(mock_requests, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_PUBLISH_REST_BASEURL, 'different_url/api')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
     response = reporter.send_report()

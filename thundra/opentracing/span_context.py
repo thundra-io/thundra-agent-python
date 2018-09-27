@@ -1,9 +1,8 @@
 import opentracing
-from threading import Lock
 
-import uuid
 
 class ThundraSpanContext(opentracing.SpanContext):
+
     def __init__(self,
                  trace_id=None,
                  transaction_id=None,
@@ -11,8 +10,8 @@ class ThundraSpanContext(opentracing.SpanContext):
                  parent_span_id=None,
                  baggage=None):
         self._trace_id = trace_id
-        self._span_id = span_id or str(uuid.uuid4())
         self._transaction_id = transaction_id
+        self._span_id = span_id
         self._parent_span_id = parent_span_id
         self._baggage = baggage or opentracing.SpanContext.EMPTY_BAGGAGE
 
@@ -44,7 +43,7 @@ class ThundraSpanContext(opentracing.SpanContext):
         new_baggage_item = self.baggage.copy()
         new_baggage_item[key] = value
         return ThundraSpanContext(trace_id=self.trace_id,
-                                  span_id=self.span_id,
                                   transaction_id=self.transaction_id,
+                                  span_id=self.span_id,
                                   parent_span_id=self.parent_span_id,
                                   baggage=new_baggage_item)

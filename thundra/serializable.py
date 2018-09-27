@@ -1,6 +1,5 @@
 import abc
 
-
 class Serializable(abc.ABC):
 
     @abc.abstractmethod

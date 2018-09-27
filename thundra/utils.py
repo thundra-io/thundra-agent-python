@@ -1,13 +1,6 @@
 import os
 import sys
-import copy
-import types
-
 from thundra import constants
-
-from importlib.machinery import PathFinder, ModuleSpec, SourceFileLoader
-from thundra.plugins.trace.traceable import Traceable
-
 
 
 def get_configuration(key, default=None):
@@ -24,11 +17,13 @@ def should_disable(disable_by_env, disable_by_param=False):
 
 def get_application_id(context):
     aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-    applicationId = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
-    return applicationId
+    application_id = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
+    return application_id
+
 
 def get_aws_lambda_function_memory_size():
     return os.environ.get(constants.AWS_LAMBDA_FUNCTION_MEMORY_SIZE)
+
 
 #### memory ####
 def process_memory_usage():
@@ -48,6 +43,7 @@ def process_memory_usage():
     except IOError as e:
         print('ERROR: %s' % e)
         sys.exit(2)
+
 
 def system_memory_usage():
     try:
@@ -100,6 +96,7 @@ def system_cpu_usage():
         print('ERROR: %s' % e)
         sys.exit(3)
 
+
 #####################################################################
 ###
 #####################################################################
@@ -112,17 +109,22 @@ class Singleton(object):
             class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
         return class_._instances[class_]
 
+
 def get_all_env_variables():
     return os.environ
+
 
 def get_module_name(module):
     return module.__name__
 
+
 def string_to_list(target, indicator):
     return target.split(indicator)
 
+
 def str2bool(v):
-  return v.lower() in ("yes", "true", "t", "1")
+    return v.lower() in ("yes", "true", "t", "1")
+
 
 def process_trace_def_env_var(value):
     value = value.strip().split('[')
@@ -141,12 +143,14 @@ def process_trace_def_env_var(value):
 
     return module_path, function_prefix, trace_args
 
+
 def get_allowed_functions(module):
     allowed_functions = []
     for prop in vars(module):
         #TO DO: differentiate functions
         allowed_functions.append(str(prop))
     return allowed_functions
+
 
 def get_aws_region_from_arn(func_arn):
     return func_arn.split(':')[3] if len(func_arn.split(':')) >= 3 else ""

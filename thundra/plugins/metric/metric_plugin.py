@@ -4,7 +4,6 @@ import gc
 import time
 import sys
 
-
 from thundra import utils, constants
 from thundra.opentracing.tracer import ThundraTracer
 
@@ -23,20 +22,16 @@ class MetricPlugin:
         self.process_cpu_usage_start = float(0)
         self.process_cpu_usage_end = float(0)
         self.metric_data = {}
-        self.reporter = {}
-        self.tracer = ThundraTracer()
+        self.tracer = ThundraTracer.get_instance()
 
     def before_invocation(self, plugin_context):
-        self.reporter = plugin_context['reporter']
         context = plugin_context['context']
-        transaction_id = plugin_context['transaction_id'] or context.aws_request_id
-        metric_time = time.time() * 1000
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+        metric_time = time.time() * 1000
 
         active_span = self.tracer.get_active_span()
 
         self.metric_data = {
-
             'type': "Metric",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
@@ -51,23 +46,22 @@ class MetricPlugin:
             'applicationTags': {},
 
             'traceId': active_span.trace_id if active_span is not None else '',
-            'transactionId': transaction_id,
+            'transactionId': plugin_context['transaction_id'] or context.aws_request_id,
             'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
-            'tags':{}
+            'tags': {}
         }
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
-    def after_invocation(self, data):
-        if 'contextId' in data:
-            self.metric_data['rootExecutionAuditContextId'] = data['contextId']
-        self.add_thread_metric_report()
-        self.add_gc_metric_report()
-        self.add_memory_metric_report()
-        self.add_cpu_metric_report()
+    def after_invocation(self, plugin_context):
+        reporter = plugin_context['reporter']
+        self.add_thread_metric_report(reporter)
+        self.add_gc_metric_report(reporter)
+        self.add_memory_metric_report(reporter)
+        self.add_cpu_metric_report(reporter)
 
-    def add_thread_metric_report(self):
+    def add_thread_metric_report(self, reporter):
         active_thread_counts = threading.active_count()
         thread_metric_data = {
             'id': str(uuid.uuid4()),
@@ -81,12 +75,12 @@ class MetricPlugin:
         thread_metric_report = {
             'data': thread_metric_data,
             'type': 'Metric',
-            'apiKey': self.reporter.api_key,
+            'apiKey': reporter.api_key,
             'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(thread_metric_report)
+        reporter.add_report(thread_metric_report)
 
-    def add_gc_metric_report(self):
+    def add_gc_metric_report(self, reporter):
         gc_metrics = gc.get_stats()
         gc_metric_data = {
             'id': str(uuid.uuid4()),
@@ -103,12 +97,12 @@ class MetricPlugin:
         gc_metric_report = {
             'data': gc_metric_data,
             'type': 'Metric',
-            'apiKey': self.reporter.api_key,
+            'apiKey': reporter.api_key,
             'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(gc_metric_report)
+        reporter.add_report(gc_metric_report)
 
-    def add_memory_metric_report(self):
+    def add_memory_metric_report(self, reporter):
         size, resident = utils.process_memory_usage()
         total_mem, free_mem = utils.system_memory_usage()
         used_mem = total_mem - free_mem
@@ -127,12 +121,12 @@ class MetricPlugin:
         memory_metric_report = {
             'data': memory_metric_data,
             'type': 'Metric',
-            'apiKey': self.reporter.api_key,
+            'apiKey': reporter.api_key,
             'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(memory_metric_report)
+        reporter.add_report(memory_metric_report)
 
-    def add_cpu_metric_report(self):
+    def add_cpu_metric_report(self, reporter):
         self.process_cpu_usage_end = utils.process_cpu_usage()
         self.system_cpu_total_end, self.system_cpu_usage_end = utils.system_cpu_usage()
         process_cpu_load = 0
@@ -160,7 +154,7 @@ class MetricPlugin:
         cpu_metric_report = {
             'data': cpu_metric_data,
             'type': 'Metric',
-            'apiKey': self.reporter.api_key,
+            'apiKey': reporter.api_key,
             'dataModelVersion': constants.DATA_FORMAT_VERSION
         }
-        self.reporter.add_report(cpu_metric_report)
+        reporter.add_report(cpu_metric_report)

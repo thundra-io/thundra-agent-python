@@ -13,13 +13,12 @@ class LogPlugin:
             'after:invocation': self.after_invocation
         }
         self.log_data = {}
-        self.tracer = ThundraTracer.getInstance()
-        self.scope = None
+        self.tracer = ThundraTracer.get_instance()
 
     def before_invocation(self, plugin_context):
-        context = plugin_context['context']
-        transaction_id = plugin_context['transaction_id'] or context.aws_request_id
         logs.clear()
+
+        context = plugin_context['context']
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
         self.log_data = {
@@ -36,30 +35,22 @@ class LogPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'transactionId': transaction_id,
+            'traceId': plugin_context['trace_id'],
+            'transactionId': plugin_context['transaction_id'] or context.aws_request_id,
             'tags': {}
         }
 
     def after_invocation(self, plugin_context):
-        if 'contextId' in plugin_context:
-            self.log_data['rootExecutionAuditContextId'] = plugin_context['contextId']
-            context = plugin_context['context']
+        context = plugin_context['context']
 
-            #### ADDING TAGS ####
-            self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
-            self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME,
-                                                               None)
-            self.log_data['tags']['aws.lambda.arn'] = getattr(context,
-                                                              constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
-            self.log_data['tags']['aws.lambda.memory.limit'] = getattr(context,
-                                                                       constants.CONTEXT_MEMORY_LIMIT_IN_MB,
-                                                                       None)
-            self.log_data['tags']['aws.lambda.log_group_name'] = getattr(context,
-                                                                         constants.CONTEXT_LOG_GROUP_NAME,
-                                                                         None)
-            self.log_data['tags']['aws.lambda.log_stream_name'] = getattr(context,
-                                                                          constants.CONTEXT_LOG_STREAM_NAME,
-                                                                          None)
+        #### ADDING TAGS ####
+        self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
+        self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
+        self.log_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
+        self.log_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
+        self.log_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
+        self.log_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
+
         if 'error' in plugin_context:
             error = plugin_context['error']
             error_type = type(error)
@@ -84,7 +75,5 @@ class LogPlugin:
                 'dataModelVersion': constants.DATA_FORMAT_VERSION
             }
             reporter.add_report(log_report)
-
-
 
         logs.clear()

@@ -2,7 +2,7 @@ from thundra.opentracing.tracer import ThundraTracer
 
 
 def test_trace_args(trace_args):
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     nodes = tracer.recorder.finished_span_stack
     count=0
     for key in nodes:
@@ -20,7 +20,7 @@ def test_trace_args(trace_args):
             count += 1
             active_span = key
 
-    args = active_span.get_tag('ARGS')
+    args = active_span.get_tag('method.args')
     assert len(args) == 2
     assert args[0]['value'] == 'arg1'
     assert args[0]['name'] == 'arg-0'
@@ -29,10 +29,10 @@ def test_trace_args(trace_args):
     assert args[1]['name'] == 'arg2'
     assert args[1]['type'] == 'str'
 
-    return_value = active_span.get_tag('RETURN_VALUE')
+    return_value = active_span.get_tag('method.return_value')
     assert return_value is None
 
-    error = active_span.get_tag('thrownError')
+    error = active_span.get_tag('error')
     assert error is None
 
     assert count == 1
@@ -42,7 +42,7 @@ def test_trace_args(trace_args):
 
 
 def test_trace_return_values(trace_return_val):
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     nodes = tracer.recorder.finished_span_stack
     count = 0
     for key in nodes:
@@ -60,14 +60,14 @@ def test_trace_return_values(trace_return_val):
             count += 1
             active_span = key
 
-    args = active_span.get_tag('ARGS')
+    args = active_span.get_tag('method.args')
     assert args is None
 
-    return_value = active_span.get_tag('RETURN_VALUE')
+    return_value = active_span.get_tag('method.return_value')
     assert return_value['type'] == type(response).__name__
     assert return_value['value'] == response
 
-    error = active_span.get_tag('thrownError')
+    error = active_span.get_tag('error')
     assert error is None
 
     assert count == 1
@@ -77,7 +77,7 @@ def test_trace_return_values(trace_return_val):
 
 
 def test_trace_error(trace_error):
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     nodes = tracer.recorder.finished_span_stack
     count = 0
     for key in nodes:
@@ -96,13 +96,13 @@ def test_trace_error(trace_error):
                 count += 1
                 active_span = key
 
-        args = active_span.get_tag('ARGS')
+        args = active_span.get_tag('method.args')
         assert args is None
 
-        return_value = active_span.get_tag('RETURN_VALUE')
+        return_value = active_span.get_tag('method.return_value')
         assert return_value is None
 
-        thrown_error = active_span.get_tag('thrownError')
+        thrown_error = active_span.get_tag('error.kind')
         assert thrown_error == 'Exception'
 
         assert count == 1
@@ -112,7 +112,7 @@ def test_trace_error(trace_error):
 
 
 def test_trace_with_default_configs(trace):
-    tracer = ThundraTracer.getInstance()
+    tracer = ThundraTracer.get_instance()
     nodes = tracer.recorder.finished_span_stack
     count = 0
     for key in nodes:
@@ -130,13 +130,13 @@ def test_trace_with_default_configs(trace):
             count += 1
             active_span = key
 
-    args = active_span.get_tag('ARGS')
+    args = active_span.get_tag('method.args')
     assert args is None
 
-    return_value = active_span.get_tag('RETURN_VALUE')
+    return_value = active_span.get_tag('method.return_value')
     assert return_value is None
 
-    error = active_span.get_tag('thrownError')
+    error = active_span.get_tag('error')
     assert error is None
 
     assert count == 1

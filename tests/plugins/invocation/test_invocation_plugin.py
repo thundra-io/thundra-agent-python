@@ -6,7 +6,6 @@ from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
-    monkeypatch.setattr(InvocationPlugin, 'IS_COLD_START', True)
     thundra, handler = handler_with_apikey
 
     invocation_plugin = None
@@ -68,6 +67,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     assert invocation_plugin.invocation_data['functionRegion'] == 'region'
 
+
 def test_tags_error(handler_with_exception, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_exception
@@ -85,6 +85,7 @@ def test_tags_error(handler_with_exception, mock_context, mock_event, monkeypatc
     assert invocation_plugin.invocation_data['tags']['error'] is True
     assert invocation_plugin.invocation_data['tags']['error.kind'] == 'Exception'
     assert invocation_plugin.invocation_data['tags']['error.message'] == 'hello'
+
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
@@ -107,7 +108,6 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
     assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.request_id'] == 'aws_request_id'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.request'] == mock_event
     assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.response'] == response
-
 
 
 def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):

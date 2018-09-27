@@ -5,9 +5,8 @@ import sys
 from thundra import constants, utils
 import json
 
-class InvocationPlugin:
 
-    IS_COLD_START = True
+class InvocationPlugin:
 
     def __init__(self):
         self.hooks = {
@@ -19,15 +18,8 @@ class InvocationPlugin:
         self.invocation_data = {}
 
     def before_invocation(self, plugin_context):
-        if constants.REQUEST_COUNT > 0:
-            InvocationPlugin.IS_COLD_START = False
-
         context = plugin_context['context']
-        transaction_id = plugin_context['transaction_id'] or context.aws_request_id
-        self.start_time = time.time() * 1000
-
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-
 
         self.start_time = int(time.time() * 1000)
 
@@ -47,23 +39,22 @@ class InvocationPlugin:
             'applicationTags': {},
 
             'traceId': plugin_context['trace_id'],
-            'transactionId': transaction_id,
+            'transactionId': plugin_context['transaction_id'] or context.aws_request_id,
             'spanId': plugin_context['span_id'],
             'functionPlatform': constants.CONTEXT_FUNCTION_PLATFORM,
-            'functionName': getattr(context, 'function_name', None), #old name: applicationName
-            'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''), #old name: region
+            'functionName': getattr(context, 'function_name', None),
+            'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''),
             'duration': None, 
             'startTimestamp': int(self.start_time),
-            'finishTimestamp': None, #old name: endTimestamp
+            'finishTimestamp': None,
             'erroneous': False,
             'errorType': '',
             'errorMessage': '',
-            'errorCode': -1, #new addition
-            'coldStart': InvocationPlugin.IS_COLD_START,
+            'errorCode': -1,
+            'coldStart': constants.REQUEST_COUNT == 1,
             'timeout': False,
-            'tags': {}, #new addition
+            'tags': {},
         }
-        InvocationPlugin.IS_COLD_START = False
 
     def after_invocation(self, plugin_context):
         self.end_time = time.time() * 1000
@@ -79,7 +70,7 @@ class InvocationPlugin:
             if hasattr(error, 'code'):
                 self.invocation_data['errorCode'] = error.code
 
-            #Adding tags
+            # Adding tags
             self.invocation_data['tags']['error'] = True
             self.invocation_data['tags']['error.kind'] = error_type.__name__
             self.invocation_data['tags']['error.message'] = str(error)
@@ -94,7 +85,7 @@ class InvocationPlugin:
 
         duration = self.end_time - self.start_time
         self.invocation_data['duration'] = int(duration)
-        self.invocation_data['finishTimestamp'] = int(self.end_time) # change: endTimestamp -> finishTimestamp
+        self.invocation_data['finishTimestamp'] = int(self.end_time)
 
         #### ADDING TAGS ####
         default = {}
@@ -107,7 +98,7 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = self.invocation_data['coldStart']
         self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
-        self.invocation_data['tags']['aws.lambda.invocation.request'] = plugin_context.get('event', default)
+        self.invocation_data['tags']['aws.lambda.invocation.request'] = plugin_context.get('request', default)
         self.invocation_data['tags']['aws.lambda.invocation.response'] = plugin_context.get('response', default)
 
         reporter = plugin_context['reporter']
