@@ -71,7 +71,8 @@ class TracePlugin:
         reporter = plugin_context['reporter']
 
         #### ADDING TAGS ####
-        self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)))
+        self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(
+            getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)))
         self.root_span.set_tag('aws.lambda.name', getattr(context, constants.CONTEXT_FUNCTION_NAME, None))
         self.root_span.set_tag('aws.lambda.arn', getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.root_span.set_tag('aws.lambda.memory.limit', getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None))
@@ -79,7 +80,8 @@ class TracePlugin:
         self.root_span.set_tag('aws.lambda.log_stream_name', getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None))
         self.root_span.set_tag('aws.lambda.invocation.cold_start', constants.REQUEST_COUNT == 1)
         self.root_span.set_tag('aws.lambda.invocation.timeout', plugin_context.get('timeout', False))
-        self.root_span.set_tag('aws.lambda.invocation.request_id', getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
+        self.root_span.set_tag('aws.lambda.invocation.request_id',
+                               getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
         skip_request = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         skip_response = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         if skip_request != True:
@@ -104,13 +106,15 @@ class TracePlugin:
         self.trace_data['finishTimestamp'] = self.end_time
 
         #### ADDING TAGS ####
-        self.trace_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
+        self.trace_data['tags']['aws.region'] = utils.get_aws_region_from_arn(
+            getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.trace_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.trace_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
-        self.trace_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
+        self.trace_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB,
+                                                                     None)
         self.trace_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
-        self.trace_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-
+        self.trace_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME,
+                                                                        None)
         if 'error' in plugin_context:
             error = plugin_context['error']
             error_type = type(error)
@@ -171,7 +175,7 @@ class TracePlugin:
             'traceId': span.context.trace_id,
             'transactionId': transaction_id,
             'parentSpanId': span.context.parent_span_id or '',
-            'spanOrder': -1,
+            'spanOrder': span.span_order,
             'domainName': span.domain_name or '',
             'className': span.class_name or '',
             'serviceName': '',

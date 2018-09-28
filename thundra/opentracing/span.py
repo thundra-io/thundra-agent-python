@@ -14,7 +14,8 @@ class ThundraSpan(opentracing.Span):
                  domain_name=None,
                  context=None,
                  tags=None,
-                 start_time=None):
+                 start_time=None,
+                 span_order=-1):
         super(ThundraSpan, self).__init__(tracer, context)
         self._tracer = tracer
         self._context = context
@@ -23,6 +24,7 @@ class ThundraSpan(opentracing.Span):
         self.class_name = class_name
         self.domain_name = domain_name
         self.start_time = start_time or int(time.time() * 1000)
+        self.span_order = span_order
         self.tags = tags if tags is not None else {}
         self.duration = -1
         self.logs = []

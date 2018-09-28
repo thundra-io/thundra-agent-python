@@ -19,6 +19,7 @@ class ThundraTracer(opentracing.Tracer):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
         super(ThundraTracer, self).__init__(scope_manager)
         self.recorder = recorder or ThundraRecorder()
+        self.global_span_order = 0
         ThundraTracer.__instance = self
 
     def start_active_span(self,
@@ -31,6 +32,7 @@ class ThundraTracer(opentracing.Tracer):
                           parent_span_id=None,
                           tags=None,
                           start_time=None,
+                          span_order=-1,
                           ignore_active_span=False,
                           finish_on_close=True):
         span_id = span_id or str(uuid.uuid4())
@@ -43,6 +45,7 @@ class ThundraTracer(opentracing.Tracer):
                                 parent_span_id=parent_span_id,
                                 tags=tags,
                                 start_time=start_time,
+                                span_order=span_order,
                                 ignore_active_span=ignore_active_span)
         return self.scope_manager.activate(_span, finish_on_close)
 
@@ -58,7 +61,13 @@ class ThundraTracer(opentracing.Tracer):
                    parent_span_id=None,
                    tags=None,
                    start_time=None,
+                   span_order=-1,
                    ignore_active_span=False):
+
+        self.global_span_order += 1
+        _span_order = span_order
+        if _span_order == -1:
+            _span_order = self.global_span_order
 
         _parent_context = None
         if child_of is not None:
@@ -91,7 +100,8 @@ class ThundraTracer(opentracing.Tracer):
                             domain_name=domain_name,
                             context=_context,
                             tags=tags,
-                            start_time=start_time)
+                            start_time=start_time,
+                            span_order=_span_order)
 
         self.recorder.record(RecordEvents.START_SPAN, _span)
         return _span
