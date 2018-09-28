@@ -1,4 +1,5 @@
 import uuid
+from threading import Lock
 import opentracing
 
 from opentracing.scope_managers import ThreadLocalScopeManager
@@ -19,6 +20,7 @@ class ThundraTracer(opentracing.Tracer):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
         super(ThundraTracer, self).__init__(scope_manager)
         self.recorder = recorder or ThundraRecorder()
+        self.lock = Lock()
         self.global_span_order = 0
         ThundraTracer.__instance = self
 
@@ -64,7 +66,9 @@ class ThundraTracer(opentracing.Tracer):
                    span_order=-1,
                    ignore_active_span=False):
 
-        self.global_span_order += 1
+        with self.lock:
+            self.global_span_order += 1
+
         _span_order = span_order
         if _span_order == -1:
             _span_order = self.global_span_order
