@@ -1,3 +1,4 @@
+import json
 from functools import wraps
 
 from thundra.opentracing.tracer import ThundraTracer
@@ -37,7 +38,12 @@ class Traceable:
         elif isinstance(value, Serializable):
             return value.serialize()
         else:
-            return 'Not serializable'
+            try:
+                # Check whether object is serializable
+                json.dumps(value)
+                return value
+            except TypeError:
+                return 'Unable to serialize the object'
 
     def __call__(self, original_func):
         @wraps(original_func)

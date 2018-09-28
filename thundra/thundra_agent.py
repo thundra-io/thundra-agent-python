@@ -153,8 +153,6 @@ class Thundra:
         current_thread = threading.current_thread().__class__.__name__
         if current_thread == '_MainThread' and signum == signal.SIGALRM:
             self.plugin_context['timeout'] = True
-            # Pass it to trace plugin, ES currently doesn't allow boolean so pass it as a string.
-            self.plugin_context['timeoutString'] = 'true'
             self.plugin_context['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
 

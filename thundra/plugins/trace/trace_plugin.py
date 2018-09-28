@@ -77,6 +77,9 @@ class TracePlugin:
         self.root_span.set_tag('aws.lambda.memory.limit', getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None))
         self.root_span.set_tag('aws.lambda.log_group_name', getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None))
         self.root_span.set_tag('aws.lambda.log_stream_name', getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None))
+        self.root_span.set_tag('aws.lambda.invocation.cold_start', constants.REQUEST_COUNT == 1)
+        self.root_span.set_tag('aws.lambda.invocation.timeout', plugin_context.get('timeout', False))
+        self.root_span.set_tag('aws.lambda.invocation.request_id', getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
         skip_request = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         skip_response = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         if skip_request != True:

@@ -106,8 +106,6 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
     assert invocation_plugin.invocation_data['tags']['aws.lambda.log_group_name'] == 'log_group_name'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.log_stream_name'] == 'log_stream_name[]id'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.request_id'] == 'aws_request_id'
-    assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.request'] == mock_event
-    assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.response'] == response
 
 
 def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):

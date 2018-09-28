@@ -88,7 +88,6 @@ class InvocationPlugin:
         self.invocation_data['finishTimestamp'] = int(self.end_time)
 
         #### ADDING TAGS ####
-        default = {}
         self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
@@ -98,8 +97,6 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = self.invocation_data['coldStart']
         self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
-        self.invocation_data['tags']['aws.lambda.invocation.request'] = plugin_context.get('request', default)
-        self.invocation_data['tags']['aws.lambda.invocation.response'] = plugin_context.get('response', default)
 
         reporter = plugin_context['reporter']
         report_data = {
