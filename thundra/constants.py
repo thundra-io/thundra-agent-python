@@ -1,7 +1,7 @@
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 
-HOST = "https://staging-collectorv2.thundra.io"
-PATH = "/api/monitoring-data"
+HOST = "https://api.thundra.io"
+PATH = "/v1/monitoring-data"
 
 REQUEST_COUNT = 0
 

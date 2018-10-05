@@ -1,6 +1,8 @@
 import pytest
+import mock
 
 from thundra.thundra_agent import Thundra
+from thundra.reporter import Reporter
 
 
 class MockContext:
@@ -39,22 +41,16 @@ def mock_report():
 
 
 @pytest.fixture
-def thundra_with_apikey():
-    return Thundra('api key', disable_metric=True)
+@mock.patch('thundra.reporter.requests')
+def reporter(mock_requests):
+    return Reporter('api key', mock_requests.Session())
 
 
 @pytest.fixture
-def handler_with_apikey(thundra_with_apikey):
-    @thundra_with_apikey.call
-    def _handler(event, context):
-        pass
-
-    return thundra_with_apikey, _handler
-
-
-@pytest.fixture
-def thundra():
-    return Thundra()
+def thundra(reporter):
+    thundra = Thundra(disable_metric=True)
+    thundra.reporter = reporter
+    return thundra
 
 
 @pytest.fixture
@@ -66,8 +62,8 @@ def handler(thundra):
 
 
 @pytest.fixture
-def handler_with_exception(thundra_with_apikey):
-    @thundra_with_apikey.call
+def handler_with_exception(thundra):
+    @thundra.call
     def _handler(event, context):
         raise Exception('hello')
-    return thundra_with_apikey, _handler
+    return thundra, _handler

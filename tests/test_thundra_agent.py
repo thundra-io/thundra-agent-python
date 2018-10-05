@@ -97,10 +97,10 @@ def test_if_exception_is_handled(handler_with_exception, mock_context, mock_even
 
 
 @mock.patch('thundra.reporter.Reporter')
-def test_if_thundra_is_disabled(mock_reporter, monkeypatch, handler_with_apikey, mock_event, mock_context):
+def test_if_thundra_is_disabled(mock_reporter, monkeypatch, handler, mock_event, mock_context):
     monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE, 'true')
 
-    thundra, handler = handler_with_apikey
+    thundra, handler = handler
 
     handler(mock_event, mock_context)
 

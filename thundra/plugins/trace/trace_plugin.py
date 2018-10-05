@@ -105,34 +105,18 @@ class TracePlugin:
         self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['finishTimestamp'] = self.end_time
 
-        #### ADDING TAGS ####
-        self.trace_data['tags']['aws.region'] = utils.get_aws_region_from_arn(
-            getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
-        self.trace_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-        self.trace_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
-        self.trace_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB,
-                                                                     None)
-        self.trace_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
-        self.trace_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME,
-                                                                        None)
         if 'error' in plugin_context:
             error = plugin_context['error']
             error_type = type(error)
             # Adding tags
-            self.trace_data['tags']['error'] = True
             self.root_span.set_tag('error', True)
-            self.trace_data['tags']['error.kind'] = error_type.__name__
             self.root_span.set_tag('error.kind', error_type.__name__)
-            self.trace_data['tags']['error.message'] = str(error)
             self.root_span.set_tag('error.message', str(error))
             if hasattr(error, 'code'):
-                self.trace_data['tags']['error.code'] = error.code
                 self.root_span.set_tag('error.code', error.code)
             if hasattr(error, 'object'):
-                self.trace_data['tags']['error.object'] = error.object
                 self.root_span.set_tag('error.object', error.object)
             if hasattr(error, 'stack'):
-                self.trace_data['tags']['error.stack'] = error.stack
                 self.root_span.set_tag('error.stack', error.stack)
 
         report_data = {

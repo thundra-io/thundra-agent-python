@@ -4,9 +4,9 @@ from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 
-def test_cold_starts(handler_with_apikey, mock_context, mock_event, monkeypatch):
+def test_cold_starts(handler, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
-    thundra, handler = handler_with_apikey
+    thundra, handler = handler
 
     invocation_plugin = None
     for plugin in thundra.plugins:
@@ -122,8 +122,8 @@ def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
     assert invocation_plugin.invocation_data['applicationStage'] == 'dev'
 
 
-def test_when_app_stage_not_exists(handler_with_apikey, mock_context, mock_event):
-    thundra, handler = handler_with_apikey
+def test_when_app_stage_not_exists(handler, mock_context, mock_event):
+    thundra, handler = handler
 
     invocation_plugin = None
     for plugin in thundra.plugins:

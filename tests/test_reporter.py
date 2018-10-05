@@ -6,24 +6,27 @@ from thundra import constants
 from thundra.reporter import Reporter
 
 
-def test_add_report_async(mock_report, monkeypatch):
+@mock.patch('thundra.reporter.requests')
+def test_add_report_async(mock_requests, mock_report, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'true')
-    reporter = Reporter('api key')
+    reporter = Reporter('api key', mock_requests.Session())
     reporter.add_report(mock_report)
     assert len(reporter.reports) is 0
 
 
-def test_add_report_sync(mock_report, monkeypatch):
+@mock.patch('thundra.reporter.requests')
+def test_add_report_sync(mock_requests, mock_report, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'false')
-    reporter = Reporter('api key')
+    reporter = Reporter('api key', mock_requests.Session())
     reporter.add_report(mock_report)
 
     assert len(reporter.reports) > 0
     assert mock_report in reporter.reports
 
 
-def test_add_report_sync_if_env_var_is_not_set(mock_report):
-    reporter = Reporter('api key')
+@mock.patch('thundra.reporter.requests')
+def test_add_report_sync_if_env_var_is_not_set(mock_requests, mock_report):
+    reporter = Reporter('api key', mock_requests.Session())
     reporter.add_report(mock_report)
 
     assert len(reporter.reports) > 0
