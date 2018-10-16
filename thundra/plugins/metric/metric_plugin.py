@@ -49,7 +49,9 @@ class MetricPlugin:
             'transactionId': plugin_context['transaction_id'] or context.aws_request_id,
             'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
-            'tags': {}
+            'tags': {
+                'aws.region': utils.get_configuration(constants.AWS_REGION, default='')
+            }
         }
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
