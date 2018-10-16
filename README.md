@@ -34,7 +34,7 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 |:----------------------------------------------|:------:|:--------------------------------:|
 | thundra_apiKey                                | string |                -                 |
 | thundra_agent_lambda_disable                  |  bool  |              false               |
-| thundra_agent_lambda_application_stage        | string |             default              |
+| thundra_agent_lambda_application_stage        | string |                -                 |
 | thundra_agent_lambda_trace_disable            |  bool  |              false               |
 | thundra_agent_lambda_metric_disable           |  bool  |              false               |
 | thundra_agent_lambda_log_disable              |  bool  |              false               |
