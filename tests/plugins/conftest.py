@@ -1,18 +1,27 @@
 import os
 import pytest
+import mock
 
 from thundra import constants
-from thundra.plugins.trace.traceable import Traceable
 from thundra.thundra_agent import Thundra
+from thundra.reporter import Reporter
+from thundra.plugins.trace.traceable import Traceable
 
 
 @pytest.fixture
-def thundra_with_profile(monkeypatch):
+@mock.patch('thundra.reporter.requests')
+def reporter(mock_requests):
+    return Reporter('api key', mock_requests.Session())
+
+
+@pytest.fixture
+def thundra_with_profile(reporter, monkeypatch):
     monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_APPLICATION_ID, '[]test')
     monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_PROFILE, 'profile')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra = Thundra('api key', disable_metric=True)
+    thundra.reporter = reporter
     return thundra
 
 
@@ -20,7 +29,9 @@ def thundra_with_profile(monkeypatch):
 def handler_with_profile(thundra_with_profile):
     @thundra_with_profile.call
     def _handler(event, context):
-        pass
+        return {
+            'message': 'Hello'
+        }
     return thundra_with_profile, _handler
 
 

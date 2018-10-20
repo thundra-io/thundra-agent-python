@@ -1,10 +1,9 @@
 import os
 import sys
-
 from thundra import constants
 
 
-def get_environment_variable(key, default=None):
+def get_configuration(key, default=None):
     return os.environ.get(key, default=default)
 
 
@@ -18,8 +17,12 @@ def should_disable(disable_by_env, disable_by_param=False):
 
 def get_application_id(context):
     aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-    applicationId = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
-    return applicationId
+    application_id = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
+    return application_id
+
+
+def get_aws_lambda_function_memory_size():
+    return os.environ.get(constants.AWS_LAMBDA_FUNCTION_MEMORY_SIZE)
 
 
 #### memory ####
@@ -27,8 +30,13 @@ def process_memory_usage():
     try:
         with open('/proc/self/statm', 'r') as procfile:
             process_memory_usages = procfile.readline()
-            size = process_memory_usages.split(' ')[0]
-            size_in_bytes = float(size)*1024
+            size_from_env_var = get_aws_lambda_function_memory_size()
+            if not size_from_env_var:
+                size = process_memory_usages.split(' ')[0]
+                size_in_bytes = float(size) * 1024
+            else:
+                size_in_bytes = float(size_from_env_var) * 1000000
+
             resident = process_memory_usages.split(' ')[1]
             resident_in_bytes = float(resident)*1024
             return size_in_bytes, resident_in_bytes
@@ -87,3 +95,62 @@ def system_cpu_usage():
     except IOError as e:
         print('ERROR: %s' % e)
         sys.exit(3)
+
+
+#####################################################################
+###
+#####################################################################
+
+
+class Singleton(object):
+    _instances = {}
+    def __new__(class_, *args, **kwargs):
+        if class_ not in class_._instances:
+            class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
+        return class_._instances[class_]
+
+
+def get_all_env_variables():
+    return os.environ
+
+
+def get_module_name(module):
+    return module.__name__
+
+
+def string_to_list(target, indicator):
+    return target.split(indicator)
+
+
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
+
+
+def process_trace_def_env_var(value):
+    value = value.strip().split('[')
+    path = value[0].split('.')
+    trace_args = {}
+
+    function_prefix = path[-1][:-1] if path[-1] != '*' else ''
+    module_path = ".".join(path[:-1])
+    trace_string = value[1].strip(']').split(',')
+    for arg  in trace_string:
+        arg = arg.split('=')
+        try:
+            trace_args[arg[0]] = arg[1]
+        except:
+            pass
+
+    return module_path, function_prefix, trace_args
+
+
+def get_allowed_functions(module):
+    allowed_functions = []
+    for prop in vars(module):
+        #TO DO: differentiate functions
+        allowed_functions.append(str(prop))
+    return allowed_functions
+
+
+def get_aws_region_from_arn(func_arn):
+    return func_arn.split(':')[3] if len(func_arn.split(':')) >= 3 else ""

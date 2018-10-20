@@ -20,3 +20,6 @@ thundra/plugins/invocation/__pycache__/*
 thundra/plugins/log/__pycache__/*
 thundra/plugins/metric/__pycache__/*
 thundra/plugins/trace/__pycache__/*
+.vscode
+python/
+python-*

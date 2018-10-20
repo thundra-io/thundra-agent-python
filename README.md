@@ -30,19 +30,19 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 
 #### 1. Environment variables
 
-| Name                                     | Type   |          Default Value           |
-|:-----------------------------------------|:------:|:--------------------------------:|
-| thundra_apiKey                           | string |                -                 |
-| thundra_applicationProfile               | string |             default              |
-| thundra_disable                          |  bool  |              false               |
-| thundra_disable_trace                    |  bool  |              false               |
-| thundra_disable_metric                   |  bool  |              false               |
-| thundra_lambda_publish_cloudwatch_enable |  bool  |              false               |
-| thundra_lambda_warmup_warmupAware        |  bool  |              false               |
-| thundra_lambda_trace_request_skip        |  bool  |              false               |
-| thundra_lambda_trace_response_skip       |  bool  |              false               |
-| thundra_lambda_timeout_margin            |  int   |               180                |
-| thundra_lambda_publish_rest_baseUrl      | string | https://collector.thundra.io/api |
+| Name                                          | Type   |          Default Value           |
+|:----------------------------------------------|:------:|:--------------------------------:|
+| thundra_apiKey                                | string |                -                 |
+| thundra_agent_lambda_disable                  |  bool  |              false               |
+| thundra_agent_lambda_application_stage        | string |                -                 |
+| thundra_agent_lambda_trace_disable            |  bool  |              false               |
+| thundra_agent_lambda_metric_disable           |  bool  |              false               |
+| thundra_agent_lambda_log_disable              |  bool  |              false               |
+| thundra_agent_lambda_trace_request_skip       |  bool  |              false               |
+| thundra_agent_lambda_trace_response_skip      |  bool  |              false               |
+| thundra_agent_lambda_timeout_margin           |  int   |               200                |
+| thundra_agent_lambda_report_rest_baseUrl      | string |     https://api.thundra.io/v1    |
+| thundra_agent_lambda_report_cloudwatch_enable |  bool  |              false               |
 
 
 
@@ -50,11 +50,10 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 
 | Name            | Type   | Default Value |
 |:----------------|:------:|:-------------:|
-| api_key          | string |       -       |
+| api_key         | string |       -       |
 | disable_trace   |  bool  |     False     |
 | disable_metric  |  bool  |     False     |
-| request_skip    |  bool  |     False     |
-| response_skip   |  bool  |     False     |
+| disable_log     |  bool  |     False     |
 
 
 ## Async Monitoring with Zero Overhead
@@ -63,11 +62,11 @@ By default, Thundra agent reports by making an HTTPS request. This adds an overh
 Instead, you can [setup async monitoring](https://docs.thundra.io/docs/how-to-setup-async-monitoring) in **2 minutes** and monitor your lambda functions with **zero overhead**!
 
 ## Log Plugin
-Log plugin is added by default, but in order to enable it, you should add ThundraLogHandler to your logger.
+Log plugin is added by default, but in order to enable it, you should add `ThundraLogHandler` to your logger.
 
 You can either add it via logging.conf or add during getting logger object.
 
-#### Configure via logging.conf
+#### Configurepy tes via logging.conf
 An example of configuration file is as follows:
 
 ```

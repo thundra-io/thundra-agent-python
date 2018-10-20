@@ -4,172 +4,181 @@ import uuid
 import thundra.utils as utils
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+import sys
 
 
 class TracePlugin:
-    IS_COLD_START = True
 
     def __init__(self):
         self.hooks = {
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
-        self.tracer = ThundraTracer.getInstance()
-        self.scope = None
+        self.tracer = ThundraTracer.get_instance()
         self.start_time = 0
         self.end_time = 0
         self.trace_data = {}
+        self.scope = None
+        self.root_span = None
+        self.span_data_list = []
 
-    def before_invocation(self, data):
-
-        if constants.REQUEST_COUNT > 0:
-            TracePlugin.IS_COLD_START = False
-        context = data['context']
-
-        context_id = str(uuid.uuid4())
-        data['contextId'] = context_id
+    def before_invocation(self, plugin_context):
+        context = plugin_context['context']
+        trace_id = str(uuid.uuid4())
+        transaction_id = context.aws_request_id
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
         self.start_time = int(time.time() * 1000)
+
+        plugin_context['transaction_id'] = transaction_id
+        plugin_context['trace_id'] = trace_id
+
         self.trace_data = {
-            'id': str(uuid.uuid4()),
-            'transactionId': data['transactionId'],
-            'applicationName': function_name,
+            'id': trace_id,
+            'type': "Trace",
+            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'applicationId': utils.get_application_id(context),
+            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
+            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
+            'applicationName': function_name,
             'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationProfile': utils.get_environment_variable(constants.THUNDRA_APPLICATION_PROFILE, ''),
-            'applicationType': 'python',
-            'duration': None,
+            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': str(sys.version_info[0]),
+            'applicationTags': {},
+
+            'rootSpanId': None,
             'startTimestamp': self.start_time,
-            'endTimestamp': None,
-            'errors': None,
-            'thrownError': None,
-            'contextType': 'ExecutionContext',
-            'contextName': function_name,
-            'contextId': context_id,
-            'auditInfo': {
-                'id': str(uuid.uuid4()),
-                'contextName': function_name,
-                'openTimestamp': self.start_time,
-                'props': {
-                    'REQUEST': data['event'] if data['request_skipped'] is False else None
-                },
-                'children': []
-
-            },
-            'properties': {
-                'request': data['event'] if data['request_skipped'] is False else None,
-                'response': None,
-                'coldStart': 'true' if TracePlugin.IS_COLD_START else 'false',
-                'functionRegion': utils.get_environment_variable(constants.AWS_REGION, ''),
-                'functionMemoryLimitInMB': getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None),
-                'logGroupName': getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None),
-                'logStreamName': getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None),
-                'functionARN': getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN),
-                'requestId': getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None),
-                'timeout': 'false'
-            }
-
+            'finishTimestamp': None,
+            'duration': None,
+            'tags': {},
         }
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
-                                                   finish_on_close=True)
+                                                   finish_on_close=True,
+                                                   trace_id=trace_id,
+                                                   transaction_id=transaction_id)
+        self.root_span = self.scope.span
+        plugin_context['span_id'] = self.root_span.context.trace_id
 
-
-        TracePlugin.IS_COLD_START = False
-
-    def after_invocation(self, data):
-        self.end_time = int(time.time() * 1000)
+    def after_invocation(self, plugin_context):
         self.scope.close()
+
+        self.end_time = int(time.time() * 1000)
+
+        context = plugin_context['context']
+        reporter = plugin_context['reporter']
+
+        #### ADDING TAGS ####
+        self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(
+            getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)))
+        self.root_span.set_tag('aws.lambda.name', getattr(context, constants.CONTEXT_FUNCTION_NAME, None))
+        self.root_span.set_tag('aws.lambda.arn', getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
+        self.root_span.set_tag('aws.lambda.memory.limit', getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None))
+        self.root_span.set_tag('aws.lambda.log_group_name', getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None))
+        self.root_span.set_tag('aws.lambda.log_stream_name', getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None))
+        self.root_span.set_tag('aws.lambda.invocation.cold_start', constants.REQUEST_COUNT == 1)
+        self.root_span.set_tag('aws.lambda.invocation.timeout', plugin_context.get('timeout', False))
+        self.root_span.set_tag('aws.lambda.invocation.request_id',
+                               getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
+        skip_request = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
+        skip_response = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
+        if skip_request != True:
+            self.root_span.set_tag('aws.lambda.invocation.request', plugin_context.get('request', None))
+        if skip_response != True:
+            self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
+
+        if self.root_span is not None and self.root_span.duration != -1:
+            self.end_time = self.root_span.start_time + self.root_span.duration
 
         duration = self.end_time - self.start_time
 
+        span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
+        for span in span_stack:
+            current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
+            self.span_data_list.append(current_span_data)
+        self.tracer.clear()
+
+        self.trace_data['rootSpanId'] = self.root_span.context.span_id
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
-        self.trace_data['endTimestamp'] = self.end_time
-        self.trace_data['properties']['timeout'] = data.get('timeoutString', 'false')
+        self.trace_data['finishTimestamp'] = self.end_time
 
-        span_tree = self.tracer.recorder.span_tree if self.tracer is not None else None
-
-        self.trace_data['auditInfo']['closeTimestamp'] = self.end_time
-        self.trace_data['auditInfo']['children'] = self.create_children_audtit_info(span_tree)
-
-        if 'error' in data:
-            error = data['error']
+        if 'error' in plugin_context:
+            error = plugin_context['error']
             error_type = type(error)
-            exception = {
-                'errorType': error_type.__name__,
-                'errorMessage': str(error)
-            }
-            self.trace_data['errors'] = self.trace_data['errors'] or []
-            self.trace_data['errors'].append(error_type.__name__)
-            self.trace_data['thrownError'] = error_type.__name__
-            errors = []
-            if 'errors' in self.trace_data['auditInfo']:
-                errors = self.trace_data['auditInfo']['errors']
-            self.trace_data['auditInfo']['errors'] = errors
-            self.trace_data['auditInfo']['errors'].append(exception)
-            self.trace_data['auditInfo']['thrownError'] = exception
-            self.trace_data['auditInfo']['closeTimestamp'] = self.end_time
+            # Adding tags
+            self.root_span.set_tag('error', True)
+            self.root_span.set_tag('error.kind', error_type.__name__)
+            self.root_span.set_tag('error.message', str(error))
+            if hasattr(error, 'code'):
+                self.root_span.set_tag('error.code', error.code)
+            if hasattr(error, 'object'):
+                self.root_span.set_tag('error.object', error.object)
+            if hasattr(error, 'stack'):
+                self.root_span.set_tag('error.stack', error.stack)
 
-        if 'response' in data:
-            self.trace_data['properties']['response'] = data['response']
-            self.trace_data['auditInfo']['props']['RESPONSE'] = data['response']
-
-
-        reporter = data['reporter']
         report_data = {
             'apiKey': reporter.api_key,
-            'type': 'AuditData',
-            'dataFormatVersion': constants.DATA_FORMAT_VERSION,
+            'type': 'Trace',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'data': self.trace_data
         }
+
         reporter.add_report(report_data)
+        reporter.add_report(self.span_data_list)
 
+        self.tracer.clear()
+        self.flush_current_span_data()
 
-    def create_children_audtit_info(self, node):
-        auditInfos = []
-        children = node.children
-        for child in children:
-            auditInfos.append(self.build_audit_info(child))
+    def flush_current_span_data(self):
+        self.span_data_list.clear()
 
-        return auditInfos
+    def build_span(self, span, plugin_context):
+        close_time = span.start_time + span.duration
+        context = plugin_context['context']
+        transaction_id = plugin_context['transaction_id'] or plugin_context['context'].aws_request_id
+        function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
 
-    def build_audit_info(self, node):
-        if node is None:
-            return None
-        root_audit_info= self.convert_to_audit(node)
-        children = node.children
-        visited = [node]
-        for child in children:
-            if child not in visited:
-                child_audit_info = self.build_audit_info(child)
-                root_audit_info['children'].append(child_audit_info)
-        return root_audit_info
+        span_data = {
+            'id': span.context.span_id,
+            'type': "Span",
+            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
+            'applicationId': utils.get_application_id(context),
+            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
+            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
+            'applicationName': function_name,
+            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
+            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
+            'applicationRuntime': 'python',
+            'applicationRuntimeVersion': str(sys.version_info[0]),
+            'applicationTags': {},
 
-
-    @staticmethod
-    def convert_to_audit(node):
-        close_time = node.key.start_time + node.key.duration
-        thrown_error = None
-        errors = None
-        if node.key.get_tag('error'):
-            thrown_error = {
-                'errorMessage': node.key.get_tag('error.message'),
-                'errorType': node.key.get_tag('error.kind')
-            }
-            errors = [thrown_error]
-
-        audit_info = {
-            'contextName': node.key.operation_name,
-            'id': node.key.span_id,
-            'openTimestamp': int(node.key.start_time),
-            'closeTimestamp': int(close_time),
-            'thrownError': thrown_error,
-            'errors': errors,
-            'props': node.key.tags,
-            'children': []
+            'traceId': span.context.trace_id,
+            'transactionId': transaction_id,
+            'parentSpanId': span.context.parent_span_id or '',
+            'spanOrder': span.span_order,
+            'domainName': span.domain_name or '',
+            'className': span.class_name or '',
+            'serviceName': '',
+            'operationName': span.operation_name,
+            'startTimestamp': span.start_time,
+            'finishTimestamp': close_time,
+            'duration': span.duration,
+            'logs': span.logs,
+            'tags': span.tags
         }
-        if node.key.logs is not None and len(node.key.logs) > 0:
-            audit_info['props']['LOGS'] = node.key.logs
-        return audit_info
+
+        return span_data
+
+    def wrap_span(self, span_data, api_key):
+        report_data = {
+            'apiKey': api_key,
+            'type': 'Span',
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
+            'data': span_data
+        }
+
+        return report_data

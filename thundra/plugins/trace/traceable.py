@@ -1,3 +1,4 @@
+import json
 from functools import wraps
 
 from thundra.opentracing.tracer import ThundraTracer
@@ -10,7 +11,7 @@ class Traceable:
         self._trace_args = trace_args
         self._trace_return_value = trace_return_value
         self._trace_error = trace_error
-        self._tracer = ThundraTracer.getInstance()
+        self._tracer = ThundraTracer.get_instance()
 
     @property
     def tracer(self):
@@ -28,6 +29,22 @@ class Traceable:
     def trace_error(self):
         return self._trace_error
 
+    def __is_serializable__(self, value):
+        return value is None or isinstance(value, (str, int, float, bool))
+
+    def __serialize_value__(self, value):
+        if self.__is_serializable__(value):
+            return value
+        elif isinstance(value, Serializable):
+            return value.serialize()
+        else:
+            try:
+                # Check whether object is serializable
+                json.dumps(value)
+                return value
+            except TypeError:
+                return 'Unable to serialize the object'
+
     def __call__(self, original_func):
         @wraps(original_func)
         def trace(*args, **kwargs):
@@ -35,50 +52,34 @@ class Traceable:
             parent_span = parent_scope.span if parent_scope is not None else None
 
             scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span)
-            scope.span.set_tag('error', False)
             try:
                 if self._trace_args is True:
                     function_args_list = []
                     count = 0
                     for arg in args:
-                        argument = arg
-                        if hasattr(arg, '__dict__'):
-                            if isinstance(arg, Serializable):
-                                argument = arg.serialize()
-                            else:
-                                argument = 'Not json serializable object'
                         function_args_dict = {
-                            'argName': 'arg-' + str(count),
-                            'argType': type(arg).__name__,
-                            'argValue': argument
+                            'name': 'arg-' + str(count),
+                            'type': type(arg).__name__,
+                            'value': self.__serialize_value__(arg)
                         }
                         count += 1
                         function_args_list.append(function_args_dict)
                     if kwargs is not None:
                         for key, value in kwargs.items():
-                            argument = value
-                            if '__dict__' in value.__dir__():
-                                argument = value.__dict__
                             function_args_dict = {
-                                'argName': key,
-                                'argType': type(value).__name__,
-                                'argValue': argument
+                                'name': key,
+                                'type': type(value).__name__,
+                                'value': self.__serialize_value__(value)
                             }
                             function_args_list.append(function_args_dict)
-                    scope.span.set_tag('ARGS', function_args_list)
+                    scope.span.set_tag('method.args', function_args_list)
                 response = original_func(*args, **kwargs)
                 if self._trace_return_value is True and response is not None:
-                    resp = response
-                    if hasattr(response, '__dict__'):
-                        if isinstance(response, Serializable):
-                            resp = response.serialize()
-                        else:
-                            resp = 'Not json serializable object'
                     return_value = {
-                        'returnValueType': type(response).__name__,
-                        'returnValue': resp
+                        'type': type(response).__name__,
+                        'value': self.__serialize_value__(response)
                     }
-                    scope.span.set_tag('RETURN_VALUE', return_value)
+                    scope.span.set_tag('method.return_value', return_value)
             except Exception as e:
                 if self._trace_error is True:
                     scope.span.set_error_to_tag(e)
@@ -86,6 +87,7 @@ class Traceable:
             finally:
                 scope.close()
             return response
+
         return trace
 
     call = __call__

@@ -1,5 +1,4 @@
 import time
-import uuid
 from threading import Lock
 
 import opentracing
@@ -7,27 +6,25 @@ from thundra.opentracing.recorder import RecordEvents
 
 
 class ThundraSpan(opentracing.Span):
+
     def __init__(self,
                  tracer,
                  operation_name=None,
                  class_name=None,
                  domain_name=None,
                  context=None,
-                 trace_id=None,
-                 span_id=None,
                  tags=None,
-                 start_time=None):
+                 start_time=None,
+                 span_order=-1):
         super(ThundraSpan, self).__init__(tracer, context)
         self._tracer = tracer
         self._context = context
         self._lock = Lock()
-
-        self.trace_id = trace_id
-        self.span_id = span_id or str(uuid.uuid4())
         self.operation_name = operation_name
         self.class_name = class_name
         self.domain_name = domain_name
         self.start_time = start_time or int(time.time() * 1000)
+        self.span_order = span_order
         self.tags = tags if tags is not None else {}
         self.duration = -1
         self.logs = []
@@ -36,9 +33,17 @@ class ThundraSpan(opentracing.Span):
     def context(self):
         return self._context
 
-    @context.setter
-    def context(self, value):
-        self._context = value
+    @property
+    def trace_id(self):
+        return self._context.trace_id
+
+    @property
+    def transaction_id(self):
+        return self._context.transaction_id
+
+    @property
+    def span_id(self):
+        return self._context.span_id
 
     def set_operation_name(self, operation_name):
         with self._lock:
@@ -71,7 +76,7 @@ class ThundraSpan(opentracing.Span):
     def set_baggage_item(self, key, value):
         new_context = self.context.context_with_baggage_item(key, value)
         with self._lock:
-            self.context = new_context
+            self._context = new_context
         return self
 
     def get_baggage_item(self, key):
