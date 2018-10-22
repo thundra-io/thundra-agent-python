@@ -35,7 +35,7 @@ def process_memory_usage():
                 size = process_memory_usages.split(' ')[0]
                 size_in_bytes = float(size) * 1024
             else:
-                size_in_bytes = float(size_from_env_var) * 1000000
+                size_in_bytes = float(size_from_env_var) * 1048576
 
             resident = process_memory_usages.split(' ')[1]
             resident_in_bytes = float(resident)*1024
