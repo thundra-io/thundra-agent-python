@@ -32,4 +32,10 @@ jobs:
       - run: 
           name: Start tests
           command: |
-            pipenv run pytest tests
+            pipenv run pytest --junitxml=test-reports/junit.xml tests
+
+      - store_test_results:
+          path: test_reports
+
+      - store_artifacts:
+          path: test-reports
