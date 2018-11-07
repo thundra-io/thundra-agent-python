@@ -11,4 +11,25 @@ jobs:
 
       - run: 
           command: |
-            echo hello
+            sudo chown -R circleci:circleci /usr/local/bin
+            sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+      
+      - restore_cache:
+          key: deps-{{ checksum "Pipfile.lock" }}
+      
+      - run:
+          name: Install all dependencies to start testing
+          command: |
+            pipenv install --dev
+
+      - save_cache:
+          key: deps-{{ checksum "Pipfile.lock" }}
+          paths:
+            - ".venv"
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.6/site-packages"
+      
+      - run: 
+          name: Start tests
+          command: |
+            pipenv run pytest tests
