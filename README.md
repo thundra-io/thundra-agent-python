@@ -1,4 +1,4 @@
-# Thundra Lambda Agent Python
+# Thundra Lambda Agent Python [![CircleCI](https://circleci.com/gh/thundra-io/thundra-lambda-agent-python.svg?style=svg)](https://circleci.com/gh/thundra-io/thundra-lambda-agent-python)
 
 Trace your AWS lambda functions with async monitoring by [Thundra](https://www.thundra.io//)!
 
