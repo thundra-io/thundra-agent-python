@@ -60,3 +60,90 @@ DEFAULT_LAMBDA_TIMEOUT_MARGIN = 200
 DATA_FORMAT_VERSION = '2.0'
 
 THUNDRA_LAMBDA_DEBUG_ENABLE = 'thundra_agent_lambda_debug_enable'
+
+#### INTEGRATIONS ####
+
+AWS_SERVICE_REQUEST = 'AWSServiceRequest'
+
+DomainNames = {
+    'AWS': 'AWS',
+    'DB': 'DB',
+    'MESSAGING': 'Messaging',
+    'STREAM': 'Stream',
+    'STORAGE': 'Storage',
+    'API': 'API',
+    'CACHE': 'Cache',
+}
+
+ClassNames = {
+    'AWSSERVICE': 'AWSService',
+    'DYNAMODB': 'AWS-DynamoDB',
+    'SQS': 'AWS-SQS',
+    'SNS': 'AWS-SNS',
+    'KINESIS': 'AWS-Kinesis',
+    'FIREHOSE': 'AWS-Firehose',
+    'S3': 'AWS-S3',
+    'LAMBDA': 'AWS-Lambda',
+    'RDB': 'RDB',
+    'REDIS': 'Redis',
+    'HTTP': 'HTTP',
+}
+
+DBTags = {
+    'DB_STATEMENT': 'db.statement',
+    'DB_STATEMENT_TYPE': 'db.statement.type',
+    'DB_INSTANCE': 'db.instance',
+    'DB_TYPE': 'db.type',
+    'DB_HOST': 'db.host',
+    'DB_PORT': 'db.port',
+    'DB_USER': 'db.user',
+}
+
+AwsDynamoTags = {
+    'TABLE_NAME': 'aws.dynamodb.table.name',
+    'REQUEST_THROTTLED': 'aws.dynamodb.request.throttled',
+}
+
+DBTypes = {
+    'DYNAMODB': ' aws-dynamodb',
+    'REDIS': 'redis',
+}
+
+SpanTags = {
+    'SPAN_TYPE': 'span.type',
+    'OPERATION_TYPE': 'operation.type',
+}
+
+SpanTypes = {
+    'REDIS': 'Redis',
+    'RDB': 'RDB',
+    'HTTP': 'HTTP',
+    'AWS_DYNAMO': 'AWS-DynamoDB',
+    'AWS_SQS': 'AWS-SQS',
+    'AWS_SNS': 'AWS-SNS',
+    'AWS_KINESIS': 'AWS-Kinesis',
+    'AWS_FIREHOSE': 'AWS-Firehose',
+    'AWS_S3': 'AWS-S3',
+    'AWS_LAMBDA': 'AWS-Lambda',
+}
+
+DynamoDBRequestTypes: any = {
+    'BatchGetItem': 'READ',
+    'BatchWriteItem': 'WRITE',
+    'CreateTable': 'WRITE',
+    'CreateGlobalTable': 'WRITE',
+    'DeleteItem': 'DELETE',
+    'DeleteTable': 'DELETE',
+    'GetItem': 'READ',
+    'PutItem': 'WRITE',
+    'Query': 'READ',
+    'Scan': 'READ',
+    'UpdateItem': 'WRITE',
+
+}
+
+AwsSDKTags = {
+    'SERVICE_NAME': 'aws.service.name',
+    'REQUEST_NAME': 'aws.request.name',
+    'HOST': 'host',
+}
