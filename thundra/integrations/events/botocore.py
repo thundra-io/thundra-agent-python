@@ -164,11 +164,8 @@ class AWSDynamoDBListener(AWSIntegration):
         """
         Process the get item operation.
         """
-        # self.resource['name'] = self.request_data['TableName']
         scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] = \
             self.request_data['Key']
-        print("Printing tags ", str(scope.__getattribute__('_span').__getattribute__('tags')))
-        # self.resource['metadata']['Key'] = self.request_data['Key']
 
     def process_put_item_op(self, scope):
         if 'Item' in self.request_data:
@@ -251,7 +248,7 @@ class AWSEventListeners(object):
     Factory class, generates botocore event.
     """
 
-    FACTORY = {
+    LISTENERS = {
         class_obj.CLASS_TYPE: class_obj
         for class_obj in AWSIntegration.__subclasses__()
     }
@@ -272,7 +269,7 @@ class AWSEventListeners(object):
         """
 
         instance_type = instance.__class__.__name__.lower()
-        event_class = AWSEventListeners.FACTORY.get(
+        event_class = AWSEventListeners.LISTENERS.get(
             instance_type,
             None
         )
