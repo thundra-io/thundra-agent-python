@@ -9,7 +9,7 @@ import traceback
 from thundra.opentracing.tracer import ThundraTracer
 
 
-def wrapper(factory, wrapped, instance, args, kwargs):
+def wrapper(listener, wrapped, instance, args, kwargs):
     """
     General wrapper for instrumentation.
     :param factory: Factory class for the event type
@@ -25,7 +25,7 @@ def wrapper(factory, wrapped, instance, args, kwargs):
     # start_time = time.time()
 
     tracer = ThundraTracer.get_instance()
-    with tracer.start_active_span(operation_name="", finish_on_close=True) as scope:
+    with tracer.start_active_span(operation_name="integration", finish_on_close=True) as scope:
         # scope.__setattr__('tags', {'idk': 'what is this'})
         # print(scope.__dict__['_span'].__dict__)
         # print("Printing scope: ", str(scope))
@@ -37,7 +37,7 @@ def wrapper(factory, wrapped, instance, args, kwargs):
             raise
         finally:
             try:
-                factory.create_event(
+                listener.create_event(
                     scope,
                     wrapped,
                     instance,
