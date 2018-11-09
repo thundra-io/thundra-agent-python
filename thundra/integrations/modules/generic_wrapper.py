@@ -22,13 +22,9 @@ def wrapper(listener, wrapped, instance, args, kwargs):
 
     response = None
     exception = None
-    # start_time = time.time()
 
     tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name="integration", finish_on_close=True) as scope:
-        # scope.__setattr__('tags', {'idk': 'what is this'})
-        # print(scope.__dict__['_span'].__dict__)
-        # print("Printing scope: ", str(scope))
         try:
             response = wrapped(*args, **kwargs)
             return response
@@ -47,9 +43,12 @@ def wrapper(listener, wrapped, instance, args, kwargs):
                     exception
                 )
             except Exception as instrumentation_exception:
-                traceback.print_exc()
+                error = {
+                    'type': str(type(instrumentation_exception)),
+                    'message': str(instrumentation_exception),
+                    'traceback': traceback.format_exc(),
+                    'time': time.time()
+                }
+                scope.__getattribute__('_span').__setattr__('exception', error)
+                # traceback.print_exc()
                 print("Error in generic_wrapper")
-                # tracer.add_exception(
-                #     instrumentation_exception,
-                #     traceback.format_exc()
-                # )
