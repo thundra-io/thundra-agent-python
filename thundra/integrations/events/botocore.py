@@ -63,7 +63,6 @@ class AWSIntegration(BaseIntegration):
         :return: None
         """
         super(AWSIntegration, self).set_exception(exception, traceback_data, scope)
-
         # Specific handling for botocore errors
         if isinstance(exception, ClientError):
             self.event_id = exception.response['ResponseMetadata']['RequestId']
@@ -85,7 +84,7 @@ class AWSIntegration(BaseIntegration):
 
 class AWSDynamoDBListener(AWSIntegration):
     """
-    Represents DynamoDB botocore event.
+    Represents DynamoDB listener.
     """
     CLASS_TYPE = 'dynamodb'
 
@@ -181,15 +180,6 @@ class AWSDynamoDBListener(AWSIntegration):
     def process_update_item_op(self, scope):
         scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] = \
             self.request_data['Key']
-        # self.resource['metadata']['Update Parameters'] = {
-        #     'Key': self.request_data['Key'],
-        #     'Expression Attribute Values': self.request_data.get(
-        #         'ExpressionAttributeValues', None),
-        #     'Update Expression': self.request_data.get(
-        #         'UpdateExpression',
-        #         None
-        #     ),
-        # }
 
     def process_batch_write_op(self, scope):
             table_name = list(self.request_data['RequestItems'].keys())[0]
@@ -241,6 +231,80 @@ class AWSDynamoDBListener(AWSIntegration):
                     break
             self.resource['metadata']['item_hash'] = hashlib.md5(
                 json.dumps(item, sort_keys=True).encode('utf-8')).hexdigest()
+
+
+class AWSSQSListener(AWSIntegration):
+    """
+    Represents DynamoDB listener.
+    """
+    CLASS_TYPE = 'sqs'
+
+    def getRequestType(self, str):
+        if str in Constants.SQSRequestTypes:
+            return Constants.SQSRequestTypes[str]
+        return 'READ'
+
+    def getQueueName(self, data):
+        if 'QueueUrl' in data:
+            return data['QueueUrl'].split('/')[-1]
+        elif 'QueueName' in data:
+            return data['QueueName']
+
+    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        """
+        Initialize.
+        :param wrapped: wrapt's wrapped
+        :param instance: wrapt's instance
+        :param args: wrapt's args
+        :param kwargs: wrapt's kwargs
+        :param response: response data
+        :param exception: Exception (if happened)
+        """
+        super(AWSSQSListener, self).__init__(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+
+        # self.RESPONSE.update(
+        #     {
+        #         'SendMessage': self.process_send_message_response,
+        #         'ReceiveMessage': self.process_receive_message_response
+        #     }
+        # )
+
+        operationName, request_data = args
+        self.request_data = request_data
+        self.queueName = str(self.getQueueName(self.request_data))
+        self.response = response
+
+        scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['MESSAGING'])
+        scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['SQS'])
+        scope.__getattribute__('_span').__setattr__('operation_name',
+                                                    'sqs: ' + self.queueName)
+        ## ADDING TAGS ##
+
+        tags = {
+            Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['AWS_SQS'],
+            Constants.AwsSQSTags['QUEUE_NAME']: self.queueName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+        }
+        scope.__getattribute__('_span').__setattr__('tags', tags)
+
+        ## FINISHED ADDING TAGS ##
+
+    def update_response(self, response, scope):
+        """
+        Adds response data to event.
+        :param response: Response from botocore
+        """
+        super(AWSSQSListener, self).update_response(response, scope)
 
 
 class AWSEventListeners(object):
