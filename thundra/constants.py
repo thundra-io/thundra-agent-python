@@ -119,7 +119,7 @@ SpanTypes = {
     'AWS_LAMBDA': 'AWS-Lambda',
 }
 
-DynamoDBRequestTypes: any = {
+DynamoDBRequestTypes = {
     'BatchGetItem': 'READ',
     'BatchWriteItem': 'WRITE',
     'CreateTable': 'WRITE',
@@ -138,4 +138,16 @@ AwsSDKTags = {
     'SERVICE_NAME': 'aws.service.name',
     'REQUEST_NAME': 'aws.request.name',
     'HOST': 'host',
+}
+
+SQSRequestTypes = {
+    'ReceiveMessage': 'READ',
+    'SendMessage': 'WRITE',
+    'SendMessageBatch': 'WRITE',
+    'DeleteMessage': 'DELETE',
+    'DeleteMessageBatch': 'DELETE',
+}
+
+AwsSQSTags = {
+    'QUEUE_NAME': 'aws.sqs.queue.name',
 }
