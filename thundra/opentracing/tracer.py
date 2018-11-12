@@ -2,10 +2,12 @@ import uuid
 from threading import Lock
 import opentracing
 
+from thundra import constants
 from opentracing.scope_managers import ThreadLocalScopeManager
 from thundra.opentracing.recorder import ThundraRecorder, RecordEvents
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
+import thundra.utils as utils
 
 
 class ThundraTracer(opentracing.Tracer):
@@ -13,15 +15,21 @@ class ThundraTracer(opentracing.Tracer):
     __instance = None
 
     @staticmethod
-    def get_instance():
-        return ThundraTracer() if ThundraTracer.__instance is None else ThundraTracer.__instance
+    def get_instance(disable_trace=False):
+        return ThundraTracer(disable_trace=disable_trace) if ThundraTracer.__instance is None else ThundraTracer.__instance
 
-    def __init__(self, recorder=None, scope_manager=None):
+    def __init__(self, disable_trace=False, recorder=None, scope_manager=None):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
         super(ThundraTracer, self).__init__(scope_manager)
         self.recorder = recorder or ThundraRecorder()
         self.lock = Lock()
         self.global_span_order = 0
+        self.trace_disabled = False
+
+        disable_trace_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_TRACE)
+        if utils.should_disable(disable_trace_by_env, disable_trace):
+            self.trace_disabled = True
+
         ThundraTracer.__instance = self
 
     def start_active_span(self,
@@ -36,7 +44,10 @@ class ThundraTracer(opentracing.Tracer):
                           start_time=None,
                           span_order=-1,
                           ignore_active_span=False,
-                          finish_on_close=True):
+                          finish_on_close=True,
+                          root_span=False):
+        if self.trace_disabled and not root_span:
+            return
         span_id = span_id or str(uuid.uuid4())
         _span = self.start_span(operation_name=operation_name,
                                 child_of=child_of,

@@ -9,12 +9,12 @@ import sys
 
 class TracePlugin:
 
-    def __init__(self):
+    def __init__(self, disable_trace=False):
         self.hooks = {
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
-        self.tracer = ThundraTracer.get_instance()
+        self.tracer = ThundraTracer.get_instance(disable_trace=disable_trace)
         self.start_time = 0
         self.end_time = 0
         self.trace_data = {}
@@ -58,7 +58,8 @@ class TracePlugin:
                                                    start_time=self.start_time,
                                                    finish_on_close=True,
                                                    trace_id=trace_id,
-                                                   transaction_id=transaction_id)
+                                                   transaction_id=transaction_id,
+                                                   root_span=True)
         self.root_span = self.scope.span
         plugin_context['span_id'] = self.root_span.context.trace_id
 

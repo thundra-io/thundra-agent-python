@@ -46,6 +46,9 @@ class Traceable:
                 return 'Unable to serialize the object'
 
     def __call__(self, original_func):
+        if self.tracer.trace_disabled:
+            return original_func
+            
         @wraps(original_func)
         def trace(*args, **kwargs):
             parent_scope = self.tracer.scope_manager.active
