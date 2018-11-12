@@ -4,36 +4,25 @@ import mock
 
 from thundra import constants
 from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.opentracing.tracer import ThundraTracer
 from thundra.thundra_agent import Thundra
 
 
 def test_if_api_key_is_retrieved_from_env_var(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APIKEY, 'api key')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APIKEY, 'api_key')
     thundra = Thundra()
-    assert thundra.api_key == 'api key'
-
+    assert thundra.api_key == 'api_key'
 
 def test_if_disable_trace_is_set_to_true():
-    thundra = Thundra('api key', disable_trace=True)
-
-    for plugin in thundra.plugins:
-        assert not type(plugin) is TracePlugin
-
+    thundra = Thundra('api_key', disable_trace=True)
+    assert thundra.tracer.trace_disabled is True
 
 def test_if_disable_trace_is_set_to_false():
-    thundra = Thundra('api key', disable_trace=False)
-
-    plugin_types = []
-    for plugin in thundra.plugins:
-        plugin_types.append(type(plugin))
-
-    trace_exist = TracePlugin in plugin_types
-
-    assert trace_exist is True
-
+    thundra = Thundra('api_key', disable_trace=False)
+    assert thundra.tracer.trace_disabled is False
 
 def test_if_disable_trace_is_not_set():
-    thundra = Thundra('api key')
+    thundra = Thundra('api_key')
 
     plugin_types = []
     for plugin in thundra.plugins:
@@ -46,15 +35,14 @@ def test_if_disable_trace_is_not_set():
 
 def test_disable_trace_plugin_from_environment_variable(monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'true')
-    thundra = Thundra('api key')
+    thundra = Thundra('api_key')
 
-    for plugin in thundra.plugins:
-        assert not type(plugin) is TracePlugin
+    assert thundra.tracer.trace_disabled is True
 
 
 def test_enable_trace_plugin_from_environment_variable(monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'false')
-    thundra = Thundra('api key')
+    thundra = Thundra('api_key')
 
     plugin_types = []
     for plugin in thundra.plugins:
@@ -67,15 +55,14 @@ def test_enable_trace_plugin_from_environment_variable(monkeypatch):
 
 def test_if_disable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'true')
-    thundra = Thundra('api key', disable_trace=False)
+    thundra = Thundra('api_key', disable_trace=False)
 
-    for plugin in thundra.plugins:
-        assert not type(plugin) is TracePlugin
+    assert thundra.tracer.trace_disabled is True
 
 
 def test_if_enable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'false')
-    thundra = Thundra('api key', disable_trace=True)
+    thundra = Thundra('api_key', disable_trace=True)
 
     plugin_types = []
     for plugin in thundra.plugins:

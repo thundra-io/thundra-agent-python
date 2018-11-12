@@ -15,22 +15,24 @@ class ThundraTracer(opentracing.Tracer):
     __instance = None
 
     @staticmethod
-    def get_instance(disable_trace=False):
-        return ThundraTracer(disable_trace=disable_trace) if ThundraTracer.__instance is None else ThundraTracer.__instance
+    def get_instance():
+        return ThundraTracer() if ThundraTracer.__instance is None else ThundraTracer.__instance
 
-    def __init__(self, disable_trace=False, recorder=None, scope_manager=None):
+    def __init__(self, recorder=None, scope_manager=None):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
         super(ThundraTracer, self).__init__(scope_manager)
         self.recorder = recorder or ThundraRecorder()
         self.lock = Lock()
         self.global_span_order = 0
         self.trace_disabled = False
+        ThundraTracer.__instance = self
 
+    def disable_enable_trace(self, disable_trace):
         disable_trace_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_TRACE)
         if utils.should_disable(disable_trace_by_env, disable_trace):
             self.trace_disabled = True
-
-        ThundraTracer.__instance = self
+        else:
+            self.trace_disabled = False
 
     def start_active_span(self,
                           operation_name,

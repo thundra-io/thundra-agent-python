@@ -33,8 +33,10 @@ class Thundra:
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
-        self.plugins.append(TracePlugin(disable_trace=disable_trace))
-
+        trace_plugin = TracePlugin(disable_trace=disable_trace)
+        self.tracer = trace_plugin.tracer
+        self.plugins.append(trace_plugin)
+        
         self.plugins.append(InvocationPlugin())
         self.plugin_context = {}
 

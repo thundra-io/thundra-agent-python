@@ -14,7 +14,8 @@ class TracePlugin:
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
-        self.tracer = ThundraTracer.get_instance(disable_trace=disable_trace)
+        self.tracer = ThundraTracer.get_instance()
+        self.tracer.disable_enable_trace(disable_trace)
         self.start_time = 0
         self.end_time = 0
         self.trace_data = {}
