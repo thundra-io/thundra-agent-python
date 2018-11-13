@@ -3,7 +3,7 @@ import uuid
 import sys
 
 from thundra import constants, utils
-from thundra.plugins.invocation.invocation_support import InvocationSupport
+import thundra.plugins.invocation.invocation_support as invocation_support
 import json
 
 
@@ -60,7 +60,6 @@ class InvocationPlugin:
     def after_invocation(self, plugin_context):
         self.end_time = time.time() * 1000
         context = plugin_context['context']
-        invocation_support = InvocationSupport.get_instance()
         #### ADDING USER TAGS ####
         self.invocation_data['tags'] = invocation_support.get_tags_dict()
 
@@ -111,4 +110,3 @@ class InvocationPlugin:
         }
         reporter.add_report(json.loads(json.dumps(report_data)))
         invocation_support.clear()
-        
