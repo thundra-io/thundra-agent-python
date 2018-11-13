@@ -13,7 +13,7 @@ def span():
 
 @mock.patch('thundra.opentracing.recorder.ThundraRecorder')
 @mock.patch('opentracing.scope_managers.ThreadLocalScopeManager')
-def test_start_acitve_span(mock_recorder, mock_scope_manager, span):
+def test_start_active_span(mock_recorder, mock_scope_manager, span):
     tracer = ThundraTracer.get_instance()
     start_time = time.time()
     with tracer.start_active_span(operation_name='test', child_of=span, start_time=start_time) as active_scope:
