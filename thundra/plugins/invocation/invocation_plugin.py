@@ -21,7 +21,7 @@ class InvocationPlugin:
     def before_invocation(self, plugin_context):
         context = plugin_context['context']
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-
+        invocation_support.clear()
         self.start_time = int(time.time() * 1000)
 
         self.invocation_data = {
