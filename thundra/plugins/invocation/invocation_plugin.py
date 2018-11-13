@@ -38,9 +38,9 @@ class InvocationPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': plugin_context['trace_id'],
-            'transactionId': plugin_context['transaction_id'] or context.aws_request_id,
-            'spanId': plugin_context['span_id'],
+            'traceId': getattr(plugin_context, 'trace_id', ""),
+            'transactionId': getattr(plugin_context, 'transaction_id', context.aws_request_id,),
+            'spanId': getattr(plugin_context, 'span_id', ""),
             'functionPlatform': constants.CONTEXT_FUNCTION_PLATFORM,
             'functionName': getattr(context, 'function_name', None),
             'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''),

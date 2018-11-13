@@ -46,7 +46,7 @@ class MetricPlugin:
             'applicationTags': {},
 
             'traceId': active_span.trace_id if active_span is not None else '',
-            'transactionId': plugin_context['transaction_id'] or context.aws_request_id,
+            'transactionId': getattr(plugin_context, 'transaction_id', context.aws_request_id),
             'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
             'tags': {
