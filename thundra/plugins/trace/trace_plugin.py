@@ -4,6 +4,7 @@ import uuid
 import thundra.utils as utils
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+import thundra.application_support as application_support
 import sys
 
 
@@ -99,7 +100,7 @@ class TracePlugin:
             current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
             self.span_data_list.append(current_span_data)
         self.tracer.clear()
-
+        self.trace_data['applicationTags'] = application_support.get_application_tags()
         self.trace_data['rootSpanId'] = self.root_span.context.span_id
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
@@ -154,7 +155,7 @@ class TracePlugin:
             'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
             'applicationRuntime': 'python',
             'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': {},
+            'applicationTags': application_support.get_application_tags(),
 
             'traceId': span.context.trace_id,
             'transactionId': transaction_id,
