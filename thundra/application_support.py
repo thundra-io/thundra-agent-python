@@ -9,12 +9,7 @@ from thundra.constants import (
     APPLICATION_TAG_PROP_NAME_PREFIX,
 )
 
-def _str2bool(val):
-    if val.lower() in ("yes", "true", "t", "1"):
-        return True
-    elif val.lower() in ("no", "false", "f", "0"):
-        return False
-    raise ValueError
+
 
 _application_tags = {}
 application_domain_name = utils.get_configuration(APPLICATION_DOMAIN_NAME_PROP_NAME)
@@ -37,7 +32,7 @@ def parse_application_tags():
             app_tag_key = env_key[prefix_length:]
             env_val = utils.get_configuration(env_key)
             try:
-                app_tag_val = _str2bool(env_val)
+                app_tag_val = utils.str2bool(env_val)
             except ValueError:
                 try:
                     app_tag_val = int(env_val)

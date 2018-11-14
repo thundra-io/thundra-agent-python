@@ -122,8 +122,12 @@ def string_to_list(target, indicator):
     return target.split(indicator)
 
 
-def str2bool(v):
-    return v.lower() in ("yes", "true", "t", "1")
+def str2bool(val):
+    if val.lower() in ("yes", "true", "t", "1"):
+        return True
+    elif val.lower() in ("no", "false", "f", "0"):
+        return False
+    raise ValueError
 
 
 def process_trace_def_env_var(value):
