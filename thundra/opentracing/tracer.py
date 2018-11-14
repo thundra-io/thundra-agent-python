@@ -120,10 +120,10 @@ class ThundraTracer(opentracing.Tracer):
         self.recorder.record(event, span)
 
     def inject(self, span_context, format, carrier):
-        raise NotImplemented('inject method not implemented yet')
+        raise NotImplementedError('inject method not implemented yet')
 
     def extract(self, format, carrier):
-        raise NotImplemented('extract method not implemented yet')
+        raise NotImplementedError('extract method not implemented yet')
 
     def clear(self):
         self.recorder.clear()
