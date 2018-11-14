@@ -13,6 +13,7 @@ from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
+import thundra.application_support as application_support
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class Thundra:
 
             self.plugin_context['request'] = event
             self.plugin_context['context'] = context
-
+            application_support.clear_application_tags()
             self.execute_hook('before:invocation', self.plugin_context)
             if threading.current_thread().__class__.__name__ == '_MainThread':
                 signal.signal(signal.SIGALRM, self.timeout_handler)
@@ -102,7 +103,9 @@ class Thundra:
             finally:
                 if threading.current_thread().__class__.__name__ == '_MainThread':
                     signal.setitimer(signal.ITIMER_REAL, 0)
+            application_support.parse_application_tags()
             self.prepare_and_send_reports()
+            application_support.clear_application_tags()
             return response
 
         return wrapper

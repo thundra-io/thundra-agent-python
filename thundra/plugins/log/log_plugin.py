@@ -1,5 +1,6 @@
 from thundra import utils, constants
 import sys
+import thundra.application_support as application_support
 
 from thundra.plugins.log.thundra_log_handler import logs
 from thundra.opentracing.tracer import ThundraTracer
@@ -44,6 +45,7 @@ class LogPlugin:
         context = plugin_context['context']
 
         #### ADDING TAGS ####
+        self.log_data['applicationTags'] = application_support.get_application_tags()
         self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.log_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)

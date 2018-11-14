@@ -6,6 +6,7 @@ import sys
 
 from thundra import utils, constants
 from thundra.opentracing.tracer import ThundraTracer
+import thundra.application_support as application_support
 
 
 class MetricPlugin:
@@ -57,6 +58,7 @@ class MetricPlugin:
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, plugin_context):
+        self.metric_data['applicationTags'] = application_support.get_application_tags()
         reporter = plugin_context['reporter']
         self.add_thread_metric_report(reporter)
         self.add_gc_metric_report(reporter)

@@ -2,8 +2,9 @@ import time
 import uuid
 import sys
 
-from thundra import constants, utils
 import json
+from thundra import constants, utils
+import thundra.application_support as application_support
 
 
 class InvocationPlugin:
@@ -20,7 +21,6 @@ class InvocationPlugin:
     def before_invocation(self, plugin_context):
         context = plugin_context['context']
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-
         self.start_time = int(time.time() * 1000)
 
         self.invocation_data = {
@@ -88,6 +88,7 @@ class InvocationPlugin:
         self.invocation_data['finishTimestamp'] = int(self.end_time)
 
         #### ADDING TAGS ####
+        self.invocation_data['applicationTags'] = application_support.get_application_tags()
         self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
