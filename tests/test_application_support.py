@@ -21,3 +21,10 @@ def test_if_can_get_string_tag(monkeypatch):
     monkeypatch.setitem(os.environ, env_key, str(env_val))
     application_tags = application_support.parse_application_tags()
     assert application_tags[tag_name] == env_val
+
+def test_if_can_get_bool_tag(monkeypatch):
+    tag_name = 'boolField'
+    (env_key, env_val) = (application_support.APPLICATION_TAG_PROP_NAME_PREFIX + tag_name, True)
+    monkeypatch.setitem(os.environ, env_key, str(env_val))
+    application_tags = application_support.parse_application_tags()
+    assert application_tags[tag_name] == env_val
