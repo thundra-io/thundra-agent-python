@@ -3,6 +3,7 @@ import uuid
 import sys
 
 from thundra import constants, utils
+import thundra.plugins.invocation.invocation_support as invocation_support
 import json
 
 
@@ -20,7 +21,7 @@ class InvocationPlugin:
     def before_invocation(self, plugin_context):
         context = plugin_context['context']
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-
+        invocation_support.clear()
         self.start_time = int(time.time() * 1000)
 
         self.invocation_data = {
@@ -59,6 +60,8 @@ class InvocationPlugin:
     def after_invocation(self, plugin_context):
         self.end_time = time.time() * 1000
         context = plugin_context['context']
+        #### ADDING USER TAGS ####
+        self.invocation_data['tags'] = invocation_support.get_tags_dict()
 
         #### ERROR ####
         if 'error' in plugin_context:
@@ -87,7 +90,7 @@ class InvocationPlugin:
         self.invocation_data['duration'] = int(duration)
         self.invocation_data['finishTimestamp'] = int(self.end_time)
 
-        #### ADDING TAGS ####
+        #### ADDING AWS TAGS ####
         self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
@@ -106,3 +109,4 @@ class InvocationPlugin:
             'data': self.invocation_data
         }
         reporter.add_report(json.loads(json.dumps(report_data)))
+        invocation_support.clear()
