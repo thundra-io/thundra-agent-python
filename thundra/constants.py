@@ -151,3 +151,30 @@ SQSRequestTypes = {
 AwsSQSTags = {
     'QUEUE_NAME': 'aws.sqs.queue.name',
 }
+
+SNSRequestTypes = {
+    'Publish': 'WRITE',
+}
+
+AwsSNSTags = {
+    'TOPIC_NAME': 'aws.sns.topic.name',
+}
+
+AwsKinesisTags = {
+    'STREAM_NAME': 'aws.kinesis.stream.name',
+}
+
+KinesisRequestTypes = {
+    'GetRecords': 'READ',
+    'PutRecords': 'WRITE',
+    'PutRecord': 'WRITE',
+}
+
+AwsFirehoseTags = {
+    'STREAM_NAME': 'aws.firehose.stream.name',
+}
+
+FirehoseRequestTypes = {
+    'PutRecordBatch': 'WRITE',
+    'PutRecord': 'WRITE',
+}

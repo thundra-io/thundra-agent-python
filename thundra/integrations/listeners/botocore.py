@@ -235,7 +235,7 @@ class AWSDynamoDBListener(AWSIntegration):
 
 class AWSSQSListener(AWSIntegration):
     """
-    Represents DynamoDB listener.
+    Represents SQS listener.
     """
     CLASS_TYPE = 'sqs'
 
@@ -271,13 +271,6 @@ class AWSSQSListener(AWSIntegration):
             exception
         )
 
-        # self.RESPONSE.update(
-        #     {
-        #         'SendMessage': self.process_send_message_response,
-        #         'ReceiveMessage': self.process_receive_message_response
-        #     }
-        # )
-
         operationName, request_data = args
         self.request_data = request_data
         self.queueName = str(self.getQueueName(self.request_data))
@@ -305,6 +298,224 @@ class AWSSQSListener(AWSIntegration):
         :param response: Response from botocore
         """
         super(AWSSQSListener, self).update_response(response, scope)
+
+
+class AWSSNSListener(AWSIntegration):
+    """
+    Represents SNS listener.
+    """
+    CLASS_TYPE = 'sns'
+
+    def getRequestType(self, str):
+        if str in Constants.SNSRequestTypes:
+            return Constants.SNSRequestTypes[str]
+        return Constants.AWS_SERVICE_REQUEST
+
+    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        """
+        Initialize.
+        :param wrapped: wrapt's wrapped
+        :param instance: wrapt's instance
+        :param args: wrapt's args
+        :param kwargs: wrapt's kwargs
+        :param response: response data
+        :param exception: Exception (if happened)
+        """
+        super(AWSSNSListener, self).__init__(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+        # print("We came here")
+        # print(args)
+        operationName, request_data = args
+        self.request_data = request_data
+        self.response = response
+
+        scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['MESSAGING'])
+        scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['SNS'])
+        scope.__getattribute__('_span').__setattr__('operation_name',
+                                                    'sns: ' + self.getRequestType(operationName))
+        if operationName == 'CreateTopic':
+            self.topicName = request_data.get('Name', 'N/A')
+        else:
+            arn = request_data.get(
+                        'TopicArn',
+                        request_data.get('TargetArn', 'N/A')
+                    )
+            self.topicName = arn.split(':')[-1]
+
+        ### ADDING TAGS ###
+        tags = {
+            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSNSTags['TOPIC_NAME']: self.topicName
+        }
+        ### FINISHED ADDING TAGS ###
+        scope.__getattribute__('_span').__setattr__('tags', tags)
+        # _, request_data = args
+        #
+        # if self.resource['operation'] == 'CreateTopic':
+        #     self.resource['name'] = request_data.get('Name', 'N/A')
+        # else:
+        #     arn = request_data.get(
+        #         'TopicArn',
+        #         request_data.get('TargetArn', 'N/A')
+        #     )
+        #     self.resource['name'] = arn.split(':')[-1]
+
+        # if 'Message' in request_data:
+        #     add_data_if_needed(
+        #         self.resource['metadata'],
+        #         'Notification Message',
+        #         request_data['Message']
+        #     )
+
+    def update_response(self, response, scope):
+        """
+        Adds response data to event.
+        :param response: Response from botocore
+        :return: None
+        """
+
+        super(AWSSNSListener, self).update_response(response, scope)
+
+        # if self.resource['operation'] == 'Publish':
+        #     self.resource['metadata']['message_id'] = response['MessageId']
+
+
+class AWSKinesisListener(AWSIntegration):
+    """
+    Represents kinesis botocore event.
+    """
+    CLASS_TYPE = 'kinesis'
+
+    def getRequestType(self, str):
+        if str in Constants.KinesisRequestTypes:
+            return Constants.KinesisRequestTypes[str]
+        return Constants.AWS_SERVICE_REQUEST
+
+    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        """
+        Initialize.
+        :param wrapped: wrapt's wrapped
+        :param instance: wrapt's instance
+        :param args: wrapt's args
+        :param kwargs: wrapt's kwargs
+        :param start_time: Start timestamp (epoch)
+        :param response: response data
+        :param exception: Exception (if happened)
+        """
+
+        super(AWSKinesisListener, self).__init__(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+        operationName, request_data = args
+        self.streamName = request_data['StreamName']
+
+        scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['STREAM'])
+        scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['KINESIS'])
+        scope.__getattribute__('_span').__setattr__('operation_name',
+                                                    'kinesis: ' + self.streamName)
+
+        ### ADDING TAGS ###
+        tags = {
+            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsKinesisTags['STREAM_NAME']: self.streamName
+        }
+        ### FINISHED ADDING TAGS ###
+        scope.__getattribute__('_span').__setattr__('tags', tags)
+
+    def update_response(self, response, scope):
+        """
+        Adds response data to event.
+        :param response: Response from botocore
+        :return: None
+        """
+        super(AWSKinesisListener, self).update_response(response, scope)
+
+        # if self.resource['operation'] == 'PutRecord':
+        #     self.resource['metadata']['shard_id'] = response['ShardId']
+        #     self.resource['metadata']['sequence_number'] = \
+        #         response['SequenceNumber']
+
+
+class AWSFirehoseListener(AWSIntegration):
+    """
+    Represents firehose botocore event.
+    """
+    CLASS_TYPE = 'firehose'
+
+    def getRequestType(self, str):
+        if str in Constants.FirehoseRequestTypes:
+            return Constants.FirehoseRequestTypes[str]
+        return Constants.AWS_SERVICE_REQUEST
+
+    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        """
+        Initialize.
+        :param wrapped: wrapt's wrapped
+        :param instance: wrapt's instance
+        :param args: wrapt's args
+        :param kwargs: wrapt's kwargs
+        :param start_time: Start timestamp (epoch)
+        :param response: response data
+        :param exception: Exception (if happened)
+        """
+
+        super(AWSFirehoseListener, self).__init__(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+        print(args)
+        operationName, request_data = args
+        self.deliveryStreamName = request_data['DeliveryStreamName']
+
+        scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['STREAM'])
+        scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['FIREHOSE'])
+        scope.__getattribute__('_span').__setattr__('operation_name',
+                                                    'firehose: ' + self.deliveryStreamName)
+
+        ### ADDING TAGS ###
+        tags = {
+            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsFirehoseTags['STREAM_NAME']: self.deliveryStreamName
+        }
+        ## FINISHED ADDING TAGS ###
+        scope.__getattribute__('_span').__setattr__('tags', tags)
+
+    def update_response(self, response, scope):
+        """
+        Adds response data to event.
+        :param response: Response from botocore
+        :return: None
+        """
+        super(AWSFirehoseListener, self).update_response(response, scope)
+
+        # if self.resource['operation'] == 'PutRecord':
+        #     self.resource['metadata']['shard_id'] = response['ShardId']
+        #     self.resource['metadata']['sequence_number'] = \
+        #         response['SequenceNumber']
 
 
 class AWSEventListeners(object):
