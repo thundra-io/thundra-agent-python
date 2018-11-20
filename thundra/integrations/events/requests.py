@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 import thundra.constants as constants
+from thundra.utils import is_excluded_url
+from urllib.parse import urlparse
 from thundra.integrations.base_integration import BaseIntegration
 
 class RequestEvent(BaseIntegration):
@@ -11,15 +13,15 @@ class RequestEvent(BaseIntegration):
     def __init__(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(RequestEvent, self).__init__()
         
-        requestObject = args[0]
+        prepared_request = args[0]
 
-        method = getattr(requestObject, 'method', 'GET')
-        url = getattr(requestObject, 'url', '')
-        path = requestObject.path_url
-        queryParams = path.split('?')[1] if len(path.split('?')) > 1 else ''
+        method = prepared_request.method
+        url = prepared_request.url
+        parsed_url = urlparse(url)
+        path = parsed_url.path
+        query = parsed_url.query
+        host = parsed_url.netloc
         statusCode = response.status_code
-        hwp = url[:-len(path):] # Host with protocol like http, https 
-        host = hwp.split('//')[1] if len(hwp) > 1 else hwp
         
         scope.__getattribute__('_span').__setattr__('operation_name', url)
         scope.__getattribute__('_span').__setattr__('domain_name', constants.DomainNames['API'])
@@ -34,26 +36,28 @@ class RequestEvent(BaseIntegration):
             constants.HttpTags['HTTP_URL']: url,
             constants.HttpTags['HTTP_PATH']: path,
             constants.HttpTags['HTTP_HOST']: host,
-            constants.HttpTags['QUERY_PARAMS']: queryParams,
+            constants.HttpTags['QUERY_PARAMS']: query,
             constants.HttpTags['HTTP_STATUS']: statusCode
         }
 
         scope.__getattribute__('_span').__setattr__('tags', tags)
 
-        if exception is not None:
-            self.set_exception(exception)
-
 class RequestsEventFactory(object):
     @staticmethod
-    def create_event(wrapped, instance, args, kwargs, start_time, response, exception):
+    def create_event(scope, wrapped, instance, args, kwargs, response, exception):
+        requestObject = args[0]
+
+        if is_excluded_url(requestObject.url):
+            return
+
         instance_type = RequestEvent
 
         event = instance_type(
+            scope,
             wrapped,
             instance,
             args,
             kwargs,
-            start_time,
             response,
             exception
         )

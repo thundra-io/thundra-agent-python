@@ -1,5 +1,6 @@
 import os
 import sys
+from urllib.parse import urlparse
 from thundra import constants
 
 
@@ -158,3 +159,22 @@ def get_allowed_functions(module):
 
 def get_aws_region_from_arn(func_arn):
     return func_arn.split(':')[3] if len(func_arn.split(':')) >= 3 else ""
+
+def is_excluded_url(url):
+    host = urlparse(url).netloc
+    for method in EXCLUDED_URLS:
+        for excluded_url in EXCLUDED_URLS[method]:
+            if method(host, excluded_url):
+                return True
+    return False
+
+# Excluded url's 
+EXCLUDED_URLS = {
+    str.endswith: [
+        'thundra.io',
+    ],
+    str.__contains__: [
+        'amazonaws.com',
+        'accounts.google.com',
+    ],
+}
