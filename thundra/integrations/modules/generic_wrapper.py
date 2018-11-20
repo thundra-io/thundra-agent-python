@@ -49,6 +49,6 @@ def wrapper(listener, wrapped, instance, args, kwargs):
                     'traceback': traceback.format_exc(),
                     'time': time.time()
                 }
-                scope.__getattribute__('_span').__setattr__('exception', error)
+                scope.__getattribute__('_span').__getattribute__('tags')['exception'] = error
                 # traceback.print_exc()
                 print("Error in generic_wrapper")
