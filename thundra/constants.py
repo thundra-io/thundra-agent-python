@@ -189,6 +189,36 @@ FirehoseRequestTypes = {
     'PutRecord': 'WRITE',
 }
 
+S3RequestTypes = {
+    'DeleteBucket': 'DELETE',
+    'CreateBucket': 'WRITE',
+    'copyObject': 'WRITE',
+    'DeleteObject': 'DELETE',
+    'deleteObjects': 'DELETE',
+    'GetObject': 'READ',
+    'GetObjectAcl': 'READ',
+    'ListBucket': 'READ',
+    'PutObject': 'WRITE',
+    'PutObjectAcl': 'WRITE',
+}
+
+AwsS3Tags = {
+    'BUCKET_NAME': 'aws.s3.bucket.name',
+    'OBJECT_NAME': 'aws.s3.object.name',
+}
+
+AwsLambdaTags = {
+    'FUNCTION_NAME': 'aws.lambda.function.name',
+    'FUNCTION_QUALIFIER': 'aws.lambda.function.qualifier',
+    'INVOCATION_TYPE': 'aws.lambda.invocation.type',
+    'INVOCATION_PAYLOAD': 'aws.lambda.invocation.payload',
+}
+
+LambdaRequestType = {
+    'InvokeAsync': 'CALL',
+    'Invoke': 'CALL',
+}
+
 HttpTags = {
     'HTTP_METHOD': 'http.method',
     'HTTP_URL': 'http.url',
