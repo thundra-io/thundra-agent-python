@@ -18,6 +18,8 @@ class RequestEvent(BaseIntegration):
         path = requestObject.path_url
         queryParams = path.split('?')[1] if len(path.split('?')) > 1 else ''
         statusCode = response.status_code
+        hwp = url[:-len(path):] # Host with protocol like http, https 
+        host = hwp.split('//')[1] if len(hwp) > 1 else hwp
         
         scope.__getattribute__('_span').__setattr__('operation_name', url)
         scope.__getattribute__('_span').__setattr__('domain_name', constants.DomainNames['API'])
@@ -31,11 +33,15 @@ class RequestEvent(BaseIntegration):
             constants.HttpTags['HTTP_METHOD']: method,
             constants.HttpTags['HTTP_URL']: url,
             constants.HttpTags['HTTP_PATH']: path,
+            constants.HttpTags['HTTP_HOST']: host,
             constants.HttpTags['QUERY_PARAMS']: queryParams,
             constants.HttpTags['HTTP_STATUS']: statusCode
         }
 
         scope.__getattribute__('_span').__setattr__('tags', tags)
+
+        if exception is not None:
+            self.set_exception(exception)
 
 class RequestsEventFactory(object):
     @staticmethod
