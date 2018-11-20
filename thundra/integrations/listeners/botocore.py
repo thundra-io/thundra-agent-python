@@ -517,6 +517,158 @@ class AWSFirehoseListener(AWSIntegration):
         #     self.resource['metadata']['sequence_number'] = \
         #         response['SequenceNumber']
 
+class AWSS3Listener(AWSIntegration):
+    """
+    Represents s3 botocore event.
+    """
+
+    CLASS_TYPE = 's3'
+
+    def getRequestType(self, str):
+        if str in Constants.S3RequestTypes:
+            return Constants.S3RequestTypes[str]
+        return Constants.AWS_SERVICE_REQUEST
+
+    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        """
+        Initialize.
+        :param wrapped: wrapt's wrapped
+        :param instance: wrapt's instance
+        :param args: wrapt's args
+        :param kwargs: wrapt's kwargs
+        :param start_time: Start timestamp (epoch)
+        :param response: response data
+        :param exception: Exception (if happened)
+        """
+        super(AWSS3Listener, self).__init__(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+        print(args)
+        operationName, request_data = args
+        self.bucket = request_data['Bucket']
+
+        scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['STORAGE'])
+        scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['S3'])
+        scope.__getattribute__('_span').__setattr__('operation_name',
+                                                    's3: ' + self.bucket)
+
+        if "Key" in request_data:
+            self.objectName = request_data["Key"]
+
+        ### ADDING TAGS ###
+        tags = {
+            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsS3Tags['BUCKET_NAME']: self.bucket,
+            Constants.AwsS3Tags['OBJECT_NAME']: self.objectName
+        }
+        ## FINISHED ADDING TAGS ###
+        scope.__getattribute__('_span').__setattr__('tags', tags)
+
+    def update_response(self, response, scope):
+        """
+        Adds response data to event.
+        :param response: Response from botocore
+        :return: None
+        """
+        super(AWSS3Listener, self).update_response(response, scope)
+
+        if self.resource['operation'] == 'ListObjects':
+            files = [
+                [str(x['Key']).strip('"'), x['Size'], x['ETag']]
+                for x in response.get('Contents', [])
+            ]
+
+        elif self.resource['operation'] == 'PutObject':
+            self.resource['metadata']['etag'] = response['ETag'].strip('"')
+        elif self.resource['operation'] == 'HeadObject':
+            self.resource['metadata']['etag'] = response['ETag'].strip('"')
+            self.resource['metadata']['file_size'] = response['ContentLength']
+            self.resource['metadata']['last_modified'] = \
+                response['LastModified'].strftime('%s')
+        elif self.resource['operation'] == 'GetObject':
+            self.resource['metadata']['etag'] = response['ETag'].strip('"')
+            self.resource['metadata']['file_size'] = response['ContentLength']
+            self.resource['metadata']['last_modified'] = \
+                response['LastModified'].strftime('%s')
+
+
+class AWSLambdaListener(AWSIntegration):
+    """
+    Represents lambda botocore event.
+    """
+
+    CLASS_TYPE = 'lambda'
+    def getRequestType(self, str):
+        if str in Constants.LambdaRequestType:
+            return Constants.LambdaRequestType[str]
+        return Constants.AWS_SERVICE_REQUEST
+
+    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        """
+        Initialize.
+        :param wrapped: wrapt's wrapped
+        :param instance: wrapt's instance
+        :param args: wrapt's args
+        :param kwargs: wrapt's kwargs
+        :param start_time: Start timestamp (epoch)
+        :param response: response data
+        :param exception: Exception (if happened)
+        """
+
+        super(AWSLambdaListener, self).__init__(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+
+        operationName, request_data = args
+        self.lambdaFunction = request_data.get('FunctionName', '')
+
+        scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['API'])
+        scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['LAMBDA'])
+        scope.__getattribute__('_span').__setattr__('operation_name',
+                                                    'lambda: ' + self.lambdaFunction)
+
+        ### ADDING TAGS ###
+        tags = {
+            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
+        }
+        if 'Payload' in request_data:
+            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
+
+        if 'Qualifier' in request_data:
+            tags[Constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']
+
+        if 'InvocationType' in request_data:
+            tags[Constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
+        ## FINISHED ADDING TAGS ###
+        scope.__getattribute__('_span').__setattr__('tags', tags)
+
+
+
+        # if 'InvokeArgs' in request_data and \
+        #         isinstance(request_data['InvokeArgs'], str):
+        #     add_data_if_needed(
+        #         self.resource['metadata'],
+        #         'payload',
+        #         request_data['InvokeArgs']
+        #     )
+
 
 class AWSEventListeners(object):
     """
