@@ -20,14 +20,12 @@ def dummy_func(*args):
 
 class AWSIntegration(BaseIntegration):
     """
-    Represents base botocore event.
+    Represents base botocore event listener.
     """
-
     CLASS_TYPE = 'AWS'
     RESPONSE = {}
     OPERATION = {}
 
-    # pylint: disable=W0613
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
         """
@@ -36,7 +34,6 @@ class AWSIntegration(BaseIntegration):
         :param instance: wrapt's instance
         :param args: wrapt's args
         :param kwargs: wrapt's kwargs
-        :param start_time: Start timestamp (epoch)
         :param response: response data
         :param exception: Exception (if happened)
         """
@@ -44,10 +41,6 @@ class AWSIntegration(BaseIntegration):
 
         event_operation, _ = args
         scope.span.operationName = str(event_operation)
-        # scope.__getattribute__('_span').__setattr__('operationName', str(event_operation))
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['AWS'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['AWSSERVICE'])
-        # scope.__getattribute__('_span').__setattr__('operation_name', Constants.AWS_SERVICE_REQUEST)
 
         if response is not None:
             self.update_response(response, scope)
@@ -63,8 +56,6 @@ class AWSIntegration(BaseIntegration):
         """
         scope.span.statusCode = response['ResponseMetadata']['HTTPStatusCode']
         scope.span.transactionId = response['ResponseMetadata']['RequestId']
-        # scope.__getattribute__('_span').__setattr__('statusCode', response['ResponseMetadata']['HTTPStatusCode'])
-        # scope.__getattribute__('_span').__setattr__('transactionId', response['ResponseMetadata']['RequestId'])
 
 
 class AWSDynamoDBListener(AWSIntegration):
@@ -73,9 +64,9 @@ class AWSDynamoDBListener(AWSIntegration):
     """
     CLASS_TYPE = 'dynamodb'
 
-    def getStatementType(self, str):
-        if str in Constants.DynamoDBRequestTypes:
-            return Constants.DynamoDBRequestTypes[str]
+    def getStatementType(self, string):
+        if string in Constants.DynamoDBRequestTypes:
+            return Constants.DynamoDBRequestTypes[string]
         return 'READ'
 
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
@@ -116,10 +107,6 @@ class AWSDynamoDBListener(AWSIntegration):
         scope.span.className = Constants.ClassNames['DYNAMODB']
         scope.span.operation_name = 'dynamodb: ' + str(self.request_data['TableName'])
 
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['DB'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['DYNAMODB'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             'dynamodb: ' + str(self.request_data['TableName']))
         ## ADDING TAGS ##
 
         tags = {
@@ -130,7 +117,6 @@ class AWSDynamoDBListener(AWSIntegration):
             Constants.DBTags['DB_STATEMENT_TYPE']: self.getStatementType(operationName),
             Constants.AwsSDKTags['REQUEST_NAME']: operationName,
         }
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
         scope.span.tags = tags
         ## FINISHED ADDING TAGS ##
         self.OPERATION.get(operationName, dummy_func)(scope)
@@ -147,26 +133,16 @@ class AWSDynamoDBListener(AWSIntegration):
         Process the get item operation.
         """
         scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
-        # scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] = \
-        #     self.request_data['Key']
 
     def process_put_item_op(self, scope):
         if 'Item' in self.request_data:
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Item'])
-            scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] = \
-                self.request_data['Item']
-            # item = self.request_data['Item']
-            # self.store_item_hash(item)
 
     def process_delete_item_op(self, scope):
         scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
-        # scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] = \
-        #     self.request_data['Key']
 
     def process_update_item_op(self, scope):
         scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
-        # scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] = \
-        #     self.request_data['Key']
 
     def process_batch_write_op(self, scope):
             table_name = list(self.request_data['RequestItems'].keys())[0]
@@ -176,8 +152,6 @@ class AWSDynamoDBListener(AWSIntegration):
                 items.append(item)
 
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], items)
-            # scope.__getattribute__('_span').__getattribute__('tags')[Constants.DBTags['DB_STATEMENT']] =\
-            #     items
 
 
 class AWSSQSListener(AWSIntegration):
@@ -186,9 +160,9 @@ class AWSSQSListener(AWSIntegration):
     """
     CLASS_TYPE = 'sqs'
 
-    def getRequestType(self, str):
-        if str in Constants.SQSRequestTypes:
-            return Constants.SQSRequestTypes[str]
+    def getRequestType(self, string):
+        if string in Constants.SQSRequestTypes:
+            return Constants.SQSRequestTypes[string]
         return 'READ'
 
     def getQueueName(self, data):
@@ -227,10 +201,6 @@ class AWSSQSListener(AWSIntegration):
         scope.span.className = Constants.ClassNames['SQS']
         scope.span.operation_name = 'sqs: ' + self.queueName
 
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['MESSAGING'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['SQS'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             'sqs: ' + self.queueName)
         ## ADDING TAGS ##
 
         tags = {
@@ -239,7 +209,6 @@ class AWSSQSListener(AWSIntegration):
             Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
             Constants.AwsSDKTags['REQUEST_NAME']: operationName,
         }
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
         scope.span.tags = tags
 
         ## FINISHED ADDING TAGS ##
@@ -258,9 +227,9 @@ class AWSSNSListener(AWSIntegration):
     """
     CLASS_TYPE = 'sns'
 
-    def getRequestType(self, str):
-        if str in Constants.SNSRequestTypes:
-            return Constants.SNSRequestTypes[str]
+    def getRequestType(self, string):
+        if string in Constants.SNSRequestTypes:
+            return Constants.SNSRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
@@ -292,10 +261,6 @@ class AWSSNSListener(AWSIntegration):
         scope.span.className = Constants.ClassNames['SNS']
         scope.span.operation_name = 'sns: ' + self.getRequestType(operationName)
 
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['MESSAGING'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['SNS'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             'sns: ' + self.getRequestType(operationName))
         if operationName == 'CreateTopic':
             self.topicName = request_data.get('Name', 'N/A')
         else:
@@ -313,7 +278,6 @@ class AWSSNSListener(AWSIntegration):
         }
         ### FINISHED ADDING TAGS ###
         scope.span.tags = tags
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
 
     def update_response(self, response, scope):
         """
@@ -331,9 +295,9 @@ class AWSKinesisListener(AWSIntegration):
     """
     CLASS_TYPE = 'kinesis'
 
-    def getRequestType(self, str):
-        if str in Constants.KinesisRequestTypes:
-            return Constants.KinesisRequestTypes[str]
+    def getRequestType(self, string):
+        if string in Constants.KinesisRequestTypes:
+            return Constants.KinesisRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
@@ -344,7 +308,6 @@ class AWSKinesisListener(AWSIntegration):
         :param instance: wrapt's instance
         :param args: wrapt's args
         :param kwargs: wrapt's kwargs
-        :param start_time: Start timestamp (epoch)
         :param response: response data
         :param exception: Exception (if happened)
         """
@@ -365,10 +328,6 @@ class AWSKinesisListener(AWSIntegration):
         scope.span.className = Constants.ClassNames['KINESIS']
         scope.span.operation_name = 'kinesis: ' + self.streamName
 
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['STREAM'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['KINESIS'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             'kinesis: ' + self.streamName)
 
         ### ADDING TAGS ###
         tags = {
@@ -378,7 +337,6 @@ class AWSKinesisListener(AWSIntegration):
         }
         ### FINISHED ADDING TAGS ###
         scope.span.tags = tags
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
 
     def update_response(self, response, scope):
         """
@@ -388,11 +346,6 @@ class AWSKinesisListener(AWSIntegration):
         """
         super(AWSKinesisListener, self).update_response(response, scope)
 
-        # if self.resource['operation'] == 'PutRecord':
-        #     self.resource['metadata']['shard_id'] = response['ShardId']
-        #     self.resource['metadata']['sequence_number'] = \
-        #         response['SequenceNumber']
-
 
 class AWSFirehoseListener(AWSIntegration):
     """
@@ -400,9 +353,9 @@ class AWSFirehoseListener(AWSIntegration):
     """
     CLASS_TYPE = 'firehose'
 
-    def getRequestType(self, str):
-        if str in Constants.FirehoseRequestTypes:
-            return Constants.FirehoseRequestTypes[str]
+    def getRequestType(self, string):
+        if string in Constants.FirehoseRequestTypes:
+            return Constants.FirehoseRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
@@ -413,7 +366,6 @@ class AWSFirehoseListener(AWSIntegration):
         :param instance: wrapt's instance
         :param args: wrapt's args
         :param kwargs: wrapt's kwargs
-        :param start_time: Start timestamp (epoch)
         :param response: response data
         :param exception: Exception (if happened)
         """
@@ -435,11 +387,6 @@ class AWSFirehoseListener(AWSIntegration):
         scope.span.className = Constants.ClassNames['FIREHOSE']
         scope.span.operation_name = 'firehose: ' + self.deliveryStreamName
 
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['STREAM'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['FIREHOSE'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             'firehose: ' + self.deliveryStreamName)
-
         ### ADDING TAGS ###
         tags = {
             Constants.AwsSDKTags['REQUEST_NAME']: operationName,
@@ -448,7 +395,6 @@ class AWSFirehoseListener(AWSIntegration):
         }
         ## FINISHED ADDING TAGS ###
         scope.span.tags = tags
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
 
     def update_response(self, response, scope):
         """
@@ -466,9 +412,9 @@ class AWSS3Listener(AWSIntegration):
 
     CLASS_TYPE = 's3'
 
-    def getRequestType(self, str):
-        if str in Constants.S3RequestTypes:
-            return Constants.S3RequestTypes[str]
+    def getRequestType(self, string):
+        if string in Constants.S3RequestTypes:
+            return Constants.S3RequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
@@ -479,7 +425,6 @@ class AWSS3Listener(AWSIntegration):
         :param instance: wrapt's instance
         :param args: wrapt's args
         :param kwargs: wrapt's kwargs
-        :param start_time: Start timestamp (epoch)
         :param response: response data
         :param exception: Exception (if happened)
         """
@@ -500,11 +445,6 @@ class AWSS3Listener(AWSIntegration):
         scope.span.className = Constants.ClassNames['FIREHOSE']
         scope.span.operation_name = 's3: ' + self.bucket
 
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['STORAGE'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['S3'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             's3: ' + self.bucket)
-
         if "Key" in request_data:
             self.objectName = request_data["Key"]
 
@@ -517,7 +457,6 @@ class AWSS3Listener(AWSIntegration):
         }
         ## FINISHED ADDING TAGS ###
         scope.span.tags = tags
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
 
     def update_response(self, response, scope):
         """
@@ -527,35 +466,16 @@ class AWSS3Listener(AWSIntegration):
         """
         super(AWSS3Listener, self).update_response(response, scope)
 
-        if self.resource['operation'] == 'ListObjects':
-            files = [
-                [str(x['Key']).strip('"'), x['Size'], x['ETag']]
-                for x in response.get('Contents', [])
-            ]
-
-        elif self.resource['operation'] == 'PutObject':
-            self.resource['metadata']['etag'] = response['ETag'].strip('"')
-        elif self.resource['operation'] == 'HeadObject':
-            self.resource['metadata']['etag'] = response['ETag'].strip('"')
-            self.resource['metadata']['file_size'] = response['ContentLength']
-            self.resource['metadata']['last_modified'] = \
-                response['LastModified'].strftime('%s')
-        elif self.resource['operation'] == 'GetObject':
-            self.resource['metadata']['etag'] = response['ETag'].strip('"')
-            self.resource['metadata']['file_size'] = response['ContentLength']
-            self.resource['metadata']['last_modified'] = \
-                response['LastModified'].strftime('%s')
-
-
 class AWSLambdaListener(AWSIntegration):
     """
     Represents lambda botocore event.
     """
 
     CLASS_TYPE = 'lambda'
-    def getRequestType(self, str):
-        if str in Constants.LambdaRequestType:
-            return Constants.LambdaRequestType[str]
+
+    def getRequestType(self, string):
+        if string in Constants.LambdaRequestType:
+            return Constants.LambdaRequestType[string]
         return Constants.AWS_SERVICE_REQUEST
 
     def __init__(self, scope, wrapped, instance, args, kwargs, response,
@@ -566,7 +486,6 @@ class AWSLambdaListener(AWSIntegration):
         :param instance: wrapt's instance
         :param args: wrapt's args
         :param kwargs: wrapt's kwargs
-        :param start_time: Start timestamp (epoch)
         :param response: response data
         :param exception: Exception (if happened)
         """
@@ -586,10 +505,6 @@ class AWSLambdaListener(AWSIntegration):
         scope.span.domainName = Constants.DomainNames['API']
         scope.span.className = Constants.ClassNames['LAMBDA']
         scope.span.operation_name = 'lambda: ' + self.lambdaFunction
-        # scope.__getattribute__('_span').__setattr__('domainName', Constants.DomainNames['API'])
-        # scope.__getattribute__('_span').__setattr__('className', Constants.ClassNames['LAMBDA'])
-        # scope.__getattribute__('_span').__setattr__('operation_name',
-        #                                             'lambda: ' + self.lambdaFunction)
 
         ### ADDING TAGS ###
         tags = {
@@ -606,8 +521,8 @@ class AWSLambdaListener(AWSIntegration):
         if 'InvocationType' in request_data:
             tags[Constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
         ## FINISHED ADDING TAGS ###
+
         scope.span.tags = tags
-        # scope.__getattribute__('_span').__setattr__('tags', tags)
 
 
 class AWSEventListeners(object):
