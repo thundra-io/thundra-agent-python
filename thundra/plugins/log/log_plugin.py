@@ -36,8 +36,8 @@ class LogPlugin:
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': {},
 
-            'traceId': getattr(plugin_context, 'trace_id', ""),
-            'transactionId': getattr(plugin_context, 'transaction_id', context.aws_request_id),
+            'traceId': plugin_context.get('trace_id', ""),
+            'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
             'tags': {}
         }
 

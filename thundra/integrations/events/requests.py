@@ -1,31 +1,25 @@
 from __future__ import absolute_import
+import traceback
 import thundra.constants as constants
-from thundra.utils import is_excluded_url
 from urllib.parse import urlparse
 from thundra.integrations.base_integration import BaseIntegration
 
-class RequestEvent(BaseIntegration):
-    """
-    Represents requests library listener
-    """
-    CLASS_TYPE = 'requests'
-
+class RequestsEvent(BaseIntegration):
     def __init__(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super(RequestEvent, self).__init__()
+        super(RequestsEvent, self).__init__()
         
         prepared_request = args[0]
-
         method = prepared_request.method
         url = prepared_request.url
         parsed_url = urlparse(url)
         path = parsed_url.path
         query = parsed_url.query
         host = parsed_url.netloc
-        statusCode = response.status_code
+        span = scope.span
         
-        scope.__getattribute__('_span').__setattr__('operation_name', url)
-        scope.__getattribute__('_span').__setattr__('domain_name', constants.DomainNames['API'])
-        scope.__getattribute__('_span').__setattr__('class_name', constants.ClassNames['HTTP'])
+        span.operation_name = url
+        span.domain_name =  constants.DomainNames['API']
+        span.class_name =  constants.ClassNames['HTTP']
 
         ## ADDING TAGS ##
 
@@ -37,22 +31,30 @@ class RequestEvent(BaseIntegration):
             constants.HttpTags['HTTP_PATH']: path,
             constants.HttpTags['HTTP_HOST']: host,
             constants.HttpTags['QUERY_PARAMS']: query,
-            constants.HttpTags['HTTP_STATUS']: statusCode
         }
 
-        scope.__getattribute__('_span').__setattr__('tags', tags)
+        span.tags = tags
+
+        if exception is not None:
+            self.set_exception(exception, traceback.format_exc(), span)
+        
+        if response is not None:
+            self.set_response(response, span)
+    
+    def set_exception(self, exception, traceback_data, span):
+        span.set_tag('error.stack', traceback_data)
+        span.set_error_to_tag(exception)
+    
+    def set_response(self, response, span):
+        statusCode = response.status_code
+        span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
 
 class RequestsEventFactory(object):
     @staticmethod
     def create_event(scope, wrapped, instance, args, kwargs, response, exception):
-        requestObject = args[0]
+        instance_type = RequestsEvent
 
-        if is_excluded_url(requestObject.url):
-            return
-
-        instance_type = RequestEvent
-
-        event = instance_type(
+        instance_type(
             scope,
             wrapped,
             instance,
