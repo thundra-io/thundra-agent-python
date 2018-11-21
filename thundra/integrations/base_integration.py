@@ -34,52 +34,6 @@ class BaseIntegration(object):
             'metadata': {},
         }
 
-    # @staticmethod
-    # def load_from_dict(event_data):
-    #     """
-    #     Load Event object from dict.
-    #     :param event_data: dict
-    #     :return: Event
-    #     """
-    #
-    #     event = BaseIntegration(event_data['start_time'])
-    #     event.event_id = event_data['id']
-    #     event.origin = event_data['origin']
-    #     event.duration = event_data['duration']
-    #     event.error_code = event_data['error_code']
-    #     event.resource = event_data['resource']
-    #     if event.error_code == ErrorCode.EXCEPTION:
-    #         event.exception = event_data['exception']
-    #
-    #     return event
-    #
-    # def to_dict(self):
-    #     """
-    #     Converts Event to dict.
-    #     :return: dict
-    #     """
-    #
-    #     self_as_dict = {
-    #         'id': self.event_id,
-    #         'start_time': self.start_time,
-    #         'duration': self.duration,
-    #         'origin': self.origin,
-    #         'error_code': self.error_code,
-    #         'resource': self.resource,
-    #     }
-    #
-    #     if self.error_code == ErrorCode.EXCEPTION:
-    #         self_as_dict['exception'] = self.exception
-    #
-    #     return self_as_dict
-    #
-    # def terminate(self):
-    #     """
-    #     Sets durahtion time.
-    #     :return: None
-    #     """
-    #     self.duration = time.time() - self.start_time
-
     def set_error(self):
         """
         Sets general error.
