@@ -50,5 +50,3 @@ def wrapper(listener, wrapped, instance, args, kwargs):
                     'time': time.time()
                 }
                 scope.span.set_tag('error', error)
-                # traceback.print_exc()
-                print("Error in generic_wrapper")
