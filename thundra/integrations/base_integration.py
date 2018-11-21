@@ -15,15 +15,7 @@ class BaseIntegration(object):
     CLASS_TYPE = 'base'
 
     def __init__(self):
-        """
-        Initialize.
-        :param start_time: event's start time (epoch)
-        """
-        # self.scope = scope
-        # self.start_time = start_time
         self.event_id = ''
-        # self.origin = self.ORIGIN
-        # self.duration = 0.0
         self.error_code = ErrorCode.OK
         self.exception = {}
 
