@@ -11,12 +11,6 @@ from thundra.opentracing.tracer import ThundraTracer
 
 
 # pylint: disable=W0613
-def dummy_func(*args):
-    """
-    A dummy function.
-    :return: None
-    """
-
 
 class AWSIntegration(BaseIntegration):
     """
