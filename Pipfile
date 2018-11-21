@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 opentracing = "*"
 requests = "*"
+wrapt = "*"
 
 [dev-packages]
 mock = "*"
