@@ -1,20 +1,23 @@
 from __future__ import absolute_import
 import wrapt
-from thundra.utils import is_excluded_url
+from thundra import utils
+from thundra import constants
 from thundra.integrations.modules.generic_wrapper import wrapper
 from thundra.integrations.events.requests import RequestsEventFactory
 
 def _wrapper(wrapped, instance, args, kwargs):
     prepared_request = args[0]
 
-    if is_excluded_url(prepared_request.url):
+    if utils.is_excluded_url(prepared_request.url):
         return wrapped(*args, **kwargs)
 
     return wrapper(RequestsEventFactory, wrapped, instance, args, kwargs)
 
 def patch():
-    wrapt.wrap_function_wrapper(
-        'requests',
-        'Session.send',
-        _wrapper
-    )
+    disable_http_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_HTTP_INTEGRATION)
+    if not utils.should_disable(disable_http_integration_by_env):
+        wrapt.wrap_function_wrapper(
+            'requests',
+            'Session.send',
+            _wrapper
+        )
