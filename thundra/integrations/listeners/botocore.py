@@ -101,6 +101,7 @@ class AWSDynamoDBListener(AWSIntegration):
         operationName, request_data = args
         self.request_data = request_data
         self.response = response
+        self.endpoint = instance._endpoint.host.split('/')[-1]
 
         scope.span.domainName = Constants.DomainNames['DB']
         scope.span.className = Constants.ClassNames['DYNAMODB']
@@ -111,6 +112,7 @@ class AWSDynamoDBListener(AWSIntegration):
         tags = {
             Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['AWS_DYNAMO'],
             Constants.SpanTags['OPERATION_TYPE']: self.getStatementType(operationName),
+            Constants.DBTags['DB_INSTANCE']: self.endpoint,
             Constants.DBTags['DB_TYPE']: Constants.DBTypes['DYNAMODB'],
             Constants.AwsDynamoTags['TABLE_NAME']: str(self.request_data['TableName']),
             Constants.DBTags['DB_STATEMENT_TYPE']: self.getStatementType(operationName),
@@ -378,7 +380,7 @@ class AWSFirehoseListener(AWSIntegration):
             response,
             exception
         )
-        print(args)
+
         operationName, request_data = args
         self.deliveryStreamName = request_data['DeliveryStreamName']
 
@@ -440,8 +442,8 @@ class AWSS3Listener(AWSIntegration):
         operationName, request_data = args
         self.bucket = request_data['Bucket']
 
-        scope.span.domainName = Constants.DomainNames['STREAM']
-        scope.span.className = Constants.ClassNames['FIREHOSE']
+        scope.span.domainName = Constants.DomainNames['STORAGE']
+        scope.span.className = Constants.ClassNames['S3']
         scope.span.operation_name = 's3: ' + self.bucket
 
         if "Key" in request_data:
