@@ -6,6 +6,8 @@ from __future__ import absolute_import
 import wrapt
 from thundra.integrations.modules.generic_wrapper import wrapper
 from ..listeners.botocore import AWSEventListeners
+from thundra import utils
+from thundra import constants
 
 
 def _wrapper(wrapped, instance, args, kwargs):
@@ -25,8 +27,10 @@ def patch():
     Patch module.
     :return: None
     """
-    wrapt.wrap_function_wrapper(
-        'botocore.client',
-        'BaseClient._make_api_call',
-        _wrapper
-    )
+    disable_aws_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_AWS_INTEGRATION)
+    if not utils.should_disable(disable_aws_integration_by_env):
+        wrapt.wrap_function_wrapper(
+            'botocore.client',
+            'BaseClient._make_api_call',
+            _wrapper
+        )
