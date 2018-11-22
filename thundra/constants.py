@@ -107,7 +107,7 @@ AwsDynamoTags = {
 }
 
 DBTypes = {
-    'DYNAMODB': ' aws-dynamodb',
+    'DYNAMODB': 'aws-dynamodb',
     'REDIS': 'redis',
 }
 
