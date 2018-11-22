@@ -30,6 +30,7 @@ def wrapper(listener, wrapped, instance, args, kwargs):
             return response
         except Exception as operation_exception:
             exception = operation_exception
+            scope.span.set_tag('error', exception)
             raise
         finally:
             try:
