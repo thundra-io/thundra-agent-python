@@ -17,10 +17,17 @@ def test_dynamodb(dynamodb_handler, mock_context, mock_event):
                 'last_name': 'Doe'
             }
         )
+        # response = handler(mock_event, mock_context)
     except:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-    assert span.className is 'AWS-DynamoDB'
-    assert span.domainName is 'DB'
+        print(vars(span))
+    # print (type(span.className))
+    assert span.className == 'AWS-DynamoDB'
+    assert span.domainName == 'DB'
+    assert span.operationName == 'GetItem'
+    assert span.get_tag("operation.type") == 'READ'
+    assert span.get_tag("db.instance") == 'READ'
+    assert True is True
