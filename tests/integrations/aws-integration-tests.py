@@ -1,7 +1,6 @@
 from thundra.opentracing.tracer import ThundraTracer
 import boto3
 
-
 def test_dynamodb():
     try:
         dynamodb = boto3.resource('dynamodb')
