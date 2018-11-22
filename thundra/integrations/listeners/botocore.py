@@ -1,13 +1,9 @@
 from __future__ import absolute_import
 
-import hashlib
 import traceback
-import simplejson as json
+
 import thundra.constants as Constants
-from boto3.dynamodb.types import TypeDeserializer
-from botocore.exceptions import ClientError
 from ..base_integration import BaseIntegration
-from thundra.opentracing.tracer import ThundraTracer
 
 
 # pylint: disable=W0613
