@@ -4,9 +4,9 @@ import boto3
 
 def test_dynamodb():
     try:
-        dynamodb = boto3.resource('dynamodb')
+        dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
         table = dynamodb.Table('test-table')
-        table.get_item(
+        response = table.get_item(
             Key={
                 'username': 'janedoe',
                 'last_name': 'Doe'
@@ -56,7 +56,7 @@ def test_s3():
 
 def test_lambda():
     try:
-        lambdaFunc = boto3.client('lambda')
+        lambdaFunc = boto3.client('lambda', region_name='us-west-2')
         response = lambdaFunc.invoke(
             FunctionName='Test',
             InvocationType='RequestResponse',
@@ -80,7 +80,7 @@ def test_lambda():
 
 def test_sqs():
     try:
-        sqs = boto3.client('sqs')
+        sqs = boto3.client('sqs', region_name='us-west-2')
         response = sqs.send_message(
             QueueUrl='test-queue',
             MessageBody='Hello Thundra!',
@@ -102,7 +102,7 @@ def test_sqs():
 
 def test_sns():
     try:
-        sns = boto3.client('sns')
+        sns = boto3.client('sns', region_name='us-west-2')
         response = sns.publish(
             TopicArn='Test-topic',
             Message='Hello Thundra!',
@@ -123,7 +123,7 @@ def test_sns():
 
 def test_kinesis():
     try:
-        kinesis = boto3.client('kinesis')
+        kinesis = boto3.client('kinesis', region_name='us-west-2')
         response = kinesis.put_record(
             Data='STRING_VALUE',
             PartitionKey='STRING_VALUE',
@@ -147,7 +147,7 @@ def test_kinesis():
 
 def test_kinesis():
     try:
-        firehose = boto3.client('firehose')
+        firehose = boto3.client('firehose', region_name='us-west-2')
         response = firehose.put_record(
             DeliveryStreamName='STRING_VALUE',
             Record={
