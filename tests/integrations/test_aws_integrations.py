@@ -16,7 +16,7 @@ def test_dynamodb():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         # print (type(span.className))
         assert span.className == 'AWS-DynamoDB'
@@ -42,7 +42,7 @@ def test_s3():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         assert span.className == 'AWS-S3'
         assert span.domainName == 'Storage'
@@ -65,7 +65,7 @@ def test_lambda():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[2]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         assert span.className == 'AWS-Lambda'
         assert span.domainName == 'API'
@@ -89,7 +89,7 @@ def test_sqs():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         assert span.className == 'AWS-SQS'
         assert span.domainName == 'Messaging'
@@ -110,7 +110,7 @@ def test_sns():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         assert span.className == 'AWS-SNS'
         assert span.domainName == 'Messaging'
@@ -134,7 +134,7 @@ def test_kinesis():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         assert span.className == 'AWS-Kinesis'
         assert span.domainName == 'Stream'
@@ -157,7 +157,7 @@ def test_kinesis():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.recorder.finished_span_stack[0]
         # print(vars(span))
         assert span.className == 'AWS-Firehose'
         assert span.domainName == 'Stream'
