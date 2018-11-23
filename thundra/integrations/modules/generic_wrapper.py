@@ -50,4 +50,4 @@ def wrapper(listener, wrapped, instance, args, kwargs):
                     'traceback': traceback.format_exc(),
                     'time': time.time()
                 }
-                scope.span.set_tag('error', error)
+                scope.span.set_tag('instrumentation_error', error)
