@@ -1,6 +1,7 @@
 from thundra.opentracing.tracer import ThundraTracer
 import redis
 
+
 def test_set():
     try:
         r = redis.Redis(host="test", port="12345", password="pass")
@@ -21,6 +22,7 @@ def test_set():
         assert span.get_tag('redis.command.type') == 'SET'
         assert span.get_tag('redis.command') == 'WRITE'
         assert span.get_tag('redis.command.args') == ['foo', 'bar']
+
 
 def test_get():
     try:
