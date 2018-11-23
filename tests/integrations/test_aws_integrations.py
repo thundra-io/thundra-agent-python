@@ -144,7 +144,7 @@ def test_kinesis():
         tracer.clear()
 
 
-def test_kinesis():
+def test_firehose():
     try:
         firehose = boto3.client('firehose', region_name='us-west-2')
         response = firehose.put_record(
