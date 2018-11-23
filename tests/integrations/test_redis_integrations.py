@@ -22,6 +22,7 @@ def test_set():
         assert span.get_tag('redis.command.type') == 'SET'
         assert span.get_tag('redis.command') == 'WRITE'
         assert span.get_tag('redis.command.args') == ['foo', 'bar']
+        tracer.clear()
 
 
 def test_get():
@@ -43,3 +44,4 @@ def test_get():
         assert span.get_tag('redis.command.type') == 'GET'
         assert span.get_tag('redis.command') == 'READ'
         assert span.get_tag('redis.command.args') == ['foo']
+        tracer.clear()

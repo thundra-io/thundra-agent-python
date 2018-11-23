@@ -29,6 +29,7 @@ def test_dynamodb():
         assert span.get_tag('db.statement.type') == 'READ'
         assert span.get_tag('db.type') == 'aws-dynamodb'
         assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
+        tracer.clear()
 
 
 def test_s3():
@@ -50,6 +51,7 @@ def test_s3():
         assert span.get_tag('aws.s3.bucket.name') == 'test-bucket'
         assert span.get_tag('aws.request.name') == 'GetObject'
         assert span.get_tag('aws.s3.object.name') == 'test.txt'
+        tracer.clear()
 
 
 def test_lambda():
@@ -73,6 +75,7 @@ def test_lambda():
         assert span.get_tag('aws.lambda.invocation.payload') == {"name": "thundra"}
         assert span.get_tag('aws.request.name') == 'Invoke'
         assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
+        tracer.clear()
 
 
 def test_sqs():
@@ -94,6 +97,7 @@ def test_sqs():
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.sqs.queue.name') == 'test-queue'
         assert span.get_tag('aws.request.name') == 'SendMessage'
+        tracer.clear()
 
 
 def test_sns():
@@ -114,6 +118,7 @@ def test_sns():
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.sns.topic.name') == 'Test-topic'
         assert span.get_tag('aws.request.name') == 'Publish'
+        tracer.clear()
 
 
 def test_kinesis():
@@ -137,6 +142,7 @@ def test_kinesis():
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.kinesis.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'
+        tracer.clear()
 
 
 def test_kinesis():
@@ -159,3 +165,4 @@ def test_kinesis():
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.firehose.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'
+        tracer.clear()
