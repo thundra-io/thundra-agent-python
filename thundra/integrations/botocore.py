@@ -1,37 +1,25 @@
 from __future__ import absolute_import
 
 import traceback
-
+import time
 import thundra.constants as Constants
+from thundra.opentracing.tracer import ThundraTracer
 
 
 # pylint: disable=W0613
 def dummy_func(*args):
-    """
-    A dummy function.
-    :return: None
-    """
+    return None
 
 class AWSIntegration():
-    """
-    Represents base botocore event integration.
-    """
     CLASS_TYPE = 'AWS'
     RESPONSE = {}
     OPERATION = {}
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
+    def __init__(self):
+        pass
 
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
         event_operation, _ = args
         scope.span.operation_name = str(event_operation)
 
@@ -39,38 +27,25 @@ class AWSIntegration():
             self.update_response(response, scope)
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        :return: None
-        """
         scope.span.status_code = response['ResponseMetadata']['HTTPStatusCode']
         scope.span.transaction_id = response['ResponseMetadata']['RequestId']
 
 
 class AWSDynamoDBIntegration(AWSIntegration):
-    """
-    Represents DynamoDB integration.
-    """
     CLASS_TYPE = 'dynamodb'
+
+    def __init__(self):
+        super(AWSDynamoDBIntegration, self).__init__()
+        pass
 
     def getStatementType(self, string):
         if string in Constants.DynamoDBRequestTypes:
             return Constants.DynamoDBRequestTypes[string]
         return 'READ'
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-        super(AWSDynamoDBIntegration, self).__init__(
+        super(AWSDynamoDBIntegration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -114,16 +89,9 @@ class AWSDynamoDBIntegration(AWSIntegration):
         self.OPERATION.get(operation_name, dummy_func)(scope)
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        """
         super(AWSDynamoDBIntegration, self).update_response(response, scope)
 
     def process_get_item_op(self, scope):
-        """
-        Process the get item operation.
-        """
         scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_put_item_op(self, scope):
@@ -146,10 +114,11 @@ class AWSDynamoDBIntegration(AWSIntegration):
 
 
 class AWSSQSIntegration(AWSIntegration):
-    """
-    Represents SQS integration.
-    """
     CLASS_TYPE = 'sqs'
+
+    def __init__(self):
+        super(AWSSQSIntegration, self).__init__()
+        pass
 
     def getRequestType(self, string):
         if string in Constants.SQSRequestTypes:
@@ -162,18 +131,9 @@ class AWSSQSIntegration(AWSIntegration):
         elif 'QueueName' in data:
             return data['QueueName']
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-        super(AWSSQSIntegration, self).__init__(
+        super(AWSSQSIntegration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -205,36 +165,24 @@ class AWSSQSIntegration(AWSIntegration):
         ## FINISHED ADDING TAGS ##
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        """
         super(AWSSQSIntegration, self).update_response(response, scope)
 
 
 class AWSSNSIntegration(AWSIntegration):
-    """
-    Represents SNS integration.
-    """
     CLASS_TYPE = 'sns'
+
+    def __init__(self):
+        super(AWSSNSIntegration, self).__init__()
+        pass
 
     def getRequestType(self, string):
         if string in Constants.SNSRequestTypes:
             return Constants.SNSRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-        super(AWSSNSIntegration, self).__init__(
+        super(AWSSNSIntegration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -271,39 +219,24 @@ class AWSSNSIntegration(AWSIntegration):
         scope.span.tags = tags
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        :return: None
-        """
-
         super(AWSSNSIntegration, self).update_response(response, scope)
 
 
 class AWSKinesisIntegration(AWSIntegration):
-    """
-    Represents kinesis botocore event.
-    """
     CLASS_TYPE = 'kinesis'
+
+    def __init__(self):
+        super(AWSKinesisIntegration, self).__init__()
+        pass
 
     def getRequestType(self, string):
         if string in Constants.KinesisRequestTypes:
             return Constants.KinesisRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-
-        super(AWSKinesisIntegration, self).__init__(
+        super(AWSKinesisIntegration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -330,38 +263,24 @@ class AWSKinesisIntegration(AWSIntegration):
         scope.span.tags = tags
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        :return: None
-        """
         super(AWSKinesisIntegration, self).update_response(response, scope)
 
 
 class AWSFirehoseIntegration(AWSIntegration):
-    """
-    Represents firehose botocore event.
-    """
     CLASS_TYPE = 'firehose'
+
+    def __init__(self):
+        super(AWSFirehoseIntegration, self).__init__()
+        pass
 
     def getRequestType(self, string):
         if string in Constants.FirehoseRequestTypes:
             return Constants.FirehoseRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-
-        super(AWSFirehoseIntegration, self).__init__(
+        super(AWSFirehoseIntegration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -388,38 +307,24 @@ class AWSFirehoseIntegration(AWSIntegration):
         scope.span.tags = tags
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        :return: None
-        """
         super(AWSFirehoseIntegration, self).update_response(response, scope)
 
 
 class AWSS3Integration(AWSIntegration):
-    """
-    Represents s3 botocore event.
-    """
-
     CLASS_TYPE = 's3'
+
+    def __init__(self):
+        super(AWSS3Integration, self).__init__()
+        pass
 
     def getRequestType(self, string):
         if string in Constants.S3RequestTypes:
             return Constants.S3RequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-        super(AWSS3Integration, self).__init__(
+        super(AWSS3Integration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -450,38 +355,23 @@ class AWSS3Integration(AWSIntegration):
         scope.span.tags = tags
 
     def update_response(self, response, scope):
-        """
-        Adds response data to event.
-        :param response: Response from botocore
-        :return: None
-        """
         super(AWSS3Integration, self).update_response(response, scope)
 
 class AWSLambdaIntegration(AWSIntegration):
-    """
-    Represents lambda botocore event.
-    """
-
     CLASS_TYPE = 'lambda'
+
+    def __init__(self):
+        super(AWSLambdaIntegration, self).__init__()
+        pass
 
     def getRequestType(self, string):
         if string in Constants.LambdaRequestType:
             return Constants.LambdaRequestType[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def __init__(self, scope, wrapped, instance, args, kwargs, response,
+    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        """
-        Initialize.
-        :param wrapped: wrapt's wrapped
-        :param instance: wrapt's instance
-        :param args: wrapt's args
-        :param kwargs: wrapt's kwargs
-        :param response: response data
-        :param exception: Exception (if happened)
-        """
-
-        super(AWSLambdaIntegration, self).__init__(
+        super(AWSLambdaIntegration, self).set_span_info(
             scope,
             wrapped,
             instance,
@@ -517,42 +407,49 @@ class AWSLambdaIntegration(AWSIntegration):
 
 
 class AWSIntegrationFactory(object):
-    """
-    Factory class, generates botocore event.
-    """
-
     INTEGRATIONS = {
         class_obj.CLASS_TYPE: class_obj
         for class_obj in AWSIntegration.__subclasses__()
     }
 
     @staticmethod
-    def create_event(scope, wrapped, instance, args, kwargs, response,
-                     exception):
-        """
-        Create an event according to the given instance_type.
-        :param wrapped:
-        :param instance:
-        :param args:
-        :param kwargs:
-        :param start_time:
-        :param response:
-        :param exception:
-        :return:
-        """
-
-        instance_type = instance.__class__.__name__.lower()
-        event_class = AWSIntegrationFactory.INTEGRATIONS.get(
-            instance_type,
+    def create_span(wrapped, instance, args, kwargs):
+        integration_name = instance.__class__.__name__.lower()
+        integration_class = AWSIntegrationFactory.INTEGRATIONS.get(
+            integration_name,
             None
         )
-        if event_class is not None:
-            event = event_class(
-                scope,
-                wrapped,
-                instance,
-                args,
-                kwargs,
-                response,
-                exception
-            )
+        
+        if integration_class is not None:
+            response = None
+            exception = None
+
+            tracer = ThundraTracer.get_instance()
+            with tracer.start_active_span(operation_name="aws_call", finish_on_close=True) as scope:
+                try:
+                    response = wrapped(*args, **kwargs)
+                    return response
+                except Exception as operation_exception:
+                    exception = operation_exception
+                    scope.span.set_tag('error', exception)
+                    raise
+                finally:
+                    try:
+                        integration_class().set_span_info(
+                            scope,
+                            wrapped,
+                            instance,
+                            args,
+                            kwargs,
+                            response,
+                            exception
+                        )
+                    except Exception as instrumentation_exception:
+                        error = {
+                            'type': str(type(instrumentation_exception)),
+                            'message': str(instrumentation_exception),
+                            'traceback': traceback.format_exc(),
+                            'time': time.time()
+                        }
+                        scope.span.set_tag('instrumentation_error', error)
+
