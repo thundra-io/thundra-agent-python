@@ -5,7 +5,7 @@ botocore patcher module.
 from __future__ import absolute_import
 import wrapt
 from thundra.integrations.modules.generic_wrapper import wrapper
-from ..listeners.botocore import AWSEventListeners
+from thundra.integrations.botocore import AWSEventListeners
 from thundra import utils
 from thundra import constants
 
