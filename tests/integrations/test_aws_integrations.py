@@ -6,7 +6,7 @@ def test_dynamodb():
     try:
         dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
         table = dynamodb.Table('test-table')
-        response = table.get_item(
+        table.get_item(
             Key={
                 'username': 'janedoe',
                 'last_name': 'Doe'
@@ -18,11 +18,9 @@ def test_dynamodb():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        # print (type(span.className))
-        assert span.className == 'AWS-DynamoDB'
-        assert span.domainName == 'DB'
-        assert span.operationName == 'GetItem'
+        assert span.class_name == 'AWS-DynamoDB'
+        assert span.domain_name == 'DB'
+        assert span.operation_name == 'dynamodb: test-table'
         assert span.get_tag("operation.type") == 'READ'
         assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
         assert span.get_tag('db.statement') == {'username': 'janedoe', 'last_name': 'Doe'}
@@ -35,7 +33,7 @@ def test_dynamodb():
 def test_s3():
     try:
         s3 = boto3.client('s3')
-        response = s3.get_object(
+        s3.get_object(
             Bucket='test-bucket',
             Key='test.txt'
         )
@@ -44,9 +42,8 @@ def test_s3():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        assert span.className == 'AWS-S3'
-        assert span.domainName == 'Storage'
+        assert span.class_name == 'AWS-S3'
+        assert span.domain_name == 'Storage'
         assert span.get_tag('operation.type') == 'READ'
         assert span.get_tag('aws.s3.bucket.name') == 'test-bucket'
         assert span.get_tag('aws.request.name') == 'GetObject'
@@ -57,7 +54,7 @@ def test_s3():
 def test_lambda():
     try:
         lambdaFunc = boto3.client('lambda', region_name='us-west-2')
-        response = lambdaFunc.invoke(
+        lambdaFunc.invoke(
             FunctionName='Test',
             InvocationType='RequestResponse',
             Payload={"name": "thundra"}
@@ -67,9 +64,8 @@ def test_lambda():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        assert span.className == 'AWS-Lambda'
-        assert span.domainName == 'API'
+        assert span.class_name == 'AWS-Lambda'
+        assert span.domain_name == 'API'
         assert span.get_tag('aws.lambda.function.name') == 'Test'
         assert span.get_tag('aws.lambda.function.qualifier') is None
         assert span.get_tag('aws.lambda.invocation.payload') == {"name": "thundra"}
@@ -81,7 +77,7 @@ def test_lambda():
 def test_sqs():
     try:
         sqs = boto3.client('sqs', region_name='us-west-2')
-        response = sqs.send_message(
+        sqs.send_message(
             QueueUrl='test-queue',
             MessageBody='Hello Thundra!',
             DelaySeconds=123,
@@ -91,9 +87,8 @@ def test_sqs():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        assert span.className == 'AWS-SQS'
-        assert span.domainName == 'Messaging'
+        assert span.class_name == 'AWS-SQS'
+        assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.sqs.queue.name') == 'test-queue'
         assert span.get_tag('aws.request.name') == 'SendMessage'
@@ -103,7 +98,7 @@ def test_sqs():
 def test_sns():
     try:
         sns = boto3.client('sns', region_name='us-west-2')
-        response = sns.publish(
+        sns.publish(
             TopicArn='Test-topic',
             Message='Hello Thundra!',
         )
@@ -112,9 +107,8 @@ def test_sns():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        assert span.className == 'AWS-SNS'
-        assert span.domainName == 'Messaging'
+        assert span.class_name == 'AWS-SNS'
+        assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.sns.topic.name') == 'Test-topic'
         assert span.get_tag('aws.request.name') == 'Publish'
@@ -124,7 +118,7 @@ def test_sns():
 def test_kinesis():
     try:
         kinesis = boto3.client('kinesis', region_name='us-west-2')
-        response = kinesis.put_record(
+        kinesis.put_record(
             Data='STRING_VALUE',
             PartitionKey='STRING_VALUE',
             StreamName='STRING_VALUE',
@@ -136,9 +130,8 @@ def test_kinesis():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        assert span.className == 'AWS-Kinesis'
-        assert span.domainName == 'Stream'
+        assert span.class_name == 'AWS-Kinesis'
+        assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.kinesis.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'
@@ -148,7 +141,7 @@ def test_kinesis():
 def test_firehose():
     try:
         firehose = boto3.client('firehose', region_name='us-west-2')
-        response = firehose.put_record(
+        firehose.put_record(
             DeliveryStreamName='STRING_VALUE',
             Record={
                 'Data': 'STRING_VALUE'
@@ -159,9 +152,8 @@ def test_firehose():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.recorder.finished_span_stack[0]
-        # print(vars(span))
-        assert span.className == 'AWS-Firehose'
-        assert span.domainName == 'Stream'
+        assert span.class_name == 'AWS-Firehose'
+        assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.firehose.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'

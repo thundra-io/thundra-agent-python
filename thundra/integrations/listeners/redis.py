@@ -2,10 +2,9 @@ from __future__ import absolute_import
 
 
 import thundra.constants as Constants
-from ..base_integration import BaseIntegration
 
 
-class RedisIntegration(BaseIntegration):
+class RedisIntegration():
     """
     Represents redis event.
     """
@@ -30,7 +29,6 @@ class RedisIntegration(BaseIntegration):
         :param response: response data
         :param exception: Exception (if happened)
         """
-        super(RedisIntegration, self).__init__()
         connection = str(instance.connection_pool).split(',')
         host = connection[0][connection[0].find('host=')+5:]
         port = connection[1][connection[1].find('port=')+5:]
@@ -60,7 +58,7 @@ class RedisIntegration(BaseIntegration):
         scope.span.tags = tags
 
 
-class RedisEventListener(BaseIntegration):
+class RedisEventListener():
     """
     Factory class, generates redis event.
     """
