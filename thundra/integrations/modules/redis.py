@@ -4,9 +4,9 @@ botocore patcher module.
 
 from __future__ import absolute_import
 import wrapt
-from thundra.integrations.modules.generic_wrapper import wrapper
-from ..listeners.redis import RedisEventListener
 import redis
+from thundra.integrations.modules.generic_wrapper import wrapper
+from thundra.integrations.redis import RedisEventListener
 from thundra import utils
 from thundra import constants
 
