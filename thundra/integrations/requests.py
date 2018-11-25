@@ -54,7 +54,7 @@ class RequestsIntegration():
 class RequestsIntegrationFactory(object):
     @staticmethod
     def create_span(wrapped, instance, args, kwargs):
-        integration_type = RequestsIntegration()
+        integration_class = RequestsIntegration
 
         response = None
         exception = None
@@ -66,10 +66,11 @@ class RequestsIntegrationFactory(object):
                 return response
             except Exception as operation_exception:
                 exception = operation_exception
+                scope.span.set_tag('error', exception)
                 raise
             finally:
                 try:
-                    integration_type.set_span_info(
+                    integration_class().set_span_info(
                         scope,
                         wrapped,
                         instance,
@@ -85,4 +86,4 @@ class RequestsIntegrationFactory(object):
                         'traceback': traceback.format_exc(),
                         'time': time.time()
                     }
-                    scope.span.exception = error
+                    scope.span.set_tag('instrumentation_error', error)
