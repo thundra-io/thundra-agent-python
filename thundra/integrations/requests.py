@@ -3,7 +3,7 @@ import traceback
 import thundra.constants as constants
 from urllib.parse import urlparse
 
-class RequestsEvent():
+class RequestsIntegration():
     def __init__(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
         method = prepared_request.method
@@ -46,10 +46,10 @@ class RequestsEvent():
         statusCode = response.status_code
         span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
 
-class RequestsEventFactory(object):
+class RequestsIntegrationFactory(object):
     @staticmethod
     def create_event(scope, wrapped, instance, args, kwargs, response, exception):
-        instance_type = RequestsEvent
+        instance_type = RequestsIntegration
 
         instance_type(
             scope,
