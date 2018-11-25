@@ -2,12 +2,9 @@ from __future__ import absolute_import
 import traceback
 import thundra.constants as constants
 from urllib.parse import urlparse
-from thundra.integrations.base_integration import BaseIntegration
 
-class RequestsEvent(BaseIntegration):
+class RequestsEvent():
     def __init__(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super(RequestsEvent, self).__init__()
-        
         prepared_request = args[0]
         method = prepared_request.method
         url = prepared_request.url
