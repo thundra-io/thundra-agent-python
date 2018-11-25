@@ -5,29 +5,22 @@ botocore patcher module.
 from __future__ import absolute_import
 import wrapt
 import redis
-from thundra.integrations.modules.generic_wrapper import wrapper
-from thundra.integrations.redis import RedisIntegrationFactory
 from thundra import utils
 from thundra import constants
+from thundra.integrations.redis import RedisIntegrationFactory
 
 def _wrapper(wrapped, instance, args, kwargs):
-    """
-    General wrapper for botocore instrumentation.
-    :param wrapped: wrapt's wrapped
-    :param instance: wrapt's instance
-    :param args: wrapt's args
-    :param kwargs: wrapt's kwargs
-    :return: None
-    """
-    return wrapper(RedisIntegrationFactory, wrapped, instance, args, kwargs)
+    response = RedisIntegrationFactory.create_span(
+        wrapped,
+        instance,
+        args,
+        kwargs
+    )
+
+    return response
 
 
 def patch():
-    """
-    Patch module.
-    :return: None
-    """
-
     disable_redis_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_REDIS_INTEGRATION)
     if not utils.should_disable(disable_redis_integration_by_env):
         methods = [method_name for method_name in dir(redis.client.Redis)
