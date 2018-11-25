@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import traceback
 
 import thundra.constants as Constants
-from ..base_integration import BaseIntegration
 
 
 # pylint: disable=W0613
@@ -13,7 +12,7 @@ def dummy_func(*args):
     :return: None
     """
 
-class AWSIntegration(BaseIntegration):
+class AWSIntegration():
     """
     Represents base botocore event listener.
     """
@@ -32,16 +31,12 @@ class AWSIntegration(BaseIntegration):
         :param response: response data
         :param exception: Exception (if happened)
         """
-        super(AWSIntegration, self).__init__()
 
         event_operation, _ = args
-        scope.span.operationName = str(event_operation)
+        scope.span.operation_name = str(event_operation)
 
         if response is not None:
             self.update_response(response, scope)
-
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope)
 
     def update_response(self, response, scope):
         """
@@ -49,8 +44,8 @@ class AWSIntegration(BaseIntegration):
         :param response: Response from botocore
         :return: None
         """
-        scope.span.statusCode = response['ResponseMetadata']['HTTPStatusCode']
-        scope.span.transactionId = response['ResponseMetadata']['RequestId']
+        scope.span.status_code = response['ResponseMetadata']['HTTPStatusCode']
+        scope.span.transaction_id = response['ResponseMetadata']['RequestId']
 
 
 class AWSDynamoDBListener(AWSIntegration):
@@ -94,29 +89,29 @@ class AWSDynamoDBListener(AWSIntegration):
              }
         )
 
-        operationName, request_data = args
+        operation_name, request_data = args
         self.request_data = request_data
         self.response = response
         self.endpoint = instance._endpoint.host.split('/')[-1]
 
-        scope.span.domainName = Constants.DomainNames['DB']
-        scope.span.className = Constants.ClassNames['DYNAMODB']
+        scope.span.domain_name = Constants.DomainNames['DB']
+        scope.span.class_name = Constants.ClassNames['DYNAMODB']
         scope.span.operation_name = 'dynamodb: ' + str(self.request_data['TableName'])
 
         ## ADDING TAGS ##
 
         tags = {
             Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['AWS_DYNAMO'],
-            Constants.SpanTags['OPERATION_TYPE']: self.getStatementType(operationName),
+            Constants.SpanTags['OPERATION_TYPE']: self.getStatementType(operation_name),
             Constants.DBTags['DB_INSTANCE']: self.endpoint,
             Constants.DBTags['DB_TYPE']: Constants.DBTypes['DYNAMODB'],
             Constants.AwsDynamoTags['TABLE_NAME']: str(self.request_data['TableName']),
-            Constants.DBTags['DB_STATEMENT_TYPE']: self.getStatementType(operationName),
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.DBTags['DB_STATEMENT_TYPE']: self.getStatementType(operation_name),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
         scope.span.tags = tags
         ## FINISHED ADDING TAGS ##
-        self.OPERATION.get(operationName, dummy_func)(scope)
+        self.OPERATION.get(operation_name, dummy_func)(scope)
 
     def update_response(self, response, scope):
         """
@@ -189,13 +184,13 @@ class AWSSQSListener(AWSIntegration):
             exception
         )
 
-        operationName, request_data = args
+        operation_name, request_data = args
         self.request_data = request_data
         self.queueName = str(self.getQueueName(self.request_data))
         self.response = response
 
-        scope.span.domainName = Constants.DomainNames['MESSAGING']
-        scope.span.className = Constants.ClassNames['SQS']
+        scope.span.domain_name = Constants.DomainNames['MESSAGING']
+        scope.span.class_name = Constants.ClassNames['SQS']
         scope.span.operation_name = 'sqs: ' + self.queueName
 
         ## ADDING TAGS ##
@@ -203,8 +198,8 @@ class AWSSQSListener(AWSIntegration):
         tags = {
             Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['AWS_SQS'],
             Constants.AwsSQSTags['QUEUE_NAME']: self.queueName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
         scope.span.tags = tags
 
@@ -250,15 +245,15 @@ class AWSSNSListener(AWSIntegration):
             exception
         )
 
-        operationName, request_data = args
+        operation_name, request_data = args
         self.request_data = request_data
         self.response = response
 
-        scope.span.domainName = Constants.DomainNames['MESSAGING']
-        scope.span.className = Constants.ClassNames['SNS']
-        scope.span.operation_name = 'sns: ' + self.getRequestType(operationName)
+        scope.span.domain_name = Constants.DomainNames['MESSAGING']
+        scope.span.class_name = Constants.ClassNames['SNS']
+        scope.span.operation_name = 'sns: ' + self.getRequestType(operation_name)
 
-        if operationName == 'CreateTopic':
+        if operation_name == 'CreateTopic':
             self.topicName = request_data.get('Name', 'N/A')
         else:
             arn = request_data.get(
@@ -269,8 +264,8 @@ class AWSSNSListener(AWSIntegration):
 
         ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             Constants.AwsSNSTags['TOPIC_NAME']: self.topicName
         }
         ### FINISHED ADDING TAGS ###
@@ -318,18 +313,18 @@ class AWSKinesisListener(AWSIntegration):
             response,
             exception
         )
-        operationName, request_data = args
+        operation_name, request_data = args
         self.streamName = request_data['StreamName']
 
-        scope.span.domainName = Constants.DomainNames['STREAM']
-        scope.span.className = Constants.ClassNames['KINESIS']
+        scope.span.domain_name = Constants.DomainNames['STREAM']
+        scope.span.class_name = Constants.ClassNames['KINESIS']
         scope.span.operation_name = 'kinesis: ' + self.streamName
 
 
         ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             Constants.AwsKinesisTags['STREAM_NAME']: self.streamName
         }
         ### FINISHED ADDING TAGS ###
@@ -377,17 +372,17 @@ class AWSFirehoseListener(AWSIntegration):
             exception
         )
 
-        operationName, request_data = args
+        operation_name, request_data = args
         self.deliveryStreamName = request_data['DeliveryStreamName']
 
-        scope.span.domainName = Constants.DomainNames['STREAM']
-        scope.span.className = Constants.ClassNames['FIREHOSE']
+        scope.span.domain_name = Constants.DomainNames['STREAM']
+        scope.span.class_name = Constants.ClassNames['FIREHOSE']
         scope.span.operation_name = 'firehose: ' + self.deliveryStreamName
 
         ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             Constants.AwsFirehoseTags['STREAM_NAME']: self.deliveryStreamName
         }
         ## FINISHED ADDING TAGS ###
@@ -435,11 +430,11 @@ class AWSS3Listener(AWSIntegration):
             exception
         )
 
-        operationName, request_data = args
+        operation_name, request_data = args
         self.bucket = request_data['Bucket']
 
-        scope.span.domainName = Constants.DomainNames['STORAGE']
-        scope.span.className = Constants.ClassNames['S3']
+        scope.span.domain_name = Constants.DomainNames['STORAGE']
+        scope.span.class_name = Constants.ClassNames['S3']
         scope.span.operation_name = 's3: ' + self.bucket
 
         if "Key" in request_data:
@@ -447,8 +442,8 @@ class AWSS3Listener(AWSIntegration):
 
         ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             Constants.AwsS3Tags['BUCKET_NAME']: self.bucket,
             Constants.AwsS3Tags['OBJECT_NAME']: self.objectName
         }
@@ -497,16 +492,16 @@ class AWSLambdaListener(AWSIntegration):
             exception
         )
 
-        operationName, request_data = args
+        operation_name, request_data = args
         self.lambdaFunction = request_data.get('FunctionName', '')
-        scope.span.domainName = Constants.DomainNames['API']
-        scope.span.className = Constants.ClassNames['LAMBDA']
+        scope.span.domain_name = Constants.DomainNames['API']
+        scope.span.class_name = Constants.ClassNames['LAMBDA']
         scope.span.operation_name = 'lambda: ' + self.lambdaFunction
 
         ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operationName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operationName),
+            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
         if 'Payload' in request_data:
