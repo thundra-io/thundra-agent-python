@@ -3,7 +3,7 @@ import wrapt
 from thundra import utils
 from thundra import constants
 from thundra.integrations.modules.generic_wrapper import wrapper
-from thundra.integrations.events.requests import RequestsEventFactory
+from thundra.integrations.requests import RequestsEventFactory
 
 def _wrapper(wrapped, instance, args, kwargs):
     prepared_request = args[0]
