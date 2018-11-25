@@ -6,7 +6,7 @@ import thundra.constants as Constants
 
 class RedisIntegration():
     """
-    Represents redis event.
+    Represents redis integration.
     """
     def getCommandType(self, string):
         if string in Constants.RedisCommandTypes:
@@ -58,15 +58,10 @@ class RedisIntegration():
         scope.span.tags = tags
 
 
-class RedisEventListener():
+class RedisIntegrationFactory():
     """
     Factory class, generates redis event.
     """
-
-    LISTENERS = {
-        class_obj.CLASS_TYPE: class_obj
-        for class_obj in RedisIntegration.__subclasses__()
-    }
 
     @staticmethod
     def create_event(scope, wrapped, instance, args, kwargs, response,

@@ -14,7 +14,7 @@ def dummy_func(*args):
 
 class AWSIntegration():
     """
-    Represents base botocore event listener.
+    Represents base botocore event integration.
     """
     CLASS_TYPE = 'AWS'
     RESPONSE = {}
@@ -48,9 +48,9 @@ class AWSIntegration():
         scope.span.transaction_id = response['ResponseMetadata']['RequestId']
 
 
-class AWSDynamoDBListener(AWSIntegration):
+class AWSDynamoDBIntegration(AWSIntegration):
     """
-    Represents DynamoDB listener.
+    Represents DynamoDB integration.
     """
     CLASS_TYPE = 'dynamodb'
 
@@ -70,7 +70,7 @@ class AWSDynamoDBListener(AWSIntegration):
         :param response: response data
         :param exception: Exception (if happened)
         """
-        super(AWSDynamoDBListener, self).__init__(
+        super(AWSDynamoDBIntegration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -118,7 +118,7 @@ class AWSDynamoDBListener(AWSIntegration):
         Adds response data to event.
         :param response: Response from botocore
         """
-        super(AWSDynamoDBListener, self).update_response(response, scope)
+        super(AWSDynamoDBIntegration, self).update_response(response, scope)
 
     def process_get_item_op(self, scope):
         """
@@ -145,9 +145,9 @@ class AWSDynamoDBListener(AWSIntegration):
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], items)
 
 
-class AWSSQSListener(AWSIntegration):
+class AWSSQSIntegration(AWSIntegration):
     """
-    Represents SQS listener.
+    Represents SQS integration.
     """
     CLASS_TYPE = 'sqs'
 
@@ -173,7 +173,7 @@ class AWSSQSListener(AWSIntegration):
         :param response: response data
         :param exception: Exception (if happened)
         """
-        super(AWSSQSListener, self).__init__(
+        super(AWSSQSIntegration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -209,12 +209,12 @@ class AWSSQSListener(AWSIntegration):
         Adds response data to event.
         :param response: Response from botocore
         """
-        super(AWSSQSListener, self).update_response(response, scope)
+        super(AWSSQSIntegration, self).update_response(response, scope)
 
 
-class AWSSNSListener(AWSIntegration):
+class AWSSNSIntegration(AWSIntegration):
     """
-    Represents SNS listener.
+    Represents SNS integration.
     """
     CLASS_TYPE = 'sns'
 
@@ -234,7 +234,7 @@ class AWSSNSListener(AWSIntegration):
         :param response: response data
         :param exception: Exception (if happened)
         """
-        super(AWSSNSListener, self).__init__(
+        super(AWSSNSIntegration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -277,10 +277,10 @@ class AWSSNSListener(AWSIntegration):
         :return: None
         """
 
-        super(AWSSNSListener, self).update_response(response, scope)
+        super(AWSSNSIntegration, self).update_response(response, scope)
 
 
-class AWSKinesisListener(AWSIntegration):
+class AWSKinesisIntegration(AWSIntegration):
     """
     Represents kinesis botocore event.
     """
@@ -303,7 +303,7 @@ class AWSKinesisListener(AWSIntegration):
         :param exception: Exception (if happened)
         """
 
-        super(AWSKinesisListener, self).__init__(
+        super(AWSKinesisIntegration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -335,10 +335,10 @@ class AWSKinesisListener(AWSIntegration):
         :param response: Response from botocore
         :return: None
         """
-        super(AWSKinesisListener, self).update_response(response, scope)
+        super(AWSKinesisIntegration, self).update_response(response, scope)
 
 
-class AWSFirehoseListener(AWSIntegration):
+class AWSFirehoseIntegration(AWSIntegration):
     """
     Represents firehose botocore event.
     """
@@ -361,7 +361,7 @@ class AWSFirehoseListener(AWSIntegration):
         :param exception: Exception (if happened)
         """
 
-        super(AWSFirehoseListener, self).__init__(
+        super(AWSFirehoseIntegration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -393,10 +393,10 @@ class AWSFirehoseListener(AWSIntegration):
         :param response: Response from botocore
         :return: None
         """
-        super(AWSFirehoseListener, self).update_response(response, scope)
+        super(AWSFirehoseIntegration, self).update_response(response, scope)
 
 
-class AWSS3Listener(AWSIntegration):
+class AWSS3Integration(AWSIntegration):
     """
     Represents s3 botocore event.
     """
@@ -419,7 +419,7 @@ class AWSS3Listener(AWSIntegration):
         :param response: response data
         :param exception: Exception (if happened)
         """
-        super(AWSS3Listener, self).__init__(
+        super(AWSS3Integration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -455,9 +455,9 @@ class AWSS3Listener(AWSIntegration):
         :param response: Response from botocore
         :return: None
         """
-        super(AWSS3Listener, self).update_response(response, scope)
+        super(AWSS3Integration, self).update_response(response, scope)
 
-class AWSLambdaListener(AWSIntegration):
+class AWSLambdaIntegration(AWSIntegration):
     """
     Represents lambda botocore event.
     """
@@ -481,7 +481,7 @@ class AWSLambdaListener(AWSIntegration):
         :param exception: Exception (if happened)
         """
 
-        super(AWSLambdaListener, self).__init__(
+        super(AWSLambdaIntegration, self).__init__(
             scope,
             wrapped,
             instance,
@@ -516,12 +516,12 @@ class AWSLambdaListener(AWSIntegration):
         scope.span.tags = tags
 
 
-class AWSEventListeners(object):
+class AWSIntegrationFactory(object):
     """
     Factory class, generates botocore event.
     """
 
-    LISTENERS = {
+    INTEGRATIONS = {
         class_obj.CLASS_TYPE: class_obj
         for class_obj in AWSIntegration.__subclasses__()
     }
@@ -542,7 +542,7 @@ class AWSEventListeners(object):
         """
 
         instance_type = instance.__class__.__name__.lower()
-        event_class = AWSEventListeners.LISTENERS.get(
+        event_class = AWSIntegrationFactory.INTEGRATIONS.get(
             instance_type,
             None
         )

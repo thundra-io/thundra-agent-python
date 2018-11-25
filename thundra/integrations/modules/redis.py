@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import wrapt
 import redis
 from thundra.integrations.modules.generic_wrapper import wrapper
-from thundra.integrations.redis import RedisEventListener
+from thundra.integrations.redis import RedisIntegrationFactory
 from thundra import utils
 from thundra import constants
 
@@ -19,7 +19,7 @@ def _wrapper(wrapped, instance, args, kwargs):
     :param kwargs: wrapt's kwargs
     :return: None
     """
-    return wrapper(RedisEventListener, wrapped, instance, args, kwargs)
+    return wrapper(RedisIntegrationFactory, wrapped, instance, args, kwargs)
 
 
 def patch():
