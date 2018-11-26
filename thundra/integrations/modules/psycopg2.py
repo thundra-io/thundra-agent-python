@@ -8,18 +8,12 @@ from thundra.integrations.base_integration import BaseIntegrationFactory
 from thundra.integrations.postgre import PostgreBaseIntegration
 
 
-class CursorWrapper(wrapt.ObjectProxy):
+class PostgreCursorWrapper(wrapt.ObjectProxy):
 
     def __init__(self, cursor, connection_wrapper):
-        super(CursorWrapper, self).__init__(cursor)
+        super(PostgreCursorWrapper, self).__init__(cursor)
         self._self_connection = connection_wrapper
 
-    # @property
-    def connection_wrapper(self):
-        return self._self_connection
-
-    # NOTE: tracing other API calls currently not supported
-    # (as 'executemany' and 'callproc')
     def execute(self, *args, **kwargs):
         response = BaseIntegrationFactory.wrap_with_trace(
             PostgreBaseIntegration,
@@ -36,14 +30,14 @@ class CursorWrapper(wrapt.ObjectProxy):
         self.__wrapped__.__enter__  # pylint: disable=W0104
         return self
 
-class ConnectionWrapper(wrapt.ObjectProxy):
+class PostgreConnectionWrapper(wrapt.ObjectProxy):
     def cursor(self, *args, **kwargs):
         cursor = self.__wrapped__.cursor(*args, **kwargs)
-        return CursorWrapper(cursor, self)
+        return PostgreCursorWrapper(cursor, self)
 
-def _connect_wrapper(wrapped, instance, args, kwargs):
+def _wrapper(wrapped, instance, args, kwargs):
     connection = wrapped(*args, **kwargs)
-    return ConnectionWrapper(connection)
+    return PostgreConnectionWrapper(connection)
 
 
 def patch():
@@ -52,4 +46,4 @@ def patch():
         wrapt.wrap_function_wrapper(
             psycopg2,
             'connect',
-            _connect_wrapper)
+            _wrapper)
