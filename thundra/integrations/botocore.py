@@ -18,7 +18,7 @@ class AWSIntegration():
     def __init__(self):
         pass
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
         event_operation, _ = args
         scope.span.operation_name = str(event_operation)
@@ -43,9 +43,9 @@ class AWSDynamoDBIntegration(AWSIntegration):
             return Constants.DynamoDBRequestTypes[string]
         return 'READ'
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSDynamoDBIntegration, self).set_span_info(
+        super(AWSDynamoDBIntegration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -131,9 +131,9 @@ class AWSSQSIntegration(AWSIntegration):
         elif 'QueueName' in data:
             return data['QueueName']
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSSQSIntegration, self).set_span_info(
+        super(AWSSQSIntegration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -180,9 +180,9 @@ class AWSSNSIntegration(AWSIntegration):
             return Constants.SNSRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSSNSIntegration, self).set_span_info(
+        super(AWSSNSIntegration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -234,9 +234,9 @@ class AWSKinesisIntegration(AWSIntegration):
             return Constants.KinesisRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSKinesisIntegration, self).set_span_info(
+        super(AWSKinesisIntegration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -278,9 +278,9 @@ class AWSFirehoseIntegration(AWSIntegration):
             return Constants.FirehoseRequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSFirehoseIntegration, self).set_span_info(
+        super(AWSFirehoseIntegration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -322,9 +322,9 @@ class AWSS3Integration(AWSIntegration):
             return Constants.S3RequestTypes[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSS3Integration, self).set_span_info(
+        super(AWSS3Integration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -369,9 +369,9 @@ class AWSLambdaIntegration(AWSIntegration):
             return Constants.LambdaRequestType[string]
         return Constants.AWS_SERVICE_REQUEST
 
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSLambdaIntegration, self).set_span_info(
+        super(AWSLambdaIntegration, self).inject_span_info(
             scope,
             wrapped,
             instance,
@@ -435,7 +435,7 @@ class AWSIntegrationFactory(object):
                     raise
                 finally:
                     try:
-                        integration_class().set_span_info(
+                        integration_class().inject_span_info(
                             scope,
                             wrapped,
                             instance,
