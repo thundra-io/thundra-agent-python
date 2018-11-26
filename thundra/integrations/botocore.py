@@ -27,8 +27,11 @@ class AWSIntegration():
             self.update_response(response, scope)
 
     def update_response(self, response, scope):
-        scope.span.status_code = response['ResponseMetadata']['HTTPStatusCode']
-        scope.span.transaction_id = response['ResponseMetadata']['RequestId']
+        try:
+            scope.span.status_code = response['ResponseMetadata']['HTTPStatusCode']
+            scope.span.transaction_id = response['ResponseMetadata']['RequestId']
+        except:
+            pass
 
 
 class AWSDynamoDBIntegration(AWSIntegration):
