@@ -19,7 +19,7 @@ class RedisIntegration():
         return 'READ'
 
     # pylint: disable=W0613
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response,
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
         connection = str(instance.connection_pool).split(',')
         host = connection[0][connection[0].find('host=')+5:]
@@ -28,7 +28,7 @@ class RedisIntegration():
 
         scope.span.domainName = Constants.DomainNames['CACHE']
         scope.span.className = Constants.ClassNames['REDIS']
-        scope.span.operation_name = 'redis: ' + self.getCommandType(command_type)
+        scope.span.operation_name = 'REDIS | ' + self.getCommandType(command_type)
         scope.span.operationName = host
 
         ## ADDING TAGS ##
@@ -70,7 +70,7 @@ class RedisIntegrationFactory():
                 raise
             finally:
                 try:
-                    integration_class().set_span_info(
+                    integration_class().inject_span_info(
                         scope,
                         wrapped,
                         instance,
