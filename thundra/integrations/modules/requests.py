@@ -2,7 +2,8 @@ from __future__ import absolute_import
 import wrapt
 from thundra import utils
 from thundra import constants
-from thundra.integrations.requests import RequestsIntegrationFactory
+from thundra.integrations.base_integration import BaseIntegrationFactory
+from thundra.integrations.requests import RequestsIntegration
 
 def _wrapper(wrapped, instance, args, kwargs):
     prepared_request = args[0]
@@ -10,7 +11,9 @@ def _wrapper(wrapped, instance, args, kwargs):
     if utils.is_excluded_url(prepared_request.url):
         return wrapped(*args, **kwargs)
 
-    response = RequestsIntegrationFactory.create_span(
+    response = BaseIntegrationFactory.wrap_with_trace(
+        RequestsIntegration,
+        "http_call",
         wrapped,
         instance,
         args,

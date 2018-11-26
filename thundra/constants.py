@@ -114,6 +114,13 @@ DBTypes = {
 SpanTags = {
     'SPAN_TYPE': 'span.type',
     'OPERATION_TYPE': 'operation.type',
+    'DB_INSTANCE': 'db.instance',
+    'DB_TYPE': 'db.type',
+    'DB_URL': 'db.url',
+    'TRIGGER_DOMAIN_NAME': 'trigger.domainName',
+    'TRIGGER_CLASS_NAME': 'trigger.className',
+    'DB_STATEMENT': 'db.statement',
+    'DB_STATEMENT_TYPE': 'db.statement.type:',
 }
 
 SpanTypes = {

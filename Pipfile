@@ -11,6 +11,8 @@ wrapt = "*"
 [dev-packages]
 mock = "*"
 pytest = "*"
+psycopg2-binary = "*"
+mysql-connector = "*"
 
 [requires]
 python_version = "3.6.4"
