@@ -3,7 +3,7 @@ import traceback
 import thundra.constants as constants
 from thundra.integrations.rdb_base import RdbBaseIntegration
 
-class MysqlBaseIntegration(RdbBaseIntegration):
+class MysqlIntegration(RdbBaseIntegration):
 
     def __init__(self):
         pass
@@ -20,7 +20,7 @@ class MysqlBaseIntegration(RdbBaseIntegration):
 
         tags = {
             constants.SpanTags['SPAN_TYPE']: constants.SpanTypes['RDB'],
-            constants.SpanTags['OPERATION_TYPE']: MysqlBaseIntegration._OPERATION_TO_TYPE[operation],
+            constants.SpanTags['OPERATION_TYPE']: MysqlIntegration._OPERATION_TO_TYPE[operation],
             constants.SpanTags['DB_INSTANCE']: connection._database,
             constants.SpanTags['DB_URL']: connection._host,
             constants.SpanTags['DB_TYPE']: "mysql",

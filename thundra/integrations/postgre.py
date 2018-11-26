@@ -14,7 +14,7 @@ except ImportError:
         )
 
 
-class PostgreBaseIntegration(RdbBaseIntegration):
+class PostgreIntegration(RdbBaseIntegration):
 
     def __init__(self):
         pass
@@ -31,7 +31,7 @@ class PostgreBaseIntegration(RdbBaseIntegration):
 
         tags = {
             constants.SpanTags['SPAN_TYPE']: constants.SpanTypes['RDB'],
-            constants.SpanTags['OPERATION_TYPE']: PostgreBaseIntegration._OPERATION_TO_TYPE[operation],
+            constants.SpanTags['OPERATION_TYPE']: PostgreIntegration._OPERATION_TO_TYPE[operation],
             constants.SpanTags['DB_INSTANCE']: dsn['dbname'],
             constants.SpanTags['DB_URL']: dsn['host'],
             constants.SpanTags['DB_TYPE']: "postgresql",

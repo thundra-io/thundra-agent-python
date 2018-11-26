@@ -5,7 +5,7 @@ import wrapt
 
 from thundra import utils, constants
 from thundra.integrations.base_integration import BaseIntegrationFactory
-from thundra.integrations.mysql import MysqlBaseIntegration
+from thundra.integrations.mysql import MysqlIntegration
 
 
 class MysqlCursorWrapper(wrapt.ObjectProxy):
@@ -16,7 +16,7 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
 
     def execute(self, *args, **kwargs):
         response = BaseIntegrationFactory.wrap_with_trace(
-            MysqlBaseIntegration,
+            MysqlIntegration,
             "mysql",
             self.__wrapped__.execute,
             self._self_connection,

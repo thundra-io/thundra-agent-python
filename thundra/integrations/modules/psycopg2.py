@@ -5,7 +5,7 @@ import wrapt
 
 from thundra import utils, constants
 from thundra.integrations.base_integration import BaseIntegrationFactory
-from thundra.integrations.postgre import PostgreBaseIntegration
+from thundra.integrations.postgre import PostgreIntegration
 
 
 class PostgreCursorWrapper(wrapt.ObjectProxy):
@@ -16,7 +16,7 @@ class PostgreCursorWrapper(wrapt.ObjectProxy):
 
     def execute(self, *args, **kwargs):
         response = BaseIntegrationFactory.wrap_with_trace(
-            PostgreBaseIntegration,
+            PostgreIntegration,
             "postgresql",
             self.__wrapped__.execute,
             self._self_connection,
