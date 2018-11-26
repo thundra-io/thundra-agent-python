@@ -26,8 +26,8 @@ class RedisIntegration():
         port = connection[1][connection[1].find('port=')+5:]
         command_type = wrapped.__name__.upper()
 
-        scope.span.domainName = Constants.DomainNames['CACHE']
-        scope.span.className = Constants.ClassNames['REDIS']
+        scope.span.domain_name = Constants.DomainNames['CACHE']
+        scope.span.class_name = Constants.ClassNames['REDIS']
         scope.span.operation_name = 'REDIS | ' + self.getCommandType(command_type)
         scope.span.operationName = host
 
