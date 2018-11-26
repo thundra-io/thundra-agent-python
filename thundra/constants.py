@@ -26,6 +26,7 @@ THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE = 'thundra_agent_lambda_trace_instrument
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_traceableConfig'
 
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
+THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_disable'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'

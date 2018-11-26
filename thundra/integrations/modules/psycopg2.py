@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import psycopg2
 import wrapt
 
+from thundra import utils, constants
 from thundra.integrations.base_integration import BaseIntegrationFactory
 from thundra.integrations.postgre import PostgreBaseIntegration
 
@@ -46,7 +47,9 @@ def _connect_wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    wrapt.wrap_function_wrapper(
-        psycopg2,
-        'connect',
-        _connect_wrapper)
+    disable_rdb_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_RDB_INTEGRATION)
+    if not utils.should_disable(disable_rdb_integration_by_env):
+        wrapt.wrap_function_wrapper(
+            psycopg2,
+            'connect',
+            _connect_wrapper)
