@@ -12,7 +12,6 @@ def test_dynamodb():
                 'last_name': 'Doe'
             }
         )
-        # response = handler(mock_event, mock_context)
     except:
         pass
     finally:

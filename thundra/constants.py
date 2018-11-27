@@ -229,6 +229,7 @@ HttpTags = {
     'HTTP_STATUS': 'http.status_code',
     'QUERY_PARAMS': 'http.query_params',
 }
+
 RedisCommandTypes = {
     'APPEND': 'WRITE',
     'BGREWRITEAOF': 'WRITE',
