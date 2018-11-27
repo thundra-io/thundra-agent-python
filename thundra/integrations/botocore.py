@@ -408,6 +408,54 @@ class AWSLambdaIntegration(AWSIntegration):
 
         scope.span.tags = tags
 
+class AWSXrayIntegration(AWSIntegration):
+    CLASS_TYPE = 'xray'
+
+    def __init__(self):
+        super(AWSXrayIntegration, self).__init__()
+        pass
+
+    # def getRequestType(self, string):
+    #     if string in Constants.LambdaRequestType:
+    #         return Constants.LambdaRequestType[string]
+    #     return Constants.AWS_SERVICE_REQUEST
+
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
+                 exception):
+        super(AWSXrayIntegration, self).inject_span_info(
+            scope,
+            wrapped,
+            instance,
+            args,
+            kwargs,
+            response,
+            exception
+        )
+
+        operation_name, request_data = args
+        # self.lambdaFunction = request_data.get('FunctionName', '')
+        # scope.span.domain_name = Constants.DomainNames['API']
+        scope.span.class_name = 'XRAY'
+        # scope.span.operation_name = 'lambda: ' + self.lambdaFunction
+
+        ### ADDING TAGS ###
+        tags = {
+            # Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            # Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            # Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
+            "hi": operation_name
+        }
+        if 'Payload' in request_data:
+            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
+
+        if 'Qualifier' in request_data:
+            tags[Constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']
+
+        if 'InvocationType' in request_data:
+            tags[Constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
+        ## FINISHED ADDING TAGS ###
+
+        scope.span.tags = tags
 
 class AWSIntegrationFactory(object):
     INTEGRATIONS = {
