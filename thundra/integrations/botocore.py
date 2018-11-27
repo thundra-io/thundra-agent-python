@@ -1,14 +1,12 @@
 from __future__ import absolute_import
-
-import traceback
-import time
 import thundra.constants as Constants
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.integrations.base_integration import BaseIntegrationFactory
 
 
 # pylint: disable=W0613
 def dummy_func(*args):
     return None
+
 
 class AWSIntegration():
     CLASS_TYPE = 'AWS'
@@ -360,6 +358,7 @@ class AWSS3Integration(AWSIntegration):
     def update_response(self, response, scope):
         super(AWSS3Integration, self).update_response(response, scope)
 
+
 class AWSLambdaIntegration(AWSIntegration):
     CLASS_TYPE = 'lambda'
 
@@ -408,6 +407,7 @@ class AWSLambdaIntegration(AWSIntegration):
 
         scope.span.tags = tags
 
+
 class AWSXrayIntegration(AWSIntegration):
     CLASS_TYPE = 'xray'
 
@@ -443,7 +443,7 @@ class AWSXrayIntegration(AWSIntegration):
             # Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
             # Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             # Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
-            "hi": operation_name
+            "XRAY": 'UnderDevelopment'
         }
         if 'Payload' in request_data:
             tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
@@ -456,6 +456,7 @@ class AWSXrayIntegration(AWSIntegration):
         ## FINISHED ADDING TAGS ###
 
         scope.span.tags = tags
+
 
 class AWSIntegrationFactory(object):
     INTEGRATIONS = {
@@ -472,35 +473,5 @@ class AWSIntegrationFactory(object):
         )
         
         if integration_class is not None:
-            response = None
-            exception = None
-
-            tracer = ThundraTracer.get_instance()
-            with tracer.start_active_span(operation_name="aws_call", finish_on_close=True) as scope:
-                try:
-                    response = wrapped(*args, **kwargs)
-                    return response
-                except Exception as operation_exception:
-                    exception = operation_exception
-                    scope.span.set_tag('error', exception)
-                    raise
-                finally:
-                    try:
-                        integration_class().inject_span_info(
-                            scope,
-                            wrapped,
-                            instance,
-                            args,
-                            kwargs,
-                            response,
-                            exception
-                        )
-                    except Exception as instrumentation_exception:
-                        error = {
-                            'type': str(type(instrumentation_exception)),
-                            'message': str(instrumentation_exception),
-                            'traceback': traceback.format_exc(),
-                            'time': time.time()
-                        }
-                        scope.span.set_tag('instrumentation_error', error)
+            return BaseIntegrationFactory.create_span(wrapped, instance, args, kwargs, 'aws_call', integration_class)
 

@@ -1,15 +1,14 @@
 from __future__ import absolute_import
-import time
 import traceback
 import thundra.constants as constants
 from urllib.parse import urlparse
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.integrations.base_integration import BaseIntegrationFactory
 
 class RequestsIntegration():
     def __init__(self):
         pass    
     
-    def set_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
         method = prepared_request.method
         url = prepared_request.url
@@ -51,38 +50,10 @@ class RequestsIntegration():
         statusCode = response.status_code
         span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
 
+
 class RequestsIntegrationFactory(object):
+
     @staticmethod
     def create_span(wrapped, instance, args, kwargs):
         integration_class = RequestsIntegration
-
-        response = None
-        exception = None
-
-        tracer = ThundraTracer.get_instance()
-        with tracer.start_active_span(operation_name="http_call", finish_on_close=True) as scope:
-            try:
-                response = wrapped(*args, **kwargs)
-                return response
-            except Exception as operation_exception:
-                exception = operation_exception
-                raise
-            finally:
-                try:
-                    integration_class().set_span_info(
-                        scope,
-                        wrapped,
-                        instance,
-                        args,
-                        kwargs,
-                        response,
-                        exception
-                    )
-                except Exception as instrumentation_exception:
-                    error = {
-                        'type': str(type(instrumentation_exception)),
-                        'message': str(instrumentation_exception),
-                        'traceback': traceback.format_exc(),
-                        'time': time.time()
-                    }
-                    scope.span.set_tag('instrumentation_error', error)
+        return BaseIntegrationFactory.create_span(wrapped, instance, args, kwargs, 'http_call', integration_class)
