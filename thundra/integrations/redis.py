@@ -1,15 +1,16 @@
 from __future__ import absolute_import
 import thundra.constants as Constants
-from thundra.integrations.base_integration import BaseIntegrationFactory
+from thundra.integrations.base_integ import BaseIntegration
 
 
-class RedisIntegration():
-    CLASS_TYPE = 'AWS'
-    RESPONSE = {}
-    OPERATION = {}
+class RedisIntegration(BaseIntegration):
 
     def __init__(self):
         pass
+
+    def get_operation_name(self):
+        return 'redis_call'
+
 
     def getCommandType(self, string):
         if string in Constants.RedisCommandTypes:
@@ -17,8 +18,7 @@ class RedisIntegration():
         return 'READ'
 
     # pylint: disable=W0613
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
         connection = str(instance.connection_pool).split(',')
         host = connection[0][connection[0].find('host=')+5:]
         port = connection[1][connection[1].find('port=')+5:]
@@ -46,11 +46,3 @@ class RedisIntegration():
 
         ## FINISHED ADDING TAGS ##
         scope.span.tags = tags
-
-
-class RedisIntegrationFactory(object):
-
-    @staticmethod
-    def create_span(wrapped, instance, args, kwargs):
-        integration_class = RedisIntegration
-        return BaseIntegrationFactory().create_span(wrapped, instance, args, kwargs, 'redis_call', integration_class)

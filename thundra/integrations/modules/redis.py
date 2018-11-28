@@ -7,16 +7,16 @@ import wrapt
 import redis
 from thundra import utils
 from thundra import constants
-from thundra.integrations.redis import RedisIntegrationFactory
+from thundra.integrations.redis import RedisIntegration
 
+redis_integration = RedisIntegration()
 def _wrapper(wrapped, instance, args, kwargs):
-    response = RedisIntegrationFactory.create_span(
+    response = redis_integration.create_span(
         wrapped,
         instance,
         args,
         kwargs
     )
-
     return response
 
 
