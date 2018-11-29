@@ -4,13 +4,13 @@ from thundra.integrations.base_integ import BaseIntegration
 
 
 class RedisIntegration(BaseIntegration):
+    CLASS_TYPE = 'redis'
 
     def __init__(self):
         pass
 
     def get_operation_name(self):
         return 'redis_call'
-
 
     def getCommandType(self, string):
         if string in Constants.RedisCommandTypes:

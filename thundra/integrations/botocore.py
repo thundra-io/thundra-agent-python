@@ -1,43 +1,24 @@
 from __future__ import absolute_import
 import thundra.constants as Constants
-from thundra.integrations.base_integration import BaseIntegrationFactory
-
+from thundra.integrations.base_integ import BaseIntegration
 
 # pylint: disable=W0613
+
+
 def dummy_func(*args):
     return None
 
 
-class AWSIntegration():
-    CLASS_TYPE = 'AWS'
+class AWSDynamoDBIntegration(BaseIntegration):
+    CLASS_TYPE = 'dynamodb'
     RESPONSE = {}
     OPERATION = {}
 
     def __init__(self):
         pass
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
-        event_operation, _ = args
-        scope.span.operation_name = str(event_operation)
-
-        if response is not None:
-            self.update_response(response, scope)
-
-    def update_response(self, response, scope):
-        try:
-            scope.span.status_code = response['ResponseMetadata']['HTTPStatusCode']
-            scope.span.transaction_id = response['ResponseMetadata']['RequestId']
-        except:
-            pass
-
-
-class AWSDynamoDBIntegration(AWSIntegration):
-    CLASS_TYPE = 'dynamodb'
-
-    def __init__(self):
-        super(AWSDynamoDBIntegration, self).__init__()
-        pass
+    def get_operation_name(self):
+        return 'dynamodb'
 
     def getStatementType(self, string):
         if string in Constants.DynamoDBRequestTypes:
@@ -46,15 +27,6 @@ class AWSDynamoDBIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSDynamoDBIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         self.OPERATION.update(
             {'PutItem': self.process_put_item_op,
@@ -89,9 +61,6 @@ class AWSDynamoDBIntegration(AWSIntegration):
         ## FINISHED ADDING TAGS ##
         self.OPERATION.get(operation_name, dummy_func)(scope)
 
-    def update_response(self, response, scope):
-        super(AWSDynamoDBIntegration, self).update_response(response, scope)
-
     def process_get_item_op(self, scope):
         scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
@@ -114,12 +83,16 @@ class AWSDynamoDBIntegration(AWSIntegration):
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], items)
 
 
-class AWSSQSIntegration(AWSIntegration):
+class AWSSQSIntegration(BaseIntegration):
     CLASS_TYPE = 'sqs'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSSQSIntegration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 'sqs'
 
     def getRequestType(self, string):
         if string in Constants.SQSRequestTypes:
@@ -134,15 +107,6 @@ class AWSSQSIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSSQSIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         operation_name, request_data = args
         self.request_data = request_data
@@ -151,7 +115,7 @@ class AWSSQSIntegration(AWSIntegration):
 
         scope.span.domain_name = Constants.DomainNames['MESSAGING']
         scope.span.class_name = Constants.ClassNames['SQS']
-        scope.span.operation_name = 'sqs: ' + self.queueName
+        scope.span.operation_name = self.getRequestType(operation_name)
 
         ## ADDING TAGS ##
 
@@ -165,16 +129,17 @@ class AWSSQSIntegration(AWSIntegration):
 
         ## FINISHED ADDING TAGS ##
 
-    def update_response(self, response, scope):
-        super(AWSSQSIntegration, self).update_response(response, scope)
 
-
-class AWSSNSIntegration(AWSIntegration):
+class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSSNSIntegration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 'sns'
 
     def getRequestType(self, string):
         if string in Constants.SNSRequestTypes:
@@ -183,15 +148,6 @@ class AWSSNSIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSSNSIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         operation_name, request_data = args
         self.request_data = request_data
@@ -199,7 +155,7 @@ class AWSSNSIntegration(AWSIntegration):
 
         scope.span.domain_name = Constants.DomainNames['MESSAGING']
         scope.span.class_name = Constants.ClassNames['SNS']
-        scope.span.operation_name = 'sns: ' + self.getRequestType(operation_name)
+        scope.span.operation_name = self.getRequestType(operation_name)
 
         if operation_name == 'CreateTopic':
             self.topicName = request_data.get('Name', 'N/A')
@@ -219,16 +175,17 @@ class AWSSNSIntegration(AWSIntegration):
         ### FINISHED ADDING TAGS ###
         scope.span.tags = tags
 
-    def update_response(self, response, scope):
-        super(AWSSNSIntegration, self).update_response(response, scope)
 
-
-class AWSKinesisIntegration(AWSIntegration):
+class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSKinesisIntegration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 'kinesis'
 
     def getRequestType(self, string):
         if string in Constants.KinesisRequestTypes:
@@ -237,21 +194,13 @@ class AWSKinesisIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSKinesisIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
+
         operation_name, request_data = args
         self.streamName = request_data['StreamName']
 
         scope.span.domain_name = Constants.DomainNames['STREAM']
         scope.span.class_name = Constants.ClassNames['KINESIS']
-        scope.span.operation_name = 'kinesis: ' + self.streamName
+        scope.span.operation_name = self.getRequestType(operation_name)
 
 
         ### ADDING TAGS ###
@@ -263,16 +212,17 @@ class AWSKinesisIntegration(AWSIntegration):
         ### FINISHED ADDING TAGS ###
         scope.span.tags = tags
 
-    def update_response(self, response, scope):
-        super(AWSKinesisIntegration, self).update_response(response, scope)
 
-
-class AWSFirehoseIntegration(AWSIntegration):
+class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSFirehoseIntegration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 'firehose'
 
     def getRequestType(self, string):
         if string in Constants.FirehoseRequestTypes:
@@ -281,22 +231,13 @@ class AWSFirehoseIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSFirehoseIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         operation_name, request_data = args
         self.deliveryStreamName = request_data['DeliveryStreamName']
 
         scope.span.domain_name = Constants.DomainNames['STREAM']
         scope.span.class_name = Constants.ClassNames['FIREHOSE']
-        scope.span.operation_name = 'firehose: ' + self.deliveryStreamName
+        scope.span.operation_name = self.getRequestType(operation_name)
 
         ### ADDING TAGS ###
         tags = {
@@ -307,16 +248,17 @@ class AWSFirehoseIntegration(AWSIntegration):
         ## FINISHED ADDING TAGS ###
         scope.span.tags = tags
 
-    def update_response(self, response, scope):
-        super(AWSFirehoseIntegration, self).update_response(response, scope)
 
-
-class AWSS3Integration(AWSIntegration):
+class AWSS3Integration(BaseIntegration):
     CLASS_TYPE = 's3'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSS3Integration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 's3'
 
     def getRequestType(self, string):
         if string in Constants.S3RequestTypes:
@@ -325,22 +267,13 @@ class AWSS3Integration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSS3Integration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         operation_name, request_data = args
         self.bucket = request_data['Bucket']
 
         scope.span.domain_name = Constants.DomainNames['STORAGE']
         scope.span.class_name = Constants.ClassNames['S3']
-        scope.span.operation_name = 's3: ' + self.bucket
+        scope.span.operation_name = self.getRequestType(operation_name)
 
         if "Key" in request_data:
             self.objectName = request_data["Key"]
@@ -355,16 +288,17 @@ class AWSS3Integration(AWSIntegration):
         ## FINISHED ADDING TAGS ###
         scope.span.tags = tags
 
-    def update_response(self, response, scope):
-        super(AWSS3Integration, self).update_response(response, scope)
 
-
-class AWSLambdaIntegration(AWSIntegration):
+class AWSLambdaIntegration(BaseIntegration):
     CLASS_TYPE = 'lambda'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSLambdaIntegration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 'lambda'
 
     def getRequestType(self, string):
         if string in Constants.LambdaRequestType:
@@ -373,21 +307,12 @@ class AWSLambdaIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSLambdaIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         operation_name, request_data = args
         self.lambdaFunction = request_data.get('FunctionName', '')
         scope.span.domain_name = Constants.DomainNames['API']
         scope.span.class_name = Constants.ClassNames['LAMBDA']
-        scope.span.operation_name = 'lambda: ' + self.lambdaFunction
+        scope.span.operation_name = self.getRequestType(operation_name)
 
         ### ADDING TAGS ###
         tags = {
@@ -408,12 +333,16 @@ class AWSLambdaIntegration(AWSIntegration):
         scope.span.tags = tags
 
 
-class AWSXrayIntegration(AWSIntegration):
+class AWSXrayIntegration(BaseIntegration):
     CLASS_TYPE = 'xray'
+    RESPONSE = {}
+    OPERATION = {}
 
     def __init__(self):
-        super(AWSXrayIntegration, self).__init__()
         pass
+
+    def get_operation_name(self):
+        return 'xray'
 
     # def getRequestType(self, string):
     #     if string in Constants.LambdaRequestType:
@@ -422,15 +351,6 @@ class AWSXrayIntegration(AWSIntegration):
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                  exception):
-        super(AWSXrayIntegration, self).inject_span_info(
-            scope,
-            wrapped,
-            instance,
-            args,
-            kwargs,
-            response,
-            exception
-        )
 
         operation_name, request_data = args
         # self.lambdaFunction = request_data.get('FunctionName', '')
@@ -443,7 +363,7 @@ class AWSXrayIntegration(AWSIntegration):
             # Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
             # Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             # Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
-            "XRAY": 'UnderDevelopment'
+            "XRAY": 'Under_Development'
         }
         if 'Payload' in request_data:
             tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
@@ -456,22 +376,4 @@ class AWSXrayIntegration(AWSIntegration):
         ## FINISHED ADDING TAGS ###
 
         scope.span.tags = tags
-
-
-class AWSIntegrationFactory(object):
-    INTEGRATIONS = {
-        class_obj.CLASS_TYPE: class_obj
-        for class_obj in AWSIntegration.__subclasses__()
-    }
-
-    @staticmethod
-    def create_span(wrapped, instance, args, kwargs):
-        integration_name = instance.__class__.__name__.lower()
-        integration_class = AWSIntegrationFactory.INTEGRATIONS.get(
-            integration_name,
-            None
-        )
-        
-        if integration_class is not None:
-            return BaseIntegrationFactory.create_span(wrapped, instance, args, kwargs, 'aws_call', integration_class)
 
