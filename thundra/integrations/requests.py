@@ -6,11 +6,13 @@ from thundra.integrations.base_integration import BaseIntegration
 
 
 class RequestsIntegration(BaseIntegration):
+    CLASS_TYPE = 'http'
+
     def __init__(self):
         pass
 
     def get_operation_name(self):
-        return 'redis_call'
+        return 'http_call'
     
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
