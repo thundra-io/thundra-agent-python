@@ -11,6 +11,8 @@ wrapt = "*"
 [dev-packages]
 mock = "*"
 pytest = "*"
+"boto3" = "*"
+redis = "*"
 
 [requires]
 python_version = "3.6.4"
