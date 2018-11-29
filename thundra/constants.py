@@ -28,6 +28,7 @@ THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE = 'thundra_agent_lambda_trace_instrument
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_traceableConfig'
 
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
+THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_disable'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
@@ -116,6 +117,14 @@ DBTypes = {
 SpanTags = {
     'SPAN_TYPE': 'span.type',
     'OPERATION_TYPE': 'operation.type',
+    'DB_INSTANCE': 'db.instance',
+    'DB_TYPE': 'db.type',
+    'DB_TABLE_NAME': 'db.table.name',
+    'DB_HOST': 'db.host',
+    'TRIGGER_DOMAIN_NAME': 'trigger.domainName',
+    'TRIGGER_CLASS_NAME': 'trigger.className',
+    'DB_STATEMENT': 'db.statement',
+    'DB_STATEMENT_TYPE': 'db.statement.type:',
 }
 
 SpanTypes = {
