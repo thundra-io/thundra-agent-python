@@ -1,16 +1,19 @@
+import abc
 import time
 import traceback
 from thundra.opentracing.tracer import ThundraTracer
 
 
-class BaseIntegrationFactory(object):
+class BaseIntegration(abc.ABC):
 
-    @staticmethod
-    def create_span(wrapped, instance, args, kwargs, operation_name, integration_class):
+    CLASS_TYPE = "base"
+
+    def create_span(self, wrapped, instance, args, kwargs):
         tracer = ThundraTracer.get_instance()
         response = None
         exception = None
-        with tracer.start_active_span(operation_name=operation_name, finish_on_close=True) as scope:
+
+        with tracer.start_active_span(operation_name=self.get_operation_name(), finish_on_close=True) as scope:
             try:
                 response = wrapped(*args, **kwargs)
                 return response
@@ -19,15 +22,7 @@ class BaseIntegrationFactory(object):
                 raise
             finally:
                 try:
-                    integration_class().inject_span_info(
-                        scope,
-                        wrapped,
-                        instance,
-                        args,
-                        kwargs,
-                        response,
-                        exception
-                    )
+                    self.inject_span_info(scope, wrapped, instance, args, kwargs, response, exception)
                 except Exception as instrumentation_exception:
                     error = {
                         'type': str(type(instrumentation_exception)),
@@ -35,5 +30,14 @@ class BaseIntegrationFactory(object):
                         'traceback': traceback.format_exc(),
                         'time': time.time()
                     }
+                    traceback.print_exc()
                     scope.span.set_tag('instrumentation_error', error)
 
+    @abc.abstractmethod
+    def get_operation_name(self):
+        raise Exception("should be implemented")
+
+
+    @abc.abstractmethod
+    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
+        raise Exception("should be implemented")

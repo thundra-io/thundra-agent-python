@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import thundra.constants as Constants
-from thundra.integrations.base_integ import BaseIntegration
+from thundra.integrations.base_integration import BaseIntegration
 
 # pylint: disable=W0613
 
@@ -11,7 +11,6 @@ def dummy_func(*args):
 
 class AWSDynamoDBIntegration(BaseIntegration):
     CLASS_TYPE = 'dynamodb'
-    RESPONSE = {}
     OPERATION = {}
 
     def __init__(self):
@@ -85,8 +84,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
 class AWSSQSIntegration(BaseIntegration):
     CLASS_TYPE = 'sqs'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass
@@ -132,8 +129,6 @@ class AWSSQSIntegration(BaseIntegration):
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass
@@ -178,8 +173,6 @@ class AWSSNSIntegration(BaseIntegration):
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass
@@ -215,8 +208,6 @@ class AWSKinesisIntegration(BaseIntegration):
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass
@@ -251,8 +242,6 @@ class AWSFirehoseIntegration(BaseIntegration):
 
 class AWSS3Integration(BaseIntegration):
     CLASS_TYPE = 's3'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass
@@ -291,8 +280,6 @@ class AWSS3Integration(BaseIntegration):
 
 class AWSLambdaIntegration(BaseIntegration):
     CLASS_TYPE = 'lambda'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass
@@ -335,8 +322,6 @@ class AWSLambdaIntegration(BaseIntegration):
 
 class AWSXrayIntegration(BaseIntegration):
     CLASS_TYPE = 'xray'
-    RESPONSE = {}
-    OPERATION = {}
 
     def __init__(self):
         pass

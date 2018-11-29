@@ -6,7 +6,7 @@ from __future__ import absolute_import
 import wrapt
 from thundra import utils
 from thundra import constants
-from thundra.integrations.base_integ import BaseIntegration
+from thundra.integrations.base_integration import BaseIntegration
 import thundra.integrations.botocore
 
 INTEGRATIONS = {

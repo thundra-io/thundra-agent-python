@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import thundra.constants as Constants
-from thundra.integrations.base_integ import BaseIntegration
+from thundra.integrations.base_integration import BaseIntegration
 
 
 class RedisIntegration(BaseIntegration):

@@ -2,11 +2,15 @@ from __future__ import absolute_import
 import traceback
 import thundra.constants as constants
 from urllib.parse import urlparse
-from thundra.integrations.base_integration import BaseIntegrationFactory
+from thundra.integrations.base_integration import BaseIntegration
 
-class RequestsIntegration():
+
+class RequestsIntegration(BaseIntegration):
     def __init__(self):
-        pass    
+        pass
+
+    def get_operation_name(self):
+        return 'redis_call'
     
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
@@ -49,11 +53,3 @@ class RequestsIntegration():
     def set_response(self, response, span):
         statusCode = response.status_code
         span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
-
-
-class RequestsIntegrationFactory(object):
-
-    @staticmethod
-    def create_span(wrapped, instance, args, kwargs):
-        integration_class = RequestsIntegration
-        return BaseIntegrationFactory.create_span(wrapped, instance, args, kwargs, 'http_call', integration_class)
