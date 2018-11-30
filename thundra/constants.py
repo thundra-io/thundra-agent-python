@@ -26,6 +26,7 @@ THUNDRA_LAMBDA_TRACE_REQUEST_SKIP = 'thundra_agent_lambda_trace_request_skip'
 THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra_agent_lambda_trace_response_skip'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE = 'thundra_agent_lambda_trace_instrument_disable'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_traceableConfig'
+THUNDRA_LAMBDA_TRACE_ENABLE_XRAY = 'thundra_agent_lambda_trace_enable_xray'
 
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
 
@@ -369,4 +370,9 @@ RedisTags = {
     'REDIS_COMMANDS': 'redis.commands',
     'REDIS_COMMAND_TYPE': 'redis.command.type',
     'REDIS_COMMAND_ARGS': 'redis.command.args',
+}
+
+AwsXrayConstants = {
+    'DEFAULT_OPERATION_NAME': 'AWS X-Ray',
+    'XRAY_SUBSEGMENTED_TAG_NAME': 'THUNDRA::XRAY_SUBSEGMENTED',
 }
