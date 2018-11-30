@@ -10,7 +10,7 @@ try:
 except:
     imported = False
     print("AWS XRAY SDK NOT FOUND")
-    raise
+    # raise
 
 
 class AWSXrayListener(ThundraSpanListener):
