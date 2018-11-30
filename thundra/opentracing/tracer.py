@@ -127,3 +127,6 @@ class ThundraTracer(opentracing.Tracer):
 
     def clear(self):
         self.recorder.clear()
+
+    def add_span_listener(self, listener):
+        self.recorder.add_listener(listener)
