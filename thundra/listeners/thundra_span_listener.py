@@ -7,5 +7,6 @@ class ThundraSpanListener(abc.ABC):
     def on_span_started(self, operation_name):
         raise Exception("should be implemented")
 
+    @abc.abstractmethod
     def on_span_finished(self, span):
         raise Exception("should be implemented")
