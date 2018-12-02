@@ -1,8 +1,5 @@
 import thundra.constants as constants
-from thundra import utils
 import re
-import sys
-import thundra.application_support as application_support
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 imported = True
 try:
@@ -15,23 +12,11 @@ except:
 
 class AWSXrayListener(ThundraSpanListener):
 
-    def __init__(self):
-        pass
+    _data = None
 
-    # def before_invocation(self, plugin_context):
-    #     context = plugin_context['context']
-    #     function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-    #     app_tags = application_support.get_application_tags()
-    #
-    #     self.xray_data = {
-    #         'applicationId': utils.get_application_id(context),
-    #         'applicationName': function_name,
-    #         'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-    #         'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-    #         'applicationRuntime': 'python',
-    #         'applicationRuntimeVersion': str(sys.version_info[0]),
-    #         'applicationTags': app_tags,
-    #     }
+    def __init__(self):
+        self.xray_data = {}
+        pass
 
     def on_span_started(self, span):
         if imported:
@@ -52,6 +37,7 @@ class AWSXrayListener(ThundraSpanListener):
                 document.put_annotation(self.normalize_annotation_name(key), self.normalize_annotation_value(value))
 
     def add_annotation(self, span):
+        self.xray_data = AWSXrayListener._data
         document = xray_recorder.current_subsegment()
         document.put_annotation('traceId', span.context.trace_id)
         document.put_annotation('transactionId', span.context.transaction_id)
@@ -65,9 +51,9 @@ class AWSXrayListener(ThundraSpanListener):
         finishTime = int(span_dict['start_time']) + int(span_dict['duration'])
         document.put_annotation('finishTimeStamp', finishTime)
         self.put_annotation_if_available('duration', span_dict, 'duration', document)
-        print('Printing xray_data: ' + str(self.xray_data))
+        # print('Printing xray_data: ' + str(self.xray_data))
         for key in self.xray_data:
-            self.put_annotation_if_available(key, self.xray_data[key], key, document)
+            self.put_annotation_if_available(key, self.xray_data, key, document)
 
     def add_metadata(self, span):
         document = xray_recorder.current_subsegment()
@@ -94,3 +80,7 @@ class AWSXrayListener(ThundraSpanListener):
         if span.get_tag('error'):
             document = xray_recorder.current_subsegment()
             document.add_exception(Exception(span.get_tag('error.message')))
+
+    @staticmethod
+    def set_data(data):
+        AWSXrayListener._data = data
