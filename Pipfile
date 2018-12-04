@@ -13,6 +13,7 @@ mock = "*"
 pytest = "*"
 "boto3" = "*"
 redis = "*"
+"aws_xray_sdk" = "*"
 psycopg2 = "*"
 mysql-connector = "*"
 

@@ -1,8 +1,10 @@
 import pytest
 import mock
-
 from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
+from thundra import constants
+from aws_xray_sdk.core import xray_recorder
+import os
 
 
 class MockContext:
@@ -15,6 +17,12 @@ class MockContext:
 
     def __init__(self, f_name='test_func'):
         self.function_name = f_name
+        self.memory_limit_in_mb = '128'
+        self.log_group_name = 'log_group_name'
+        self.log_stream_name = 'log_stream_name[]id'
+        self.aws_request_id = 'aws_request_id'
+        self.invoked_function_arn = 'invoked_function_arn'
+        self.function_version = 'function_version'
 
 
 @pytest.fixture
@@ -67,3 +75,29 @@ def handler_with_exception(thundra):
     def _handler(event, context):
         raise Exception('hello')
     return thundra, _handler
+
+@pytest.fixture
+def thundra_with_xray(monkeypatch, reporter):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+    thundra = Thundra(disable_metric=True)
+    thundra.reporter = reporter
+    xray_recorder.configure(sampling=False)
+    xray_recorder.begin_segment('test')
+    return thundra
+
+@pytest.fixture
+def handler_with_xray(thundra_with_xray, monkeypatch):
+    @thundra_with_xray.call
+    def _handler(event, context):
+        pass
+    return thundra_with_xray, _handler
+
+@pytest.fixture
+def handler_with_xray_testing(thundra_with_xray):
+    @thundra_with_xray
+    def _handler(event, context):
+        return {
+            "Hello": "Hello Thundra"
+        }
+    return thundra_with_xray, _handler
