@@ -13,6 +13,7 @@ mock = "*"
 pytest = "*"
 "boto3" = "*"
 redis = "*"
+"aws_xray_sdk" = "*"
 
 [requires]
 python_version = "3.6.4"
