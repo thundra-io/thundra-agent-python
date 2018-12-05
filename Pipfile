@@ -13,6 +13,8 @@ mock = "*"
 pytest = "*"
 "boto3" = "*"
 redis = "*"
+psycopg2 = "*"
+mysql-connector = "*"
 
 [requires]
 python_version = "3.6.4"
