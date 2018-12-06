@@ -11,7 +11,6 @@ def test_annotation_metadata_and_tags(handler_with_xray_testing, mock_event, moc
     data = tracer.test_xray_traces[-1]
     xray = data['xray']
     span = data['span']
-    # print('Printing Traces: ', tracer.test_xray_traces)
     # Testing span values
     assert xray['name'] == span['operation_name']
     assert constants.AwsXrayConstants['XRAY_SUBSEGMENTED_TAG_NAME'] in span['tags']

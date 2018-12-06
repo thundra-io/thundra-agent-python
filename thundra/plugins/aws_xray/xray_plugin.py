@@ -1,4 +1,3 @@
-
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.listeners.aws_xray_listeners import AWSXrayListener
 import sys
@@ -11,15 +10,19 @@ class AWSXRayPlugin:
 
     _data = None
 
-    def __init__(self):
+    def __init__(self, listener=None):
         self.hooks = {
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
         self.tracer = ThundraTracer.get_instance()
         self.xray_data = {}
+        if listener is None:
+            self.xray_listener = AWSXrayListener()
+        else:
+            self.xray_listener = listener
         if self.tracer:
-            self.tracer.add_span_listener(AWSXrayListener())
+            self.tracer.add_span_listener(self.xray_listener)
 
     def before_invocation(self, plugin_context):
         pass
@@ -37,11 +40,10 @@ class AWSXRayPlugin:
             'applicationTags': app_tags,
         }
 
-        AWSXRayPlugin.send_data(self.xray_data)
+        self.send_data(self.xray_data)
 
     def after_invocation(self, plugin_context):
         pass
 
-    @staticmethod
-    def send_data(data):
-        AWSXrayListener.set_data(data)
+    def send_data(self, data):
+        self.xray_listener.set_data(data)

@@ -4,6 +4,7 @@ from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
 from thundra import constants
 from aws_xray_sdk.core import xray_recorder
+from tests.listeners.test_listeners_thundra_class import ThundraForListeners
 import os
 
 
@@ -80,7 +81,7 @@ def handler_with_exception(thundra):
 def thundra_with_xray(monkeypatch, reporter):
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
-    thundra = Thundra(disable_metric=True)
+    thundra = ThundraForListeners(disable_metric=True)
     thundra.reporter = reporter
     xray_recorder.configure(sampling=False)
     xray_recorder.begin_segment('test')

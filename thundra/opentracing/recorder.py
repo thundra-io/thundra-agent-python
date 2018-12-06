@@ -46,6 +46,7 @@ class ThundraRecorder:
                     listener.on_span_finished(span)
 
     def clear(self):
+        self.listeners.clear()
         self._finished_span_stack.clear()
 
     def _record_start_span(self, span):
