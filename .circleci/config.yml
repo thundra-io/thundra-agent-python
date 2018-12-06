@@ -32,7 +32,7 @@ jobs:
       - run: 
           name: Start tests
           command: |
-            pipenv run pytest --junitxml=test-reports/pytest/junit.xml tests
+            pipenv run pytest --junitxml=test-reports/pytest/junit.xml --ignore=tests/integrations/test_mysql_integration.py --ignore=tests/integrations/test_postgre_integration.py  tests
 
       - store_test_results:
           path: test-reports
