@@ -1,9 +1,25 @@
 from thundra import utils, constants
 import sys
 import thundra.application_support as application_support
-
+import wrapt
 from thundra.plugins.log.thundra_log_handler import logs
+from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.opentracing.tracer import ThundraTracer
+import logging
+
+logger = logging.getLogger('handler')
+handler = ThundraLogHandler()
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+handler.setLevel(logging.DEBUG)
+
+
+def _wrapper(wrapped, instance, args, kwargs):
+    try:
+        logger.info(str(args))
+        wrapped(*args, **kwargs)
+    except:
+        pass
 
 
 class LogPlugin:
@@ -15,6 +31,11 @@ class LogPlugin:
         }
         self.log_data = {}
         self.tracer = ThundraTracer.get_instance()
+        wrapt.wrap_function_wrapper(
+            'builtins',
+            'print',
+            _wrapper
+        )
 
     def before_invocation(self, plugin_context):
         logs.clear()
