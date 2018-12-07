@@ -7,7 +7,7 @@ from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.opentracing.tracer import ThundraTracer
 import logging
 
-logger = logging.getLogger('handler')
+logger = logging.getLogger('print')
 handler = ThundraLogHandler()
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
