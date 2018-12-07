@@ -10,6 +10,7 @@ from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.trace.patcher import ImportPatcher
+from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
@@ -57,6 +58,10 @@ class Thundra:
         self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
         if self.timeout_margin <= 0:
             self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+
+        enable_xray_trace_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
+        if utils.should_disable(enable_xray_trace_by_env):
+            self.plugins.append(AWSXRayPlugin())
 
         self.reporter = Reporter(self.api_key)
 

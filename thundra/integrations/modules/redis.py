@@ -19,8 +19,11 @@ def patch():
     disable_redis_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_REDIS_INTEGRATION)
     if not utils.should_disable(disable_redis_integration_by_env):
         for method in map(str.lower, constants.RedisCommandTypes.keys()):
-            wrapt.wrap_function_wrapper(
-                'redis.client',
-                'Redis.' + method,
-                _wrapper
-            )
+            try:
+                wrapt.wrap_function_wrapper(
+                    'redis.client',
+                    'Redis.' + method,
+                    _wrapper
+                )
+            except:
+                pass

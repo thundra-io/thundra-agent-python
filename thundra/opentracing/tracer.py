@@ -22,6 +22,7 @@ class ThundraTracer(opentracing.Tracer):
         self.recorder = recorder or ThundraRecorder()
         self.lock = Lock()
         self.global_span_order = 0
+        self.test_xray_traces = []
         ThundraTracer.__instance = self
 
     def start_active_span(self,
@@ -127,3 +128,6 @@ class ThundraTracer(opentracing.Tracer):
 
     def clear(self):
         self.recorder.clear()
+
+    def add_span_listener(self, listener):
+        self.recorder.add_listener(listener)
