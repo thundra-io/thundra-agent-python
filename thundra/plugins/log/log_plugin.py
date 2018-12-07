@@ -7,20 +7,6 @@ from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.opentracing.tracer import ThundraTracer
 import logging
 
-logger = logging.getLogger('print')
-handler = ThundraLogHandler()
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
-handler.setLevel(logging.DEBUG)
-
-
-def _wrapper(wrapped, instance, args, kwargs):
-    try:
-        logger.info(str(args))
-        wrapped(*args, **kwargs)
-    except:
-        pass
-
 
 class LogPlugin:
 
@@ -31,11 +17,25 @@ class LogPlugin:
         }
         self.log_data = {}
         self.tracer = ThundraTracer.get_instance()
-        wrapt.wrap_function_wrapper(
-            'builtins',
-            'print',
-            _wrapper
-        )
+        disable_prints_to_logs_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE)
+        if not utils.should_disable(disable_prints_to_logs_by_env):
+            self.logger = logging.getLogger('print')
+            self.handler = ThundraLogHandler()
+            self.logger.addHandler(self.handler)
+            self.logger.setLevel(logging.INFO)
+            self.handler.setLevel(logging.INFO)
+            wrapt.wrap_function_wrapper(
+                'builtins',
+                'print',
+                self._wrapper
+            )
+
+    def _wrapper(self, wrapped, instance, args, kwargs):
+        try:
+            self.logger.info(str(args))
+            wrapped(*args, **kwargs)
+        except:
+            pass
 
     def before_invocation(self, plugin_context):
         logs.clear()
