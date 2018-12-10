@@ -19,11 +19,12 @@ class LogPlugin:
         self.tracer = ThundraTracer.get_instance()
         disable_prints_to_logs_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE)
         if not utils.should_disable(disable_prints_to_logs_by_env):
-            self.logger = logging.getLogger('print')
+            self.logger = logging.getLogger('print-statement')
             self.handler = ThundraLogHandler()
             self.logger.addHandler(self.handler)
             self.logger.setLevel(logging.INFO)
             self.handler.setLevel(logging.INFO)
+            self.logger.propagate = False
             wrapt.wrap_function_wrapper(
                 'builtins',
                 'print',
@@ -32,8 +33,8 @@ class LogPlugin:
 
     def _wrapper(self, wrapped, instance, args, kwargs):
         try:
-            self.logger.info(str(args))
             wrapped(*args, **kwargs)
+            self.logger.info(str(args[0]))
         except:
             pass
 
