@@ -60,8 +60,7 @@ class InvocationPlugin:
 
     def after_invocation(self, plugin_context):
         total_mem, free_mem = utils.system_memory_usage()
-        bytes_to_mb = 1.0/(1024*1024)
-        used_mem = (total_mem - free_mem)*bytes_to_mb
+        used_mem = int((total_mem - free_mem)/(1024*1024))
         self.end_time = time.time() * 1000
         context = plugin_context['context']
         #### ADDING USER TAGS ####
