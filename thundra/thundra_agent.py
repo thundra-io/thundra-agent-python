@@ -13,14 +13,13 @@ from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
-import thundra.application_support as application_support
+import thundra.application_support as application_support 
 
-enable_xray_trace_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
-if utils.should_disable(enable_xray_trace_by_env):
-    try:
-        from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
-    except ImportError:
-        pass
+xray_plugin_imported = True
+try:
+    from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
+except ImportError:
+    xray_plugin_imported = False
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +64,7 @@ class Thundra:
             self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
 
         enable_xray_trace_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
-        if utils.should_disable(enable_xray_trace_by_env):
+        if utils.should_disable(enable_xray_trace_by_env) and xray_plugin_imported:
             self.plugins.append(AWSXRayPlugin())
 
         self.reporter = Reporter(self.api_key)
