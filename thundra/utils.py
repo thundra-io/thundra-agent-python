@@ -1,5 +1,7 @@
+import inspect
 import os
 import logging
+from inspect import getmembers
 from urllib.parse import urlparse
 from thundra import constants
 
@@ -139,25 +141,47 @@ def process_trace_def_env_var(value):
     path = value[0].split('.')
     trace_args = {}
 
-    function_prefix = path[-1][:-1] if path[-1] != '*' else ''
+    function_prefix = path[-1][:-1] if path[-1] != '*' else '*'
     module_path = ".".join(path[:-1])
-    trace_string = value[1].strip(']').split(',')
-    for arg  in trace_string:
-        arg = arg.split('=')
-        try:
-            trace_args[arg[0]] = arg[1]
-        except:
-            pass
+
+    if len(value) > 1 :
+        trace_string = value[1].strip(']').split(',')
+        for arg in trace_string:
+            arg = arg.split('=')
+            try:
+                trace_args[arg[0].strip()] = arg[1].strip()
+            except:
+                pass
+    else:
+        trace_args["trace_args"] = 'False'
+        trace_args["trace_return_value"] = 'False'
+        trace_args["trace_error"] = 'False'
 
     return module_path, function_prefix, trace_args
 
 
+def classesinmodule(module):
+    md = module.__dict__
+    return [
+        md[c] for c in md if (
+            isinstance(md[c], type) and md[c].__module__ == module.__name__
+        )
+    ]
+
 def get_allowed_functions(module):
-    allowed_functions = []
-    for prop in vars(module):
-        #TO DO: differentiate functions
-        allowed_functions.append(str(prop))
-    return allowed_functions
+    functions_list = []
+
+    for clazz in classesinmodule(module):
+        for o in getmembers(clazz):
+            if inspect.isfunction(o[1]) and ("__init__" not in str(o[1].__name__)):
+                functions_list.append({"type" : "class", "className": clazz.__name__, "functionName" : str(o[1].__name__)})
+
+    for o in getmembers(module):
+        if ( inspect.isfunction(o[1])) and ("__init__" not in str(o[1].__name__)):
+            functions_list.append({"type": "function", "functionName": str(o[1].__name__)})
+
+    return functions_list
+
 
 
 def get_aws_region_from_arn(func_arn):
