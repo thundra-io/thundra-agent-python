@@ -10,14 +10,19 @@ from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.trace.patcher import ImportPatcher
-from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
 import thundra.application_support as application_support
 
-logger = logging.getLogger(__name__)
+enable_xray_trace_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
+if utils.should_disable(enable_xray_trace_by_env):
+    try:
+        from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
+    except ImportError:
+        pass
 
+logger = logging.getLogger(__name__)
 
 class Thundra:
 
