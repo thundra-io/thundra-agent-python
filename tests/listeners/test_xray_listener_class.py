@@ -1,4 +1,4 @@
-from thundra.listeners.aws_xray_listeners import AWSXrayListener, imported
+from thundra.listeners.aws_xray_listeners import AWSXrayListener
 from thundra.opentracing.tracer import ThundraTracer
 from aws_xray_sdk.core import xray_recorder
 
@@ -22,11 +22,10 @@ class AWSXrayListenerTesting(AWSXrayListener):
         super(AWSXrayListenerTesting, self).end_subsegment(span)
 
     def on_span_finished(self, span):
-        if imported:
-            self.add_metadata(span)
-            self.add_annotation(span)
-            self.add_error(span)
-            self.end_subsegment(span)
+        self.add_metadata(span)
+        self.add_annotation(span)
+        self.add_error(span)
+        self.end_subsegment(span)
 
     def put_annotation_if_available(self, key, dictionary, dict_key, document):
         super(AWSXrayListenerTesting, self).put_annotation_if_available(key, dictionary, dict_key, document)

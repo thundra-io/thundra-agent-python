@@ -2,14 +2,7 @@ import thundra.constants as constants
 import re
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 from thundra.opentracing.tracer import ThundraTracer
-imported = True
-try:
-    from aws_xray_sdk.core import xray_recorder
-except:
-    imported = False
-    print("AWS XRAY SDK NOT FOUND")
-    # raise
-
+from aws_xray_sdk.core import xray_recorder
 
 class AWSXrayListener(ThundraSpanListener):
 
@@ -23,19 +16,17 @@ class AWSXrayListener(ThundraSpanListener):
         xray_recorder.begin_subsegment(self.normalize_operation_name(span.operation_name))
 
     def on_span_started(self, span):
-        if imported:
-            span.tags[constants.AwsXrayConstants['XRAY_SUBSEGMENTED_TAG_NAME']] = True
-            self.start_subsegment(span)
+        span.tags[constants.AwsXrayConstants['XRAY_SUBSEGMENTED_TAG_NAME']] = True
+        self.start_subsegment(span)
 
     def end_subsegment(self, span):
         xray_recorder.end_subsegment()
 
     def on_span_finished(self, span):
-        if imported:
-            self.add_metadata(span)
-            self.add_annotation(span)
-            self.add_error(span)
-            self.end_subsegment(span)
+        self.add_metadata(span)
+        self.add_annotation(span)
+        self.add_error(span)
+        self.end_subsegment(span)
 
     def put_annotation_if_available(self, key, dictionary, dict_key, document):
         if dict_key in dictionary:
