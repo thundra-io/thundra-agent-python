@@ -60,6 +60,8 @@ class Thundra:
         enable_xray_trace_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
         if utils.should_disable(enable_xray_trace_by_env):
             self.plugins.append(AWSXRayPlugin())
+        elif utils.should_disable(enable_xray_trace_by_env) and not xray_plugin_imported:
+            logger.error('aws-xray-sdk not found')
 
         self.reporter = Reporter(self.api_key)
 
