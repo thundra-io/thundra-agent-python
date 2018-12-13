@@ -28,7 +28,8 @@ class AWSXrayListener(ThundraSpanListener):
             self.start_subsegment(span)
 
     def end_subsegment(self, span):
-        xray_recorder.end_subsegment()
+        if xray_recorder.current_subsegment():
+            xray_recorder.end_subsegment()
 
     def on_span_finished(self, span):
         if imported:
