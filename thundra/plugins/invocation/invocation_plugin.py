@@ -59,6 +59,8 @@ class InvocationPlugin:
         }
 
     def after_invocation(self, plugin_context):
+        total_mem, free_mem = utils.system_memory_usage()
+        used_mem = int((total_mem - free_mem)/(1024*1024))
         self.end_time = time.time() * 1000
         context = plugin_context['context']
         #### ADDING USER TAGS ####
@@ -96,12 +98,13 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
-        self.invocation_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
+        self.invocation_data['tags']['aws.lambda.memory_limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
         self.invocation_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
         self.invocation_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
         self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = self.invocation_data['coldStart']
         self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
+        self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = used_mem
 
         reporter = plugin_context['reporter']
         report_data = {

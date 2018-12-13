@@ -52,6 +52,7 @@ class Traceable:
             parent_span = parent_scope.span if parent_scope is not None else None
 
             scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span)
+            scope.span.class_name = 'Method'
             try:
                 if self._trace_args is True:
                     function_args_list = []
