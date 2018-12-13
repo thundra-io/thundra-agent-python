@@ -16,7 +16,6 @@ else:
     user_module = import_module(module_name)
     user_handler = getattr(user_module, handler_name)
 
-
 @thundra
 def wrapper(event, context):
     if handler_found:
