@@ -46,26 +46,28 @@ class AWSXrayListener(ThundraSpanListener):
     def add_annotation(self, span):
         self.xray_data = AWSXrayListener._data
         document = xray_recorder.current_subsegment()
-        document.put_annotation('traceId', span.context.trace_id)
-        document.put_annotation('transactionId', span.context.transaction_id)
-        document.put_annotation('spanId', span.context.span_id)
-        document.put_annotation('parentSpanId', span.context.parent_span_id)
-        span_dict = vars(span)
-        self.put_annotation_if_available('domainName', span_dict, 'domain_name', document)
-        self.put_annotation_if_available('className', span_dict, 'class_name', document)
-        self.put_annotation_if_available('operationName', span_dict, 'operation_name', document)
-        self.put_annotation_if_available('startTimeStamp', span_dict, 'start_time', document)
-        finish_time = int(span_dict['start_time']) + int(span_dict['duration'])
-        document.put_annotation('finishTimeStamp', finish_time)
-        self.put_annotation_if_available('duration', span_dict, 'duration', document)
-        if self.xray_data is not None:
-            for key in self.xray_data:
-                self.put_annotation_if_available(key, self.xray_data, key, document)
+        if document:
+            document.put_annotation('traceId', span.context.trace_id)
+            document.put_annotation('transactionId', span.context.transaction_id)
+            document.put_annotation('spanId', span.context.span_id)
+            document.put_annotation('parentSpanId', span.context.parent_span_id)
+            span_dict = vars(span)
+            self.put_annotation_if_available('domainName', span_dict, 'domain_name', document)
+            self.put_annotation_if_available('className', span_dict, 'class_name', document)
+            self.put_annotation_if_available('operationName', span_dict, 'operation_name', document)
+            self.put_annotation_if_available('startTimeStamp', span_dict, 'start_time', document)
+            finish_time = int(span_dict['start_time']) + int(span_dict['duration'])
+            document.put_annotation('finishTimeStamp', finish_time)
+            self.put_annotation_if_available('duration', span_dict, 'duration', document)
+            if self.xray_data is not None:
+                for key in self.xray_data:
+                    self.put_annotation_if_available(key, self.xray_data, key, document)
 
     def add_metadata(self, span):
         document = xray_recorder.current_subsegment()
-        for key in span.tags:
-            document.put_metadata(key, span.tags[key])
+        if document:
+            for key in span.tags:
+                document.put_metadata(key, span.tags[key])
 
     def normalize_operation_name(self, operation_name):
         if operation_name:
@@ -86,7 +88,8 @@ class AWSXrayListener(ThundraSpanListener):
     def add_error(self, span):
         if span.get_tag('error'):
             document = xray_recorder.current_subsegment()
-            document.add_exception(Exception(span.get_tag('error.message')))
+            if document:
+                document.add_exception(Exception(span.get_tag('error.message')))
 
     @staticmethod
     def set_data(data):
