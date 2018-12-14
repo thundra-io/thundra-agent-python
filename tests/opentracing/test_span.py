@@ -29,7 +29,7 @@ def test_finish(mock_recorder):
     tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
-        assert span.duration == -1
+        assert span.duration == 0
 
         end_time = time.time()
         span.finish(f_time=end_time)
