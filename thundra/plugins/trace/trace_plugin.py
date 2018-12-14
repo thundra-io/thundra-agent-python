@@ -167,7 +167,7 @@ class TracePlugin:
             'operationName': span.operation_name,
             'startTimestamp': span.start_time,
             'finishTimestamp': close_time,
-            'duration': span.duration,
+            'duration': span.get_duration(),
             'logs': span.logs,
             'tags': span.tags
         }
