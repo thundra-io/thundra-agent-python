@@ -33,7 +33,12 @@ def process_memory_usage():
             mems = {}
             for line in procfile:
                 fields = line.split(':')
-                mems[fields[0]] = (fields[1].split())[0]
+                try:
+                    mem_key = fields[0]
+                    mem_val = (fields[1].split())[0]
+                    mems[mem_key] = mem_val
+                except IndexError:
+                    continue
             
             size_from_env_var = get_aws_lambda_function_memory_size()
             if not size_from_env_var:

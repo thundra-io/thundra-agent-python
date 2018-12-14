@@ -59,7 +59,7 @@ class InvocationPlugin:
         }
 
     def after_invocation(self, plugin_context):
-        total_mem, used_mem = utils.process_cpu_usage()
+        total_mem, used_mem = utils.process_memory_usage()
         used_mem_in_mb = used_mem / 1048576
         self.end_time = time.time() * 1000
         context = plugin_context['context']
