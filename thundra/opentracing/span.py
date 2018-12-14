@@ -26,7 +26,7 @@ class ThundraSpan(opentracing.Span):
         self.start_time = start_time or int(time.time() * 1000)
         self.span_order = span_order
         self.tags = tags if tags is not None else {}
-        self.duration = -1
+        self.duration = 0
         self.logs = []
 
     @property
@@ -90,7 +90,7 @@ class ThundraSpan(opentracing.Span):
         self.set_tag('error.message', str(err))
 
     def get_duration(self):
-        if self.duration == -1:
+        if self.duration == 0:
             return int(time.time() * 1000) - self.start_time
         else:
             return self.duration
