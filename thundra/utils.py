@@ -29,37 +29,31 @@ def get_aws_lambda_function_memory_size():
 #### memory ####
 def process_memory_usage():
     try:
-        with open('/proc/self/statm', 'r') as procfile:
-            process_memory_usages = procfile.readline()
+        with open('/proc/self/status', 'r') as procfile:
+            mems = {}
+            for line in procfile:
+                fields = line.split(':')
+                try:
+                    mem_key = fields[0]
+                    mem_val = (fields[1].split())[0]
+                    mems[mem_key] = mem_val
+                except IndexError:
+                    continue
+            
             size_from_env_var = get_aws_lambda_function_memory_size()
             if not size_from_env_var:
-                size = process_memory_usages.split(' ')[0]
-                size_in_bytes = float(size) * 1024
+                size = int(mems['VmSize'])
+                size_in_bytes = int(size * 1024)
             else:
-                size_in_bytes = float(size_from_env_var) * 1048576
+                size_in_bytes = int(float(size_from_env_var) * 1048576)
 
-            resident = process_memory_usages.split(' ')[1]
-            resident_in_bytes = float(resident)*1024
-            return size_in_bytes, resident_in_bytes
+            used_mem_in_kb = int(mems['VmRSS']) + int(mems['VmSwap'])
+            used_mem_in_bytes = used_mem_in_kb * 1024
+
+            return size_in_bytes, used_mem_in_bytes
     except IOError as e:
-        print('ERROR: %s' % e)
+        print('ERROR: %s'.format(e))
         sys.exit(2)
-
-
-def system_memory_usage():
-    try:
-        with open('/proc/meminfo', 'r') as procfile:
-            total = procfile.readline()
-            total_memory = total.split(': ')[1].split('kB')[0]
-            total_mem_in_bytes = int(total_memory)*1024
-            free = procfile.readline()
-            free_memory = free.split(': ')[1].split('kB')[0]
-            free_mem_in_bytes = int(free_memory)*1024
-            return total_mem_in_bytes, free_mem_in_bytes
-    except IOError as e:
-        print('ERROR: %s' % e)
-        sys.exit(2)
-
 
 ##### cpu #####
 def process_cpu_usage():
