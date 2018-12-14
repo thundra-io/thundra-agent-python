@@ -65,8 +65,8 @@ def test_lambda():
         span = tracer.recorder.finished_span_stack[0]
         assert span.class_name == 'AWS-Lambda'
         assert span.domain_name == 'API'
-        assert span.get_tag('aws.lambda.function.name') == 'Test'
-        assert span.get_tag('aws.lambda.function.qualifier') is None
+        assert span.get_tag('aws.lambda.name') == 'Test'
+        assert span.get_tag('aws.lambda.qualifier') is None
         assert span.get_tag('aws.lambda.invocation.payload') == {"name": "thundra"}
         assert span.get_tag('aws.request.name') == 'Invoke'
         assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
