@@ -88,3 +88,9 @@ class ThundraSpan(opentracing.Span):
         self.set_tag('error', True)
         self.set_tag('error.kind', error_type.__name__)
         self.set_tag('error.message', str(err))
+
+    def get_duration(self):
+        if self.duration == -1:
+            return int(time.time() * 1000) - self.start_time
+        else:
+            return self.duration
