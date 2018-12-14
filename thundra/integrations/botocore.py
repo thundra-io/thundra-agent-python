@@ -1,12 +1,19 @@
 from __future__ import absolute_import
 import thundra.constants as Constants
 from thundra.integrations.base_integration import BaseIntegration
+import traceback
 
 # pylint: disable=W0613
 
 
 def dummy_func(*args):
     return None
+
+
+def set_exception(exception, traceback_data, scope):
+    span = scope.span
+    span.set_tag('error.stack', traceback_data)
+    span.set_error_to_tag(exception)
 
 
 class AWSDynamoDBIntegration(BaseIntegration):
@@ -59,6 +66,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
         scope.span.tags = tags
         ## FINISHED ADDING TAGS ##
         self.OPERATION.get(operation_name, dummy_func)(scope)
+
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
 
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
@@ -129,6 +139,9 @@ class AWSSQSIntegration(BaseIntegration):
 
         ## FINISHED ADDING TAGS ##
 
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
+
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -173,6 +186,9 @@ class AWSSNSIntegration(BaseIntegration):
         ### FINISHED ADDING TAGS ###
         scope.span.tags = tags
 
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
+
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -208,6 +224,9 @@ class AWSKinesisIntegration(BaseIntegration):
         ### FINISHED ADDING TAGS ###
         scope.span.tags = tags
 
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
+
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -241,6 +260,9 @@ class AWSFirehoseIntegration(BaseIntegration):
         }
         ## FINISHED ADDING TAGS ###
         scope.span.tags = tags
+
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -279,6 +301,9 @@ class AWSS3Integration(BaseIntegration):
         }
         ## FINISHED ADDING TAGS ###
         scope.span.tags = tags
+
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
 
 
 class AWSLambdaIntegration(BaseIntegration):
@@ -321,6 +346,9 @@ class AWSLambdaIntegration(BaseIntegration):
         ## FINISHED ADDING TAGS ###
 
         scope.span.tags = tags
+
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
 
 
 class AWSXrayIntegration(BaseIntegration):
@@ -365,3 +393,5 @@ class AWSXrayIntegration(BaseIntegration):
 
         scope.span.tags = tags
 
+        if exception is not None:
+            set_exception(exception, traceback.format_exc(), scope)
