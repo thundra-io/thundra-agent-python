@@ -30,7 +30,6 @@ class BaseIntegration(abc.ABC):
                         'traceback': traceback.format_exc(),
                         'time': time.time()
                     }
-                    traceback.print_exc()
                     scope.span.set_tag('instrumentation_error', error)
 
     @abc.abstractmethod

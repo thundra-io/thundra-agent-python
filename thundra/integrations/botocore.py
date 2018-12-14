@@ -61,17 +61,20 @@ class AWSDynamoDBIntegration(BaseIntegration):
         self.OPERATION.get(operation_name, dummy_func)(scope)
 
     def process_get_item_op(self, scope):
-        scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+        if 'Key' in self.request_data:
+            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_put_item_op(self, scope):
         if 'Item' in self.request_data:
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Item'])
 
     def process_delete_item_op(self, scope):
-        scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+        if 'Key' in self.request_data:
+            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_update_item_op(self, scope):
-        scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+        if 'Key' in self.request_data:
+            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_batch_write_op(self, scope):
             table_name = list(self.request_data['RequestItems'].keys())[0]
