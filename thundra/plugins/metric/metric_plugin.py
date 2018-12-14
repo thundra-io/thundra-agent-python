@@ -113,8 +113,8 @@ class MetricPlugin:
             'metricName': 'MemoryMetric',
         }
         metrics = {
-            'app.maxMemory': size if size is not None else -1,
-            'app.usedMemory': used if resident is not None else -1,
+            'app.maxMemory': size,
+            'app.usedMemory': used
         }
         memory_metric_data.update(self.metric_data)
         memory_metric_data['metrics'] = metrics
