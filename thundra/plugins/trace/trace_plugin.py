@@ -95,7 +95,10 @@ class TracePlugin:
 
         duration = self.end_time - self.start_time
 
-        span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
+        finished_span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
+        active_span_stack = self.tracer.get_active_stack() if self.tracer is not None else None
+        span_stack = finished_span_stack + active_span_stack
+        
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
             self.span_data_list.append(current_span_data)
