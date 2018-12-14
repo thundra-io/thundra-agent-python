@@ -37,8 +37,8 @@ def process_memory_usage():
             
             size_from_env_var = get_aws_lambda_function_memory_size()
             if not size_from_env_var:
-                size = process_memory_usages.split(' ')[0]
-                size_in_bytes = int(float(size) * 1024)
+                size = int(mems['VmSize'])
+                size_in_bytes = int(size * 1024)
             else:
                 size_in_bytes = int(float(size_from_env_var) * 1048576)
 
