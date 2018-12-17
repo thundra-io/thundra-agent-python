@@ -48,9 +48,10 @@ class AWSXrayListener(ThundraSpanListener):
             self.put_annotation_if_available('className', span_dict, 'class_name', document)
             self.put_annotation_if_available('operationName', span_dict, 'operation_name', document)
             self.put_annotation_if_available('startTimeStamp', span_dict, 'start_time', document)
-            finish_time = int(span_dict['start_time']) + int(span_dict['duration'])
-            document.put_annotation('finishTimeStamp', finish_time)
-            self.put_annotation_if_available('duration', span_dict, 'duration', document)
+            self.put_annotation_if_available('finishTimeStamp', span_dict, 'finish_time', document)
+            duration = int(span.get_duration())
+            document.put_annotation('duration', duration)
+
             if self.xray_data is not None:
                 for key in self.xray_data:
                     self.put_annotation_if_available(key, self.xray_data, key, document)
