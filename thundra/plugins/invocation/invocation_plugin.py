@@ -59,8 +59,8 @@ class InvocationPlugin:
         }
 
     def after_invocation(self, plugin_context):
-        total_mem, free_mem = utils.system_memory_usage()
-        used_mem = int((total_mem - free_mem)/(1024*1024))
+        total_mem, used_mem = utils.process_memory_usage()
+        used_mem_in_mb = used_mem / 1048576
         self.end_time = time.time() * 1000
         context = plugin_context['context']
         #### ADDING USER TAGS ####
@@ -104,7 +104,7 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.invocation.cold_start'] = self.invocation_data['coldStart']
         self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
-        self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = used_mem
+        self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = used_mem_in_mb
 
         reporter = plugin_context['reporter']
         report_data = {
