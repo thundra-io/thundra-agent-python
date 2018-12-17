@@ -107,18 +107,14 @@ class MetricPlugin:
         reporter.add_report(gc_metric_report)
 
     def add_memory_metric_report(self, reporter):
-        size, resident = utils.process_memory_usage()
-        total_mem, free_mem = utils.system_memory_usage()
-        used_mem = total_mem - free_mem
+        size, used = utils.process_memory_usage()
         memory_metric_data = {
             'id': str(uuid.uuid4()),
             'metricName': 'MemoryMetric',
         }
         metrics = {
-            'app.maxMemory': int(size) if size is not None else -1,
-            'app.usedMemory': int(resident) if resident is not None else -1,
-            'sys.maxMemory': int(total_mem) if total_mem is not None else -1,
-            'sys.usedMemory': int(used_mem) if used_mem is not None else -1
+            'app.maxMemory': size,
+            'app.usedMemory': used
         }
         memory_metric_data.update(self.metric_data)
         memory_metric_data['metrics'] = metrics
