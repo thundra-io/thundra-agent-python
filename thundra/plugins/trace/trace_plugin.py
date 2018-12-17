@@ -66,7 +66,10 @@ class TracePlugin:
     def after_invocation(self, plugin_context):
         self.scope.close()
 
-        self.end_time = int(time.time() * 1000)
+        if self.root_span is not None:
+            self.end_time = self.root_span.start_time + self.root_span.get_duration()
+        else:
+            self.end_time = int(time.time() * 1000)
 
         context = plugin_context['context']
         reporter = plugin_context['reporter']
@@ -89,9 +92,6 @@ class TracePlugin:
             self.root_span.set_tag('aws.lambda.invocation.request', plugin_context.get('request', None))
         if skip_response != True:
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
-
-        if self.root_span is not None:
-            self.end_time = self.root_span.start_time + self.root_span.get_duration()
 
         duration = self.end_time - self.start_time
 
@@ -140,7 +140,6 @@ class TracePlugin:
         self.span_data_list.clear()
 
     def build_span(self, span, plugin_context):
-        close_time = span.start_time + span.get_duration()
         context = plugin_context['context']
         transaction_id = plugin_context['transaction_id'] or plugin_context['context'].aws_request_id
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
@@ -169,7 +168,7 @@ class TracePlugin:
             'serviceName': '',
             'operationName': span.operation_name,
             'startTimestamp': span.start_time,
-            'finishTimestamp': close_time,
+            'finishTimestamp': span.finish_time,
             'duration': span.get_duration(),
             'logs': span.logs,
             'tags': span.tags
