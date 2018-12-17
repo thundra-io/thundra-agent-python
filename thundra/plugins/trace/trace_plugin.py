@@ -66,7 +66,10 @@ class TracePlugin:
     def after_invocation(self, plugin_context):
         self.scope.close()
 
-        self.end_time = int(time.time() * 1000)
+        if self.root_span is not None:
+            self.end_time = self.root_span.start_time + self.root_span.get_duration()
+        else:
+            self.end_time = int(time.time() * 1000)
 
         context = plugin_context['context']
         reporter = plugin_context['reporter']
@@ -90,12 +93,12 @@ class TracePlugin:
         if skip_response != True:
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
-        if self.root_span is not None and self.root_span.duration != -1:
-            self.end_time = self.root_span.start_time + self.root_span.duration
-
         duration = self.end_time - self.start_time
 
-        span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
+        finished_span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
+        active_span_stack = self.tracer.get_active_stack() if self.tracer is not None else None
+        span_stack = finished_span_stack + active_span_stack
+
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
             self.span_data_list.append(current_span_data)
@@ -137,7 +140,6 @@ class TracePlugin:
         self.span_data_list.clear()
 
     def build_span(self, span, plugin_context):
-        close_time = span.start_time + span.duration
         context = plugin_context['context']
         transaction_id = plugin_context['transaction_id'] or plugin_context['context'].aws_request_id
         function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
@@ -166,8 +168,8 @@ class TracePlugin:
             'serviceName': '',
             'operationName': span.operation_name,
             'startTimestamp': span.start_time,
-            'finishTimestamp': close_time,
-            'duration': span.duration,
+            'finishTimestamp': span.finish_time,
+            'duration': span.get_duration(),
             'logs': span.logs,
             'tags': span.tags
         }
