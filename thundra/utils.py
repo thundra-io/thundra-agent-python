@@ -1,8 +1,10 @@
 import os
 import sys
+import logging
 from urllib.parse import urlparse
 from thundra import constants
 
+logger = logging.getLogger(__name__)
 
 def get_configuration(key, default=None):
     return os.environ.get(key, default=default)
@@ -52,8 +54,8 @@ def process_memory_usage():
 
             return size_in_bytes, used_mem_in_bytes
     except IOError as e:
-        print('ERROR: %s'.format(e))
-        sys.exit(2)
+        logger.error('ERROR: {}', e)
+        return 0, 0
 
 ##### cpu #####
 def process_cpu_usage():
@@ -68,8 +70,8 @@ def process_cpu_usage():
             process_cpu_used = int(u_time) + int(s_time)
             return (float(process_cpu_used))
     except IOError as e:
-        print('ERROR: %s' % e)
-        sys.exit(2)
+        logger.error('ERROR: {}', e)
+        return 0
 
 
 def system_cpu_usage():
@@ -88,8 +90,8 @@ def system_cpu_usage():
                 count += 1
             return float(system_cpu_total), float(system_cpu_used)
     except IOError as e:
-        print('ERROR: %s' % e)
-        sys.exit(3)
+        logger.error('ERROR: {}', e)
+        return 0, 0
 
 
 #####################################################################
