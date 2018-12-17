@@ -220,8 +220,8 @@ AwsS3Tags = {
 }
 
 AwsLambdaTags = {
-    'FUNCTION_NAME': 'aws.lambda.function.name',
-    'FUNCTION_QUALIFIER': 'aws.lambda.function.qualifier',
+    'FUNCTION_NAME': 'aws.lambda.name',
+    'FUNCTION_QUALIFIER': 'aws.lambda.qualifier',
     'INVOCATION_TYPE': 'aws.lambda.invocation.type',
     'INVOCATION_PAYLOAD': 'aws.lambda.invocation.payload',
 }

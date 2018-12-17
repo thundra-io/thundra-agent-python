@@ -14,10 +14,9 @@ from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
 from thundra.reporter import Reporter
 
 import thundra.utils as utils
-import thundra.application_support as application_support
+import thundra.application_support as application_support 
 
 logger = logging.getLogger(__name__)
-
 
 class Thundra:
 
