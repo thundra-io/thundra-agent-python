@@ -42,7 +42,7 @@ def patch():
         )
     if not utils.should_disable(disable_http_integration_by_env):
         wrapt.wrap_function_wrapper(
-            'requests',
+            'botocore.vendored.requests',
             'Session.send',
-            _wrapper
+            request_wrapper
         )
