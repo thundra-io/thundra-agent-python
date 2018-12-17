@@ -24,9 +24,9 @@ class ThundraSpan(opentracing.Span):
         self.class_name = class_name
         self.domain_name = domain_name
         self.start_time = start_time or int(time.time() * 1000)
+        self.finish_time = 0
         self.span_order = span_order
         self.tags = tags if tags is not None else {}
-        self.duration = 0
         self.logs = []
 
     @property
@@ -62,8 +62,7 @@ class ThundraSpan(opentracing.Span):
 
     def finish(self, f_time=None):
         with self._lock:
-            finish_time = int(time.time() * 1000) if f_time is None else f_time
-            self.duration = finish_time - self.start_time
+            self.finish_time = int(time.time() * 1000) if f_time is None else f_time
             self._tracer.record(RecordEvents.FINISH_SPAN, self)
 
     def log_kv(self, key_values, timestamp=None):
@@ -90,7 +89,7 @@ class ThundraSpan(opentracing.Span):
         self.set_tag('error.message', str(err))
 
     def get_duration(self):
-        if self.duration == 0:
+        if self.finish_time == 0:
             return int(time.time() * 1000) - self.start_time
         else:
-            return self.duration
+            return self.finish_time - self.start_time
