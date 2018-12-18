@@ -19,7 +19,7 @@ class ThundraLogHandler(logging.Handler):
             'id': str(uuid.uuid4()),
             'spanId': active_span.context.span_id if active_span is not None else '',
             'log': formatted_message,
-            'logMessage': record.msg,
+            'logMessage': str(record.msg),
             'logContextName': record.name,
             'logTimestamp': int(record.created * 1000),
             'logLevel': record.levelname,
