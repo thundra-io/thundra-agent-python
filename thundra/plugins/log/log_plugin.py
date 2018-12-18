@@ -19,7 +19,7 @@ class LogPlugin:
         self.tracer = ThundraTracer.get_instance()
         disable_prints_to_logs_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE)
         if not utils.should_disable(disable_prints_to_logs_by_env):
-            self.logger = logging.getLogger('print-statement')
+            self.logger = logging.getLogger('STDOUT')
             self.handler = ThundraLogHandler()
             self.logger.addHandler(self.handler)
             self.logger.setLevel(logging.INFO)
