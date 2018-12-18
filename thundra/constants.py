@@ -66,7 +66,7 @@ DEFAULT_LAMBDA_TIMEOUT_MARGIN = 200
 DATA_FORMAT_VERSION = '2.0'
 
 THUNDRA_LAMBDA_DEBUG_ENABLE = 'thundra_agent_lambda_debug_enable'
-THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_lambda_log_console_print_disable'
+THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_agent_lambda_log_console_disable'
 
 #### INTEGRATIONS ####
 
