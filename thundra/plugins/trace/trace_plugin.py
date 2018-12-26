@@ -64,7 +64,7 @@ class TracePlugin:
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
         plugin_context['span_id'] = self.root_span.context.trace_id
-        self._inject_trigger_tags(self.root_span, plugin_context['event'], context)
+        self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
 
     def after_invocation(self, plugin_context):
         self.scope.close()
