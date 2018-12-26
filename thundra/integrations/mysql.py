@@ -32,7 +32,10 @@ class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['DB_STATEMENT']: query,
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: "AWS-Lambda",
-            constants.SpanTags['TRIGGER_CLASS_NAME']: "API"
+            constants.SpanTags['TRIGGER_CLASS_NAME']: "API",
+            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [scope.span.tracer.function_name],
+            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
+            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
         }
 
         span.tags = tags

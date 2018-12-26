@@ -70,6 +70,12 @@ class AWSDynamoDBIntegration(BaseIntegration):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
+        if operation_name in Constants.DynamoDBRequestTypes:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
+
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
@@ -142,6 +148,12 @@ class AWSSQSIntegration(BaseIntegration):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
+        if operation_name in Constants.SQSRequestTypes:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
+
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -189,6 +201,12 @@ class AWSSNSIntegration(BaseIntegration):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
+        if operation_name in Constants.SNSRequestTypes:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
+
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -227,6 +245,12 @@ class AWSKinesisIntegration(BaseIntegration):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
+        if 'StreamName' in request_data:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
+
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -263,6 +287,12 @@ class AWSFirehoseIntegration(BaseIntegration):
 
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
+
+        if 'DeliveryStreamName' in request_data:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -304,6 +334,12 @@ class AWSS3Integration(BaseIntegration):
 
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
+
+        if operation_name in Constants.S3RequestTypes:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
 
 
 class AWSLambdaIntegration(BaseIntegration):
@@ -349,6 +385,12 @@ class AWSLambdaIntegration(BaseIntegration):
 
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
+
+        if operation_name in Constants.LambdaRequestType:
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
 
 
 class AWSXrayIntegration(BaseIntegration):
