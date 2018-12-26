@@ -42,6 +42,9 @@ class RedisIntegration(BaseIntegration):
             Constants.RedisTags['REDIS_COMMAND_TYPE']: command_type,
             Constants.RedisTags['REDIS_COMMAND_ARGS']: [str(arg) for arg in args],
             Constants.RedisTags['REDIS_COMMAND']: self.getCommandType(command_type),
+            Constants.SpanTags['TRIGGER_OPERATION_NAMES']: [scope.span.tracer.function_name],
+            Constants.SpanTags['TRIGGER_DOMAIN_NAME']: Constants.LAMBDA_APPLICATION_DOMAIN_NAME,
+            Constants.SpanTags['TRIGGER_CLASS_NAME']: Constants.LAMBDA_APPLICATION_CLASS_NAME
         }
 
         ## FINISHED ADDING TAGS ##

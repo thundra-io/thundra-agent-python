@@ -13,6 +13,9 @@ THUNDRA_APPLICATION_STAGE = 'thundra_agent_lambda_application_stage'
 THUNDRA_APPLICATION_VERSION = 'thundra_agent_lambda_application_version'
 THUNDRA_AGENT_VERSION = '2.0.0'
 
+LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
+LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
+LAMBDA_FUNCTION_PLATFORM = 'AWS Lambda'
 THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra_agent_lambda_timeout_margin'
 THUNDRA_LAMBDA_REPORT_REST_BASEURL = 'thundra_agent_lambda_report_rest_baseUrl'
 THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE = 'thundra_agent_lambda_report_cloudwatch_enable'
@@ -125,6 +128,8 @@ SpanTags = {
     'DB_HOST': 'db.host',
     'TRIGGER_DOMAIN_NAME': 'trigger.domainName',
     'TRIGGER_CLASS_NAME': 'trigger.className',
+    'TRIGGER_OPERATION_NAMES': 'trigger.operationNames',
+    'TOPOLOGY_VERTEX': 'topology.vertex',
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type:',
 }

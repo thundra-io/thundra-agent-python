@@ -24,6 +24,7 @@ class ThundraTracer(opentracing.Tracer):
         self.global_span_order = 0
         self.test_xray_traces = []
         ThundraTracer.__instance = self
+        self.function_name = None
 
     def start_active_span(self,
                           operation_name,
