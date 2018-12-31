@@ -32,7 +32,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         return 'READ'
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         self.OPERATION.update(
             {'PutItem': self.process_put_item_op,
@@ -50,7 +50,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         scope.span.domain_name = Constants.DomainNames['DB']
         scope.span.class_name = Constants.ClassNames['DYNAMODB']
-        scope.span.operation_name = 'dynamodb: ' + str(self.request_data['TableName'])
+        scope.span.operation_name = str(self.request_data['TableName'])
 
         ## ADDING TAGS ##
 
@@ -93,12 +93,12 @@ class AWSDynamoDBIntegration(BaseIntegration):
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_batch_write_op(self, scope):
-            table_name = list(self.request_data['RequestItems'].keys())[0]
-            items = []
-            for item in self.request_data['RequestItems'][table_name]:
-                items.append(item)
+        table_name = list(self.request_data['RequestItems'].keys())[0]
+        items = []
+        for item in self.request_data['RequestItems'][table_name]:
+            items.append(item)
 
-            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], items)
+        scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], items)
 
 
 class AWSSQSIntegration(BaseIntegration):
@@ -122,7 +122,7 @@ class AWSSQSIntegration(BaseIntegration):
             return data['QueueName']
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         self.request_data = request_data
@@ -131,7 +131,7 @@ class AWSSQSIntegration(BaseIntegration):
 
         scope.span.domain_name = Constants.DomainNames['MESSAGING']
         scope.span.class_name = Constants.ClassNames['SQS']
-        scope.span.operation_name = self.getRequestType(operation_name)
+        scope.span.operation_name = self.queueName
 
         ## ADDING TAGS ##
 
@@ -170,24 +170,24 @@ class AWSSNSIntegration(BaseIntegration):
         return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         self.request_data = request_data
         self.response = response
 
-        scope.span.domain_name = Constants.DomainNames['MESSAGING']
-        scope.span.class_name = Constants.ClassNames['SNS']
-        scope.span.operation_name = self.getRequestType(operation_name)
-
         if operation_name == 'CreateTopic':
             self.topicName = request_data.get('Name', 'N/A')
         else:
             arn = request_data.get(
-                        'TopicArn',
-                        request_data.get('TargetArn', 'N/A')
-                    )
+                'TopicArn',
+                request_data.get('TargetArn', 'N/A')
+            )
             self.topicName = arn.split(':')[-1]
+
+        scope.span.domain_name = Constants.DomainNames['MESSAGING']
+        scope.span.class_name = Constants.ClassNames['SNS']
+        scope.span.operation_name = self.topicName
 
         ### ADDING TAGS ###
         tags = {
@@ -223,15 +223,14 @@ class AWSKinesisIntegration(BaseIntegration):
         return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         self.streamName = request_data['StreamName']
 
         scope.span.domain_name = Constants.DomainNames['STREAM']
         scope.span.class_name = Constants.ClassNames['KINESIS']
-        scope.span.operation_name = self.getRequestType(operation_name)
-
+        scope.span.operation_name = self.streamName
 
         ### ADDING TAGS ###
         tags = {
@@ -267,14 +266,14 @@ class AWSFirehoseIntegration(BaseIntegration):
         return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         self.deliveryStreamName = request_data['DeliveryStreamName']
 
         scope.span.domain_name = Constants.DomainNames['STREAM']
         scope.span.class_name = Constants.ClassNames['FIREHOSE']
-        scope.span.operation_name = self.getRequestType(operation_name)
+        scope.span.operation_name = self.deliveryStreamName
 
         ### ADDING TAGS ###
         tags = {
@@ -310,14 +309,14 @@ class AWSS3Integration(BaseIntegration):
         return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         self.bucket = request_data['Bucket']
 
         scope.span.domain_name = Constants.DomainNames['STORAGE']
         scope.span.class_name = Constants.ClassNames['S3']
-        scope.span.operation_name = self.getRequestType(operation_name)
+        scope.span.operation_name = self.bucket
 
         if "Key" in request_data:
             self.objectName = request_data["Key"]
@@ -357,13 +356,13 @@ class AWSLambdaIntegration(BaseIntegration):
         return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         self.lambdaFunction = request_data.get('FunctionName', '')
         scope.span.domain_name = Constants.DomainNames['API']
         scope.span.class_name = Constants.ClassNames['LAMBDA']
-        scope.span.operation_name = self.getRequestType(operation_name)
+        scope.span.operation_name = self.lambdaFunction
 
         ### ADDING TAGS ###
         tags = {
@@ -408,7 +407,7 @@ class AWSXrayIntegration(BaseIntegration):
     #     return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                 exception):
+                         exception):
 
         operation_name, request_data = args
         # self.lambdaFunction = request_data.get('FunctionName', '')

@@ -21,6 +21,7 @@ class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
         query = str(cursor.__self__._executed)[2:-1].lower()
         operation = query.split()[0].strip("\"").lower()
         tableName = self._extract_table_name(query, operation)
+        span.set_operation_name(tableName)
 
         tags = {
             constants.SpanTags['SPAN_TYPE']: constants.SpanTypes['RDB'],

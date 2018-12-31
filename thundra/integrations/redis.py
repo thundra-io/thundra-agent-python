@@ -26,7 +26,7 @@ class RedisIntegration(BaseIntegration):
 
         scope.span.domain_name = Constants.DomainNames['CACHE']
         scope.span.class_name = Constants.ClassNames['REDIS']
-        scope.span.operation_name = 'REDIS | ' + self.getCommandType(command_type)
+        scope.span.operation_name = host
         scope.span.operationName = host
 
         ## ADDING TAGS ##
