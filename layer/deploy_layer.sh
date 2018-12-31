@@ -1,5 +1,5 @@
 #!/bin/sh
-set -e
+set -ex
 
 BUCKET_PREFIX=$1
 LAYER_NAME_SUFFIX=$2
