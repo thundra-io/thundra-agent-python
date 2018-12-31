@@ -52,7 +52,7 @@ class LambdaEventUtils:
         elif 'deliveryStreamArn' in original_event and isinstance(original_event['records'], list):
             return LambdaEventType.Firehose
 
-        elif 'context' in original_event and 'params' in original_event and 'header' in original_event['params']:
+        elif 'requestContext' in original_event and 'headers' in original_event:
             return LambdaEventType.APIGatewayProxy
 
         elif 'clientContext' in original_context:
@@ -166,7 +166,7 @@ class LambdaEventUtils:
         span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], 'API')
         span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], 'AWS-APIGateway')
         span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        operation_name = original_event['params']['header']['Host'] + '/' + original_event['context']['stage'] + \
+        operation_name = original_event['headers']['Host'] + '/' + original_event['requestContext']['stage'] + \
                          original_event['path']
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [operation_name])
 
