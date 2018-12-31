@@ -1,5 +1,5 @@
 #!/bin/sh
-
+set -e
 export VERSION=$(python3.6 setup.py --version)
 BUCKET_PREFIX=$1
 LAYER_NAME_SUFFIX=$2

@@ -1,4 +1,6 @@
 #!/bin/sh
+set -e
+
 BUCKET_PREFIX=$1
 LAYER_NAME_SUFFIX=$2
 
