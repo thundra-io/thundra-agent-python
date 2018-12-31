@@ -13,7 +13,7 @@ STATEMENT_ID_BASE="$LAYER_NAME_BASE-$(($(date +%s)))"
 echo "Creating layer zip for: '$LAYER_NAME'"
 rm -rf $SCRIPT_PATH/python
 pip3 install thundra -t python
-export VERSION=$(python3.6 setup.py --version)
+export VERSION=$(python3.6 ../setup.py --version)
 if [ ! -f $SCRIPT_PATH/python/thundra/handler.py ]; then
     echo "Wrapper handler not found in the pip version of thundra, adding manually..."
     cp $SCRIPT_PATH/../thundra/handler.py $SCRIPT_PATH/python/thundra/
