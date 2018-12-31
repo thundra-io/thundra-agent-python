@@ -24,7 +24,7 @@ class RequestsIntegration(BaseIntegration):
         host = parsed_url.netloc
         span = scope.span
         
-        span.operation_name = url
+        span.operation_name = host + path
         span.domain_name =  constants.DomainNames['API']
         span.class_name =  constants.ClassNames['HTTP']
 
