@@ -20,7 +20,7 @@ def test_dynamodb():
         span = tracer.recorder.finished_span_stack[0]
         assert span.class_name == 'AWS-DynamoDB'
         assert span.domain_name == 'DB'
-        assert span.operation_name == 'dynamodb: test-table'
+        assert span.operation_name == 'test-table'
         assert span.get_tag("operation.type") == 'READ'
         assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
         assert span.get_tag('db.statement') == {'username': 'janedoe', 'last_name': 'Doe'}
