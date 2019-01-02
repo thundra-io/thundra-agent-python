@@ -213,6 +213,8 @@ class TracePlugin:
                 LambdaEventUtils.inject_trigger_tags_for_cloudfront(span, original_event)
             elif lambda_event_type == LambdaEventType.APIGatewayProxy:
                 LambdaEventUtils.inject_trigger_tags_for_api_gateway_proxy(span, original_event)
+            elif lambda_event_type == LambdaEventType.APIGateway:
+                LambdaEventUtils.inject_trigger_tags_for_api_gateway(span, original_event)
             elif lambda_event_type == LambdaEventType.Lambda:
                 LambdaEventUtils.inject_trigger_tags_for_lambda(span, original_context)
         except Exception as e:

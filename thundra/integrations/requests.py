@@ -25,8 +25,6 @@ class RequestsIntegration(BaseIntegration):
         span = scope.span
         
         span.operation_name = url
-        print(url)
-        print("Printing: " + span.operation_name)
         span.domain_name =  constants.DomainNames['API']
         span.class_name =  constants.ClassNames['HTTP']
 
