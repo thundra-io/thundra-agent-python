@@ -1,15 +1,24 @@
 #!/bin/sh
-VERSION=$1
+set -ex
+
+BUCKET_PREFIX=$1
+LAYER_NAME_SUFFIX=$2
+
 REGIONS=( "ap-northeast-1" "ap-northeast-2" "ap-south-1" "ap-southeast-1" "ap-southeast-2" "ca-central-1" "eu-central-1" "eu-west-1" "eu-west-2" "eu-west-3" "sa-east-1" "us-east-1" "us-east-2" "us-west-1" "us-west-2" )
 LAYER_NAME_BASE="thundra-lambda-python-layer"
-LAYER_NAME_SUFFIX=$2
-LAYER_NAME="$LAYER_NAME_BASE$LAYER_NAME_SUFFIX"
+LAYER_NAME="$LAYER_NAME_BASE"
+
+if [[ ! -z "$LAYER_NAME_SUFFIX" ]]; then
+  LAYER_NAME="$LAYER_NAME_BASE-$LAYER_NAME_SUFFIX"
+fi
+
 SCRIPT_PATH=${0%/*}
 STATEMENT_ID_BASE="$LAYER_NAME_BASE-$(($(date +%s)))"
 
 echo "Creating layer zip for: '$LAYER_NAME'"
 rm -rf $SCRIPT_PATH/python
 pip3 install thundra -t python
+export VERSION=$(python3.6 ../setup.py --version)
 if [ ! -f $SCRIPT_PATH/python/thundra/handler.py ]; then
     echo "Wrapper handler not found in the pip version of thundra, adding manually..."
     cp $SCRIPT_PATH/../thundra/handler.py $SCRIPT_PATH/python/thundra/
@@ -20,7 +29,7 @@ echo "Zip completed."
 
  for REGION in "${REGIONS[@]}"
  do
-    ARTIFACT_BUCKET=thundra-dist-$REGION
+    ARTIFACT_BUCKET=$BUCKET_PREFIX-$REGION
     ARTIFACT_OBJECT=layers/python/thundra-agent-lambda-layer-$VERSION.zip
 
     echo "Uploading '$LAYER_NAME.zip' at $ARTIFACT_BUCKET with key $ARTIFACT_OBJECT"
