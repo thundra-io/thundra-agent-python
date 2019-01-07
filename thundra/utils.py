@@ -53,8 +53,8 @@ def process_memory_usage():
             used_mem_in_bytes = used_mem_in_kb * 1024
 
             return size_in_bytes, used_mem_in_bytes
-    except IOError as e:
-        logger.error('ERROR: {}', e)
+    except Exception as e:
+        logger.error('ERROR: {}'.format(e))
         return 0, 0
 
 ##### cpu #####
@@ -69,8 +69,8 @@ def process_cpu_usage():
             # count total process used time
             process_cpu_used = int(u_time) + int(s_time)
             return (float(process_cpu_used))
-    except IOError as e:
-        logger.error('ERROR: {}', e)
+    except Exception as e:
+        logger.error('ERROR: {}'.format(e))
         return 0
 
 
@@ -89,8 +89,8 @@ def system_cpu_usage():
                 system_cpu_total += int(usage)
                 count += 1
             return float(system_cpu_total), float(system_cpu_used)
-    except IOError as e:
-        logger.error('ERROR: {}', e)
+    except Exception as e:
+        logger.error('ERROR: {}'.format(e))
         return 0, 0
 
 
