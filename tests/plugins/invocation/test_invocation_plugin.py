@@ -4,7 +4,7 @@ from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 
-def test_cold_starts(handler, mock_context, mock_event, monkeypatch):
+def test_coldstarts(handler, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler
 
@@ -15,11 +15,11 @@ def test_cold_starts(handler, mock_context, mock_event, monkeypatch):
 
     handler(mock_event, mock_context)
     assert invocation_plugin.invocation_data['coldStart'] is True
-    assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.cold_start'] is True
+    assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.coldstart'] is True
 
     handler(mock_event, mock_context)
     assert invocation_plugin.invocation_data['coldStart'] is False
-    assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.cold_start'] is False
+    assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.coldstart'] is False
 
 
 def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, monkeypatch):
