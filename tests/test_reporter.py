@@ -65,3 +65,15 @@ def test_send_report(mock_requests):
     reporter.session.post.assert_called_once_with(post_url, data=json.dumps(reporter.reports), headers=headers)
     test_session.post.return_value.status_code = 401
     assert response.status_code == 401
+
+def test_prepare_report_json(mock_report, mock_report_with_byte_field):
+    reporter = Reporter('api key')
+    reporter.add_report(mock_report)
+    reporter.add_report(mock_report_with_byte_field)
+
+    dumped_reports = reporter.prepare_report_json()
+    reports = json.loads(dumped_reports)
+
+    assert len(reports) == 1
+    assert reports[0].get('type') != 'bytes'
+
