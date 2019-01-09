@@ -1,7 +1,7 @@
 import os
 
 import mock
-
+import pytest
 from thundra import constants
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.thundra_agent import Thundra
@@ -86,16 +86,6 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
     assert trace_exist is True
 
 
-def test_if_exception_is_handled(handler_with_exception, mock_context, mock_event):
-    thundra, handler = handler_with_exception
-    try:
-        handler(mock_event, mock_context)
-    except Exception as e:
-        pass
-    print(thundra.plugin_context)
-    assert 'error' in thundra.plugin_context
-
-
 @mock.patch('thundra.reporter.Reporter')
 def test_if_thundra_is_disabled(mock_reporter, monkeypatch, handler, mock_event, mock_context):
     monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE, 'true')
@@ -106,3 +96,37 @@ def test_if_thundra_is_disabled(mock_reporter, monkeypatch, handler, mock_event,
 
     assert not mock_reporter.add_report.called
     assert not mock_reporter.send_report.called
+
+
+def test_if_exception_is_handled(handler_with_exception, mock_context, mock_event):
+    thundra, handler = handler_with_exception
+    with pytest.raises(Exception) as exinfo:
+        handler(mock_event, mock_context)
+    
+    assert 'error' in thundra.plugin_context
+
+
+@mock.patch('thundra.thundra_agent.Thundra.check_and_handle_warmup_request')
+def test_if_thundra_crashes_user_handler_before(mocked_func, handler, mock_event, mock_context):
+    mocked_func.side_effect = RuntimeError('Boom!')
+    thundra, handler = handler
+    try:
+        handler(mock_event, mock_context)
+    except Exception:
+        pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
+    
+    assert len(thundra.reporter.reports) == 0
+
+
+@mock.patch('thundra.reporter.Reporter.send_report')
+def test_if_thundra_crashes_user_handler_after(mocked_func, handler, mock_event, mock_context):
+    mocked_func.side_effect = RuntimeError('Boom!')
+    thundra, handler = handler
+    try:
+        handler(mock_event, mock_context)
+    except Exception:
+        pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
+    
+    assert len(thundra.reporter.reports) == 0    
+    
+

@@ -77,39 +77,71 @@ class Thundra:
 
         @wraps(original_func)
         def wrapper(event, context):
-            if self.check_and_handle_warmup_request(event):
-                return None
+            before_done = False
+            after_done = False
 
-            constants.REQUEST_COUNT += 1
-
-            self.plugin_context['request'] = event
-            self.plugin_context['context'] = context
-            application_support.clear_application_tags()
-            self.execute_hook('before:invocation', self.plugin_context)
-            if threading.current_thread().__class__.__name__ == '_MainThread':
-                signal.signal(signal.SIGALRM, self.timeout_handler)
-                if hasattr(context, 'get_remaining_time_in_millis'):
-                    timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
-                    if timeout_duration <= 0:
-                        timeout_duration = context.get_remaining_time_in_millis() - \
-                                                    constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
-                        logger.warning('Given timeout margin is bigger than lambda timeout duration and '
-                                       'since the difference is negative, it is set to default value (' +
-                                       str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
-                    signal.setitimer(signal.ITIMER_REAL, timeout_duration / 1000.0)
+            # Before running user's handler
             try:
-                response = original_func(event, context)
-                self.plugin_context['response'] = response
-            except Exception as e:
-                self.plugin_context['error'] = e
-                self.prepare_and_send_reports()
-                raise e
-            finally:
+                if self.check_and_handle_warmup_request(event):
+                    return None
+
+                constants.REQUEST_COUNT += 1
+
+                self.plugin_context['request'] = event
+                self.plugin_context['context'] = context
+                application_support.clear_application_tags()
+                self.execute_hook('before:invocation', self.plugin_context)
                 if threading.current_thread().__class__.__name__ == '_MainThread':
-                    signal.setitimer(signal.ITIMER_REAL, 0)
-            application_support.parse_application_tags()
-            self.prepare_and_send_reports()
-            application_support.clear_application_tags()
+                    signal.signal(signal.SIGALRM, self.timeout_handler)
+                    if hasattr(context, 'get_remaining_time_in_millis'):
+                        timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
+                        if timeout_duration <= 0:
+                            timeout_duration = context.get_remaining_time_in_millis() - \
+                                                        constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                            logger.warning('Given timeout margin is bigger than lambda timeout duration and '
+                                        'since the difference is negative, it is set to default value (' +
+                                        str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+                        signal.setitimer(signal.ITIMER_REAL, timeout_duration / 1000.0)
+                before_done = True
+            except Exception as e:
+                logger.error("Error during the before part of Thundra: {}".format(e))
+                before_done = False
+            
+            # Invoke user handler
+            if before_done:
+                try:
+                    response = original_func(event, context)
+                    self.plugin_context['response'] = response
+                except Exception as e:
+                    try:
+                        self.plugin_context['error'] = e
+                        application_support.parse_application_tags()
+                        self.prepare_and_send_reports()
+                        application_support.clear_application_tags()
+                        after_done = True
+                    except Exception as e_in:
+                        logger.error("Error during the after part of Thundra: {}".format(e_in))
+                        self.reporter.reports.clear()
+                        after_done = False
+                        pass
+                    raise e
+                finally:
+                    self.stop_timer()
+            else:
+                self.stop_timer()
+                self.reporter.reports.clear()
+                return original_func(event, context)
+            
+            # After having run the user's handler
+            if before_done and not after_done:
+                try:
+                    application_support.parse_application_tags()
+                    self.prepare_and_send_reports()
+                    application_support.clear_application_tags()
+                except Exception as e:
+                    logger.error("Error during the after part of Thundra: {}".format(e))
+                    self.reporter.reports.clear()
+                
             return response
 
         return wrapper
@@ -162,6 +194,10 @@ class Thundra:
             self.plugin_context['timeout'] = True
             self.plugin_context['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
+
+    def stop_timer(self):
+        if threading.current_thread().__class__.__name__ == '_MainThread':
+            signal.setitimer(signal.ITIMER_REAL, 0)
 
     def prepare_and_send_reports(self):
         self.execute_hook('after:invocation', self.plugin_context)
