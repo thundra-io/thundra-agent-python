@@ -1,3 +1,4 @@
+import math
 import time
 import uuid
 import sys
@@ -104,7 +105,7 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.invocation.coldstart'] = self.invocation_data['coldStart']
         self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
-        self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = used_mem_in_mb
+        self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = math.floor(used_mem_in_mb)
 
         reporter = plugin_context['reporter']
         report_data = {
