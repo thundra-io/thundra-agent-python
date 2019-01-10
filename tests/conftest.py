@@ -48,6 +48,14 @@ def mock_report():
         'data': 'data'
     }
 
+@pytest.fixture()
+def mock_report_with_byte_field():
+    return {
+        'apiKey': 'api key',
+        'type': 'bytes',
+        'dataFormatVersion': '1.1.1',
+        'data': b'byte_data'
+    }
 
 @pytest.fixture
 @mock.patch('thundra.reporter.requests')

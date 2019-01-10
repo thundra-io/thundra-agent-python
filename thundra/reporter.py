@@ -28,7 +28,11 @@ class Reporter():
 
     def add_report(self, report):
         if get_configuration(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE) == 'true':
-            print(json.dumps(report))
+            try:
+                print(json.dumps(report))
+            except TypeError:
+                logger.error("Couldn't dump report with type {} to json string, \
+                    probably it contains a byte array".format(report.get('type'))) 
         else:
             if isinstance(report, list):
                 for data in report:
@@ -46,6 +50,17 @@ class Reporter():
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
 
-        response = self.session.post(request_url, headers=headers, data=json.dumps(self.reports))
+        response = self.session.post(request_url, headers=headers, data=self.prepare_report_json())
         self.reports.clear()
         return response
+
+    def prepare_report_json(self):
+        report_jsons = []
+        for report in self.reports:
+            try:
+                report_jsons.append(json.dumps(report))
+            except TypeError:
+                logger.error("Couldn't dump report with type {} to json string, \
+                            probably it contains a byte array".format(report.get('type'))) 
+        json_string = "[{}]".format(','.join(report_jsons))
+        return json_string
