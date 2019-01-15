@@ -65,7 +65,7 @@ def reporter(mock_requests):
 
 @pytest.fixture
 def thundra(reporter):
-    thundra = Thundra(disable_metric=True)
+    thundra = Thundra(api_key="api_key", disable_metric=True)
     thundra.reporter = reporter
     return thundra
 
@@ -84,6 +84,13 @@ def handler_with_exception(thundra):
     def _handler(event, context):
         raise Exception('hello')
     return thundra, _handler
+
+@pytest.fixture
+def wrap_handler_with_thundra(thundra):
+    def _wrap_handler_with_thundra(handler):
+        return thundra, thundra(handler)
+    
+    return _wrap_handler_with_thundra
 
 @pytest.fixture
 def thundra_with_xray(monkeypatch, reporter):
