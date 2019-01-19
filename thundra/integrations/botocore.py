@@ -336,7 +336,7 @@ class AWSLambdaIntegration(BaseIntegration):
             Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
         if 'Payload' in request_data:
-            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
+            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'], encoding='utf-8')
 
         if 'Qualifier' in request_data:
             tags[Constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']

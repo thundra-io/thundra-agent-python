@@ -49,9 +49,10 @@ class Reporter():
         base_url = utils.get_configuration(constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL)
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
-
-        response = self.session.post(request_url, headers=headers, data=self.prepare_report_json())
-        self.reports.clear()
+        report_data = self.prepare_report_json()
+        
+        response = self.session.post(request_url, headers=headers, data=report_data)
+        self.clear()
         return response
 
     def prepare_report_json(self):
@@ -60,7 +61,10 @@ class Reporter():
             try:
                 report_jsons.append(json.dumps(report))
             except TypeError:
-                logger.error("Couldn't dump report with type {} to json string, \
-                            probably it contains a byte array".format(report.get('type'))) 
+                logger.error(("Couldn't dump report with type {} to json string, "
+                            "probably it contains a byte array").format(report.get('type'))) 
         json_string = "[{}]".format(','.join(report_jsons))
         return json_string
+
+    def clear(self):
+        self.reports.clear()
