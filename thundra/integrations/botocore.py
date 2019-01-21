@@ -44,7 +44,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         )
 
         operation_name, request_data = args
-        self.request_data = request_data
+        self.request_data = request_data.copy()
         self.response = response
         self.endpoint = instance._endpoint.host.split('/')[-1]
 
@@ -65,6 +65,14 @@ class AWSDynamoDBIntegration(BaseIntegration):
         }
         scope.span.tags = tags
         ## FINISHED ADDING TAGS ##
+
+        # Check if Key and Item fields have any byte field and convert to string
+        if 'Key' in self.request_data:
+            self.escape_byte_fields(self.request_data['Key'])
+        if 'Item' in self.request_data:
+            self.escape_byte_fields(self.request_data['Item'])
+
+
         self.OPERATION.get(operation_name, dummy_func)(scope)
 
         if exception is not None:
@@ -85,6 +93,20 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def process_update_item_op(self, scope):
         if 'Key' in self.request_data:
             scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+
+    def escape_byte_fields(self, req_dict):
+        for k, v in req_dict.items():
+            if type(v) == dict:
+                for f, fv in v.items():
+                    if type(fv) == bytes:
+                        v[f] = fv.decode()
+                    elif type(fv) == list and len(fv) != 0 and type(fv[0]) == bytes:
+                        v[f] = [e.decode() for e in fv]
+            elif type(v) == bytes:
+                req_dict[k] = v.decode()
+            elif type(v) == list and len(v) != 0 and type(v[0]) == bytes:
+                req_dict[k] = [e.decode() for e in v]
+
 
     def process_batch_write_op(self, scope):
             table_name = list(self.request_data['RequestItems'].keys())[0]
