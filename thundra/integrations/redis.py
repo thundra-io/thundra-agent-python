@@ -9,8 +9,11 @@ class RedisIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'redis_call'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        connection = str(instance.connection_pool).split(',')
+        host = connection[0][connection[0].find('host=') + 5:]
+        return host
+        # return 'redis_call'
 
     def getCommandType(self, string):
         if string in Constants.RedisCommandTypes:
@@ -26,7 +29,7 @@ class RedisIntegration(BaseIntegration):
 
         scope.span.domain_name = Constants.DomainNames['CACHE']
         scope.span.class_name = Constants.ClassNames['REDIS']
-        scope.span.operation_name = 'REDIS | ' + self.getCommandType(command_type)
+        # scope.span.operation_name = host
         scope.span.operationName = host
 
         ## ADDING TAGS ##
@@ -42,6 +45,10 @@ class RedisIntegration(BaseIntegration):
             Constants.RedisTags['REDIS_COMMAND_TYPE']: command_type,
             Constants.RedisTags['REDIS_COMMAND_ARGS']: [str(arg) for arg in args],
             Constants.RedisTags['REDIS_COMMAND']: self.getCommandType(command_type),
+            Constants.SpanTags['TRIGGER_OPERATION_NAMES']: [scope.span.tracer.function_name],
+            Constants.SpanTags['TRIGGER_DOMAIN_NAME']: Constants.LAMBDA_APPLICATION_DOMAIN_NAME,
+            Constants.SpanTags['TRIGGER_CLASS_NAME']: Constants.LAMBDA_APPLICATION_CLASS_NAME,
+            Constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
         ## FINISHED ADDING TAGS ##
