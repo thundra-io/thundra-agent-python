@@ -23,8 +23,10 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'dynamodb'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return str(request_data['TableName']) if 'TableName' in request_data else Constants.AWS_SERVICE_REQUEST
+        # return 'dynamodb'
 
     def getStatementType(self, string):
         if string in Constants.DynamoDBRequestTypes:
@@ -50,7 +52,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         scope.span.domain_name = Constants.DomainNames['DB']
         scope.span.class_name = Constants.ClassNames['DYNAMODB']
-        scope.span.operation_name = str(self.request_data['TableName'])
+        # scope.span.operation_name = str(self.request_data['TableName']) if 'TableName' in self.request_data else Constants.AWS_SERVICE_REQUEST
 
         ## ADDING TAGS ##
 
@@ -59,7 +61,8 @@ class AWSDynamoDBIntegration(BaseIntegration):
             Constants.SpanTags['OPERATION_TYPE']: self.getStatementType(operation_name),
             Constants.DBTags['DB_INSTANCE']: self.endpoint,
             Constants.DBTags['DB_TYPE']: Constants.DBTypes['DYNAMODB'],
-            Constants.AwsDynamoTags['TABLE_NAME']: str(self.request_data['TableName']),
+            Constants.AwsDynamoTags['TABLE_NAME']: str(
+                self.request_data['TableName']) if 'TableName' in self.request_data else None,
             Constants.DBTags['DB_STATEMENT_TYPE']: self.getStatementType(operation_name),
             Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
@@ -107,8 +110,10 @@ class AWSSQSIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'sqs'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return str(self.getQueueName(request_data))
+        # return 'sqs'
 
     def getRequestType(self, string):
         if string in Constants.SQSRequestTypes:
@@ -120,6 +125,7 @@ class AWSSQSIntegration(BaseIntegration):
             return data['QueueUrl'].split('/')[-1]
         elif 'QueueName' in data:
             return data['QueueName']
+        return Constants.AWS_SERVICE_REQUEST
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                          exception):
@@ -131,7 +137,7 @@ class AWSSQSIntegration(BaseIntegration):
 
         scope.span.domain_name = Constants.DomainNames['MESSAGING']
         scope.span.class_name = Constants.ClassNames['SQS']
-        scope.span.operation_name = self.queueName
+        # scope.span.operation_name = self.queueName
 
         ## ADDING TAGS ##
 
@@ -161,8 +167,22 @@ class AWSSNSIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'sns'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        operation_name, request_data = args
+        if operation_name == 'CreateTopic':
+            self.topicName = request_data.get('Name', 'N/A')
+        else:
+            arn = request_data.get(
+                'TopicArn',
+                request_data.get('TargetArn', 'N/A')
+            )
+            if arn != 'N/A':
+                self.topicName = arn.split(':')[-1]
+            else:
+                self.topicName = Constants.AWS_SERVICE_REQUEST
+
+        return self.topicName
+        # return 'sns'
 
     def getRequestType(self, string):
         if string in Constants.SNSRequestTypes:
@@ -176,18 +196,18 @@ class AWSSNSIntegration(BaseIntegration):
         self.request_data = request_data
         self.response = response
 
-        if operation_name == 'CreateTopic':
-            self.topicName = request_data.get('Name', 'N/A')
-        else:
-            arn = request_data.get(
-                'TopicArn',
-                request_data.get('TargetArn', 'N/A')
-            )
-            self.topicName = arn.split(':')[-1]
+        # if operation_name == 'CreateTopic':
+        #     self.topicName = request_data.get('Name', 'N/A')
+        # else:
+        #     arn = request_data.get(
+        #         'TopicArn',
+        #         request_data.get('TargetArn', 'N/A')
+        #     )
+        #     self.topicName = arn.split(':')[-1]
 
         scope.span.domain_name = Constants.DomainNames['MESSAGING']
         scope.span.class_name = Constants.ClassNames['SNS']
-        scope.span.operation_name = self.topicName
+        # scope.span.operation_name = self.topicName
 
         ### ADDING TAGS ###
         tags = {
@@ -214,8 +234,10 @@ class AWSKinesisIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'kinesis'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return request_data['StreamName'] if 'StreamName' in request_data else Constants.AWS_SERVICE_REQUEST
+        # return 'kinesis'
 
     def getRequestType(self, string):
         if string in Constants.KinesisRequestTypes:
@@ -226,11 +248,11 @@ class AWSKinesisIntegration(BaseIntegration):
                          exception):
 
         operation_name, request_data = args
-        self.streamName = request_data['StreamName']
+        self.streamName = request_data['StreamName'] if 'StreamName' in request_data else Constants.AWS_SERVICE_REQUEST
 
         scope.span.domain_name = Constants.DomainNames['STREAM']
         scope.span.class_name = Constants.ClassNames['KINESIS']
-        scope.span.operation_name = self.streamName
+        # scope.span.operation_name = self.streamName
 
         ### ADDING TAGS ###
         tags = {
@@ -257,8 +279,11 @@ class AWSFirehoseIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'firehose'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return request_data[
+            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else Constants.AWS_SERVICE_REQUEST
+        # return 'firehose'
 
     def getRequestType(self, string):
         if string in Constants.FirehoseRequestTypes:
@@ -269,11 +294,12 @@ class AWSFirehoseIntegration(BaseIntegration):
                          exception):
 
         operation_name, request_data = args
-        self.deliveryStreamName = request_data['DeliveryStreamName']
+        self.deliveryStreamName = request_data[
+            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else Constants.AWS_SERVICE_REQUEST
 
         scope.span.domain_name = Constants.DomainNames['STREAM']
         scope.span.class_name = Constants.ClassNames['FIREHOSE']
-        scope.span.operation_name = self.deliveryStreamName
+        # scope.span.operation_name = self.deliveryStreamName
 
         ### ADDING TAGS ###
         tags = {
@@ -300,8 +326,10 @@ class AWSS3Integration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 's3'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return request_data['Bucket'] if 'Bucket' in request_data else Constants.AWS_SERVICE_REQUEST
+        # return 's3'
 
     def getRequestType(self, string):
         if string in Constants.S3RequestTypes:
@@ -312,11 +340,11 @@ class AWSS3Integration(BaseIntegration):
                          exception):
 
         operation_name, request_data = args
-        self.bucket = request_data['Bucket']
+        self.bucket = request_data['Bucket'] if 'Bucket' in request_data else Constants.AWS_SERVICE_REQUEST
 
         scope.span.domain_name = Constants.DomainNames['STORAGE']
         scope.span.class_name = Constants.ClassNames['S3']
-        scope.span.operation_name = self.bucket
+        # scope.span.operation_name = self.bucket
 
         if "Key" in request_data:
             self.objectName = request_data["Key"]
@@ -347,8 +375,10 @@ class AWSLambdaIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'lambda'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return request_data.get('FunctionName', Constants.AWS_SERVICE_REQUEST)
+        # return 'lambda'
 
     def getRequestType(self, string):
         if string in Constants.LambdaRequestType:
@@ -359,10 +389,10 @@ class AWSLambdaIntegration(BaseIntegration):
                          exception):
 
         operation_name, request_data = args
-        self.lambdaFunction = request_data.get('FunctionName', '')
+        self.lambdaFunction = request_data.get('FunctionName', Constants.AWS_SERVICE_REQUEST)
         scope.span.domain_name = Constants.DomainNames['API']
         scope.span.class_name = Constants.ClassNames['LAMBDA']
-        scope.span.operation_name = self.lambdaFunction
+        # scope.span.operation_name = self.lambdaFunction
 
         ### ADDING TAGS ###
         tags = {
@@ -371,7 +401,9 @@ class AWSLambdaIntegration(BaseIntegration):
             Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
         if 'Payload' in request_data:
-            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'], encoding='utf-8')
+            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
+                                                                      encoding='utf-8') if type(
+                request_data['Payload']) is not str else request_data['Payload']
 
         if 'Qualifier' in request_data:
             tags[Constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']

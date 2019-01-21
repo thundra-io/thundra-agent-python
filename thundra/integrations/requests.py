@@ -11,8 +11,11 @@ class RequestsIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'http_call'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        prepared_request = args[0]
+        url = prepared_request.url
+        return url
+        # return 'http_call'
     
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
@@ -24,7 +27,7 @@ class RequestsIntegration(BaseIntegration):
         host = parsed_url.netloc
         span = scope.span
         
-        span.operation_name = url
+        # span.operation_name = url
         span.domain_name =  constants.DomainNames['API']
         span.class_name =  constants.ClassNames['HTTP']
 
@@ -40,7 +43,8 @@ class RequestsIntegration(BaseIntegration):
             constants.HttpTags['QUERY_PARAMS']: query,
             constants.SpanTags['TRIGGER_OPERATION_NAMES']: [scope.span.tracer.function_name],
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
+            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
+            constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
         span.tags = tags
