@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import thundra.constants as Constants
 from thundra.integrations.base_integration import BaseIntegration
+from thundra.plugins.log.thundra_logger import debug_logger
 
 
 class RedisIntegration(BaseIntegration):
@@ -10,10 +11,14 @@ class RedisIntegration(BaseIntegration):
         pass
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
-        connection = str(instance.connection_pool).split(',')
-        host = connection[0][connection[0].find('host=') + 5:]
-        return host
-        # return 'redis_call'
+        try:
+            connection = str(instance.connection_pool).split(',')
+            host = connection[0][connection[0].find('host=') + 5:]
+            return host
+        except:
+            debug_logger('Invalid connection')
+
+        return 'redis_call'
 
     def getCommandType(self, string):
         if string in Constants.RedisCommandTypes:
@@ -23,9 +28,9 @@ class RedisIntegration(BaseIntegration):
     # pylint: disable=W0613
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
         connection = str(instance.connection_pool).split(',')
-        host = connection[0][connection[0].find('host=')+5:]
-        port = connection[1][connection[1].find('port=')+5:]
-        command_type = wrapped.__name__.upper()
+        host = connection[0][connection[0].find('host=')+5:] or 'localhost'
+        port = connection[1][connection[1].find('port=')+5:] or 6379
+        command_type = wrapped.__name__.upper() or ""
 
         scope.span.domain_name = Constants.DomainNames['CACHE']
         scope.span.class_name = Constants.ClassNames['REDIS']
