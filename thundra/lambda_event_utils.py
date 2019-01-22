@@ -1,7 +1,7 @@
 from enum import Enum
 from thundra import constants
 import base64
-import zlib
+import gzip
 import json
 
 
@@ -39,6 +39,8 @@ class LambdaEventUtils:
                         return LambdaEventType.SQS
                     if 's3' in records:
                         return LambdaEventType.S3
+                    if 'cf' in records:
+                        return LambdaEventType.CloudFront
 
         elif 'detail-type' in original_event and original_event['detail-type'] == 'Scheduled Event' and \
                 isinstance(original_event['resources'], list):
@@ -46,9 +48,6 @@ class LambdaEventUtils:
 
         elif 'awslogs' in original_event and 'data' in original_event['awslogs']:
             return LambdaEventType.CloudWatchLogs
-
-        elif 'cf' in original_event:
-            return LambdaEventType.CloudFront
 
         elif 'deliveryStreamArn' in original_event and isinstance(original_event['records'], list):
             return LambdaEventType.Firehose
@@ -59,9 +58,8 @@ class LambdaEventUtils:
         elif 'context' in original_event and 'params' in original_event and 'header' in original_event['params']:
             return LambdaEventType.APIGateway
 
-        elif 'clientContext' in original_context:
+        elif 'clientContext' in vars(original_context):
             return LambdaEventType.Lambda
-
 
     @staticmethod
     def inject_trigger_tags_for_kinesis(span, original_event):
@@ -76,7 +74,6 @@ class LambdaEventUtils:
             stream_names.append(stream_name)
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(stream_names)))
 
-
     @staticmethod
     def inject_trigger_tags_for_firehose(span, original_event):
         span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.DomainNames['STREAM'])
@@ -86,7 +83,6 @@ class LambdaEventUtils:
         index = stream_arn.index('/') + 1
         stream_name = stream_arn[index:]
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [stream_name])
-
 
     @staticmethod
     def inject_trigger_tags_for_dynamodb(span, original_event):
@@ -102,7 +98,6 @@ class LambdaEventUtils:
             table_names.append(record['eventSourceARN'].split('/')[1])
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(table_names)))
 
-
     @staticmethod
     def inject_trigger_tags_for_sns(span, original_event):
         span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.DomainNames['MESSAGING'])
@@ -114,7 +109,6 @@ class LambdaEventUtils:
             topic_name = topic_arn.split(':')[-1]
             topic_names.append(topic_name)
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(topic_names)))
-
 
     @staticmethod
     def inject_trigger_tags_for_sqs(span, original_event):
@@ -128,7 +122,6 @@ class LambdaEventUtils:
             queue_names.append(queue_name)
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(queue_names)))
 
-
     @staticmethod
     def inject_trigger_tags_for_s3(span, original_event):
         span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.DomainNames['STORAGE'])
@@ -138,7 +131,6 @@ class LambdaEventUtils:
         for record in original_event['Records']:
             bucket_names.append(record['s3']['bucket']['name'])
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(bucket_names)))
-
 
     @staticmethod
     def inject_trigger_tags_for_cloudwatch_schedule(span, original_event):
@@ -150,19 +142,17 @@ class LambdaEventUtils:
             schedule_names.append(resource.split('/')[-1])
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(schedule_names)))
 
-
     @staticmethod
     def inject_trigger_tags_for_cloudwatch_logs(span, original_event):
         try:
             compressed_data = base64.b64decode(original_event['awslogs']['data'])
-            decompressed_data = json.loads(str(zlib.decompress(compressed_data), 'utf-8'))
+            decompressed_data = json.loads(str(gzip.decompress(compressed_data), 'utf-8'))
             span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], 'Log')
             span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], 'AWS-CloudWatch-Log')
             span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [decompressed_data['logGroup']])
         except:
-            pass
-
+            print('Error handling base64 format!')
 
     @staticmethod
     def inject_trigger_tags_for_cloudfront(span, original_event):
@@ -171,9 +161,11 @@ class LambdaEventUtils:
         span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         uris = []
         for record in original_event['Records']:
-            uris.append(record['cf']['request']['uri'])
+            try:
+                uris.append(record['cf']['request']['uri'])
+            except:
+                pass
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(uris)))
-
 
     @staticmethod
     def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
@@ -189,20 +181,19 @@ class LambdaEventUtils:
         span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], 'API')
         span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], 'AWS-APIGateway')
         span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        operation_name = original_event['params']['header']['Host'] + '/' + original_event['context']['stage'] + \
-                         original_event['params']['path']
+        operation_name = str(original_event['params']['header']['Host']) + '/' + str(
+            original_event['context']['stage']) + str(original_event['params']['path'])
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [operation_name])
 
     @staticmethod
     def inject_trigger_tags_for_lambda(span, original_context):
         if original_context:
-            if 'clientContext' in original_context:
-                if 'custom' in original_context['clientContext']:
-                    if LambdaEventUtils.LAMBDA_TRIGGER_OPERATION_NAME in original_context['clientContext']['custom'] and \
-                            original_context['clientContext']['custom'][LambdaEventUtils.LAMBDA_TRIGGER_OPERATION_NAME]:
+            if 'clientContext' in vars(original_context):
+                if 'custom' in original_context.clientContext:
+                    if LambdaEventUtils.LAMBDA_TRIGGER_OPERATION_NAME in original_context.clientContext['custom']:
                         span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.DomainNames['API'])
                         span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.ClassNames['LAMBDA'])
                         span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
                         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'],
-                                     original_context['clientContext']['custom'][
+                                     original_context.clientContext['custom'][
                                          LambdaEventUtils.LAMBDA_TRIGGER_OPERATION_NAME])
