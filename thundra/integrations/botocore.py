@@ -431,7 +431,7 @@ class AWSXrayIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
+    def get_operation_name(self, wrapped, instance, args, kwargs):
         return 'xray'
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
