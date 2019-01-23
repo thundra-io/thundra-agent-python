@@ -5,28 +5,89 @@ import mock
 
 def test_dynamodb():
     try:
+        # Make a request over the table
         dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
         table = dynamodb.Table('test-table')
         table.get_item(
             Key={
                 'username': 'janedoe',
-                'last_name': 'Doe'
+                'age': 22,
+                'colors': ['red', 'green', 'blue'],
+                'numbers': [3, 7],
+                'data': b'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk',
+                'others': [b'foo', b'bar'],
             }
+        )
+
+        # Make request over the client object
+        dynamodb.get_item(
+        TableName='test-table',
+        Key={
+            'username': {
+                'S': 'janedoe',
+            },
+            'age': {
+                'N': '22'
+            },
+            'colors': {
+                'SS': ['red', 'green', 'blue']
+            },
+            'numbers': {
+                'NS': ['3', '7']
+            },
+            'data': {
+                'B': b'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk',
+            },
+            'others': {
+                'BS': [b'foo', b'bar'],
+            },
+        }
         )
     except:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
-        assert span.class_name == 'AWS-DynamoDB'
-        assert span.domain_name == 'DB'
-        assert span.operation_name == 'test-table'
-        assert span.get_tag("operation.type") == 'READ'
-        assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
-        assert span.get_tag('db.statement') == {'username': 'janedoe', 'last_name': 'Doe'}
-        assert span.get_tag('db.statement.type') == 'READ'
-        assert span.get_tag('db.type') == 'aws-dynamodb'
-        assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
+        statements = [
+            {
+                'username': 'janedoe', 
+                'age': 22, 
+                'colors': ['red', 'green', 'blue'],
+                'data': 'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk', 
+                'numbers': [3, 7], 
+                'others': ['foo', 'bar']
+            },
+            {
+                'username': {
+                    'S': 'janedoe',
+                },
+                'age': {
+                    'N': '22'
+                },
+                'colors': {
+                    'SS': ['red', 'green', 'blue']
+                },
+                'numbers': {
+                    'NS': ['3', '7']
+                },
+                'data': {
+                    'B': 'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk',
+                },
+                'others': {
+                    'BS': ['foo', 'bar'],
+                }
+            }
+        ]
+        for i in range(len(tracer.recorder.finished_span_stack)):
+            span = tracer.recorder.finished_span_stack[i]
+            assert span.class_name == 'AWS-DynamoDB'
+            assert span.domain_name == 'DB'
+            assert span.operation_name == 'dynamodb: test-table'
+            assert span.get_tag("operation.type") == 'READ'
+            assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
+            assert span.get_tag('db.statement') == statements[i]
+            assert span.get_tag('db.statement.type') == 'READ'
+            assert span.get_tag('db.type') == 'aws-dynamodb'
+            assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
         tracer.clear()
 
 
