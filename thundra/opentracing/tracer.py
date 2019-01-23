@@ -6,7 +6,7 @@ from opentracing.scope_managers import ThreadLocalScopeManager
 from thundra.opentracing.recorder import ThundraRecorder, RecordEvents
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
-
+from thundra.plugins.trace import trace_support
 
 class ThundraTracer(opentracing.Tracer):
 
@@ -137,4 +137,4 @@ class ThundraTracer(opentracing.Tracer):
         self.recorder.clear()
 
     def add_span_listener(self, listener):
-        self.recorder.add_listener(listener)
+        trace_support.register_span_listener(listener)
