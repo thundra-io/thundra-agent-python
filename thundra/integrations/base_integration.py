@@ -5,7 +5,6 @@ from thundra.opentracing.tracer import ThundraTracer
 
 
 class BaseIntegration(abc.ABC):
-
     CLASS_TYPE = "base"
 
     def create_span(self, wrapped, instance, args, kwargs):
@@ -13,7 +12,8 @@ class BaseIntegration(abc.ABC):
         response = None
         exception = None
 
-        with tracer.start_active_span(operation_name=self.get_operation_name(), finish_on_close=True) as scope:
+        with tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),
+                                      finish_on_close=True) as scope:
             try:
                 response = wrapped(*args, **kwargs)
                 return response
@@ -33,9 +33,8 @@ class BaseIntegration(abc.ABC):
                     scope.span.set_tag('instrumentation_error', error)
 
     @abc.abstractmethod
-    def get_operation_name(self):
+    def get_operation_name(self, wrapped, instance, args, kwargs):
         raise Exception("should be implemented")
-
 
     @abc.abstractmethod
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):

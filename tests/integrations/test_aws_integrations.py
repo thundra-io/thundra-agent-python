@@ -49,11 +49,11 @@ def test_dynamodb():
         tracer = ThundraTracer.get_instance()
         statements = [
             {
-                'username': 'janedoe', 
-                'age': 22, 
+                'username': 'janedoe',
+                'age': 22,
                 'colors': ['red', 'green', 'blue'],
-                'data': 'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk', 
-                'numbers': [3, 7], 
+                'data': 'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk',
+                'numbers': [3, 7],
                 'others': ['foo', 'bar']
             },
             {
@@ -81,7 +81,7 @@ def test_dynamodb():
             span = tracer.recorder.finished_span_stack[i]
             assert span.class_name == 'AWS-DynamoDB'
             assert span.domain_name == 'DB'
-            assert span.operation_name == 'dynamodb: test-table'
+            assert span.operation_name == 'test-table'
             assert span.get_tag("operation.type") == 'READ'
             assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
             assert span.get_tag('db.statement') == statements[i]

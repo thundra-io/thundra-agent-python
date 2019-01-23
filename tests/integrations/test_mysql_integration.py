@@ -24,6 +24,7 @@ def test_mysql_integration():
         tracer = ThundraTracer.get_instance()
         mysql_span = tracer.recorder.finished_span_stack[0]
 
+        assert mysql_span.operation_name == 'db'
         assert mysql_span.get_tag(constants.SpanTags['SPAN_TYPE']) == constants.SpanTypes['RDB']
         assert mysql_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert mysql_span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
