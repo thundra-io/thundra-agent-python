@@ -1,4 +1,5 @@
 from threading import Lock
+from thundra.plugins.trace import trace_support
 
 
 class RecordEvents:
@@ -12,7 +13,6 @@ class ThundraRecorder:
         self._lock = Lock()
         self._active_span_stack = []
         self._finished_span_stack = []
-        self.listeners = []
 
     @property
     def active_span_stack(self):
@@ -36,17 +36,17 @@ class ThundraRecorder:
 
     def record(self, event, span):
         with self._lock:
+            span_listeners = trace_support.get_span_listeners()
             if event == RecordEvents.START_SPAN:
                 self._record_start_span(span)
-                for listener in self.listeners:
-                    listener.on_span_started(span)
+                for sl in span_listeners:
+                    sl.on_span_started(span)
             elif event == RecordEvents.FINISH_SPAN:
                 self._record_finish_span()
-                for listener in self.listeners:
-                    listener.on_span_finished(span)
+                for sl in span_listeners:
+                    sl.on_span_finished(span)
 
     def clear(self):
-        self.listeners.clear()
         self._finished_span_stack.clear()
 
     def _record_start_span(self, span):
@@ -56,6 +56,3 @@ class ThundraRecorder:
         if len(self._active_span_stack) > 0:
             self._finished_span_stack.append(self.active_span_stack[-1])
             self._active_span_stack.pop()
-
-    def add_listener(self, listener):
-        self.listeners.append(listener)
