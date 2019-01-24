@@ -3,7 +3,7 @@ from threading import Lock
 import opentracing
 
 from opentracing.scope_managers import ThreadLocalScopeManager
-from thundra.opentracing.recorder import ThundraRecorder, RecordEvents
+from thundra.opentracing.recorder import ThundraRecorder
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
@@ -66,7 +66,40 @@ class ThundraTracer(opentracing.Tracer):
                    start_time=None,
                    span_order=-1,
                    ignore_active_span=False):
+        # Create a new span
+        _span = self.create_span(operation_name=operation_name,
+                                child_of=child_of,
+                                references=references,
+                                trace_id=trace_id,
+                                transaction_id=transaction_id,
+                                span_id=span_id,
+                                parent_span_id=parent_span_id,
+                                tags=tags,
+                                start_time=start_time,
+                                span_order=span_order,
+                                ignore_active_span=ignore_active_span)
+        # Record the new span
+        self.recorder.record(_span)
+        # Call listener's on_span_started method with the new span
+        _span.on_started()
+        
+        return _span
 
+    def create_span(self,
+                   operation_name=None,
+                   class_name=None,
+                   domain_name=None,
+                   child_of=None,
+                   references=None,
+                   trace_id=None,
+                   transaction_id=None,
+                   span_id=None,
+                   parent_span_id=None,
+                   tags=None,
+                   start_time=None,
+                   span_order=-1,
+                   ignore_active_span=False):
+        
         with self.lock:
             self.global_span_order += 1
 
@@ -87,7 +120,7 @@ class ThundraTracer(opentracing.Tracer):
 
         _trace_id = trace_id
         _transaction_id = transaction_id
-        _span_id = span_id
+        _span_id = span_id or str(uuid.uuid4())
         _parent_span_id = parent_span_id
 
         if _parent_context is not None:
@@ -108,7 +141,6 @@ class ThundraTracer(opentracing.Tracer):
                             start_time=start_time,
                             span_order=_span_order)
 
-        self.recorder.record(RecordEvents.START_SPAN, _span)
         return _span
 
     def get_active_span(self):
@@ -118,14 +150,11 @@ class ThundraTracer(opentracing.Tracer):
         
         return None
 
-    def get_finished_stack(self):
-        return self.recorder.finished_span_stack
+    def get_span_listeners(self):
+        return trace_support.get_span_listeners()
 
-    def get_active_stack(self):
-        return self.recorder.active_span_stack
-
-    def record(self, event, span):
-        self.recorder.record(event, span)
+    def get_spans(self):
+        return self.recorder.get_spans()
 
     def inject(self, span_context, format, carrier):
         raise NotImplementedError('inject method not implemented yet')

@@ -59,7 +59,7 @@ class TracePlugin:
         }
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
-                                                   finish_on_close=True,
+                                                   finish_on_close=False,
                                                    trace_id=trace_id,
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
@@ -67,7 +67,12 @@ class TracePlugin:
         self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
 
     def after_invocation(self, plugin_context):
-        self.scope.close()
+        try:
+            self.root_span.finish()
+        except Exception as e:
+            pass
+        finally:
+            self.scope.close()
 
         if self.root_span is not None:
             self.end_time = self.root_span.start_time + self.root_span.get_duration()
@@ -98,13 +103,12 @@ class TracePlugin:
 
         duration = self.end_time - self.start_time
 
-        finished_span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
-        active_span_stack = self.tracer.get_active_stack() if self.tracer is not None else None
-        span_stack = finished_span_stack + active_span_stack
+        span_stack = self.tracer.get_spans()
 
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
             self.span_data_list.append(current_span_data)
+        
         self.tracer.clear()
         self.trace_data['applicationTags'] = application_support.get_application_tags()
         self.trace_data['rootSpanId'] = self.root_span.context.span_id

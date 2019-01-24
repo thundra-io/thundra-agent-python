@@ -13,7 +13,7 @@ def test_successful_http_call():
 
         requests.get(url)
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.recorder.finished_span_stack[0]
+        http_span = tracer.get_spans()[0]
 
         assert http_span.operation_name == url
         assert http_span.domain_name == constants.DomainNames['API']
@@ -42,7 +42,7 @@ def test_http_call_with_session():
         s.get(url)
         
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.recorder.finished_span_stack[0]
+        http_span = tracer.get_spans()[0]
 
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
@@ -71,7 +71,7 @@ def test_errorneous_http_call():
             pass
 
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.recorder.finished_span_stack[0]
+        http_span = tracer.get_spans()[0]
 
         assert http_span.operation_name == url
         assert http_span.domain_name == constants.DomainNames['API']

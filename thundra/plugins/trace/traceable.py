@@ -51,8 +51,9 @@ class Traceable:
             parent_scope = self.tracer.scope_manager.active
             parent_span = parent_scope.span if parent_scope is not None else None
 
-            scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span)
+            scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span, finish_on_close=False)
             scope.span.class_name = 'Method'
+            traced_err = None
             try:
                 if self._trace_args is True:
                     function_args_list = []
@@ -83,10 +84,18 @@ class Traceable:
                     scope.span.set_tag('method.return_value', return_value)
             except Exception as e:
                 if self._trace_error is True:
-                    scope.span.set_error_to_tag(e)
+                    traced_err = e
                 raise e
             finally:
+                try:
+                    scope.span.finish()
+                except Exception as e:
+                    if traced_err is None:
+                        traced_err = e
                 scope.close()
+                if traced_err is not None:
+                    scope.span.set_error_to_tag(traced_err)
+                    raise traced_err
             return response
 
         return trace

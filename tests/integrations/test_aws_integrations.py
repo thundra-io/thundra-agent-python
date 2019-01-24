@@ -77,8 +77,9 @@ def test_dynamodb():
                 }
             }
         ]
-        for i in range(len(tracer.recorder.finished_span_stack)):
-            span = tracer.recorder.finished_span_stack[i]
+        spans = tracer.get_spans()
+        for i in range(len(spans)):
+            span = spans[i]
             assert span.class_name == 'AWS-DynamoDB'
             assert span.domain_name == 'DB'
             assert span.operation_name == 'test-table'
@@ -102,7 +103,7 @@ def test_s3():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-S3'
         assert span.domain_name == 'Storage'
         assert span.get_tag('operation.type') == 'READ'
@@ -131,7 +132,7 @@ def test_lambda(wrap_handler_with_thundra, mock_event, mock_context):
                 pass
             
             # Check span tags
-            span = tracer.recorder.finished_span_stack[0]
+            span = tracer.get_spans()[1]
             assert span.class_name == 'AWS-Lambda'
             assert span.domain_name == 'API'
             assert span.get_tag('aws.lambda.name') == 'Test'
@@ -141,7 +142,7 @@ def test_lambda(wrap_handler_with_thundra, mock_event, mock_context):
             assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
             # Check report
-            report = thundra.reporter.reports[2]['data']
+            report = thundra.reporter.reports[3]['data']
             assert report['className'] == 'AWS-Lambda'
             assert report['domainName'] == 'API'
             assert report['tags']['aws.request.name'] == 'Invoke'
@@ -166,7 +167,7 @@ def test_sqs():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-SQS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -186,7 +187,7 @@ def test_sns():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-SNS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -209,7 +210,7 @@ def test_kinesis():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Kinesis'
         assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -231,7 +232,7 @@ def test_firehose():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Firehose'
         assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
