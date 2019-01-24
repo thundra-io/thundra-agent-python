@@ -5,7 +5,6 @@ from thundra.opentracing.tracer import ThundraTracer
 from aws_xray_sdk.core import xray_recorder
 
 class AWSXrayListener(ThundraSpanListener):
-
     _data = None
     _tracer = ThundraTracer.get_instance()
 
