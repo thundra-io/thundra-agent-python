@@ -18,17 +18,15 @@ INTEGRATIONS = {
 
 def _wrapper(wrapped, instance, args, kwargs):
     integration_name = instance.__class__.__name__.lower()
-    try:
-        response = INTEGRATIONS[integration_name].create_span(
-            wrapped,
-            instance,
-            args,
-            kwargs
-        )
-        return response
-    except:
-        pass
-    return wrapped(*args, **kwargs)
+
+    response = INTEGRATIONS[integration_name].create_span(
+        wrapped,
+        instance,
+        args,
+        kwargs
+    )
+    
+    return response
 
 
 def patch():
