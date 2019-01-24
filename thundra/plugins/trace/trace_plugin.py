@@ -66,7 +66,7 @@ class TracePlugin:
     def after_invocation(self, plugin_context):
         try:
             self.root_span.finish()
-        except Exception as e:
+        except Exception as injected_error:
             pass
         finally:
             self.scope.close()

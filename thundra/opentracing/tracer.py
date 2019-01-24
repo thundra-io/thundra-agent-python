@@ -81,8 +81,6 @@ class ThundraTracer(opentracing.Tracer):
         # Record the new span
         self.recorder.record(_span)
         # Call listener's on_span_started method with the new span
-        _span.on_started()
-        
         return _span
 
     def create_span(self,
