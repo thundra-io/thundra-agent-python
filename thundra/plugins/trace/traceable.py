@@ -51,10 +51,13 @@ class Traceable:
             parent_scope = self.tracer.scope_manager.active
             parent_span = parent_scope.span if parent_scope is not None else None
 
+            # Set finish_on_close to False, otherwise it calls span's finish method which can raise an error,
+            # which would cause the scope left open  
             scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span, finish_on_close=False)
             scope.span.class_name = 'Method'
             traced_err = None
             try:
+                # Add argument related tags to the span before calling original method
                 if self._trace_args is True:
                     function_args_list = []
                     count = 0
@@ -75,7 +78,11 @@ class Traceable:
                             }
                             function_args_list.append(function_args_dict)
                     scope.span.set_tag('method.args', function_args_list)
+                # Inform that span is initalized
+                scope.span.on_started()
+                # Call original func
                 response = original_func(*args, **kwargs)
+                # Add return value related tags after having called the original func
                 if self._trace_return_value is True and response is not None:
                     return_value = {
                         'type': type(response).__name__,
@@ -88,11 +95,14 @@ class Traceable:
                 raise e
             finally:
                 try:
+                    # Since span's finish method calls listeners, it can raise an error
                     scope.span.finish()
-                except Exception as e:
+                except Exception as injected_err:
                     if traced_err is None:
-                        traced_err = e
+                        traced_err = injected_err
+                # Close the scope regardless of an error is raised or not
                 scope.close()
+                # Set the error tags to the span (if any)
                 if traced_err is not None:
                     scope.span.set_error_to_tag(traced_err)
                     raise traced_err
