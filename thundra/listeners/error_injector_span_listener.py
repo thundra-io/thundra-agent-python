@@ -23,13 +23,11 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
         self.inject_count_freq = max(inject_count_freq, 1)
     
     def on_span_started(self, span):
-        logger.warning("on_span_started for {}, counter: {}".format(span.operation_name, self._counter))
         if (not self.inject_on_finish
             and self.able_to_raise()):
             self.raise_error()
 
     def on_span_finished(self, span):
-        logger.warning("on_span_finished for {}, counter: {}".format(span.operation_name, self._counter))
         if (self.inject_on_finish
             and self.able_to_raise()):
             self.raise_error()
