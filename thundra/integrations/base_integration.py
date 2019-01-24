@@ -27,8 +27,10 @@ class BaseIntegration(abc.ABC):
             }
             scope.span.set_tag('instrumentation_error', e)
         
-        # Call original
         try:
+            # Inform span that initialization completed
+            scope.span.on_started()
+            # Call original
             response = wrapped(*args, **kwargs)
         except Exception as e:
             exception = e
