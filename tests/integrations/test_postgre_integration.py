@@ -22,7 +22,7 @@ def test_postgre_integration():
 
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.recorder.finished_span_stack[0]
+        postgre_span = tracer.get_spans()[0]
 
         assert postgre_span.get_tag(constants.SpanTags['SPAN_TYPE']) == constants.SpanTypes['RDB']
         assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'

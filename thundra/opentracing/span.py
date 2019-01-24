@@ -2,7 +2,7 @@ import time
 from threading import Lock
 
 import opentracing
-from thundra.opentracing.recorder import RecordEvents
+from thundra.plugins.trace import trace_support
 
 
 class ThundraSpan(opentracing.Span):
@@ -63,7 +63,18 @@ class ThundraSpan(opentracing.Span):
     def finish(self, f_time=None):
         with self._lock:
             self.finish_time = int(time.time() * 1000) if f_time is None else f_time
-            self._tracer.record(RecordEvents.FINISH_SPAN, self)
+
+        self.on_finished()
+        
+    def on_finished(self):
+        span_listeners = trace_support.get_span_listeners()
+        for sl in span_listeners:
+            sl.on_span_finished(self)
+    
+    def on_started(self):
+        span_listeners = trace_support.get_span_listeners()
+        for sl in span_listeners:
+            sl.on_span_started(self)
 
     def log_kv(self, key_values, timestamp=None):
         with self._lock:

@@ -18,7 +18,7 @@ def test_xray_plugin_initialization(handler_with_xray):
 
 def test_xray_data():
     tracer = AWSXRayPlugin().tracer
-    listener = trace_support.get_span_listeners()[-1]
+    listener = tracer.get_span_listeners()[-1]
     assert isinstance(listener, AWSXrayListener)
     trace_support.clear_span_listeners()
     tracer.clear()

@@ -13,7 +13,7 @@ def test_via_threadpool():
     assert squared_numbers == expected_result
 
     tracer = ThundraTracer.get_instance()
-    nodes = tracer.recorder.finished_span_stack
+    nodes = tracer.get_spans()
     active_span = None
     for key in nodes:
         if key.operation_name == 'calculate_parallel':
@@ -45,7 +45,7 @@ def test_via_threading():
     thread.join()
 
     tracer = ThundraTracer.get_instance()
-    nodes = tracer.recorder.finished_span_stack
+    nodes = tracer.get_spans()
     active_span = None
     for key in nodes:
         if key.operation_name == 'calculate_in_parallel':

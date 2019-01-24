@@ -19,8 +19,8 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
 
         self.error_message = error_message
         self.error_type = error_type
-        self.inject_on_finish=inject_on_finish
-        self.inject_count_freq=inject_count_freq
+        self.inject_on_finish = inject_on_finish
+        self.inject_count_freq = max(inject_count_freq, 1)
     
     def on_span_started(self, span):
         logger.warning("on_span_started for {}, counter: {}".format(span.operation_name, self._counter))
@@ -29,7 +29,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
             self.raise_error()
 
     def on_span_finished(self, span):
-        logger.warning("on_span_started for {}, counter: {}".format(span.operation_name, self._counter))
+        logger.warning("on_span_finished for {}, counter: {}".format(span.operation_name, self._counter))
         if (self.inject_on_finish
             and self.able_to_raise()):
             self.raise_error()
