@@ -63,26 +63,8 @@ class TracePlugin:
                                                    trace_id=trace_id,
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
+        # Add root span tags
         plugin_context['span_id'] = self.root_span.context.trace_id
-        self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
-
-    def after_invocation(self, plugin_context):
-        try:
-            self.root_span.finish()
-        except Exception as injected_error:
-            pass
-        finally:
-            self.scope.close()
-
-        if self.root_span is not None:
-            self.end_time = self.root_span.start_time + self.root_span.get_duration()
-        else:
-            self.end_time = int(time.time() * 1000)
-
-        context = plugin_context['context']
-        reporter = plugin_context['reporter']
-
-        #### ADDING TAGS ####
         self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(
             getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)))
         self.root_span.set_tag('aws.lambda.name', getattr(context, constants.CONTEXT_FUNCTION_NAME, None))
@@ -94,6 +76,22 @@ class TracePlugin:
         self.root_span.set_tag('aws.lambda.invocation.timeout', plugin_context.get('timeout', False))
         self.root_span.set_tag('aws.lambda.invocation.request_id',
                                getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
+        self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
+
+        self.root_span.on_started()
+
+    def after_invocation(self, plugin_context):
+        self.scope.close()
+
+        if self.root_span is not None:
+            self.end_time = self.root_span.start_time + self.root_span.get_duration()
+        else:
+            self.end_time = int(time.time() * 1000)
+
+        context = plugin_context['context']
+        reporter = plugin_context['reporter']
+
+        #### ADDING TAGS ####
         skip_request = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         skip_response = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         if skip_request != True:
