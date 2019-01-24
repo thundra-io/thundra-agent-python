@@ -13,7 +13,7 @@ def test_set():
         span = tracer.get_spans()[0]
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
-        assert span.operationName == 'test'
+        assert span.operation_name == 'test'
         assert span.get_tag('db.type') == 'redis'
         assert span.get_tag('db.instance') == 'test:12345'
         assert span.get_tag('db.statement.type') == 'WRITE'
@@ -35,7 +35,7 @@ def test_get():
         span = tracer.get_spans()[0]
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
-        assert span.operationName == 'test'
+        assert span.operation_name == 'test'
         assert span.get_tag('db.type') == 'redis'
         assert span.get_tag('db.instance') == 'test:12345'
         assert span.get_tag('db.statement.type') == 'READ'

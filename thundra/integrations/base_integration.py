@@ -14,7 +14,7 @@ class BaseIntegration(abc.ABC):
         response = None
         exception = None
 
-        scope = tracer.start_active_span(operation_name=self.get_operation_name(), finish_on_close=False)
+        scope = tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),finish_on_close=False)
         # Inject before span tags
         try:
             self.before_call(scope, wrapped, instance, args, kwargs, response, exception)

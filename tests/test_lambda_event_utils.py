@@ -1,5 +1,4 @@
 from thundra.opentracing.tracer import ThundraTracer
-# import boto3
 import mock
 from thundra.lambda_event_utils import LambdaEventUtils
 from thundra.lambda_event_utils import LambdaEventType
@@ -19,7 +18,7 @@ def test_dynamodb_trigger(handler, mock_dynamodb_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
@@ -39,7 +38,7 @@ def test_sqs_trigger(handler, mock_sqs_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SQS']
@@ -59,7 +58,7 @@ def test_sns_trigger(handler, mock_sns_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SNS']
@@ -79,7 +78,7 @@ def test_kinesis_trigger(handler, mock_kinesis_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['KINESIS']
@@ -100,7 +99,7 @@ def test_cloudwatch_schedule_trigger(handler, mock_cloudwatch_schedule_event, mo
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Schedule'
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Schedule'
@@ -121,7 +120,7 @@ def test_cloudwatch_logs_trigger(handler, mock_cloudwatch_logs_event, mock_conte
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Log'
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Log'
@@ -143,7 +142,7 @@ def test_cloudfront_event_trigger(handler, mock_cloudfront_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'CDN'
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudFront'
@@ -163,7 +162,7 @@ def test_firehose_trigger(handler, mock_firehose_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['FIREHOSE']
@@ -184,7 +183,7 @@ def test_apigateway_proxy_trigger(handler, mock_apigateway_proxy_event, mock_con
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
@@ -206,7 +205,7 @@ def test_apigateway_trigger(handler, mock_apigateway_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
@@ -227,7 +226,7 @@ def test_s3_trigger(handler, mock_s3_event, mock_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STORAGE']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['S3']
@@ -247,7 +246,7 @@ def test_lambda_trigger(handler, mock_event, mock_lambda_context):
         except:
             print("Error running handler!")
             raise
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.recorder.get_spans()[0]
 
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['API']
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['LAMBDA']

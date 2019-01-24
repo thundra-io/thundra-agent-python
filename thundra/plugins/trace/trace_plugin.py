@@ -81,6 +81,12 @@ class TracePlugin:
         self.root_span.on_started()
 
     def after_invocation(self, plugin_context):
+        try:
+            self.scope.span.finish()
+        except Exception as injected_err:
+            # TODO: handle root span finish errors
+            pass
+        
         self.scope.close()
 
         if self.root_span is not None:

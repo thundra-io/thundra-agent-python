@@ -11,8 +11,13 @@ class RequestsIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self):
-        return 'http_call'
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        try:
+            prepared_request = args[0]
+            url = prepared_request.url
+            return url
+        except:
+            debug_logger('Invalid request')
     
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
@@ -24,11 +29,8 @@ class RequestsIntegration(BaseIntegration):
         host = parsed_url.netloc
         span = scope.span
         
-        span.operation_name = url
         span.domain_name =  constants.DomainNames['API']
         span.class_name =  constants.ClassNames['HTTP']
-
-        ## ADDING TAGS ##
 
         tags = {
             constants.SpanTags['SPAN_TYPE']: constants.SpanTypes['HTTP'],
@@ -38,15 +40,13 @@ class RequestsIntegration(BaseIntegration):
             constants.HttpTags['HTTP_PATH']: path,
             constants.HttpTags['HTTP_HOST']: host,
             constants.HttpTags['QUERY_PARAMS']: query,
+            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [span.tracer.function_name],
+            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
+            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
+            constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
         span.tags = tags
-
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), span)
-        
-        if response is not None:
-            self.set_response(response, span)
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         span = scope.span
