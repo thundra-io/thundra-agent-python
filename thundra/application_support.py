@@ -9,8 +9,6 @@ from thundra.constants import (
     APPLICATION_TAG_PROP_NAME_PREFIX,
 )
 
-
-
 _application_tags = {}
 application_domain_name = utils.get_configuration(APPLICATION_DOMAIN_NAME_PROP_NAME)
 application_class_name = utils.get_configuration(APPLICATION_CLASS_NAME_PROP_NAME)
