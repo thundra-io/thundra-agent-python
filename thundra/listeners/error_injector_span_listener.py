@@ -1,8 +1,6 @@
-import logging
 from threading import Lock
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 
-logger = logging.getLogger(__name__)
 default_error_message = "Error injected by Thundra!"
 default_error_type = Exception
 

@@ -50,6 +50,9 @@ class ThundraSpanFilter(SpanFilter):
             accepted = self.operation_name == span.operation_name
         
         if accepted and self.tags is not None:
-            accepted = self.tags == span.tags
+            for k, v in self.tags.items():
+                if span.get_tag(k) != v:
+                    accepted = False
+                    break
         
         return accepted
