@@ -5,7 +5,6 @@ default_error_message = "Error injected by Thundra!"
 default_error_type = Exception
 
 class ErrorInjectorSpanListener(ThundraSpanListener):
-
     def __init__(self, 
         error_message=default_error_message, 
         error_type=default_error_type,
@@ -44,3 +43,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
             self._counter += 1
         
         return self._counter
+    
+    @staticmethod
+    def from_config(config):
+        return ErrorInjectorSpanListener()

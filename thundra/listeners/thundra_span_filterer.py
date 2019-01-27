@@ -56,3 +56,23 @@ class ThundraSpanFilter(SpanFilter):
                     break
         
         return accepted
+
+    def __repr__(self):
+        return ("ThundraSpanFilter with class_name={}, domain_name={},",
+            "operation_name={}, tags={}").format(self.class_name, self.domain_name, self.operation_name, self.tags)
+
+    @staticmethod
+    def from_config(config):
+        kwargs = {}
+        domain_name = config.get('domain_name')
+        class_name = config.get('class_name')
+        operation_name = config.get('operation_name')
+
+        if domain_name is not None:
+            kwargs['domain_name'] = str(domain_name)
+        if class_name is not None:
+            kwargs['class_name'] = int(class_name)
+        if operation_name is not None:
+            kwargs['operation_name'] = int(operation_name)
+
+        return ThundraSpanFilter(**kwargs)

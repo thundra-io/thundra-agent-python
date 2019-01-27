@@ -34,6 +34,29 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             delay = round(random.gauss(self.delay, self.sigma))
         
         return max(0, delay)
+
+    def __repr__(self):
+        return "Latency injector span listener, delay={}, sigma={}, variation={}, dist={}".format(self.delay, self.sigma, self.variation, self.distribution)
+    
+    @staticmethod
+    def from_config(config):
+        kwargs = {}
+        delay = config.get('delay')
+        variation = config.get('variation')
+        sigma = config.get('sigma')
+        distribution = config.get('distribution')
+
+        if delay is not None:
+            kwargs['delay'] = int(delay)
+        if variation is not None:
+            kwargs['variation'] = int(variation)
+        if sigma is not None:
+            kwargs['sigma'] = int(sigma)
+        if distribution is not None:
+            kwargs['distribution'] = str(distribution)
+        
+
+        return LatencyInjectorSpanListener(**kwargs)
             
 
         
