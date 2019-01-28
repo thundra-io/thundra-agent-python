@@ -7,24 +7,24 @@ def test_frequency():
         with tracer.start_active_span(operation_name='foo', finish_on_close=True) as scope:
             span = scope.span
             
-            sl = ErrorInjectorSpanListener(
+            esl = ErrorInjectorSpanListener(
                 inject_count_freq=3
             )
 
             for i in range(10):
-                sl.on_span_finished(span)
+                esl.on_span_finished(span)
 
-            assert sl._counter == 0
+            assert esl._counter == 0
 
             err_count = 0
             for i in range(33):
                 try:
-                    sl.on_span_started(span)
+                    esl.on_span_started(span)
                 except Exception:
                     err_count += 1
                     pass
 
-            assert sl._counter == 33
+            assert esl._counter == 33
             assert err_count == 11
     except Exception:
         raise
@@ -39,7 +39,7 @@ def test_err_type_and_message():
             
             error_type = NameError
             error_message = "Your name is not good for this mission!"
-            sl = ErrorInjectorSpanListener(
+            esl = ErrorInjectorSpanListener(
                 error_type=error_type,
                 error_message=error_message,
                 inject_on_finish=False
@@ -47,7 +47,7 @@ def test_err_type_and_message():
 
             error_on_started = None
             try:
-                sl.on_span_started(span)
+                esl.on_span_started(span)
             except Exception as e:
                 error_on_started = e
             
@@ -58,7 +58,7 @@ def test_err_type_and_message():
 
             error_on_finished = None
             try:
-                sl.on_span_finished(span)
+                esl.on_span_finished(span)
             except Exception as e:
                 error_on_finished = e
             
@@ -71,15 +71,15 @@ def test_err_type_and_message():
 def test_create_from_config():
     config = {
         'errorType': 'NameError',
-        'errorMessage': '"Your name is not good for this mission!"',
+        'errorMessage': '"You have a very funny name!"',
         'injectOnFinish': 'true',
         'injectCountFreq': '7',
         'foo': 'bar',
     }
 
-    sl = ErrorInjectorSpanListener.from_config(config)
+    esl = ErrorInjectorSpanListener.from_config(config)
 
-    assert sl.error_type is NameError
-    assert sl.error_message == "Your name is not good for this mission!"
-    assert sl.inject_on_finish
-    assert sl.inject_count_freq == 7
+    assert esl.error_type is NameError
+    assert esl.error_message == "You have a very funny name!"
+    assert esl.inject_on_finish
+    assert esl.inject_count_freq == 7

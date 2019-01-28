@@ -10,16 +10,16 @@ def test_delay_amount(mocked_time):
         with tracer.start_active_span(operation_name='foo', finish_on_close=True) as scope:
             span = scope.span
             delay = 370
-            sl = LatencyInjectorSpanListener(delay=delay)
+            lsl = LatencyInjectorSpanListener(delay=delay)
 
-            sl.on_span_started(span)
+            lsl.on_span_started(span)
             
             called_delay = (mocked_time.call_args[0][0]) * 1000
 
             assert delay == called_delay
-            assert sl.delay == delay
-            assert sl.distribution == 'uniform'
-            assert sl.variation == 0
+            assert lsl.delay == delay
+            assert lsl.distribution == 'uniform'
+            assert lsl.variation == 0
     except Exception:
         raise
     finally:
@@ -33,16 +33,16 @@ def test_delay_variaton(mocked_time):
             span = scope.span
             delay = 100
             variation = 50
-            sl = LatencyInjectorSpanListener(delay=delay, variation=variation)
+            lsl = LatencyInjectorSpanListener(delay=delay, variation=variation)
 
-            sl.on_span_started(span)
+            lsl.on_span_started(span)
             
             called_delay = (mocked_time.call_args[0][0]) * 1000
 
             assert called_delay <= delay+variation and called_delay >= delay-variation
-            assert sl.delay == delay
-            assert sl.variation == variation
-            assert sl.distribution == 'uniform'
+            assert lsl.delay == delay
+            assert lsl.variation == variation
+            assert lsl.distribution == 'uniform'
     except Exception:
         raise
     finally:
@@ -56,9 +56,9 @@ def test_create_from_config():
         'variation': '37',
     }
 
-    sl = LatencyInjectorSpanListener.from_config(config)
+    lsl = LatencyInjectorSpanListener.from_config(config)
 
-    assert sl.delay == 370
-    assert sl.sigma == 73
-    assert sl.variation == 37
-    assert sl.distribution == 'normal'
+    assert lsl.delay == 370
+    assert lsl.sigma == 73
+    assert lsl.variation == 37
+    assert lsl.distribution == 'normal'
