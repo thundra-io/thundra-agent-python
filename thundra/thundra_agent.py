@@ -12,9 +12,7 @@ from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
 from thundra.reporter import Reporter
-
 import thundra.utils as utils
-import thundra.application_support as application_support 
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +87,6 @@ class Thundra:
 
                 self.plugin_context['request'] = event
                 self.plugin_context['context'] = context
-                application_support.clear_application_tags()
                 self.execute_hook('before:invocation', self.plugin_context)
                 if threading.current_thread().__class__.__name__ == '_MainThread':
                     signal.signal(signal.SIGALRM, self.timeout_handler)
@@ -115,9 +112,7 @@ class Thundra:
                 except Exception as e:
                     try:
                         self.plugin_context['error'] = e
-                        application_support.parse_application_tags()
                         self.prepare_and_send_reports()
-                        application_support.clear_application_tags()
                         after_done = True
                     except Exception as e_in:
                         logger.error("Error during the after part of Thundra: {}".format(e_in))
@@ -135,9 +130,7 @@ class Thundra:
             # After having run the user's handler
             if before_done and not after_done:
                 try:
-                    application_support.parse_application_tags()
                     self.prepare_and_send_reports()
-                    application_support.clear_application_tags()
                 except Exception as e:
                     logger.error("Error during the after part of Thundra: {}".format(e))
                     self.reporter.reports.clear()

@@ -1,21 +1,21 @@
-_tags = {}
+_invocation_tags = {}
 
 def set_tag(key, value):
-    _tags[key] = value
+    _invocation_tags[key] = value
 
 def set_many(tags):
-    _tags.update(tags)
+    _invocation_tags.update(tags)
 
 def get_tag(key):
-    if key in _tags:
-        return _tags[key]
+    if key in _invocation_tags:
+        return _invocation_tags[key]
     return None
 
 def get_tags_dict():
-    return _tags.copy()
+    return _invocation_tags.copy()
 
 def remove_tag(key):
-    return _tags.pop(key, None)
+    return _invocation_tags.pop(key, None)
 
 def clear():
-    _tags.clear()
+    _invocation_tags.clear()
