@@ -1,4 +1,5 @@
 import abc
+import thundra.utils as utils
 
 class SpanFilterer(abc.ABC):
     @abc.abstractmethod
@@ -64,9 +65,15 @@ class ThundraSpanFilter(SpanFilter):
     @staticmethod
     def from_config(config):
         kwargs = {}
+        tags = {}
         domain_name = config.get('domainName')
         class_name = config.get('className')
         operation_name = config.get('operationName')
+
+        tag_prefix = 'tag.'
+        for k, v in config.items():
+            if k.startswith(tag_prefix):
+                tags[k[len(tag_prefix):]] = utils.str_to_proper_type(v)
 
         if domain_name is not None:
             kwargs['domain_name'] = str(domain_name)
@@ -74,5 +81,8 @@ class ThundraSpanFilter(SpanFilter):
             kwargs['class_name'] = str(class_name)
         if operation_name is not None:
             kwargs['operation_name'] = str(operation_name)
+        if len(tags) > 0:
+            kwargs['tags'] = tags
+        
 
         return ThundraSpanFilter(**kwargs)

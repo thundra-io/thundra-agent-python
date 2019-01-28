@@ -39,10 +39,12 @@ class FilteringSpanListener(ThundraSpanListener):
             if k.startswith(kwarg_prefix):
                 listener_config[k[len(kwarg_prefix):]] = v
             elif k.startswith(filter_prefix):
-                if filter_configs.get(k) is None:
-                    filter_configs[k] = {}
-                filter_arg = k[k.find('.')+1:]
-                filter_configs[k][filter_arg] = v
+                first_dot_idx = k.find('.') 
+                filter_id = k[:first_dot_idx]
+                filter_arg = k[first_dot_idx+1:]
+                if filter_configs.get(filter_id) is None:
+                    filter_configs[filter_id] = {}
+                filter_configs[filter_id][filter_arg] = v
 
         filters = [ThundraSpanFilter.from_config(c) for c in filter_configs.values()]
         

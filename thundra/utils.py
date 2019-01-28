@@ -9,6 +9,20 @@ logger = logging.getLogger(__name__)
 def get_configuration(key, default=None):
     return os.environ.get(key, default=default)
 
+def str_to_proper_type(val):
+    result = val
+    try:
+        result = str2bool(val)
+    except ValueError:
+        try:
+            result = int(val)
+        except ValueError:
+            try:
+                result = float(val)
+            except ValueError:
+                result = val.strip('"')
+    
+    return result
 
 def should_disable(disable_by_env, disable_by_param=False):
     if disable_by_env == 'true':
