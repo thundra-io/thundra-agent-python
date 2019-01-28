@@ -20,9 +20,6 @@ class FilteringSpanListener(ThundraSpanListener):
             return
         if self.filterer is None or self.filterer.accept(span):
             self.listener.on_span_finished(span)
-
-    def __repr__(self):
-        return "filtering_span_listener with listener: {}, filterer: {}".format(self.listener, self.filterer)
     
     @staticmethod
     def from_config(config):

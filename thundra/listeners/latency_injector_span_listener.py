@@ -35,9 +35,6 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
         
         return max(0, delay)
 
-    def __repr__(self):
-        return "Latency injector span listener, delay={}, sigma={}, variation={}, dist={}".format(self.delay, self.sigma, self.variation, self.distribution)
-    
     @staticmethod
     def from_config(config):
         kwargs = {}

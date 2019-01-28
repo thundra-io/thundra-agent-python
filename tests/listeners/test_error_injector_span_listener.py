@@ -1,4 +1,4 @@
-from thundra.listeners.error_injector_span_listener import ErrorInjectorSpanListener
+from thundra.listeners import ErrorInjectorSpanListener
 from thundra.opentracing.tracer import ThundraTracer
 
 def test_frequency():
@@ -69,26 +69,17 @@ def test_err_type_and_message():
         tracer.clear()
 
 def test_create_from_config():
-    try:
-        tracer = ThundraTracer.get_instance()
-        with tracer.start_active_span(operation_name='foo', finish_on_close=True) as scope:
-            span = scope.span
+    config = {
+        'errorType': 'NameError',
+        'errorMessage': '"Your name is not good for this mission!"',
+        'injectOnFinish': 'true',
+        'injectCountFreq': '7',
+        'foo': 'bar',
+    }
 
-            config = {
-                'errorType': 'NameError',
-                'errorMessage': '"Your name is not good for this mission!"',
-                'injectOnFinish': 'true',
-                'injectCountFreq': '7',
-                'foo': 'bar',
-            }
+    sl = ErrorInjectorSpanListener.from_config(config)
 
-            sl = ErrorInjectorSpanListener.from_config(config)
-
-            assert sl.error_type is NameError
-            assert sl.error_message == "Your name is not good for this mission!"
-            assert sl.inject_on_finish
-            assert sl.inject_count_freq == 7
-    except Exception:
-        raise
-    finally:
-        tracer.clear()
+    assert sl.error_type is NameError
+    assert sl.error_message == "Your name is not good for this mission!"
+    assert sl.inject_on_finish
+    assert sl.inject_count_freq == 7
