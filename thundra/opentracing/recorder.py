@@ -1,5 +1,4 @@
 from threading import Lock
-from thundra.plugins.trace import trace_support
 
 
 class ThundraRecorder:

@@ -1,3 +1,5 @@
+import builtins
+import thundra.utils as utils
 from threading import Lock
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 
@@ -46,4 +48,20 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
     
     @staticmethod
     def from_config(config):
-        return ErrorInjectorSpanListener()
+        kwargs = {}
+        error_message = config.get('errorMessage')
+        error_type = config.get('errorType')
+        inject_on_finish = config.get('injectOnFinish')
+        inject_count_freq = config.get('injectCountFreq')
+
+        if error_message is not None:
+            kwargs['error_message'] = error_message.strip('"')
+        if error_type is not None:
+            kwargs['error_type'] = getattr(builtins, str(error_type))
+        if inject_on_finish is not None:
+            kwargs['inject_on_finish'] = utils.str2bool(inject_on_finish)
+        if inject_count_freq is not None:
+            kwargs['inject_count_freq'] = int(inject_count_freq)
+        
+
+        return ErrorInjectorSpanListener(**kwargs)

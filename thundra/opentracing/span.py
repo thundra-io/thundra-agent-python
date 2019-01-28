@@ -2,7 +2,6 @@ import time
 from threading import Lock
 
 import opentracing
-from thundra.plugins.trace import trace_support
 
 
 class ThundraSpan(opentracing.Span):
@@ -67,12 +66,12 @@ class ThundraSpan(opentracing.Span):
         self.on_finished()
         
     def on_finished(self):
-        span_listeners = trace_support.get_span_listeners()
+        span_listeners = self._tracer.get_span_listeners()
         for sl in span_listeners:
             sl.on_span_finished(self)
     
     def on_started(self):
-        span_listeners = trace_support.get_span_listeners()
+        span_listeners = self._tracer.get_span_listeners()
         for sl in span_listeners:
             sl.on_span_started(self)
 

@@ -86,3 +86,7 @@ class AWSXrayListener(ThundraSpanListener):
     @staticmethod
     def set_data(data):
         AWSXrayListener._data = data
+
+    @staticmethod
+    def from_config(config):
+        raise NotImplementedError

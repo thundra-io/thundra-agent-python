@@ -17,7 +17,7 @@ SPAN_LISTENERS = {
 # To match span listener class type and it's arguments as two groups
 r1 = r'(\w+)\[(.*)\]'
 # To match each argument key value pair in arguments list
-r2 = r'[\w.]+=\w*'
+r2 = r'[\w.]+=[\w\-\"\' ]*'
 # Compile reg exs
 p1 = re.compile(r1)
 p2 = re.compile(r2)
@@ -40,8 +40,7 @@ for env_k, env_v in os.environ.items():
             
             sl_class = SPAN_LISTENERS.get(sl_class_name)
             sl = sl_class.from_config(config)
-            print(sl)
-            
+            _active_span_listeners.append(sl)
                 
 def get_span_listeners():
     return _active_span_listeners

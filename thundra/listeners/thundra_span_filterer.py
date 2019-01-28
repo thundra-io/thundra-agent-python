@@ -64,15 +64,15 @@ class ThundraSpanFilter(SpanFilter):
     @staticmethod
     def from_config(config):
         kwargs = {}
-        domain_name = config.get('domain_name')
-        class_name = config.get('class_name')
-        operation_name = config.get('operation_name')
+        domain_name = config.get('domainName')
+        class_name = config.get('className')
+        operation_name = config.get('operationName')
 
         if domain_name is not None:
             kwargs['domain_name'] = str(domain_name)
         if class_name is not None:
-            kwargs['class_name'] = int(class_name)
+            kwargs['class_name'] = str(class_name)
         if operation_name is not None:
-            kwargs['operation_name'] = int(operation_name)
+            kwargs['operation_name'] = str(operation_name)
 
         return ThundraSpanFilter(**kwargs)
