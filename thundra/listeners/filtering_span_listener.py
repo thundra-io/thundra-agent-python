@@ -1,7 +1,9 @@
+import logging
 from thundra.listeners import ThundraSpanListener
 from thundra.listeners.thundra_span_filterer import ThundraSpanFilter
 from thundra.listeners.thundra_span_filterer import ThundraSpanFilterer
 
+logger = logging.getLogger(__name__)
 
 class FilteringSpanListener(ThundraSpanListener):
     
@@ -27,7 +29,16 @@ class FilteringSpanListener(ThundraSpanListener):
             sl_class.__name__: sl_class 
             for sl_class in ThundraSpanListener.__subclasses__()
         }
-        listener_class = SPAN_LISTENERS[config['listener']]
+
+        if 'listener' not in config:
+            listener_class = None
+        else:
+            try:
+                listener_class = SPAN_LISTENERS[config['listener']]
+            except KeyError:
+                listener_class = None
+                logger.warning('given span listener class %s is not found', config['listener'])
+        
         listener_config = {}
         filter_configs = {}
         kwarg_prefix = 'config.'
@@ -45,8 +56,13 @@ class FilteringSpanListener(ThundraSpanListener):
 
         filters = [ThundraSpanFilter.from_config(c) for c in filter_configs.values()]
         
-        filterer = ThundraSpanFilterer(span_filters=filters)
-        listener = listener_class.from_config(listener_config)
+        filterer = None
+        if len(filters) > 0:
+            filterer = ThundraSpanFilterer(span_filters=filters)
 
+        listener = None
+        if listener_class is not None:
+            listener = listener_class.from_config(listener_config)
+        
         return FilteringSpanListener(listener=listener, filterer=filterer)
     

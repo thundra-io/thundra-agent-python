@@ -22,25 +22,6 @@ r2 = r'[\w.]+=[\w.\-\"\' ]*'
 p1 = re.compile(r1)
 p2 = re.compile(r2)
 
-for env_k, env_v in os.environ.items():
-    if env_k.startswith(THUNDRA_LAMBDA_SPAN_LISTENER):
-        m = p1.match(env_v)
-        if m is not None:
-            try:
-                sl_class_name = m.group(1)
-                config_str = m.group(2)
-            except IndexError as e:
-                logger.warning(e)
-
-            config = {}
-            kv_pairs = p2.findall(config_str)
-            for kv in kv_pairs:
-                [k, v] = kv.split('=')
-                config[k] = v
-            
-            sl_class = SPAN_LISTENERS.get(sl_class_name)
-            sl = sl_class.from_config(config)
-            _active_span_listeners.append(sl)
                 
 def get_span_listeners():
     return _active_span_listeners
@@ -50,3 +31,43 @@ def register_span_listener(listener):
 
 def clear_span_listeners():
     _active_span_listeners.clear()
+
+def parse_span_listeners():
+    # Clear before parsing to prevent appending duplicate sl's
+    clear_span_listeners()
+
+    for env_k, env_v in os.environ.items():
+        if env_k.startswith(THUNDRA_LAMBDA_SPAN_LISTENER):
+            m = p1.match(env_v)
+            if m is not None:
+                try:
+                    sl_class_name = m.group(1)
+                    config_str = m.group(2)
+                except IndexError as e:
+                    sl_class_name = None
+                    config_str = None
+                    logger.warning(e)
+
+                config = {}
+
+                if config_str is not None:
+                    kv_pairs = p2.findall(config_str)
+                    for kv in kv_pairs:
+                        [k, v] = kv.split('=')
+                        config[k] = v
+                
+                sl_class = None
+                if sl_class_name is not None:
+                    try:
+                        sl_class = SPAN_LISTENERS[sl_class_name]
+                    except KeyError:
+                        logger.warning('given span listener class %s is not found', sl_class_name)
+                
+                if sl_class is not None:    
+                    sl = sl_class.from_config(config)
+                    # Register parsed span listener
+                    register_span_listener(sl)
+
+# Parse span listeners from environment variables
+parse_span_listeners()
+
