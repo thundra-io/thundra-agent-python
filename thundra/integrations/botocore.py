@@ -31,7 +31,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def getStatementType(self, string):
         if string in Constants.DynamoDBRequestTypes:
             return Constants.DynamoDBRequestTypes[string]
-        return 'READ'
+        return ''
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                          exception):

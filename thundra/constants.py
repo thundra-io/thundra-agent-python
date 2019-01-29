@@ -97,6 +97,8 @@ ClassNames = {
     'RDB': 'RDB',
     'REDIS': 'Redis',
     'HTTP': 'HTTP',
+    'MYSQL': 'MYSQL',
+    'POSTGRESQL': 'POSTGRESQL',
 }
 
 DBTags = {
@@ -124,7 +126,6 @@ SpanTags = {
     'OPERATION_TYPE': 'operation.type',
     'DB_INSTANCE': 'db.instance',
     'DB_TYPE': 'db.type',
-    'DB_TABLE_NAME': 'db.table.name',
     'DB_HOST': 'db.host',
     'TRIGGER_DOMAIN_NAME': 'trigger.domainName',
     'TRIGGER_CLASS_NAME': 'trigger.className',

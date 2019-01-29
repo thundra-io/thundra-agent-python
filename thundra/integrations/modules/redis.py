@@ -6,13 +6,12 @@ from thundra.integrations.redis import RedisIntegration
 
 redis_integration = RedisIntegration()
 def _wrapper(wrapped, instance, args, kwargs):
-    response = redis_integration.run_and_trace(
+    return redis_integration.run_and_trace(
         wrapped,
         instance,
         args,
         kwargs
     )
-    return response
 
 
 def patch():
