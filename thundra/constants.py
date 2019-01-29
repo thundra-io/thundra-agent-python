@@ -122,7 +122,6 @@ DBTypes = {
 }
 
 SpanTags = {
-    'SPAN_TYPE': 'span.type',
     'OPERATION_TYPE': 'operation.type',
     'DB_INSTANCE': 'db.instance',
     'DB_TYPE': 'db.type',
@@ -133,19 +132,6 @@ SpanTags = {
     'TOPOLOGY_VERTEX': 'topology.vertex',
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type:',
-}
-
-SpanTypes = {
-    'REDIS': 'Redis',
-    'RDB': 'RDB',
-    'HTTP': 'HTTP',
-    'AWS_DYNAMO': 'AWS-DynamoDB',
-    'AWS_SQS': 'AWS-SQS',
-    'AWS_SNS': 'AWS-SNS',
-    'AWS_KINESIS': 'AWS-Kinesis',
-    'AWS_FIREHOSE': 'AWS-Firehose',
-    'AWS_S3': 'AWS-S3',
-    'AWS_LAMBDA': 'AWS-Lambda',
 }
 
 DynamoDBRequestTypes = {

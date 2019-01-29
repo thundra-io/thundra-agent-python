@@ -13,13 +13,12 @@ def _wrapper(wrapped, instance, args, kwargs):
     if utils.is_excluded_url(prepared_request.url):
         return wrapped(*args, **kwargs)
 
-    response = request_integration.run_and_trace(
+    return request_integration.run_and_trace(
         wrapped,
         instance,
         args,
         kwargs,
     )
-    return response
 
 def patch():
     disable_http_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_HTTP_INTEGRATION)
