@@ -1,5 +1,7 @@
 from thundra.opentracing.tracer import ThundraTracer
 from boto3.exceptions import Boto3Error
+from botocore.exceptions import BotoCoreError
+from botocore.errorfactory import ClientError
 import boto3
 import mock
 
@@ -241,8 +243,7 @@ def test_firehose():
         tracer.clear()
 
 def test_kms():
-    err = None
-    expected_err_path = 'botocore.errorfactory.NotFoundException'
+    botocore_errors = (ClientError, Boto3Error, BotoCoreError)
     try:
         kms = boto3.client('kms', region_name='us-west-2')
         kms.update_key_description(
@@ -250,9 +251,5 @@ def test_kms():
             Description='foo'
         )
         raise Exception("Shouldn't reach here")
-    except Exception as e:
-        err_path = '{}.{}'.format(e.__class__.__module__, e.__class__.__name__)
-        if err_path == expected_err_path:
-            pass
-        else:
-            raise e
+    except botocore_errors as e:
+        pass
