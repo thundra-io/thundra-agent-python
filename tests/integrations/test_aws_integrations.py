@@ -242,11 +242,17 @@ def test_firehose():
 
 def test_kms():
     err = None
+    expected_err_path = 'botocore.errorfactory.NotFoundException'
     try:
         kms = boto3.client('kms', region_name='us-west-2')
         kms.update_key_description(
             KeyId='1234abcd-12ab-34cd-56ef-1234567890ab',
             Description='foo'
         )
-    except Boto3Error as e:
-        pass
+        raise Exception("Shouldn't reach here")
+    except Exception as e:
+        err_path = '{}.{}'.format(e.__class__.__module__, e.__class__.__name__)
+        if err_path == expected_err_path:
+            pass
+        else:
+            raise e

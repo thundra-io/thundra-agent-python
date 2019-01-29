@@ -14,7 +14,7 @@ class PostgreCursorWrapper(wrapt.ObjectProxy):
         self._self_connection = connection_wrapper
 
     def execute(self, *args, **kwargs):
-        response = postgre_integration.create_span(
+        response = postgre_integration.run_and_trace(
             self.__wrapped__.execute,
             self._self_connection,
             args,

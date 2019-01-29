@@ -14,7 +14,7 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
         self._self_connection = connection_wrapper
 
     def execute(self, *args, **kwargs):
-        response = mysql_integration.create_span(
+        response = mysql_integration.run_and_trace(
             self.__wrapped__.execute,
             self._self_connection,
             args,

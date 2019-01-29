@@ -13,7 +13,7 @@ def _wrapper(wrapped, instance, args, kwargs):
     if utils.is_excluded_url(prepared_request.url):
         return wrapped(*args, **kwargs)
 
-    response = request_integration.create_span(
+    response = request_integration.run_and_trace(
         wrapped,
         instance,
         args,

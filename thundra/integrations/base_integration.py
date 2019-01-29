@@ -7,7 +7,7 @@ from thundra.opentracing.tracer import ThundraTracer
 class BaseIntegration(abc.ABC):
     CLASS_TYPE = "base"
 
-    def create_span(self, wrapped, instance, args, kwargs):
+    def run_and_trace(self, wrapped, instance, args, kwargs):
         tracer = ThundraTracer.get_instance()
         response = None
         exception = None
