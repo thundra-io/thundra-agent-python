@@ -1,4 +1,5 @@
 from thundra.opentracing.tracer import ThundraTracer
+from boto3.exceptions import Boto3Error
 import boto3
 import mock
 
@@ -238,3 +239,14 @@ def test_firehose():
         assert span.get_tag('aws.firehose.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'
         tracer.clear()
+
+def test_kms():
+    err = None
+    try:
+        kms = boto3.client('kms', region_name='us-west-2')
+        kms.update_key_description(
+            KeyId='1234abcd-12ab-34cd-56ef-1234567890ab',
+            Description='foo'
+        )
+    except Boto3Error as e:
+        pass
