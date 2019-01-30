@@ -23,9 +23,18 @@ class ThundraSpanFilterer(SpanFilterer):
 
     def accept(self, span):
         for sf in self.span_filters:
-            if sf.accept(span):
-                return True
+            if hasattr(sf, 'accept'):
+                if sf.accept(span):
+                    return True
+            else:
+                raise TypeError("{} doesn't have accept method".format(type(sf)))
         return False
+    
+    def add_filter(self, filter):
+        self.span_filters.append(filter)
+    
+    def clear_filters(self):
+        self.span_filters.clear()
 
 class ThundraSpanFilter(SpanFilter):
     
