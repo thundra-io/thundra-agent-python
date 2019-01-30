@@ -1,5 +1,7 @@
 from thundra.listeners import ErrorInjectorSpanListener
 from thundra.opentracing.tracer import ThundraTracer
+from boto3.exceptions import Boto3Error
+from redis import AuthenticationError
 
 def test_frequency(mocked_span):
     esl = ErrorInjectorSpanListener(
@@ -41,7 +43,6 @@ def test_err_type_and_message(mocked_span):
     assert type(error_on_started) is error_type
     assert str(error_on_started) == error_message
 
-
     error_on_finished = None
     try:
         esl.on_span_finished(mocked_span)
@@ -65,3 +66,68 @@ def test_create_from_config():
     assert esl.error_message == "You have a very funny name!"
     assert esl.inject_on_finish
     assert esl.inject_count_freq == 7
+
+def test_custom_error_creation():
+    config = {
+        'errorType': 'boto3.exceptions.Boto3Error',
+        'errorMessage': '"You have a very funny name!"',
+        'injectOnFinish': 'true',
+        'injectCountFreq': '7',
+        'foo': 'bar',
+    }
+
+    esl = ErrorInjectorSpanListener.from_config(config)
+
+    assert esl.error_type is Boto3Error
+    assert esl.error_message == "You have a very funny name!"
+    assert esl.inject_on_finish
+    assert esl.inject_count_freq == 7
+
+def test_with_empty_err_type_from_config():
+    config = {
+        'errorType': '',
+        'errorMessage': 'dummy error',
+    }
+
+    esl = ErrorInjectorSpanListener.from_config(config)
+
+    assert esl.error_type is Exception
+    assert esl.error_message == config['errorMessage']
+
+def test_with_no_existing_err_type():
+    config = {
+        'errorType': 'foo.bar.NonExistingError',
+        'errorMessage': "this error shouldn\'t be raised"
+    }
+
+    esl = ErrorInjectorSpanListener.from_config(config)
+
+    assert esl.error_type is Exception
+    assert esl.error_message == config['errorMessage']
+
+def test_err_from_config_with_custom_error(mocked_span):
+    config = {
+        'errorType': 'redis.AuthenticationError',
+        'errorMessage': '"can\'t authenticate with redis :("',
+    }
+
+    esl = ErrorInjectorSpanListener.from_config(config)
+
+    error_on_started = None
+    try:
+        esl.on_span_started(mocked_span)
+    except Exception as e:
+        error_on_started = e
+    
+    assert error_on_started is not None
+    assert type(error_on_started) is AuthenticationError
+    assert str(error_on_started) == "can't authenticate with redis :("
+
+    error_on_finished = None
+    try:
+        esl.on_span_finished(mocked_span)
+    except Exception as e:
+        error_on_finished = e
+    
+    assert error_on_finished is None
+

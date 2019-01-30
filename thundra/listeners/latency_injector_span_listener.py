@@ -16,17 +16,17 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             self.distribution = "uniform"
         
     def on_span_started(self, span):
-        self.inject_delay()
+        self._inject_delay()
 
     def on_span_finished(self, span):
         pass
 
-    def inject_delay(self):
-        delay = self.calculate_delay()
+    def _inject_delay(self):
+        delay = self._calculate_delay()
         if delay != 0:
             time.sleep(delay / 1000.0)
     
-    def calculate_delay(self):
+    def _calculate_delay(self):
         delay = self.delay
         if self.distribution == "uniform" and self.variation != 0:
             delay = random.randint(self.delay-self.variation, self.delay+self.variation)

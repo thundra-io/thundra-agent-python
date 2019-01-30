@@ -19,15 +19,12 @@ INTEGRATIONS = {
 def _wrapper(wrapped, instance, args, kwargs):
     integration_name = instance.__class__.__name__.lower()
 
-    response = INTEGRATIONS[integration_name].create_span(
+    return INTEGRATIONS[integration_name].run_and_trace(
         wrapped,
         instance,
         args,
         kwargs
     )
-
-    return response
-
 
 def patch():
     disable_aws_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_AWS_INTEGRATION)
