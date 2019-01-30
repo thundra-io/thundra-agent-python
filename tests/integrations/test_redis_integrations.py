@@ -11,6 +11,7 @@ def test_set():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[0]
+
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'
