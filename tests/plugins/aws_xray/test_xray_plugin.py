@@ -1,5 +1,5 @@
 from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
-from thundra.listeners.aws_xray_listeners import AWSXrayListener
+from thundra.listeners.aws_xray_listeners import AWSXRayListener
 from thundra.plugins.trace import trace_support
 
 
@@ -19,7 +19,7 @@ def test_xray_plugin_initialization(handler_with_xray):
 def test_xray_data():
     tracer = AWSXRayPlugin().tracer
     listener = tracer.get_span_listeners()[-1]
-    assert isinstance(listener, AWSXrayListener)
+    assert isinstance(listener, AWSXRayListener)
     trace_support.clear_span_listeners()
     tracer.clear()
 

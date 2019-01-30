@@ -1,7 +1,7 @@
 import logging
 
 from thundra.thundra_agent import Thundra
-from tests.listeners.test_xray_listener_class import AWSXrayListenerTesting
+from tests.listeners.test_xray_listener_class import AWSXRayListenerTesting
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.aws_xray.xray_plugin import AWSXRayPlugin
 
@@ -23,7 +23,7 @@ class ThundraForListeners(Thundra):
         tracer = ThundraTracer.get_instance()
         tracer.clear()
         self.plugins.pop(-1)
-        self.plugins.append(AWSXRayPlugin(AWSXrayListenerTesting()))
+        self.plugins.append(AWSXRayPlugin(AWSXRayListenerTesting()))
 
     def __call__(self, original_func):
         return super(ThundraForListeners, self).__call__(original_func)

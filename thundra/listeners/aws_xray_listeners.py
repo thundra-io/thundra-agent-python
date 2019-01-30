@@ -1,12 +1,11 @@
 import thundra.constants as constants
 import re
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
-from thundra.opentracing.tracer import ThundraTracer
 from aws_xray_sdk.core import xray_recorder
 
-class AWSXrayListener(ThundraSpanListener):
+
+class AWSXRayListener(ThundraSpanListener):
     _data = None
-    _tracer = ThundraTracer.get_instance()
 
     def __init__(self):
         self.xray_data = {}
@@ -35,7 +34,7 @@ class AWSXrayListener(ThundraSpanListener):
                 document.put_annotation(self.normalize_annotation_name(key), self.normalize_annotation_value(value))
 
     def add_annotation(self, span):
-        self.xray_data = AWSXrayListener._data
+        self.xray_data = AWSXRayListener._data
         document = xray_recorder.current_subsegment()
         if document:
             document.put_annotation('traceId', span.context.trace_id)
@@ -85,7 +84,7 @@ class AWSXrayListener(ThundraSpanListener):
 
     @staticmethod
     def set_data(data):
-        AWSXrayListener._data = data
+        AWSXRayListener._data = data
 
     @staticmethod
     def from_config(config):

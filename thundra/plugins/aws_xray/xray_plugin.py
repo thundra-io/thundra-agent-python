@@ -6,7 +6,7 @@ from thundra import constants
 
 xray_listener_imported = True
 try:
-    from thundra.listeners.aws_xray_listeners import AWSXrayListener
+    from thundra.listeners.aws_xray_listeners import AWSXRayListener
 except ImportError:
     xray_listener_imported = False
 
@@ -24,7 +24,7 @@ class AWSXRayPlugin:
             self.tracer = ThundraTracer.get_instance()
             self.xray_data = {}
             if listener is None:
-                self.xray_listener = AWSXrayListener()
+                self.xray_listener = AWSXRayListener()
             else:
                 self.xray_listener = listener
             if self.tracer:
