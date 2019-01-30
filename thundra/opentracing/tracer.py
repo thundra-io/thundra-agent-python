@@ -21,7 +21,6 @@ class ThundraTracer(opentracing.Tracer):
         self.recorder = recorder or ThundraRecorder()
         self.lock = Lock()
         self.global_span_order = 0
-        self.test_xray_traces = []
         ThundraTracer.__instance = self
         self.function_name = None
 

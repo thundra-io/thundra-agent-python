@@ -102,3 +102,11 @@ def trace(traceable):
             'response': 'test'
         }
     return traceable, func
+
+@pytest.fixture
+def handler_with_xray(thundra_with_xray, monkeypatch):
+    @thundra_with_xray.call
+    def _handler(event, context):
+        pass
+
+    return thundra_with_xray, _handler

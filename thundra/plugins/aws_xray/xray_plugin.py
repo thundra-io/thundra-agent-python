@@ -3,20 +3,13 @@ import sys
 import thundra.application_support as application_support
 from thundra import utils
 from thundra import constants
-
-xray_listener_imported = True
-try:
-    from thundra.listeners.aws_xray_listeners import AWSXRayListener
-except ImportError:
-    xray_listener_imported = False
+from thundra.listeners.aws_xray_listeners import AWSXRayListener
 
 
 class AWSXRayPlugin:
 
-    _data = None
-
     def __init__(self, listener=None):
-        if xray_listener_imported:
+        if AWSXRayListener.xray_available():
             self.hooks = {
                 'before:invocation': self.before_invocation,
                 'after:invocation': self.after_invocation
@@ -51,5 +44,5 @@ class AWSXRayPlugin:
         pass
 
     def send_data(self, data):
-        if xray_listener_imported:
+        if AWSXRayListener.xray_available():
             self.xray_listener.set_data(data)
