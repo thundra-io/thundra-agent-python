@@ -19,8 +19,7 @@ def test_successful_http_call():
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
-        assert http_span.get_tag(constants.SpanTags['SPAN_TYPE']) == constants.SpanTypes['HTTP']
-        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'CALL'
+        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == url
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
@@ -47,8 +46,7 @@ def test_http_call_with_session():
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
-        assert http_span.get_tag(constants.SpanTags['SPAN_TYPE']) == constants.SpanTypes['HTTP']
-        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'CALL'
+        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
@@ -77,8 +75,7 @@ def test_errorneous_http_call():
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
-        assert http_span.get_tag(constants.SpanTags['SPAN_TYPE']) == constants.SpanTypes['HTTP']
-        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'CALL'
+        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == url
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host

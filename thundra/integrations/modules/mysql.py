@@ -14,14 +14,12 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
         self._self_connection = connection_wrapper
 
     def execute(self, *args, **kwargs):
-        response = mysql_integration.create_span(
+        return mysql_integration.run_and_trace(
             self.__wrapped__.execute,
             self._self_connection,
             args,
             kwargs,
         )
-        return response
-
 
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)

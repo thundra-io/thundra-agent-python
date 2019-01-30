@@ -19,13 +19,15 @@ INTEGRATIONS = {
 def _wrapper(wrapped, instance, args, kwargs):
     integration_name = instance.__class__.__name__.lower()
     
-    response = INTEGRATIONS[integration_name].create_span(
-        wrapped,
-        instance,
-        args,
-        kwargs
-    )
-    return response
+    if integration_name in INTEGRATIONS:
+        return INTEGRATIONS[integration_name].run_and_trace(
+            wrapped,
+            instance,
+            args,
+            kwargs
+        )
+    
+    return wrapped(*args, **kwargs)
     
 
 

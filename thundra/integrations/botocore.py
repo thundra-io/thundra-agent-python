@@ -31,7 +31,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def getStatementType(self, string):
         if string in Constants.DynamoDBRequestTypes:
             return Constants.DynamoDBRequestTypes[string]
-        return 'READ'
+        return ''
 
     def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
                          exception):
@@ -56,7 +56,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
         ## ADDING TAGS ##
 
         tags = {
-            Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['AWS_DYNAMO'],
             Constants.SpanTags['OPERATION_TYPE']: self.getStatementType(operation_name),
             Constants.DBTags['DB_INSTANCE']: self.endpoint,
             Constants.DBTags['DB_TYPE']: Constants.DBTypes['DYNAMODB'],
@@ -161,7 +160,6 @@ class AWSSQSIntegration(BaseIntegration):
         ## ADDING TAGS ##
 
         tags = {
-            Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['AWS_SQS'],
             Constants.AwsSQSTags['QUEUE_NAME']: self.queueName,
             Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
             Constants.AwsSDKTags['REQUEST_NAME']: operation_name,

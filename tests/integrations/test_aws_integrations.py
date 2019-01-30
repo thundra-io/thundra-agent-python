@@ -1,4 +1,7 @@
 from thundra.opentracing.tracer import ThundraTracer
+from boto3.exceptions import Boto3Error
+from botocore.exceptions import BotoCoreError
+from botocore.errorfactory import ClientError
 import boto3
 import mock
 
@@ -238,3 +241,15 @@ def test_firehose():
         assert span.get_tag('aws.firehose.stream.name') == 'STRING_VALUE'
         assert span.get_tag('aws.request.name') == 'PutRecord'
         tracer.clear()
+
+def test_kms():
+    botocore_errors = (ClientError, Boto3Error, BotoCoreError)
+    try:
+        kms = boto3.client('kms', region_name='us-west-2')
+        kms.update_key_description(
+            KeyId='1234abcd-12ab-34cd-56ef-1234567890ab',
+            Description='foo'
+        )
+        raise Exception("Shouldn't reach here")
+    except botocore_errors as e:
+        pass
