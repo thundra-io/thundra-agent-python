@@ -5,6 +5,7 @@ from botocore.errorfactory import ClientError
 import boto3
 import mock
 
+botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
 def test_dynamodb():
     try:
@@ -46,7 +47,7 @@ def test_dynamodb():
             },
         }
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -102,7 +103,7 @@ def test_s3():
             Bucket='test-bucket',
             Key='test.txt'
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -166,7 +167,7 @@ def test_sqs():
             MessageBody='Hello Thundra!',
             DelaySeconds=123,
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -186,7 +187,7 @@ def test_sns():
             TopicArn='Test-topic',
             Message='Hello Thundra!',
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -209,7 +210,7 @@ def test_kinesis():
             ExplicitHashKey='STRING_VALUE',
             SequenceNumberForOrdering='STRING_VALUE'
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -231,7 +232,7 @@ def test_firehose():
                 'Data': 'STRING_VALUE'
             }
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -244,7 +245,6 @@ def test_firehose():
         tracer.clear()
 
 def test_kms():
-    botocore_errors = (ClientError, Boto3Error, BotoCoreError)
     try:
         kms = boto3.client('kms', region_name='us-west-2')
         kms.update_key_description(
@@ -252,5 +252,5 @@ def test_kms():
             Description='foo'
         )
         raise Exception("Shouldn't reach here")
-    except botocore_errors as e:
+    except botocore_errors:
         pass
