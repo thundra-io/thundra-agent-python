@@ -15,12 +15,11 @@ def test_set():
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'
         assert span.get_tag('db.type') == 'redis'
-        assert span.get_tag('db.instance') == 'test:12345'
+        assert span.get_tag('db.instance') == 'test'
         assert span.get_tag('db.statement.type') == 'WRITE'
-        assert span.get_tag('redis.host') == 'test:12345'
+        assert span.get_tag('redis.host') == 'test'
         assert span.get_tag('redis.command.type') == 'SET'
-        assert span.get_tag('redis.command') == 'WRITE'
-        assert span.get_tag('redis.command.args') == ['foo', 'bar']
+        assert span.get_tag('redis.command') == 'SET foo bar'
         tracer.clear()
 
 
@@ -37,10 +36,9 @@ def test_get():
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'
         assert span.get_tag('db.type') == 'redis'
-        assert span.get_tag('db.instance') == 'test:12345'
+        assert span.get_tag('db.instance') == 'test'
         assert span.get_tag('db.statement.type') == 'READ'
-        assert span.get_tag('redis.host') == 'test:12345'
+        assert span.get_tag('redis.host') == 'test'
         assert span.get_tag('redis.command.type') == 'GET'
-        assert span.get_tag('redis.command') == 'READ'
-        assert span.get_tag('redis.command.args') == ['foo']
+        assert span.get_tag('redis.command') == 'GET foo'
         tracer.clear()

@@ -12,29 +12,32 @@ class RequestsIntegration(BaseIntegration):
         pass
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
-        try:
-            prepared_request = args[0]
-            url = prepared_request.url
-            return url
-        except:
-            debug_logger('Invalid request')
+        prepared_request = args[0]
+        url = prepared_request.url
+        return url
     
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
         method = prepared_request.method
         url = prepared_request.url
-        parsed_url = urlparse(url)
-        path = parsed_url.path
-        query = parsed_url.query
-        host = parsed_url.netloc
+        path = ''
+        query = ''
+        host = ''
+        try:
+            parsed_url = urlparse(url)
+            path = parsed_url.path
+            query = parsed_url.query
+            host = parsed_url.netloc
+        except Exception:
+            pass
+        
         span = scope.span
         
         span.domain_name =  constants.DomainNames['API']
         span.class_name =  constants.ClassNames['HTTP']
 
         tags = {
-            constants.SpanTags['SPAN_TYPE']: constants.SpanTypes['HTTP'],
-            constants.SpanTags['OPERATION_TYPE']: 'CALL',
+            constants.SpanTags['OPERATION_TYPE']: method,
             constants.HttpTags['HTTP_METHOD']: method,
             constants.HttpTags['HTTP_URL']: url,
             constants.HttpTags['HTTP_PATH']: path,

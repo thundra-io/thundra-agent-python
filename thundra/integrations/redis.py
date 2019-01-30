@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-import thundra.constants as Constants
+import thundra.constants as constants
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.plugins.log.thundra_logger import debug_logger
 
@@ -11,44 +11,33 @@ class RedisIntegration(BaseIntegration):
         pass
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
-        try:
-            connection = str(instance.connection_pool).split(',')
-            host = connection[0][connection[0].find('host=') + 5:]
-            return host
-        except:
-            debug_logger('Invalid connection')
-
-        return 'redis_call'
-
-    def getCommandType(self, string):
-        if string in Constants.RedisCommandTypes:
-            return Constants.RedisCommandTypes[string]
-        return 'READ'
+        connection_kwargs = instance.connection_pool.connection_kwargs
+        return connection_kwargs.get('host', 'Redis')
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        connection = str(instance.connection_pool).split(',')
-        host = connection[0][connection[0].find('host=')+5:] or 'localhost'
-        port = connection[1][connection[1].find('port=')+5:] or 6379
+        connection_kwargs = instance.connection_pool.connection_kwargs
+        host = connection_kwargs.get('host', '')
+        port = connection_kwargs.get('port', '6379')
         command_type = wrapped.__name__.upper() or ""
+        operation_type = constants.RedisCommandTypes.get(command_type, '')
+        command = '{} {}'.format(command_type, ' '.join([str(arg) for arg in args]))
 
-        scope.span.domain_name = Constants.DomainNames['CACHE']
-        scope.span.class_name = Constants.ClassNames['REDIS']
+        scope.span.domain_name = constants.DomainNames['CACHE']
+        scope.span.class_name = constants.ClassNames['REDIS']
 
         tags = {
-            Constants.SpanTags['SPAN_TYPE']: Constants.SpanTypes['REDIS'],
-            Constants.SpanTags['OPERATION_TYPE']: self.getCommandType(command_type),
-            Constants.DBTags['DB_INSTANCE']: host + ':' + port,
-            Constants.DBTags['DB_STATEMENT']: {'command': command_type.lower(), 'args': [str(arg) for arg in args]},
-            Constants.DBTags['DB_STATEMENT_TYPE']: self.getCommandType(command_type),
-            Constants.DBTags['DB_TYPE']: 'redis',
-            Constants.RedisTags['REDIS_HOST']: host + ':' + port,
-            Constants.RedisTags['REDIS_COMMAND_TYPE']: command_type,
-            Constants.RedisTags['REDIS_COMMAND_ARGS']: [str(arg) for arg in args],
-            Constants.RedisTags['REDIS_COMMAND']: self.getCommandType(command_type),
-            Constants.SpanTags['TRIGGER_OPERATION_NAMES']: [scope.span.tracer.function_name],
-            Constants.SpanTags['TRIGGER_DOMAIN_NAME']: Constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            Constants.SpanTags['TRIGGER_CLASS_NAME']: Constants.LAMBDA_APPLICATION_CLASS_NAME,
-            Constants.SpanTags['TOPOLOGY_VERTEX']: True,
+            constants.SpanTags['OPERATION_TYPE']: operation_type,
+            constants.DBTags['DB_INSTANCE']: host,
+            constants.DBTags['DB_STATEMENT']: command,
+            constants.DBTags['DB_STATEMENT_TYPE']: operation_type,
+            constants.DBTags['DB_TYPE']: 'redis',
+            constants.RedisTags['REDIS_HOST']: host,
+            constants.RedisTags['REDIS_COMMAND_TYPE']: command_type,
+            constants.RedisTags['REDIS_COMMAND']: command,
+            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [scope.span.tracer.function_name],
+            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
+            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
+            constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
         scope.span.tags = tags

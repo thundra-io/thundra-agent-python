@@ -12,29 +12,26 @@ class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
         pass
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
-        try:
-            query = str(wrapped.__self__._executed)[2:-1].lower()
-            operation = query.split()[0].strip("\"").lower()
-            return self._extract_table_name(query, operation)
-        except:
-            debug_logger('Invalid query')
-        return "mysql"
+        return instance.database
 
     def before_call(self, scope, cursor, connection, _args, _kwargs, response, exception):
         span = scope.span
         span.domain_name = constants.DomainNames['DB']
-        span.class_name = constants.ClassNames['RDB']
+        span.class_name = constants.ClassNames['MYSQL']
 
-        query = str(cursor.__self__._executed)[2:-1].lower()
-        operation = query.split()[0].strip("\"").lower()
-        tableName = self._extract_table_name(query, operation)
+        query = ''
+        operation = ''
+        try:
+            query = _args[0]
+            if len(query) > 0:
+                operation = query.split()[0].strip("\"").lower()
+        except Exception:
+            pass
 
         tags = {
-            constants.SpanTags['SPAN_TYPE']: constants.SpanTypes['RDB'],
-            constants.SpanTags['OPERATION_TYPE']: MysqlIntegration._OPERATION_TO_TYPE[operation],
+            constants.SpanTags['OPERATION_TYPE']: MysqlIntegration._OPERATION_TO_TYPE.get(operation, ''),
             constants.SpanTags['DB_INSTANCE']: connection._database,
             constants.SpanTags['DB_HOST']: connection._host,
-            constants.SpanTags['DB_TABLE_NAME']: tableName,
             constants.SpanTags['DB_TYPE']: "mysql",
             constants.SpanTags['DB_STATEMENT']: query,
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),

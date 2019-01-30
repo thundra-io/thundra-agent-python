@@ -23,7 +23,7 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
 
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
-        self.__wrapped__.__enter__  # pylint: disable=W0104
+        self.__wrapped__.__enter__ 
         return self
 
 class MysqlConnectionWrapper(wrapt.ObjectProxy):
