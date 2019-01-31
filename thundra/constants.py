@@ -71,6 +71,7 @@ DATA_FORMAT_VERSION = '2.0'
 THUNDRA_LAMBDA_DEBUG_ENABLE = 'thundra_agent_lambda_debug_enable'
 THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_agent_lambda_log_console_disable'
 THUNDRA_LAMBDA_SPAN_LISTENER = 'thundra_agent_lambda_trace_span_listener'
+THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
 
 #### INTEGRATIONS ####
 

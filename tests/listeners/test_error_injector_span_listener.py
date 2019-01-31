@@ -1,4 +1,5 @@
 from thundra.listeners import ErrorInjectorSpanListener
+from thundra.listeners.error_injector_span_listener import default_error_message
 from thundra.opentracing.tracer import ThundraTracer
 from boto3.exceptions import Boto3Error
 from redis import AuthenticationError
@@ -104,6 +105,17 @@ def test_with_no_existing_err_type():
 
     assert esl.error_type is Exception
     assert esl.error_message == config['errorMessage']
+
+def test_create_from_config_with_type_errors():
+    config = {
+        'errorMessage': 37,
+        'injectCountFreq': 'foo',
+    }
+
+    esl = ErrorInjectorSpanListener.from_config(config)
+
+    assert esl.error_message == default_error_message
+    assert esl.inject_count_freq == 1
 
 def test_err_from_config_with_custom_error(mocked_span):
     config = {

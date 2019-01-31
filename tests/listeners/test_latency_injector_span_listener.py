@@ -62,3 +62,18 @@ def test_create_from_config():
     assert lsl.sigma == 73
     assert lsl.variation == 37
     assert lsl.distribution == 'normal'
+
+def test_create_from_config_with_type_errors():
+    config = {
+        'delay': 'foo',
+        'sigma': 'bar',
+        'distribution': 12,
+        'variation': 'foobar',
+    }
+
+    lsl = LatencyInjectorSpanListener.from_config(config)
+
+    assert lsl.delay == 0
+    assert lsl.sigma == 0
+    assert lsl.variation == 0
+    assert lsl.distribution == 'uniform'

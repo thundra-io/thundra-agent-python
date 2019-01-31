@@ -1,7 +1,7 @@
 import time
+import opentracing
 from threading import Lock
 
-import opentracing
 
 
 class ThundraSpan(opentracing.Span):
