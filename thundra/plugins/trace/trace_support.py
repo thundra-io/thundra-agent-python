@@ -48,7 +48,7 @@ def _get_sl_class(sl_class_name):
         try:
             sl_class = SPAN_LISTENERS[sl_class_name]
         except KeyError:
-            logger.warning('given span listener class %s is not found', sl_class_name)
+            logger.error('given span listener class %s is not found', sl_class_name)
     return sl_class
 
 def _get_class_and_config_parts(env_v):
@@ -59,31 +59,32 @@ def _get_class_and_config_parts(env_v):
             config_str = m.group(2)
             return (sl_class_name, config_str)
         except IndexError as e:
-            logger.warning(e)
+            logger.error(("couldn't parse thundra span "
+                          "listener environment variable: %s"), e)
     
     return (None, None)
     
 
 
 def parse_span_listeners():
-        # Clear before parsing to prevent appending duplicate sl's
-        clear_span_listeners()
+    # Clear before parsing to prevent appending duplicate span listeners
+    clear_span_listeners()
 
-        for env_k, env_v in os.environ.items():
-            if env_k.startswith(THUNDRA_LAMBDA_SPAN_LISTENER):
-                try:
-                    sl_class_name, config_str = _get_class_and_config_parts(env_v)
+    for env_k, env_v in os.environ.items():
+        if env_k.startswith(THUNDRA_LAMBDA_SPAN_LISTENER):
+            try:
+                sl_class_name, config_str = _get_class_and_config_parts(env_v)
 
-                    config = _parse_config(config_str)
-                    sl_class = _get_sl_class(sl_class_name)
-                    
-                    if sl_class is not None:    
-                        sl = sl_class.from_config(config)
-                        # Register parsed span listener
-                        register_span_listener(sl)
-                except Exception as e:
-                    logger.warning(("couldn't parse environment variable %s "
-                        "to create a span listener"), env_k)
+                config = _parse_config(config_str)
+                sl_class = _get_sl_class(sl_class_name)
+                
+                if sl_class is not None:    
+                    sl = sl_class.from_config(config)
+                    # Register parsed span listener
+                    register_span_listener(sl)
+            except Exception as e:
+                logger.error(("couldn't parse environment variable %s "
+                    "to create a span listener"), env_k)
 
 # Parse span listeners from environment variables
 parse_span_listeners()
