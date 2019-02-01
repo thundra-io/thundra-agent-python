@@ -71,12 +71,14 @@ class Thundra:
         if should_disable_thundra:
             return original_func
 
-        self.plugin_context['reporter'] = self.reporter
-
         @wraps(original_func)
         def wrapper(event, context):
             before_done = False
             after_done = False
+
+            # Clear plugin context for each invocation
+            self.plugin_context = {}
+            self.plugin_context['reporter'] = self.reporter
 
             # Before running user's handler
             try:
