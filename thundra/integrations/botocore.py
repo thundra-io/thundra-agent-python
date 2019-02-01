@@ -388,36 +388,3 @@ class AWSLambdaIntegration(BaseIntegration):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
-class AWSXrayIntegration(BaseIntegration):
-    CLASS_TYPE = 'xray'
-
-    def __init__(self):
-        pass
-
-    def get_operation_name(self, wrapped, instance, args, kwargs):
-        return 'xray'
-
-    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        operation_name, request_data = args
-        scope.span.class_name = 'XRAY'
-
-        tags = {
-            "XRAY": 'Under_Development'
-        }
-        if 'Payload' in request_data:
-            tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
-
-        if 'Qualifier' in request_data:
-            tags[constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']
-
-        if 'InvocationType' in request_data:
-            tags[constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
-
-        scope.span.tags = tags
-
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
-    
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
