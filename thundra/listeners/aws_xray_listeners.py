@@ -26,7 +26,7 @@ class AWSXRayListener(ThundraSpanListener):
             xray_recorder.end_subsegment()
 
     def on_span_finished(self, span):
-        if xray_recorder is not None:
+        if self.xray_available():
             self._add_metadata(span)
             self._add_annotation(span)
             self._add_error(span)
