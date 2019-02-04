@@ -230,7 +230,7 @@ class AWSKinesisIntegration(BaseIntegration):
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.streamName = request_data['StreamName'] if 'StreamName' in request_data else constants.AWS_SERVICE_REQUEST
+        self.streamName = request_data['StreamName'] if 'StreamName' in request_data else ''
 
         scope.span.domain_name = constants.DomainNames['STREAM']
         scope.span.class_name = constants.ClassNames['KINESIS']
@@ -272,7 +272,7 @@ class AWSFirehoseIntegration(BaseIntegration):
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         self.deliveryStreamName = request_data[
-            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else constants.AWS_SERVICE_REQUEST
+            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else ''
 
         scope.span.domain_name = constants.DomainNames['STREAM']
         scope.span.class_name = constants.ClassNames['FIREHOSE']
@@ -313,7 +313,7 @@ class AWSS3Integration(BaseIntegration):
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.bucket = request_data['Bucket'] if 'Bucket' in request_data else constants.AWS_SERVICE_REQUEST
+        self.bucket = request_data['Bucket'] if 'Bucket' in request_data else ''
 
         scope.span.domain_name = constants.DomainNames['STORAGE']
         scope.span.class_name = constants.ClassNames['S3']
@@ -358,7 +358,7 @@ class AWSLambdaIntegration(BaseIntegration):
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.lambdaFunction = request_data.get('FunctionName', constants.AWS_SERVICE_REQUEST)
+        self.lambdaFunction = request_data.get('FunctionName', '')
         scope.span.domain_name = constants.DomainNames['API']
         scope.span.class_name = constants.ClassNames['LAMBDA']
 
