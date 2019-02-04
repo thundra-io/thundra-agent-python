@@ -116,19 +116,22 @@ class AWSSQSIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return str(self.getQueueName(request_data))
+        queue_name = str(self.getQueueName(request_data))
+        if queue_name != '':
+            return queue_name
+        return constants.AWS_SERVICE_REQUEST
 
     def getRequestType(self, string):
         if string in constants.SQSRequestTypes:
             return constants.SQSRequestTypes[string]
-        return 'READ'
+        return ''
 
     def getQueueName(self, data):
         if 'QueueUrl' in data:
             return data['QueueUrl'].split('/')[-1]
         elif 'QueueName' in data:
             return data['QueueName']
-        return constants.AWS_SERVICE_REQUEST
+        return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -175,14 +178,14 @@ class AWSSNSIntegration(BaseIntegration):
             if arn != 'N/A':
                 self.topicName = arn.split(':')[-1]
             else:
-                self.topicName = constants.AWS_SERVICE_REQUEST
+                self.topicName = ''
 
         return self.topicName
 
     def getRequestType(self, string):
         if string in constants.SNSRequestTypes:
             return constants.SNSRequestTypes[string]
-        return constants.AWS_SERVICE_REQUEST
+        return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -223,7 +226,7 @@ class AWSKinesisIntegration(BaseIntegration):
     def getRequestType(self, string):
         if string in constants.KinesisRequestTypes:
             return constants.KinesisRequestTypes[string]
-        return constants.AWS_SERVICE_REQUEST
+        return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -264,7 +267,7 @@ class AWSFirehoseIntegration(BaseIntegration):
     def getRequestType(self, string):
         if string in constants.FirehoseRequestTypes:
             return constants.FirehoseRequestTypes[string]
-        return constants.AWS_SERVICE_REQUEST
+        return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -306,7 +309,7 @@ class AWSS3Integration(BaseIntegration):
     def getRequestType(self, string):
         if string in constants.S3RequestTypes:
             return constants.S3RequestTypes[string]
-        return constants.AWS_SERVICE_REQUEST
+        return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -351,7 +354,7 @@ class AWSLambdaIntegration(BaseIntegration):
     def getRequestType(self, string):
         if string in constants.LambdaRequestType:
             return constants.LambdaRequestType[string]
-        return constants.AWS_SERVICE_REQUEST
+        return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
