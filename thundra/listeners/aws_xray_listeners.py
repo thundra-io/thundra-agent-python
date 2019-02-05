@@ -1,5 +1,6 @@
-import thundra.constants as constants
 import re
+import traceback
+import thundra.constants as constants
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 try:
     from aws_xray_sdk.core import xray_recorder
@@ -14,7 +15,8 @@ class AWSXRayListener(ThundraSpanListener):
         self.xray_data = {}
 
     def _start_subsegment(self, span):
-        xray_recorder.begin_subsegment(self._normalize_operation_name(span.operation_name))
+        subsegment_name = self._normalize_operation_name(span.operation_name)
+        xray_recorder.begin_subsegment(subsegment_name)
 
     def on_span_started(self, span):
         if self.xray_available():
@@ -45,7 +47,8 @@ class AWSXRayListener(ThundraSpanListener):
             document.put_annotation('traceId', span.context.trace_id)
             document.put_annotation('transactionId', span.context.transaction_id)
             document.put_annotation('spanId', span.context.span_id)
-            document.put_annotation('parentSpanId', span.context.parent_span_id)
+            document.put_annotation('parentSpanId', span.context.parent_span_id 
+                if span.context.parent_span_id is not None else '')
             span_dict = vars(span)
             self._put_annotation_if_available('domainName', span_dict, 'domain_name', document)
             self._put_annotation_if_available('className', span_dict, 'class_name', document)
@@ -67,6 +70,8 @@ class AWSXRayListener(ThundraSpanListener):
 
     def _normalize_operation_name(self, operation_name):
         if operation_name:
+            operation_name = re.sub(r'\s+', ' ', operation_name)
+            operation_name = re.sub(r'[^\w\s\.:/%&#=+\\\-@]', '', operation_name)
             return operation_name[0:200]
         return constants.AwsXrayConstants['DEFAULT_OPERATION_NAME']
 
@@ -76,8 +81,7 @@ class AWSXRayListener(ThundraSpanListener):
         return value
 
     def _normalize_annotation_name(self, annotation_name):
-        annotation_name = re.sub('/\./g', '_', annotation_name)
-        annotation_name = re.sub('/[W]+/g', '', annotation_name)
+        annotation_name = re.sub(r'\W+', '_', annotation_name)
         annotation_name = annotation_name[0:500]
         return annotation_name
 
@@ -85,7 +89,8 @@ class AWSXRayListener(ThundraSpanListener):
         if span.get_tag('error'):
             document = xray_recorder.current_subsegment()
             if document:
-                document.add_exception(Exception(span.get_tag('error.message')))
+                stack = traceback.extract_stack()
+                document.add_exception(Exception(span.get_tag('error.message')), stack)
 
     @staticmethod
     def set_data(data):
