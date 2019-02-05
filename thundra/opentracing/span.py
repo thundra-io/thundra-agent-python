@@ -1,8 +1,10 @@
 import time
 import opentracing
+import logging
 from threading import Lock
 
 
+logger = logging.getLogger(__name__)
 
 class ThundraSpan(opentracing.Span):
 
@@ -62,18 +64,31 @@ class ThundraSpan(opentracing.Span):
     def finish(self, f_time=None):
         with self._lock:
             self.finish_time = int(time.time() * 1000) if f_time is None else f_time
-
         self.on_finished()
         
     def on_finished(self):
         span_listeners = self._tracer.get_span_listeners()
         for sl in span_listeners:
-            sl.on_span_finished(self)
+            try:
+                sl.on_span_finished(self)
+            except Exception as e:
+                if not sl.should_raise_exceptions():
+                    logger.warning(("error while calling"
+                        " on_finished of %s: %s"), type(sl), e)
+                else:
+                    raise e
     
     def on_started(self):
         span_listeners = self._tracer.get_span_listeners()
         for sl in span_listeners:
-            sl.on_span_started(self)
+            try:
+                sl.on_span_started(self)
+            except Exception as e:
+                if not sl.should_raise_exceptions():
+                    logger.warning(("error while calling"
+                        " on_started of %s: %s"), type(sl), e)
+                else:
+                    raise e
 
     def log_kv(self, key_values, timestamp=None):
         with self._lock:

@@ -100,5 +100,7 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             "LatencyInjectorSpanListener, using the default value"), param_name, param)
 
             
-
+    @staticmethod
+    def should_raise_exceptions():
+        return False
         

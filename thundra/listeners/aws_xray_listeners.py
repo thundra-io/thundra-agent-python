@@ -107,3 +107,7 @@ class AWSXRayListener(ThundraSpanListener):
     @staticmethod
     def from_config(config):
         raise NotImplementedError
+
+    @staticmethod
+    def should_raise_exceptions():
+        return False

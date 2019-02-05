@@ -115,3 +115,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
     def _log_value_parse_err(param, param_name):
         logger.warning(("couldn't parse %s parameter (%s) of "
             "ErrorInjectorSpanListener, using the default value"), param_name, param)
+
+    @staticmethod
+    def should_raise_exceptions():
+        return True

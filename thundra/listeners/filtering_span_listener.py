@@ -24,6 +24,10 @@ class FilteringSpanListener(ThundraSpanListener):
             self.listener.on_span_finished(span)
     
     @staticmethod
+    def should_raise_exceptions():
+        return True
+    
+    @staticmethod
     def from_config(config):
         SPAN_LISTENERS = {
             sl_class.__name__: sl_class 
