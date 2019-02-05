@@ -55,7 +55,7 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             }
             span.set_tag(constants.THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
         except Exception as e:
-            logger.warning("error while adding LatencyInjectorSpanListener info tags: %s", e)
+            logger.error("error while adding LatencyInjectorSpanListener info tags: %s", e)
 
     @staticmethod
     def from_config(config):
@@ -96,7 +96,7 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
     
     @staticmethod
     def _log_value_parse_err(param, param_name):
-        logger.warning(("couldn't parse %s parameter (%s) of "
+        logger.error(("couldn't parse %s parameter (%s) of "
             "LatencyInjectorSpanListener, using the default value"), param_name, param)
 
             

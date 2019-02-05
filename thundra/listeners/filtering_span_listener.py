@@ -41,7 +41,7 @@ class FilteringSpanListener(ThundraSpanListener):
                 listener_class = SPAN_LISTENERS[config['listener']]
             except KeyError:
                 listener_class = None
-                logger.warning('given span listener class %s is not found', config['listener'])
+                logger.error('given span listener class %s is not found', config['listener'])
         
         listener_config = {}
         filter_configs = {}

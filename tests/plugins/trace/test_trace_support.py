@@ -151,6 +151,39 @@ def test_get_sl_class():
         sl_class = trace_support._get_sl_class(case['class_name'])
         assert sl_class == case['class_type']
 
+def test_xray_sl_added(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
+
+    trace_support.parse_span_listeners()
+    span_listeners = trace_support.get_span_listeners()
+    xray_listener = span_listeners[0]
+
+    assert len(span_listeners) == 1
+    assert type(xray_listener) == AWSXRayListener
+
+def test_xray_sl_not_added(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'false')
+
+    trace_support.parse_span_listeners()
+    span_listeners = trace_support.get_span_listeners()
+
+    assert len(span_listeners) == 0
+    
+    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'foo')
+
+    trace_support.parse_span_listeners()
+    span_listeners = trace_support.get_span_listeners()
+
+    assert len(span_listeners) == 0
+    
+    monkeypatch.delitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
+
+    trace_support.parse_span_listeners()
+    span_listeners = trace_support.get_span_listeners()
+
+    assert len(span_listeners) == 0
+
+
 def test_parse_config():
     cases = [
         {

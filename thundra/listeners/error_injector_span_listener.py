@@ -62,7 +62,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
             }
             span.set_tag(constants.THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
         except Exception as e:
-            logger.warning("error while adding ErrorInjectorSpanListener info tags: %s", e)
+            logger.error("error while adding ErrorInjectorSpanListener info tags: %s", e)
     
     @staticmethod
     def from_config(config):
@@ -92,7 +92,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
                         if issubclass(err_class, BaseException):
                             kwargs['error_type'] = err_class
                 except (ImportError, ValueError):
-                    logger.warning("couldn't import %s", error_type)
+                    logger.error("couldn't import %s", error_type)
         if inject_on_finish is not None:
             try:
                 kwargs['inject_on_finish'] = utils.str2bool(inject_on_finish)
@@ -113,7 +113,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
 
     @staticmethod
     def _log_value_parse_err(param, param_name):
-        logger.warning(("couldn't parse %s parameter (%s) of "
+        logger.error(("couldn't parse %s parameter (%s) of "
             "ErrorInjectorSpanListener, using the default value"), param_name, param)
 
     @staticmethod

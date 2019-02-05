@@ -73,7 +73,7 @@ class ThundraSpan(opentracing.Span):
                 sl.on_span_finished(self)
             except Exception as e:
                 if not sl.should_raise_exceptions():
-                    logger.warning(("error while calling"
+                    logger.error(("error while calling"
                         " on_finished of %s: %s"), type(sl), e)
                 else:
                     raise e
@@ -85,7 +85,7 @@ class ThundraSpan(opentracing.Span):
                 sl.on_span_started(self)
             except Exception as e:
                 if not sl.should_raise_exceptions():
-                    logger.warning(("error while calling"
+                    logger.error(("error while calling"
                         " on_started of %s: %s"), type(sl), e)
                 else:
                     raise e

@@ -56,7 +56,7 @@ class BaseIntegration(abc.ABC):
             if exception is None:
                 exception = e
             else:
-                logger.warning(e)
+                logger.error(e)
             
         scope.close()
 
