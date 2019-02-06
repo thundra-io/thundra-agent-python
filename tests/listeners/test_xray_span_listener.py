@@ -1,3 +1,4 @@
+import mock
 import pytest
 from thundra.listeners import AWSXRayListener
 
@@ -36,6 +37,22 @@ def test_normalize_operation_name():
         assert case['normalized_name'] == xray_listener._normalize_operation_name(case['name'])
 
 def test_add_annotations(mocked_subsegment, mocked_span):
+    # Prepare span
+    mocked_span.context = mock.Mock(name='mocked_span_context')
+    mocked_span.context.trace_id = 'mocked_trace_id'
+    mocked_span.context.transaction_id = 'mocked_transaction_id'
+    mocked_span.context.span_id = 'mocked_span_id'
+    mocked_span.context.parent_span_id = 'mocked_parent_span_id'
+    def get_duration():
+        return 37
+    mocked_span.get_duration = get_duration
+    mocked_span.class_name = 'mocked_class_name'
+    mocked_span.domain_name = 'mocked_domain_name'
+    mocked_span.operation_name = 'mocked_operation_name'
+    mocked_span.start_time = 37
+    mocked_span.finish_time = 73
+
+
     xray_listener._add_annotation(mocked_subsegment, mocked_span)
     annotations = mocked_subsegment.annotations
 
@@ -49,3 +66,18 @@ def test_add_annotations(mocked_subsegment, mocked_span):
     assert annotations.get('operationName') == 'mocked_operation_name'
     assert annotations.get('startTimeStamp') == 37
     assert annotations.get('finishTimeStamp') == 73
+
+def test_add_metadata(mocked_subsegment, mocked_span):
+    # Prepare span
+    mocked_span.tags = {
+        'key1': 'val1',
+        'key2': 'val2',
+        'key3': 'val3',
+    }
+
+    xray_listener._add_metadata(mocked_subsegment, mocked_span)
+    metadata = mocked_subsegment.metadata
+
+    assert metadata.get('key1') == 'val1'
+    assert metadata.get('key2') == 'val2'
+    assert metadata.get('key3') == 'val3'
