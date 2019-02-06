@@ -24,6 +24,10 @@ class FilteringSpanListener(ThundraSpanListener):
             self.listener.on_span_finished(span)
     
     @staticmethod
+    def should_raise_exceptions():
+        return True
+    
+    @staticmethod
     def from_config(config):
         SPAN_LISTENERS = {
             sl_class.__name__: sl_class 
@@ -37,7 +41,7 @@ class FilteringSpanListener(ThundraSpanListener):
                 listener_class = SPAN_LISTENERS[config['listener']]
             except KeyError:
                 listener_class = None
-                logger.warning('given span listener class %s is not found', config['listener'])
+                logger.error('given span listener class %s is not found', config['listener'])
         
         listener_config = {}
         filter_configs = {}

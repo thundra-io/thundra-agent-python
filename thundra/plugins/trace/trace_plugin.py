@@ -1,13 +1,10 @@
 import time
 import uuid
 
-import thundra.utils as utils
-from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
-import thundra.application_support as application_support
+from thundra import utils, constants, application_support
 from thundra.lambda_event_utils import LambdaEventUtils, LambdaEventType
 from thundra.plugins.log.thundra_logger import debug_logger
-import sys
 
 
 class TracePlugin:
@@ -41,22 +38,18 @@ class TracePlugin:
             'type': "Trace",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': {},
-
             'rootSpanId': None,
             'startTimestamp': self.start_time,
             'finishTimestamp': None,
             'duration': None,
             'tags': {},
         }
+
+        # Add application related data
+        application_info = application_support.get_application_info()
+        self.trace_data.update(application_info)
+
+        # Start root span
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
                                                    finish_on_close=False,
@@ -114,7 +107,6 @@ class TracePlugin:
             self.span_data_list.append(current_span_data)
         
         self.tracer.clear()
-        self.trace_data['applicationTags'] = application_support.get_application_tags()
         self.trace_data['rootSpanId'] = self.root_span.context.span_id
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
@@ -160,16 +152,6 @@ class TracePlugin:
             'type': "Span",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': application_support.get_application_tags(),
-
             'traceId': span.context.trace_id,
             'transactionId': transaction_id,
             'parentSpanId': span.context.parent_span_id or '',
@@ -184,6 +166,10 @@ class TracePlugin:
             'logs': span.logs,
             'tags': span.tags
         }
+
+        # Add application related data
+        application_info = application_support.get_application_info()
+        span_data.update(application_info)
 
         return span_data
 

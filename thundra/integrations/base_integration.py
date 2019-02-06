@@ -5,6 +5,9 @@ import traceback
 from thundra.opentracing.tracer import ThundraTracer
 
 
+logger = logging.getLogger(__name__)
+
+
 class BaseIntegration(abc.ABC):
 
     CLASS_TYPE = "base"
@@ -49,9 +52,11 @@ class BaseIntegration(abc.ABC):
             
         try:
             scope.span.finish()
-        except Exception as injected_err:
+        except Exception as e:
             if exception is None:
-                exception = injected_err
+                exception = e
+            else:
+                logger.error(e)
             
         scope.close()
 
