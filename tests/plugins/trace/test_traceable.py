@@ -3,7 +3,7 @@ from thundra.opentracing.tracer import ThundraTracer
 
 def test_trace_args(trace_args):
     tracer = ThundraTracer.get_instance()
-    nodes = tracer.recorder.finished_span_stack
+    nodes = tracer.get_spans()
     count=0
     for key in nodes:
         if key.operation_name == 'func_args':
@@ -15,6 +15,7 @@ def test_trace_args(trace_args):
     func_args('arg1', arg2='arg2')
 
     active_span = None
+    nodes = tracer.get_spans()
     for key in nodes:
         if key.operation_name == 'func_args':
             count += 1
@@ -43,7 +44,7 @@ def test_trace_args(trace_args):
 
 def test_trace_return_values(trace_return_val):
     tracer = ThundraTracer.get_instance()
-    nodes = tracer.recorder.finished_span_stack
+    nodes = tracer.get_spans()
     count = 0
     for key in nodes:
         if key.operation_name == 'func_return_val':
@@ -55,6 +56,7 @@ def test_trace_return_values(trace_return_val):
     response = func_return_val()
 
     active_span = None
+    nodes = tracer.get_spans()
     for key in nodes:
         if key.operation_name == 'func_return_val':
             count += 1
@@ -78,7 +80,7 @@ def test_trace_return_values(trace_return_val):
 
 def test_trace_error(trace_error):
     tracer = ThundraTracer.get_instance()
-    nodes = tracer.recorder.finished_span_stack
+    nodes = tracer.get_spans()
     count = 0
     for key in nodes:
         if key.operation_name == 'func_with_error':
@@ -91,6 +93,7 @@ def test_trace_error(trace_error):
         func_with_error()
     except:
         active_span = None
+        nodes = tracer.get_spans()
         for key in nodes:
             if key.operation_name == 'func_with_error':
                 count += 1
@@ -113,7 +116,7 @@ def test_trace_error(trace_error):
 
 def test_trace_with_default_configs(trace):
     tracer = ThundraTracer.get_instance()
-    nodes = tracer.recorder.finished_span_stack
+    nodes = tracer.get_spans()
     count = 0
     for key in nodes:
         if key.operation_name == 'func':
@@ -125,6 +128,7 @@ def test_trace_with_default_configs(trace):
     func(arg='test')
 
     active_span = None
+    nodes = tracer.get_spans()
     for key in nodes:
         if key.operation_name == 'func':
             count += 1

@@ -5,6 +5,7 @@ from botocore.errorfactory import ClientError
 import boto3
 import mock
 
+botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
 def test_dynamodb():
     try:
@@ -46,7 +47,7 @@ def test_dynamodb():
             },
         }
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
@@ -80,8 +81,9 @@ def test_dynamodb():
                 }
             }
         ]
-        for i in range(len(tracer.recorder.finished_span_stack)):
-            span = tracer.recorder.finished_span_stack[i]
+        spans = tracer.get_spans()
+        for i in range(len(spans)):
+            span = spans[i]
             assert span.class_name == 'AWS-DynamoDB'
             assert span.domain_name == 'DB'
             assert span.operation_name == 'test-table'
@@ -101,11 +103,11 @@ def test_s3():
             Bucket='test-bucket',
             Key='test.txt'
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-S3'
         assert span.domain_name == 'Storage'
         assert span.get_tag('operation.type') == 'READ'
@@ -134,7 +136,7 @@ def test_lambda(wrap_handler_with_thundra, mock_event, mock_context):
                 pass
             
             # Check span tags
-            span = tracer.recorder.finished_span_stack[0]
+            span = tracer.get_spans()[1]
             assert span.class_name == 'AWS-Lambda'
             assert span.domain_name == 'API'
             assert span.get_tag('aws.lambda.name') == 'Test'
@@ -144,7 +146,7 @@ def test_lambda(wrap_handler_with_thundra, mock_event, mock_context):
             assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
             # Check report
-            report = thundra.reporter.reports[2]['data']
+            report = thundra.reporter.reports[3]['data']
             assert report['className'] == 'AWS-Lambda'
             assert report['domainName'] == 'API'
             assert report['tags']['aws.request.name'] == 'Invoke'
@@ -165,11 +167,11 @@ def test_sqs():
             MessageBody='Hello Thundra!',
             DelaySeconds=123,
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-SQS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -185,11 +187,11 @@ def test_sns():
             TopicArn='Test-topic',
             Message='Hello Thundra!',
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-SNS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -208,11 +210,11 @@ def test_kinesis():
             ExplicitHashKey='STRING_VALUE',
             SequenceNumberForOrdering='STRING_VALUE'
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Kinesis'
         assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -230,11 +232,11 @@ def test_firehose():
                 'Data': 'STRING_VALUE'
             }
         )
-    except:
+    except botocore_errors:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[0]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Firehose'
         assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -243,7 +245,6 @@ def test_firehose():
         tracer.clear()
 
 def test_kms():
-    botocore_errors = (ClientError, Boto3Error, BotoCoreError)
     try:
         kms = boto3.client('kms', region_name='us-west-2')
         kms.update_key_description(
@@ -251,5 +252,5 @@ def test_kms():
             Description='foo'
         )
         raise Exception("Shouldn't reach here")
-    except botocore_errors as e:
+    except botocore_errors:
         pass

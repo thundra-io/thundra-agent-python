@@ -11,7 +11,7 @@ THUNDRA_APPLICATION_DOMAIN_NAME = 'thundra_agent_lambda_application_domainName'
 THUNDRA_APPLICATION_CLASS_NAME = 'thundra_agent_lambda_application_className'
 THUNDRA_APPLICATION_STAGE = 'thundra_agent_lambda_application_stage'
 THUNDRA_APPLICATION_VERSION = 'thundra_agent_lambda_application_version'
-THUNDRA_AGENT_VERSION = '2.0.0'
+THUNDRA_AGENT_VERSION = '2.2.1'
 
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
@@ -70,6 +70,8 @@ DATA_FORMAT_VERSION = '2.0'
 
 THUNDRA_LAMBDA_DEBUG_ENABLE = 'thundra_agent_lambda_debug_enable'
 THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_agent_lambda_log_console_disable'
+THUNDRA_LAMBDA_SPAN_LISTENER = 'thundra_agent_lambda_trace_span_listener'
+THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
 
 #### INTEGRATIONS ####
 

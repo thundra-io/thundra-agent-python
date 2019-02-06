@@ -1,13 +1,10 @@
 import time
 import uuid
 
-import thundra.utils as utils
-from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
-import thundra.application_support as application_support
+from thundra import utils, constants, application_support
 from thundra.lambda_event_utils import LambdaEventUtils, LambdaEventType
 from thundra.plugins.log.thundra_logger import debug_logger
-import sys
 
 
 class TracePlugin:
@@ -41,43 +38,26 @@ class TracePlugin:
             'type': "Trace",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': {},
-
             'rootSpanId': None,
             'startTimestamp': self.start_time,
             'finishTimestamp': None,
             'duration': None,
             'tags': {},
         }
+
+        # Add application related data
+        application_info = application_support.get_application_info()
+        self.trace_data.update(application_info)
+
+        # Start root span
         self.scope = self.tracer.start_active_span(operation_name=function_name,
                                                    start_time=self.start_time,
-                                                   finish_on_close=True,
+                                                   finish_on_close=False,
                                                    trace_id=trace_id,
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
+        # Add root span tags
         plugin_context['span_id'] = self.root_span.context.trace_id
-        self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
-
-    def after_invocation(self, plugin_context):
-        self.scope.close()
-
-        if self.root_span is not None:
-            self.end_time = self.root_span.start_time + self.root_span.get_duration()
-        else:
-            self.end_time = int(time.time() * 1000)
-
-        context = plugin_context['context']
-        reporter = plugin_context['reporter']
-
-        #### ADDING TAGS ####
         self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(
             getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)))
         self.root_span.set_tag('aws.lambda.name', getattr(context, constants.CONTEXT_FUNCTION_NAME, None))
@@ -89,6 +69,28 @@ class TracePlugin:
         self.root_span.set_tag('aws.lambda.invocation.timeout', plugin_context.get('timeout', False))
         self.root_span.set_tag('aws.lambda.invocation.request_id',
                                getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
+        self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
+
+        self.root_span.on_started()
+
+    def after_invocation(self, plugin_context):
+        try:
+            self.scope.span.finish()
+        except Exception as injected_err:
+            # TODO: handle root span finish errors
+            pass
+        
+        self.scope.close()
+
+        if self.root_span is not None:
+            self.end_time = self.root_span.start_time + self.root_span.get_duration()
+        else:
+            self.end_time = int(time.time() * 1000)
+
+        context = plugin_context['context']
+        reporter = plugin_context['reporter']
+
+        #### ADDING TAGS ####
         skip_request = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
         skip_response = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
         if skip_request != True:
@@ -98,15 +100,13 @@ class TracePlugin:
 
         duration = self.end_time - self.start_time
 
-        finished_span_stack = self.tracer.get_finished_stack() if self.tracer is not None else None
-        active_span_stack = self.tracer.get_active_stack() if self.tracer is not None else None
-        span_stack = finished_span_stack + active_span_stack
+        span_stack = self.tracer.get_spans()
 
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
             self.span_data_list.append(current_span_data)
+        
         self.tracer.clear()
-        self.trace_data['applicationTags'] = application_support.get_application_tags()
         self.trace_data['rootSpanId'] = self.root_span.context.span_id
         self.trace_data['duration'] = duration
         self.trace_data['startTimestamp'] = self.start_time
@@ -152,16 +152,6 @@ class TracePlugin:
             'type': "Span",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': application_support.get_application_tags(),
-
             'traceId': span.context.trace_id,
             'transactionId': transaction_id,
             'parentSpanId': span.context.parent_span_id or '',
@@ -176,6 +166,10 @@ class TracePlugin:
             'logs': span.logs,
             'tags': span.tags
         }
+
+        # Add application related data
+        application_info = application_support.get_application_info()
+        span_data.update(application_info)
 
         return span_data
 

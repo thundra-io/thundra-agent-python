@@ -1,10 +1,15 @@
 import abc
+import logging
 import time
 import traceback
 from thundra.opentracing.tracer import ThundraTracer
 
 
+logger = logging.getLogger(__name__)
+
+
 class BaseIntegration(abc.ABC):
+
     CLASS_TYPE = "base"
 
     def run_and_trace(self, wrapped, instance, args, kwargs):
@@ -12,30 +17,63 @@ class BaseIntegration(abc.ABC):
         response = None
         exception = None
 
-        with tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),
-                                      finish_on_close=True) as scope:
-            try:
-                response = wrapped(*args, **kwargs)
-                return response
-            except Exception as operation_exception:
-                exception = operation_exception
-                raise
-            finally:
-                try:
-                    self.inject_span_info(scope, wrapped, instance, args, kwargs, response, exception)
-                except Exception as instrumentation_exception:
-                    error = {
-                        'type': str(type(instrumentation_exception)),
-                        'message': str(instrumentation_exception),
-                        'traceback': traceback.format_exc(),
-                        'time': time.time()
-                    }
-                    scope.span.set_tag('instrumentation_error', error)
+        scope = tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),finish_on_close=False)
+        # Inject before span tags
+        try:
+            self.before_call(scope, wrapped, instance, args, kwargs, response, exception)
+        except Exception as instrumentation_exception:
+            e = {
+                'type': str(type(instrumentation_exception)),
+                'message': str(instrumentation_exception),
+                'traceback': traceback.format_exc(),
+                'time': time.time()
+            }
+            scope.span.set_tag('instrumentation_error', e)
+        
+        try:
+            # Inform span that initialization completed
+            scope.span.on_started()
+            # Call original
+            response = wrapped(*args, **kwargs)
+        except Exception as e:
+            exception = e
+        
+        # Inject after span tags 
+        try:
+            self.after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        except Exception as instrumentation_exception:
+            e = {
+                'type': str(type(instrumentation_exception)),
+                'message': str(instrumentation_exception),
+                'traceback': traceback.format_exc(),
+                'time': time.time()
+            }
+            scope.span.set_tag('instrumentation_error', e)
+            
+        try:
+            scope.span.finish()
+        except Exception as e:
+            if exception is None:
+                exception = e
+            else:
+                logger.error(e)
+            
+        scope.close()
 
+        if exception is not None:
+            scope.span.set_error_to_tag(exception)
+            raise exception
+        
+        return response
+                    
     @abc.abstractmethod
     def get_operation_name(self, wrapped, instance, args, kwargs):
         raise Exception("should be implemented")
 
     @abc.abstractmethod
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        raise Exception("should be implemented")
+
+    @abc.abstractmethod
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         raise Exception("should be implemented")

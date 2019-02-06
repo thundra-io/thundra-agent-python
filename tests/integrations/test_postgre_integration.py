@@ -1,4 +1,3 @@
-
 import psycopg2
 from psycopg2 import Error as PostgreError
 from thundra.opentracing.tracer import ThundraTracer
@@ -22,7 +21,7 @@ def test_postgre_integration():
 
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.recorder.finished_span_stack[0]
+        postgre_span = tracer.get_spans()[0]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
         assert postgre_span.class_name == constants.ClassNames['POSTGRESQL']
@@ -30,7 +29,7 @@ def test_postgre_integration():
         assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert postgre_span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
-        assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query.lower()
+        assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
         assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
         assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
@@ -54,7 +53,7 @@ def test_postgre_integration_with_empty_query():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.recorder.finished_span_stack[0]
+        postgre_span = tracer.get_spans()[0]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
         assert postgre_span.class_name == constants.ClassNames['POSTGRESQL']

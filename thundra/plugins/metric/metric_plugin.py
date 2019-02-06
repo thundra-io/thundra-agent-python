@@ -2,11 +2,10 @@ import uuid
 import threading
 import gc
 import time
-import sys
 
 from thundra import utils, constants
+from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
-import thundra.application_support as application_support
 
 
 class MetricPlugin:
@@ -36,16 +35,6 @@ class MetricPlugin:
             'type': "Metric",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': {},
-
             'traceId': active_span.trace_id if active_span is not None else '',
             'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
             'spanId': active_span.span_id if active_span is not None else '',
@@ -54,11 +43,15 @@ class MetricPlugin:
                 'aws.region': utils.get_configuration(constants.AWS_REGION, default='')
             }
         }
+
+        # Add application related data
+        application_info = application_support.get_application_info()
+        self.metric_data.update(application_info)
+
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, plugin_context):
-        self.metric_data['applicationTags'] = application_support.get_application_tags()
         reporter = plugin_context['reporter']
         self.add_thread_metric_report(reporter)
         self.add_gc_metric_report(reporter)

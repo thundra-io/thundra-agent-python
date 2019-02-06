@@ -10,7 +10,8 @@ def test_set():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.get_spans()[0]
+
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'
@@ -31,7 +32,7 @@ def test_get():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.recorder.finished_span_stack[-1]
+        span = tracer.get_spans()[0]
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'

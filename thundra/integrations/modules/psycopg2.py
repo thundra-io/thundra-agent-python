@@ -14,17 +14,16 @@ class PostgreCursorWrapper(wrapt.ObjectProxy):
         self._self_connection = connection_wrapper
 
     def execute(self, *args, **kwargs):
-        response = postgre_integration.run_and_trace(
+        return postgre_integration.run_and_trace(
             self.__wrapped__.execute,
             self._self_connection,
             args,
             kwargs,
         )
-        return response
 
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
-        self.__wrapped__.__enter__  # pylint: disable=W0104
+        self.__wrapped__.__enter__ 
         return self
 
 class PostgreConnectionWrapper(wrapt.ObjectProxy):

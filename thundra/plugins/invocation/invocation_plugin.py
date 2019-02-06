@@ -1,12 +1,10 @@
 import math
 import time
 import uuid
-import sys
-
 import json
 from thundra import constants, utils
+from thundra import application_support
 import thundra.plugins.invocation.invocation_support as invocation_support
-import thundra.application_support as application_support
 
 
 class InvocationPlugin:
@@ -31,16 +29,6 @@ class InvocationPlugin:
             'type': "Invocation",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': {},
-
             'traceId': plugin_context.get('trace_id', ""),
             'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
             'spanId': plugin_context.get('span_id', ""),
@@ -58,6 +46,10 @@ class InvocationPlugin:
             'timeout': False,
             'tags': {},
         }
+
+        # Add application related data
+        application_info = application_support.get_application_info()
+        self.invocation_data.update(application_info)
 
     def after_invocation(self, plugin_context):
         total_mem, used_mem = utils.process_memory_usage()
@@ -95,7 +87,6 @@ class InvocationPlugin:
         self.invocation_data['finishTimestamp'] = int(self.end_time)
 
         #### ADDING AWS TAGS ####
-        self.invocation_data['applicationTags'] = application_support.get_application_tags()
         self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)

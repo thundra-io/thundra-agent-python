@@ -1,15 +1,11 @@
 from __future__ import absolute_import
-import thundra.constants as Constants
+import thundra.constants as constants
 from thundra.integrations.base_integration import BaseIntegration
 import traceback
 
 
-# pylint: disable=W0613
-
-
 def dummy_func(*args):
     return None
-
 
 def set_exception(exception, traceback_data, scope):
     span = scope.span
@@ -19,53 +15,41 @@ def set_exception(exception, traceback_data, scope):
 
 class AWSDynamoDBIntegration(BaseIntegration):
     CLASS_TYPE = 'dynamodb'
-    OPERATION = {}
 
     def __init__(self):
-        pass
+        self.OPERATION = {
+            'PutItem': self.process_put_item_op,
+            'UpdateItem': self.process_update_item_op,
+            'GetItem': self.process_get_item_op,
+            'DeleteItem': self.process_delete_item_op,
+            'BatchWriteItem': self.process_batch_write_op,
+        }
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return str(request_data['TableName']) if 'TableName' in request_data else Constants.AWS_SERVICE_REQUEST
+        return str(request_data['TableName']) if 'TableName' in request_data else constants.AWS_SERVICE_REQUEST
 
-    def getStatementType(self, string):
-        if string in Constants.DynamoDBRequestTypes:
-            return Constants.DynamoDBRequestTypes[string]
-        return ''
-
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
-        self.OPERATION.update(
-            {'PutItem': self.process_put_item_op,
-             'UpdateItem': self.process_update_item_op,
-             'GetItem': self.process_get_item_op,
-             'DeleteItem': self.process_delete_item_op,
-             'BatchWriteItem': self.process_batch_write_op,
-             }
-        )
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
+        statement_type = constants.DynamoDBRequestTypes.get(operation_name, '')
+        
         self.request_data = request_data.copy()
-        self.response = response
         self.endpoint = instance._endpoint.host.split('/')[-1]
 
-        scope.span.domain_name = Constants.DomainNames['DB']
-        scope.span.class_name = Constants.ClassNames['DYNAMODB']
+        scope.span.domain_name = constants.DomainNames['DB']
+        scope.span.class_name = constants.ClassNames['DYNAMODB']
 
-        ## ADDING TAGS ##
 
         tags = {
-            Constants.SpanTags['OPERATION_TYPE']: self.getStatementType(operation_name),
-            Constants.DBTags['DB_INSTANCE']: self.endpoint,
-            Constants.DBTags['DB_TYPE']: Constants.DBTypes['DYNAMODB'],
-            Constants.AwsDynamoTags['TABLE_NAME']: str(
+            constants.SpanTags['OPERATION_TYPE']: statement_type,
+            constants.DBTags['DB_INSTANCE']: self.endpoint,
+            constants.DBTags['DB_TYPE']: constants.DBTypes['DYNAMODB'],
+            constants.AwsDynamoTags['TABLE_NAME']: str(
                 self.request_data['TableName']) if 'TableName' in self.request_data else None,
-            Constants.DBTags['DB_STATEMENT_TYPE']: self.getStatementType(operation_name),
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.DBTags['DB_STATEMENT_TYPE']: statement_type,
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
         scope.span.tags = tags
-        ## FINISHED ADDING TAGS ##
 
         # Check if Key and Item fields have any byte field and convert to string
         if 'Key' in self.request_data:
@@ -73,33 +57,33 @@ class AWSDynamoDBIntegration(BaseIntegration):
         if 'Item' in self.request_data:
             self.escape_byte_fields(self.request_data['Item'])
 
-
         self.OPERATION.get(operation_name, dummy_func)(scope)
 
+        if operation_name in constants.DynamoDBRequestTypes:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+    
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
-        if operation_name in Constants.DynamoDBRequestTypes:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
-
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
-            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+            scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_put_item_op(self, scope):
         if 'Item' in self.request_data:
-            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Item'])
+            scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Item'])
 
     def process_delete_item_op(self, scope):
         if 'Key' in self.request_data:
-            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+            scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def process_update_item_op(self, scope):
         if 'Key' in self.request_data:
-            scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
+            scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
 
     def escape_byte_fields(self, req_dict):
         for k, v in req_dict.items():
@@ -121,7 +105,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         for item in self.request_data['RequestItems'][table_name]:
             items.append(item)
 
-        scope.span.set_tag(Constants.DBTags['DB_STATEMENT'], items)
+        scope.span.set_tag(constants.DBTags['DB_STATEMENT'], items)
 
 
 class AWSSQSIntegration(BaseIntegration):
@@ -132,51 +116,49 @@ class AWSSQSIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return str(self.getQueueName(request_data))
+        queue_name = str(self.getQueueName(request_data))
+        if queue_name != '':
+            return queue_name
+        return constants.AWS_SERVICE_REQUEST
 
     def getRequestType(self, string):
-        if string in Constants.SQSRequestTypes:
-            return Constants.SQSRequestTypes[string]
-        return 'READ'
+        if string in constants.SQSRequestTypes:
+            return constants.SQSRequestTypes[string]
+        return ''
 
     def getQueueName(self, data):
         if 'QueueUrl' in data:
             return data['QueueUrl'].split('/')[-1]
         elif 'QueueName' in data:
             return data['QueueName']
-        return Constants.AWS_SERVICE_REQUEST
+        return ''
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         self.request_data = request_data
         self.queueName = str(self.getQueueName(self.request_data))
         self.response = response
 
-        scope.span.domain_name = Constants.DomainNames['MESSAGING']
-        scope.span.class_name = Constants.ClassNames['SQS']
-
-        ## ADDING TAGS ##
+        scope.span.domain_name = constants.DomainNames['MESSAGING']
+        scope.span.class_name = constants.ClassNames['SQS']
 
         tags = {
-            Constants.AwsSQSTags['QUEUE_NAME']: self.queueName,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.AwsSQSTags['QUEUE_NAME']: self.queueName,
+            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
+
         scope.span.tags = tags
 
-        ## FINISHED ADDING TAGS ##
+        if operation_name in constants.SQSRequestTypes:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
-
-        if operation_name in Constants.SQSRequestTypes:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
-
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -196,43 +178,40 @@ class AWSSNSIntegration(BaseIntegration):
             if arn != 'N/A':
                 self.topicName = arn.split(':')[-1]
             else:
-                self.topicName = Constants.AWS_SERVICE_REQUEST
+                self.topicName = ''
 
         return self.topicName
 
     def getRequestType(self, string):
-        if string in Constants.SNSRequestTypes:
-            return Constants.SNSRequestTypes[string]
-        return Constants.AWS_SERVICE_REQUEST
+        if string in constants.SNSRequestTypes:
+            return constants.SNSRequestTypes[string]
+        return ''
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         self.request_data = request_data
         self.response = response
 
-        scope.span.domain_name = Constants.DomainNames['MESSAGING']
-        scope.span.class_name = Constants.ClassNames['SNS']
+        scope.span.domain_name = constants.DomainNames['MESSAGING']
+        scope.span.class_name = constants.ClassNames['SNS']
 
-        ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
-            Constants.AwsSNSTags['TOPIC_NAME']: self.topicName
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.AwsSNSTags['TOPIC_NAME']: self.topicName
         }
-        ### FINISHED ADDING TAGS ###
+
         scope.span.tags = tags
 
+        if operation_name in constants.SNSRequestTypes:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+    
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
-
-        if operation_name in Constants.SNSRequestTypes:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
-
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -242,41 +221,37 @@ class AWSKinesisIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data['StreamName'] if 'StreamName' in request_data else Constants.AWS_SERVICE_REQUEST
-        # return 'kinesis'
+        return request_data['StreamName'] if 'StreamName' in request_data else constants.AWS_SERVICE_REQUEST
 
     def getRequestType(self, string):
-        if string in Constants.KinesisRequestTypes:
-            return Constants.KinesisRequestTypes[string]
-        return Constants.AWS_SERVICE_REQUEST
+        if string in constants.KinesisRequestTypes:
+            return constants.KinesisRequestTypes[string]
+        return ''
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.streamName = request_data['StreamName'] if 'StreamName' in request_data else Constants.AWS_SERVICE_REQUEST
+        self.streamName = request_data['StreamName'] if 'StreamName' in request_data else ''
 
-        scope.span.domain_name = Constants.DomainNames['STREAM']
-        scope.span.class_name = Constants.ClassNames['KINESIS']
+        scope.span.domain_name = constants.DomainNames['STREAM']
+        scope.span.class_name = constants.ClassNames['KINESIS']
 
-        ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
-            Constants.AwsKinesisTags['STREAM_NAME']: self.streamName
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.AwsKinesisTags['STREAM_NAME']: self.streamName
         }
-        ### FINISHED ADDING TAGS ###
+
         scope.span.tags = tags
 
+        if 'StreamName' in request_data:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
-
-        if 'StreamName' in request_data:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
-
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -287,40 +262,38 @@ class AWSFirehoseIntegration(BaseIntegration):
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
         return request_data[
-            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else Constants.AWS_SERVICE_REQUEST
+            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else constants.AWS_SERVICE_REQUEST
 
     def getRequestType(self, string):
-        if string in Constants.FirehoseRequestTypes:
-            return Constants.FirehoseRequestTypes[string]
-        return Constants.AWS_SERVICE_REQUEST
+        if string in constants.FirehoseRequestTypes:
+            return constants.FirehoseRequestTypes[string]
+        return ''
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         self.deliveryStreamName = request_data[
-            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else Constants.AWS_SERVICE_REQUEST
+            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else ''
 
-        scope.span.domain_name = Constants.DomainNames['STREAM']
-        scope.span.class_name = Constants.ClassNames['FIREHOSE']
+        scope.span.domain_name = constants.DomainNames['STREAM']
+        scope.span.class_name = constants.ClassNames['FIREHOSE']
 
-        ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
-            Constants.AwsFirehoseTags['STREAM_NAME']: self.deliveryStreamName
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.AwsFirehoseTags['STREAM_NAME']: self.deliveryStreamName
         }
-        ## FINISHED ADDING TAGS ###
+
         scope.span.tags = tags
 
+        if 'DeliveryStreamName' in request_data:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+    
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
-
-        if 'DeliveryStreamName' in request_data:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -331,43 +304,41 @@ class AWSS3Integration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data['Bucket'] if 'Bucket' in request_data else Constants.AWS_SERVICE_REQUEST
+        return request_data['Bucket'] if 'Bucket' in request_data else constants.AWS_SERVICE_REQUEST
 
     def getRequestType(self, string):
-        if string in Constants.S3RequestTypes:
-            return Constants.S3RequestTypes[string]
-        return Constants.AWS_SERVICE_REQUEST
+        if string in constants.S3RequestTypes:
+            return constants.S3RequestTypes[string]
+        return ''
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.bucket = request_data['Bucket'] if 'Bucket' in request_data else Constants.AWS_SERVICE_REQUEST
+        self.bucket = request_data['Bucket'] if 'Bucket' in request_data else ''
 
-        scope.span.domain_name = Constants.DomainNames['STORAGE']
-        scope.span.class_name = Constants.ClassNames['S3']
+        scope.span.domain_name = constants.DomainNames['STORAGE']
+        scope.span.class_name = constants.ClassNames['S3']
 
         if "Key" in request_data:
             self.objectName = request_data["Key"]
 
-        ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
-            Constants.AwsS3Tags['BUCKET_NAME']: self.bucket,
-            Constants.AwsS3Tags['OBJECT_NAME']: self.objectName
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.AwsS3Tags['BUCKET_NAME']: self.bucket,
+            constants.AwsS3Tags['OBJECT_NAME']: self.objectName
         }
-        ## FINISHED ADDING TAGS ###
+
         scope.span.tags = tags
 
+        if operation_name in constants.S3RequestTypes:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+    
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
-
-        if operation_name in Constants.S3RequestTypes:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
 
 
 class AWSLambdaIntegration(BaseIntegration):
@@ -378,81 +349,45 @@ class AWSLambdaIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data.get('FunctionName', Constants.AWS_SERVICE_REQUEST)
+        return request_data.get('FunctionName', constants.AWS_SERVICE_REQUEST)
 
     def getRequestType(self, string):
-        if string in Constants.LambdaRequestType:
-            return Constants.LambdaRequestType[string]
-        return Constants.AWS_SERVICE_REQUEST
+        if string in constants.LambdaRequestType:
+            return constants.LambdaRequestType[string]
+        return ''
 
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.lambdaFunction = request_data.get('FunctionName', Constants.AWS_SERVICE_REQUEST)
-        scope.span.domain_name = Constants.DomainNames['API']
-        scope.span.class_name = Constants.ClassNames['LAMBDA']
+        self.lambdaFunction = request_data.get('FunctionName', '')
+        scope.span.domain_name = constants.DomainNames['API']
+        scope.span.class_name = constants.ClassNames['LAMBDA']
 
-        ### ADDING TAGS ###
         tags = {
-            Constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            Constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
-            Constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
+
         if 'Payload' in request_data:
-            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
+            tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
                 request_data['Payload']) is not str else request_data['Payload']
 
         if 'Qualifier' in request_data:
-            tags[Constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']
+            tags[constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']
 
         if 'InvocationType' in request_data:
-            tags[Constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
-        ## FINISHED ADDING TAGS ###
+            tags[constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
 
         scope.span.tags = tags
 
+        if operation_name in constants.LambdaRequestType:
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+            scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+    
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
             set_exception(exception, traceback.format_exc(), scope)
 
-        if operation_name in Constants.LambdaRequestType:
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
-            scope.span.set_tag(Constants.SpanTags['TOPOLOGY_VERTEX'], True)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_DOMAIN_NAME'], Constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-            scope.span.set_tag(Constants.SpanTags['TRIGGER_CLASS_NAME'], Constants.LAMBDA_APPLICATION_CLASS_NAME)
-
-
-class AWSXrayIntegration(BaseIntegration):
-    CLASS_TYPE = 'xray'
-
-    def __init__(self):
-        pass
-
-    def get_operation_name(self, wrapped, instance, args, kwargs):
-        return 'xray'
-
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response,
-                         exception):
-
-        operation_name, request_data = args
-        scope.span.class_name = 'XRAY'
-
-        ### ADDING TAGS ###
-        tags = {
-            "XRAY": 'Under_Development'
-        }
-        if 'Payload' in request_data:
-            tags[Constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = request_data['Payload']
-
-        if 'Qualifier' in request_data:
-            tags[Constants.AwsLambdaTags['FUNCTION_QUALIFIER']] = request_data['Qualifier']
-
-        if 'InvocationType' in request_data:
-            tags[Constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
-        ## FINISHED ADDING TAGS ###
-
-        scope.span.tags = tags
-
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)

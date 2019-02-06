@@ -13,7 +13,6 @@ def _wrapper(wrapped, instance, args, kwargs):
         kwargs
     )
 
-
 def patch():
     disable_redis_integration_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_REDIS_INTEGRATION)
     if not utils.should_disable(disable_redis_integration_by_env):

@@ -13,22 +13,17 @@ class RedisIntegration(BaseIntegration):
     def get_operation_name(self, wrapped, instance, args, kwargs):
         connection_kwargs = instance.connection_pool.connection_kwargs
         return connection_kwargs.get('host', 'Redis')
-        
 
-    # pylint: disable=W0613
-    def inject_span_info(self, scope, wrapped, instance, args, kwargs, response, exception):
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         connection_kwargs = instance.connection_pool.connection_kwargs
         host = connection_kwargs.get('host', '')
         port = connection_kwargs.get('port', '6379')
         command_type = wrapped.__name__.upper() or ""
         operation_type = constants.RedisCommandTypes.get(command_type, '')
-
         command = '{} {}'.format(command_type, ' '.join([str(arg) for arg in args]))
 
         scope.span.domain_name = constants.DomainNames['CACHE']
         scope.span.class_name = constants.ClassNames['REDIS']
-
-        ## ADDING TAGS ##
 
         tags = {
             constants.SpanTags['OPERATION_TYPE']: operation_type,
@@ -45,5 +40,7 @@ class RedisIntegration(BaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        ## FINISHED ADDING TAGS ##
         scope.span.tags = tags
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        pass

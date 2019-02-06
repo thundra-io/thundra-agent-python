@@ -91,10 +91,6 @@ class LambdaEventUtils:
         span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         table_names = []
         for record in original_event['Records']:
-            # event_source_arn = record['eventSourceARN']
-            # event_source_arn_split = event_source_arn.split('/')
-            # table_name = event_source_arn_split[1]
-            # table_names.append(table_name)
             table_names.append(record['eventSourceARN'].split('/')[1])
         span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], list(set(table_names)))
 

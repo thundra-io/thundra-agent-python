@@ -1,11 +1,9 @@
+import os
 import pytest
 import mock
 from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
 from thundra import constants
-from aws_xray_sdk.core import xray_recorder
-from tests.listeners.test_listeners_thundra_class import ThundraForListeners
-import os
 
 
 class MockContext:
@@ -121,37 +119,6 @@ def wrap_handler_with_thundra(thundra):
         return thundra, thundra(handler)
 
     return _wrap_handler_with_thundra
-
-
-@pytest.fixture
-def thundra_with_xray(monkeypatch, reporter):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
-    thundra = ThundraForListeners(disable_metric=True)
-    thundra.reporter = reporter
-    xray_recorder.configure(sampling=False)
-    xray_recorder.begin_segment('test')
-    return thundra
-
-
-@pytest.fixture
-def handler_with_xray(thundra_with_xray, monkeypatch):
-    @thundra_with_xray.call
-    def _handler(event, context):
-        pass
-
-    return thundra_with_xray, _handler
-
-
-@pytest.fixture
-def handler_with_xray_testing(thundra_with_xray):
-    @thundra_with_xray
-    def _handler(event, context):
-        return {
-            "Hello": "Hello Thundra"
-        }
-
-    return thundra_with_xray, _handler
 
 
 @pytest.fixture
