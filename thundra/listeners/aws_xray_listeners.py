@@ -75,8 +75,8 @@ class AWSXRayListener(ThundraSpanListener):
             
 
     def _add_metadata(self, subsegment, span):
-        for key in span.tags:
-            subsegment.put_metadata(key, span.tags[key])
+        for k, v in span.tags.items():
+            subsegment.put_metadata(k, v)
 
     def _normalize_operation_name(self, operation_name):
         if operation_name:
