@@ -38,7 +38,7 @@ def parse_application_info(context):
     _application_info['applicationTags'] = get_application_tags()
 
 def get_application_info():
-    return _application_info
+    return _application_info.copy()
 
 # Call parse application tags function to parse application tags
 # during the module intialization
