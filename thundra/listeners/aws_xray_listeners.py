@@ -1,7 +1,7 @@
 import re
 import logging
 import traceback
-import thundra.constants as constants
+from thundra import constants, application_support
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 try:
     from aws_xray_sdk.core import xray_recorder
@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 class AWSXRayListener(ThundraSpanListener):
     def __init__(self):
-        self.xray_data = {}
-
+        pass
+    
     def _start_subsegment(self, span):
         subsegment_name = self._normalize_operation_name(span.operation_name)
         xray_recorder.begin_subsegment(subsegment_name)
@@ -49,30 +49,30 @@ class AWSXRayListener(ThundraSpanListener):
         if self.xray_available():
             self._end_subsegment(span)
 
-    def _put_annotation_if_available(self, key, dictionary, dict_key, document):
-        if dict_key in dictionary:
-            value = dictionary[dict_key]
-            if isinstance(value, str) or isinstance(value, int) or isinstance(value, bool):
-                document.put_annotation(self._normalize_annotation_name(key), self._normalize_annotation_value(value))
-
     def _add_annotation(self, subsegment, span):
-        subsegment.put_annotation('traceId', span.context.trace_id)
-        subsegment.put_annotation('transactionId', span.context.transaction_id)
-        subsegment.put_annotation('spanId', span.context.span_id)
-        subsegment.put_annotation('parentSpanId', span.context.parent_span_id 
-            if span.context.parent_span_id is not None else '')
         span_dict = vars(span)
-        self._put_annotation_if_available('domainName', span_dict, 'domain_name', subsegment)
-        self._put_annotation_if_available('className', span_dict, 'class_name', subsegment)
-        self._put_annotation_if_available('operationName', span_dict, 'operation_name', subsegment)
-        self._put_annotation_if_available('startTimeStamp', span_dict, 'start_time', subsegment)
-        self._put_annotation_if_available('finishTimeStamp', span_dict, 'finish_time', subsegment)
-        duration = int(span.get_duration())
-        subsegment.put_annotation('duration', duration)
+        annotations = {
+            'traceId': span.context.trace_id,
+            'transactionId': span.context.transaction_id,
+            'spanId': span.context.span_id,
+            'parentSpanId': span.context.parent_span_id,
+            'duration': span.get_duration(),
+            'domainName': span_dict.get('domain_name'),
+            'className': span_dict.get('class_name'),
+            'operationName': span_dict.get('operation_name'),
+            'startTimeStamp': span_dict.get('start_time'),
+            'finishTimeStamp': span_dict.get('finish_time'),
+        }
 
-        if self.xray_data is not None:
-            for key in self.xray_data:
-                self._put_annotation_if_available(key, self.xray_data, key, subsegment)
+        # Add application related data
+        application_info = application_support.get_application_info()
+        annotations.update(application_info)
+
+        # Normalize each key and value and add to the subsegment
+        for k, v in annotations.items():
+            if isinstance(v, str) or isinstance(v, int) or isinstance(v, bool):
+                subsegment.put_annotation(self._normalize_annotation_name(k), self._normalize_annotation_value(v))
+            
 
     def _add_metadata(self, subsegment, span):
         for key in span.tags:

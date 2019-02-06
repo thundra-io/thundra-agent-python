@@ -1,11 +1,10 @@
-from thundra import utils, constants
-import sys
-import thundra.application_support as application_support
 import wrapt
+import logging
+from thundra import utils, constants
+from thundra import application_support
+from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
-from thundra.opentracing.tracer import ThundraTracer
-import logging
 
 
 class LogPlugin:
@@ -48,26 +47,19 @@ class LogPlugin:
             'type': "Log",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'applicationId': utils.get_application_id(context),
-            'applicationDomainName': constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME,
-            'applicationClassName': constants.AWS_LAMBDA_APPLICATION_CLASS_NAME,
-            'applicationName': function_name,
-            'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, None),
-            'applicationStage': utils.get_configuration(constants.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
-            'applicationTags': {},
-
             'traceId': plugin_context.get('trace_id', ""),
             'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
             'tags': {}
         }
 
+        # Add application related data
+        application_info = application_support.get_application_info()
+        self.log_data.update(application_info)
+
     def after_invocation(self, plugin_context):
         context = plugin_context['context']
 
         #### ADDING TAGS ####
-        self.log_data['applicationTags'] = application_support.get_application_tags()
         self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.log_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)

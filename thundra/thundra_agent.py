@@ -4,14 +4,13 @@ from functools import wraps
 import time
 import logging
 
-from thundra import constants
-from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
-from thundra.plugins.log.log_plugin import LogPlugin
-from thundra.plugins.metric.metric_plugin import MetricPlugin
-from thundra.plugins.trace.trace_plugin import TracePlugin
-from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.reporter import Reporter
-import thundra.utils as utils
+from thundra.plugins.log.log_plugin import LogPlugin
+from thundra.plugins.trace.patcher import ImportPatcher
+from thundra import constants, utils, application_support
+from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.plugins.metric.metric_plugin import MetricPlugin
+from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +73,8 @@ class Thundra:
             # Clear plugin context for each invocation
             self.plugin_context = {}
             self.plugin_context['reporter'] = self.reporter
-
+            application_support.parse_application_info(context)
+            
             # Before running user's handler
             try:
                 if self.check_and_handle_warmup_request(event):
