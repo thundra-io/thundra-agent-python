@@ -57,7 +57,7 @@ class TracePlugin:
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
         # Add root span tags
-        plugin_context['span_id'] = self.root_span.context.trace_id
+        plugin_context['span_id'] = self.root_span.context.span_id
         self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(
             getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)))
         self.root_span.set_tag('aws.lambda.name', getattr(context, constants.CONTEXT_FUNCTION_NAME, None))
