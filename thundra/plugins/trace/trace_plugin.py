@@ -2,9 +2,8 @@ import time
 import uuid
 
 from thundra.opentracing.tracer import ThundraTracer
-from thundra import utils, constants, application_support
-from thundra.lambda_event_utils import LambdaEventUtils, LambdaEventType
 from thundra.plugins.log.thundra_logger import debug_logger
+from thundra import utils, constants, application_support, lambda_event_utils
 
 
 class TracePlugin:
@@ -185,31 +184,31 @@ class TracePlugin:
 
     def _inject_trigger_tags(self, span, original_event, original_context):
         try:
-            lambda_event_type = LambdaEventUtils.get_lambda_event_type(original_event, original_context)
+            lambda_event_type = lambda_event_utils.get_lambda_event_type(original_event, original_context)
 
-            if lambda_event_type == LambdaEventType.Kinesis:
-                LambdaEventUtils.inject_trigger_tags_for_kinesis(span, original_event)
-            elif lambda_event_type == LambdaEventType.Firehose:
-                LambdaEventUtils.inject_trigger_tags_for_firehose(span, original_event)
-            elif lambda_event_type == LambdaEventType.DynamoDB:
-                LambdaEventUtils.inject_trigger_tags_for_dynamodb(span, original_event)
-            elif lambda_event_type == LambdaEventType.SNS:
-                LambdaEventUtils.inject_trigger_tags_for_sns(span, original_event)
-            elif lambda_event_type == LambdaEventType.SQS:
-                LambdaEventUtils.inject_trigger_tags_for_sqs(span, original_event)
-            elif lambda_event_type == LambdaEventType.S3:
-                LambdaEventUtils.inject_trigger_tags_for_s3(span, original_event)
-            elif lambda_event_type == LambdaEventType.CloudWatchSchedule:
-                LambdaEventUtils.inject_trigger_tags_for_cloudwatch_schedule(span, original_event)
-            elif lambda_event_type == LambdaEventType.CloudWatchLogs:
-                LambdaEventUtils.inject_trigger_tags_for_cloudwatch_logs(span, original_event)
-            elif lambda_event_type == LambdaEventType.CloudFront:
-                LambdaEventUtils.inject_trigger_tags_for_cloudfront(span, original_event)
-            elif lambda_event_type == LambdaEventType.APIGatewayProxy:
-                LambdaEventUtils.inject_trigger_tags_for_api_gateway_proxy(span, original_event)
-            elif lambda_event_type == LambdaEventType.APIGateway:
-                LambdaEventUtils.inject_trigger_tags_for_api_gateway(span, original_event)
-            elif lambda_event_type == LambdaEventType.Lambda:
-                LambdaEventUtils.inject_trigger_tags_for_lambda(span, original_context)
+            if lambda_event_type == lambda_event_utils.LambdaEventType.Kinesis:
+                lambda_event_utils.inject_trigger_tags_for_kinesis(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.Firehose:
+                lambda_event_utils.inject_trigger_tags_for_firehose(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.DynamoDB:
+                lambda_event_utils.inject_trigger_tags_for_dynamodb(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.SNS:
+                lambda_event_utils.inject_trigger_tags_for_sns(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.SQS:
+                lambda_event_utils.inject_trigger_tags_for_sqs(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.S3:
+                lambda_event_utils.inject_trigger_tags_for_s3(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.CloudWatchSchedule:
+                lambda_event_utils.inject_trigger_tags_for_cloudwatch_schedule(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.CloudWatchLogs:
+                lambda_event_utils.inject_trigger_tags_for_cloudwatch_logs(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.CloudFront:
+                lambda_event_utils.inject_trigger_tags_for_cloudfront(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.APIGatewayProxy:
+                lambda_event_utils.inject_trigger_tags_for_api_gateway_proxy(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.APIGateway:
+                lambda_event_utils.inject_trigger_tags_for_api_gateway(span, original_event)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.Lambda:
+                lambda_event_utils.inject_trigger_tags_for_lambda(span, original_context)
         except Exception as e:
             debug_logger("Cannot inject trigger tags. " + str(e))
