@@ -1,9 +1,10 @@
 from __future__ import absolute_import
 import traceback
 import thundra.constants as constants
-from thundra.integrations.base_integration import BaseIntegration
-from thundra.integrations.rdb_base import RdbBaseIntegration
+from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.integrations.rdb_base import RdbBaseIntegration
+from thundra.integrations.base_integration import BaseIntegration
 
 try:
     from psycopg2.extensions import parse_dsn
@@ -50,7 +51,7 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: "AWS-Lambda",
             constants.SpanTags['TRIGGER_CLASS_NAME']: "API",
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [span.tracer.function_name],
+            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
         }

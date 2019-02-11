@@ -1,4 +1,7 @@
+from thundra import constants
+
 _invocation_tags = {}
+function_name = ''
 
 def set_tag(key, value):
     _invocation_tags[key] = value
@@ -19,3 +22,6 @@ def remove_tag(key):
 
 def clear():
     _invocation_tags.clear()
+
+def parse_invocation_info(context):
+    function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, '')

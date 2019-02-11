@@ -8,6 +8,7 @@ from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.trace.patcher import ImportPatcher
 from thundra import constants, utils, application_support
+from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
@@ -74,6 +75,7 @@ class Thundra:
             self.plugin_context = {}
             self.plugin_context['reporter'] = self.reporter
             application_support.parse_application_info(context)
+            invocation_support.parse_invocation_info(context)
             
             # Before running user's handler
             try:

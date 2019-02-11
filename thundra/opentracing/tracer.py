@@ -22,7 +22,6 @@ class ThundraTracer(opentracing.Tracer):
         self.lock = Lock()
         self.global_span_order = 0
         ThundraTracer.__instance = self
-        self.function_name = None
 
     def start_active_span(self,
                           operation_name,
