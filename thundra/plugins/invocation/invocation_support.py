@@ -14,7 +14,7 @@ def get_tag(key):
         return _invocation_tags[key]
     return None
 
-def get_tags_dict():
+def get_tags():
     return _invocation_tags.copy()
 
 def remove_tag(key):

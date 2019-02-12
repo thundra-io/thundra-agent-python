@@ -56,7 +56,7 @@ class InvocationPlugin:
         self.end_time = time.time() * 1000
         context = plugin_context['context']
         #### ADDING USER TAGS ####
-        self.invocation_data['tags'] = invocation_support.get_tags_dict()
+        self.invocation_data['tags'] = invocation_support.get_tags()
 
         #### ERROR ####
         if 'error' in plugin_context:
