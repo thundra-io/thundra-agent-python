@@ -30,6 +30,7 @@ THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra_agent_lambda_trace_response_skip'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE = 'thundra_agent_lambda_trace_instrument_disable'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_traceableConfig'
 THUNDRA_LAMBDA_TRACE_ENABLE_XRAY = 'thundra_agent_lambda_trace_enable_xray'
+LAMBDA_TRIGGER_OPERATION_NAME = 'x-thundra-lambda-trigger-operation-name'
 
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
 THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_disable'

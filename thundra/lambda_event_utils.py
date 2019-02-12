@@ -6,7 +6,6 @@ from thundra import constants
 from thundra.plugins.invocation import invocation_support
 
 
-LAMBDA_TRIGGER_OPERATION_NAME = 'x-thundra-lambda-trigger-operation-name'
 
 class LambdaEventType(Enum):
     Kinesis = 'kinesis',
@@ -194,10 +193,10 @@ def inject_trigger_tags_for_lambda(span, original_context):
     if original_context:
         if 'clientContext' in vars(original_context):
             if 'custom' in original_context.clientContext:
-                if LAMBDA_TRIGGER_OPERATION_NAME in original_context.clientContext['custom']:
+                if constants.LAMBDA_TRIGGER_OPERATION_NAME in original_context.clientContext['custom']:
                     domain_name = constants.DomainNames['API']
                     class_name = constants.ClassNames['LAMBDA']
-                    operation_names = [original_context.clientContext['custom'][LAMBDA_TRIGGER_OPERATION_NAME]]
+                    operation_names = [original_context.clientContext['custom'][constants.LAMBDA_TRIGGER_OPERATION_NAME]]
 
                     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
                     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)             
