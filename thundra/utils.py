@@ -23,13 +23,6 @@ def str_to_proper_type(val):
     
     return result
 
-def should_disable(disable_by_env, disable_by_param=False):
-    if disable_by_env == 'true':
-        return True
-    elif disable_by_env == 'false':
-        return False
-    return disable_by_param
-
 
 def get_application_id(context):
     aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
@@ -133,10 +126,11 @@ def string_to_list(target, indicator):
 
 
 def str2bool(val):
-    if val.lower() in ("yes", "true", "t", "1"):
-        return True
-    elif val.lower() in ("no", "false", "f", "0"):
-        return False
+    if val is not None:
+        if val.lower() in ("yes", "true", "t", "1"):
+            return True
+        elif val.lower() in ("no", "false", "f", "0"):
+            return False
     raise ValueError
 
 

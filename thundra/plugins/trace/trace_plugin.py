@@ -4,7 +4,7 @@ import uuid
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import utils, constants, application_support, lambda_event_utils
+from thundra import utils, constants, application_support, lambda_event_utils, config
 
 
 class TracePlugin:
@@ -85,11 +85,9 @@ class TracePlugin:
         reporter = plugin_context['reporter']
 
         #### ADDING TAGS ####
-        skip_request = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
-        skip_response = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
-        if skip_request != True:
+        if config.skip_trace_request() != True:
             self.root_span.set_tag('aws.lambda.invocation.request', plugin_context.get('request', None))
-        if skip_response != True:
+        if config.skip_trace_response() != True:
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
         duration = self.end_time - self.start_time

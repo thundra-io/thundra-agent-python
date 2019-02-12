@@ -1,14 +1,12 @@
 import json
 import logging
+from thundra import constants, config
 
 try:
     import requests
 except ImportError:
     from botocore.vendored import requests
 
-from thundra import constants
-from thundra.utils import get_configuration
-import thundra.utils as utils
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +25,7 @@ class Reporter():
         self.session = session
 
     def add_report(self, report):
-        if get_configuration(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE) == 'true':
+        if config.report_cw_enabled():
             try:
                 print(json.dumps(report))
             except TypeError:
@@ -46,12 +44,13 @@ class Reporter():
             'Authorization': 'ApiKey ' + self.api_key
         }
         request_url = constants.HOST + constants.PATH
-        base_url = utils.get_configuration(constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL)
+        base_url = config.report_base_url()
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
-        report_data = self.prepare_report_json()
         
+        report_data = self.prepare_report_json()
         response = self.session.post(request_url, headers=headers, data=report_data)
+        
         self.clear()
         return response
 

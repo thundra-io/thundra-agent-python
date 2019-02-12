@@ -1,7 +1,8 @@
 import os
 import re
 import logging
-from thundra import utils, constants
+from thundra import constants
+from thundra import config as thundra_config
 from thundra.listeners import ThundraSpanListener, AWSXRayListener
 
 logger = logging.getLogger(__name__)
@@ -85,8 +86,7 @@ def parse_span_listeners():
                 logger.error(("couldn't parse environment variable %s "
                     "to create a span listener"), env_k)
     # Add AWSXRayListener if enabled
-    enable_xray_trace_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
-    if utils.should_disable(enable_xray_trace_by_env):
+    if thundra_config.xray_trace_enabled():
         xray_listener = AWSXRayListener()
         register_span_listener(xray_listener)
 
