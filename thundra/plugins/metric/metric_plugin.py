@@ -26,11 +26,8 @@ class MetricPlugin:
 
     def before_invocation(self, plugin_context):
         context = plugin_context['context']
-        function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         metric_time = time.time() * 1000
-
         active_span = self.tracer.get_active_span()
-
         self.metric_data = {
             'type': "Metric",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
@@ -43,11 +40,9 @@ class MetricPlugin:
                 'aws.region': utils.get_configuration(constants.AWS_REGION, default='')
             }
         }
-
         # Add application related data
         application_info = application_support.get_application_info()
         self.metric_data.update(application_info)
-
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
 

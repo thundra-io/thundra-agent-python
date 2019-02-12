@@ -1,7 +1,8 @@
 from __future__ import absolute_import
-import thundra.constants as constants
-from thundra.integrations.base_integration import BaseIntegration
 import traceback
+import thundra.constants as constants
+from thundra.plugins.invocation import invocation_support
+from thundra.integrations.base_integration import BaseIntegration
 
 
 def dummy_func(*args):
@@ -60,7 +61,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         self.OPERATION.get(operation_name, dummy_func)(scope)
 
         if operation_name in constants.DynamoDBRequestTypes:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
@@ -151,7 +152,7 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.tags = tags
 
         if operation_name in constants.SQSRequestTypes:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
@@ -204,7 +205,7 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.tags = tags
 
         if operation_name in constants.SNSRequestTypes:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
@@ -244,7 +245,7 @@ class AWSKinesisIntegration(BaseIntegration):
         scope.span.tags = tags
 
         if 'StreamName' in request_data:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
@@ -286,7 +287,7 @@ class AWSFirehoseIntegration(BaseIntegration):
         scope.span.tags = tags
 
         if 'DeliveryStreamName' in request_data:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
@@ -331,7 +332,7 @@ class AWSS3Integration(BaseIntegration):
         scope.span.tags = tags
 
         if operation_name in constants.S3RequestTypes:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
@@ -382,7 +383,7 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.tags = tags
 
         if operation_name in constants.LambdaRequestType:
-            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [scope.span.tracer.function_name])
+            scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
             scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
             scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
             scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)

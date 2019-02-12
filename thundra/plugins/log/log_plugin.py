@@ -39,10 +39,7 @@ class LogPlugin:
 
     def before_invocation(self, plugin_context):
         logs.clear()
-
         context = plugin_context['context']
-        function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-
         self.log_data = {
             'type': "Log",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
@@ -51,7 +48,6 @@ class LogPlugin:
             'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
             'tags': {}
         }
-
         # Add application related data
         application_info = application_support.get_application_info()
         self.log_data.update(application_info)

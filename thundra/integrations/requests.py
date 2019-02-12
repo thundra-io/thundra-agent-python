@@ -2,6 +2,7 @@ from __future__ import absolute_import
 import traceback
 import thundra.constants as constants
 from urllib.parse import urlparse
+from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 
 
@@ -43,7 +44,7 @@ class RequestsIntegration(BaseIntegration):
             constants.HttpTags['HTTP_PATH']: path,
             constants.HttpTags['HTTP_HOST']: host,
             constants.HttpTags['QUERY_PARAMS']: query,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [span.tracer.function_name],
+            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
