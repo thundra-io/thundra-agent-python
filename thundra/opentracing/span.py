@@ -21,9 +21,9 @@ class ThundraSpan(opentracing.Span):
         self._tracer = tracer
         self._context = context
         self._lock = Lock()
-        self.operation_name = operation_name
-        self.class_name = class_name
-        self.domain_name = domain_name
+        self.operation_name = operation_name if operation_name is not None else ""
+        self.class_name = class_name if class_name is not None else ""
+        self.domain_name = domain_name if domain_name is not None else ""
         self.start_time = start_time or int(time.time() * 1000)
         self.finish_time = 0
         self.span_order = span_order
@@ -59,7 +59,9 @@ class ThundraSpan(opentracing.Span):
         return super(ThundraSpan, self).set_tag(key, value)
 
     def get_tag(self, key):
-        return self.tags.get(key)
+        if self.tags is not None:
+            return self.tags.get(key)
+        return None
 
     def finish(self, f_time=None):
         with self._lock:
@@ -118,3 +120,6 @@ class ThundraSpan(opentracing.Span):
             return int(time.time() * 1000) - self.start_time
         else:
             return self.finish_time - self.start_time
+    
+    def errorneous(self):
+        return self.tags is not None and 'error' in self.tags

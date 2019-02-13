@@ -4,7 +4,8 @@ import uuid
 import json
 from thundra import constants, utils
 from thundra import application_support
-import thundra.plugins.invocation.invocation_support as invocation_support
+from thundra.plugins.invocation import invocation_support
+from thundra.plugins.invocation import invocation_trace_support
 
 
 class InvocationPlugin:
@@ -54,10 +55,14 @@ class InvocationPlugin:
         used_mem_in_mb = used_mem / 1048576
         self.end_time = time.time() * 1000
         context = plugin_context['context']
-        #### ADDING USER TAGS ####
+        # Add user tags
         self.invocation_data['tags'] = invocation_support.get_tags()
 
-        #### ERROR ####
+        # Get resources
+        resources = invocation_trace_support.get_resources()
+        self.invocation_data.update(resources)
+
+        # Check errors
         if 'error' in plugin_context:
             error = plugin_context['error']
             error_type = type(error)
@@ -84,7 +89,7 @@ class InvocationPlugin:
         self.invocation_data['duration'] = int(duration)
         self.invocation_data['finishTimestamp'] = int(self.end_time)
 
-        #### ADDING AWS TAGS ####
+        # Add AWS tags
         self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.invocation_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
