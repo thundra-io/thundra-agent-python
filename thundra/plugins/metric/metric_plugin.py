@@ -1,18 +1,29 @@
-import gc, time
 import uuid, threading
+import gc, time, logging
 
 from thundra import utils, constants
 from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.metric.samplers import CountAwareMetricSampler
+from thundra.plugins.metric.samplers import (
+    TimeAwareMetricSampler, CountAwareMetricSampler,
+    CompositeMetricSampler
+)
 
+
+logger = logging.getLogger(__name__)
 
 class MetricPlugin:
 
     def __init__(self):
         self.metric_data = {}
         self.sampled = True
-        self.sampler = CountAwareMetricSampler()
+        self.sampler = CompositeMetricSampler(
+            samplers=[
+                TimeAwareMetricSampler(), 
+                CountAwareMetricSampler()
+            ],
+            operator='or'
+        )
         self.tracer = ThundraTracer.get_instance()
         self.system_cpu_usage_start = float(0)
         self.system_cpu_usage_end = float(0)
@@ -26,7 +37,12 @@ class MetricPlugin:
         }
 
     def before_invocation(self, plugin_context):
-        self.sampled = self.sampler.is_sampled()
+        try:
+            self.sampled = self.sampler.is_sampled()
+        except Exception as e:
+            logger.error("error while sampling metrics: %s", e)
+            self.sampled = True
+        
         if not self.sampled:
             return
         
