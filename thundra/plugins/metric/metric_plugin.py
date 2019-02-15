@@ -4,7 +4,7 @@ import uuid, threading
 from thundra import utils, constants
 from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.metric.time_aware_metric_sampler import TimeAwareMetricSampler
+from thundra.plugins.metric.samplers import CountAwareMetricSampler
 
 
 class MetricPlugin:
@@ -12,7 +12,7 @@ class MetricPlugin:
     def __init__(self):
         self.metric_data = {}
         self.sampled = True
-        self.sampler = TimeAwareMetricSampler()
+        self.sampler = CountAwareMetricSampler()
         self.tracer = ThundraTracer.get_instance()
         self.system_cpu_usage_start = float(0)
         self.system_cpu_usage_end = float(0)
