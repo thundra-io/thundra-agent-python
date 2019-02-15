@@ -8,9 +8,10 @@ avaiable_operators = ['and', 'or']
 class CompositeMetricSampler:
     def __init__(self, samplers=[], operator=default_operator):
         self.samplers = samplers
-        self.operator = default_operator
         if operator in avaiable_operators:
             self.operator = operator
+        else:
+            self.operator = default_operator
     
     def is_sampled(self):
         if self.operator == 'or':
