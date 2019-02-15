@@ -1,6 +1,3 @@
-import logging
-
-logger = logging.getLogger(__name__)
 
 default_operator = 'or'
 avaiable_operators = ['and', 'or']
