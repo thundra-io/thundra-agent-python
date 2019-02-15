@@ -14,10 +14,10 @@ class CompositeMetricSampler:
         if self.operator == 'or':
             sampled = False
             for sampler in self.samplers:
-                sampled = sampled or sampler.is_sampled()
+                sampled = sampler.is_sampled() or sampled
             return sampled
         elif self.operator == 'and':
             sampled = True
             for sampler in self.samplers:
-                sampled = sampled and sampler.is_sampled()
+                sampled = sampler.is_sampled() and sampled
             return sampled

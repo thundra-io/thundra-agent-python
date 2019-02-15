@@ -75,3 +75,9 @@ def rdb_integration_disabled():
 
 def aws_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_AWS_INTEGRATION)
+
+def count_aware_metric_freq():
+    return int_from_env(constants.THUNDRA_AGENT_METRIC_COUNT_AWARE_SAMPLER_COUNT_FREQ, default=-1)
+
+def time_aware_metric_freq():
+    return int_from_env(constants.THUNDRA_AGENT_METRIC_TIME_AWARE_SAMPLER_TIME_FREQ, default=-1)

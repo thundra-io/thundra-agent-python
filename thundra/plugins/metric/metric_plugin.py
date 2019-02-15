@@ -36,16 +36,15 @@ class MetricPlugin:
             'after:invocation': self.after_invocation
         }
 
-    def is_sampled():
-        try:
-            self.sampled = self.sampler.is_sampled()
-        except Exception as e:
-            logger.error("error while sampling metrics: %s", e)
-            self.sampled = True
-        return self.sampled
-        
     def before_invocation(self, plugin_context):
-        if not self.is_sampled():
+        if self.sampler is not None:
+            try:
+                self.sampled = self.sampler.is_sampled()
+            except Exception as e:
+                logger.error("error while sampling metrics: %s", e)
+                self.sampled = True
+        
+        if not self.sampled:
             return
         
         context = plugin_context['context']
