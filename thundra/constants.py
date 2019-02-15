@@ -4,6 +4,7 @@ HOST = "https://api.thundra.io"
 PATH = "/v1/monitoring-data"
 
 REQUEST_COUNT = 0
+DEFAULT_METRIC_SAMPLING_TIME_FREQ = 5 * 60 * 1000
 
 THUNDRA_APIKEY = 'thundra_apiKey'
 THUNDRA_DISABLE = 'thundra_agent_lambda_disable'
