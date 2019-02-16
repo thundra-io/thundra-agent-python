@@ -1,30 +1,52 @@
-import uuid
-import threading
-import gc
-import time
+import uuid, threading
+import gc, time, logging
 
 from thundra import utils, constants
 from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.metric.samplers import (
+    TimeAwareMetricSampler, CountAwareMetricSampler,
+    CompositeMetricSampler
+)
 
+
+logger = logging.getLogger(__name__)
 
 class MetricPlugin:
 
     def __init__(self):
-        self.hooks = {
-            'before:invocation': self.before_invocation,
-            'after:invocation': self.after_invocation
-        }
+        self.metric_data = {}
+        self.sampled = True
+        self.sampler = CompositeMetricSampler(
+            samplers=[
+                TimeAwareMetricSampler(), 
+                CountAwareMetricSampler()
+            ],
+            operator='or'
+        )
+        self.tracer = ThundraTracer.get_instance()
         self.system_cpu_usage_start = float(0)
         self.system_cpu_usage_end = float(0)
         self.system_cpu_total_start = float(0)
         self.system_cpu_total_end = float(0)
         self.process_cpu_usage_start = float(0)
         self.process_cpu_usage_end = float(0)
-        self.metric_data = {}
-        self.tracer = ThundraTracer.get_instance()
+        self.hooks = {
+            'before:invocation': self.before_invocation,
+            'after:invocation': self.after_invocation
+        }
 
     def before_invocation(self, plugin_context):
+        if self.sampler is not None:
+            try:
+                self.sampled = self.sampler.is_sampled()
+            except Exception as e:
+                logger.error("error while sampling metrics: %s", e)
+                self.sampled = True
+        
+        if not self.sampled:
+            return
+        
         context = plugin_context['context']
         metric_time = time.time() * 1000
         active_span = self.tracer.get_active_span()
@@ -47,6 +69,9 @@ class MetricPlugin:
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, plugin_context):
+        if not self.sampled:
+            return
+        
         reporter = plugin_context['reporter']
         self.add_thread_metric_report(reporter)
         self.add_gc_metric_report(reporter)
