@@ -1,22 +1,19 @@
 from __future__ import absolute_import
 from importlib import import_module
 import thundra.integrations.modules as integrations
-import thundra.listeners as listeners
-
+from thundra import config
 
 def _import_exists(module_name):
-    """
-    Validates if import module exists
-    :param module_name: module name to import
-    :return: Bool
-    """
     try:
         import_module(module_name)
         return True
     except ImportError:
         return False
 
+def patch_modules():
+    for module_name, module in integrations.MODULES.items():
+        if _import_exists(module_name):
+            module.patch()
 
-for patch_module in integrations.MODULES:
-    if _import_exists(patch_module):
-        integrations.MODULES[patch_module].patch()
+if not config.thundra_disabled():
+    patch_modules()
