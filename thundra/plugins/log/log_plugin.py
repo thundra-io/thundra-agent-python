@@ -1,9 +1,9 @@
 import wrapt
 import logging
-from thundra import utils, constants
-from thundra import application_support
+
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
+from thundra import utils, constants, config, application_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 
 
@@ -16,8 +16,7 @@ class LogPlugin:
         }
         self.log_data = {}
         self.tracer = ThundraTracer.get_instance()
-        disable_prints_to_logs_by_env = utils.get_configuration(constants.THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE)
-        if not utils.should_disable(disable_prints_to_logs_by_env):
+        if not config.disable_stdout_logs():
             self.logger = logging.getLogger('STDOUT')
             self.handler = ThundraLogHandler()
             self.logger.addHandler(self.handler)

@@ -1,9 +1,8 @@
 import logging
-from thundra import constants
-import thundra.utils as utils
+from thundra import config
+
 
 loggers = {}
-
 
 def get_logger(name):
     global loggers
@@ -32,7 +31,7 @@ def log_to_console(message,  handler):
 
 
 def debug_logger(msg, handler=None):
-    if utils.get_configuration(constants.THUNDRA_LAMBDA_DEBUG_ENABLE, 'false') == 'true':
+    if config.debug_enabled():
         if hasattr(msg, '__dict__'):
             log_to_console(msg, handler)
             display = vars(msg)

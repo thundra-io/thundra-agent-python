@@ -32,6 +32,11 @@ THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_
 THUNDRA_LAMBDA_TRACE_ENABLE_XRAY = 'thundra_agent_lambda_trace_enable_xray'
 LAMBDA_TRIGGER_OPERATION_NAME = 'x-thundra-lambda-trigger-operation-name'
 
+THUNDRA_AGENT_METRIC_TIME_AWARE_SAMPLER_TIME_FREQ = 'thundra_agent_lambda_metric_sample_sampler_timeAware_timeFreq'
+THUNDRA_AGENT_METRIC_COUNT_AWARE_SAMPLER_COUNT_FREQ = 'thundra_agent_lambda_metric_sample_sampler_countAware_countFreq'
+DEFAULT_METRIC_SAMPLING_TIME_FREQ = 5 * 60 * 1000
+DEFAULT_METRIC_SAMPLING_COUNT_FREQ = 100
+
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
 THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_disable'
 

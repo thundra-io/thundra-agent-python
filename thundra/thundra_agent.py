@@ -1,16 +1,16 @@
 import signal
 import threading
-from functools import wraps
 import time
 import logging
+from functools import wraps
 
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.trace.patcher import ImportPatcher
-from thundra import constants, utils, application_support
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
+from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 logger = logging.getLogger(__name__)
@@ -24,46 +24,32 @@ class Thundra:
                  disable_log=False):
 
         constants.REQUEST_COUNT = 0
-
         self.plugins = []
-        api_key_from_environment_variable = utils.get_configuration(constants.THUNDRA_APIKEY)
-        self.api_key = api_key_from_environment_variable if api_key_from_environment_variable is not None else api_key
+        
+        self.api_key = config.api_key(api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
-        disable_trace_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_TRACE)
-        if not utils.should_disable(disable_trace_by_env, disable_trace):
+        if not config.trace_disabled(disable_trace):
             self.plugins.append(TracePlugin())
 
         self.plugins.append(InvocationPlugin())
         self.plugin_context = {}
 
-        disable_metric_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_METRIC)
-        if not utils.should_disable(disable_metric_by_env, disable_metric):
+        if not config.metric_disabled(disable_metric):
             self.plugins.append(MetricPlugin())
 
-        disable_log_by_env = utils.get_configuration(constants.THUNDRA_DISABLE_LOG)
-        if not utils.should_disable(disable_log_by_env, disable_log):
+        if not config.log_disabled(disable_log):
             self.plugins.append(LogPlugin())
 
-        thundra_lambda_trace_instrument_disable = utils.get_configuration(
-            constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)
-        self.trace_instrument_disable = utils.should_disable(thundra_lambda_trace_instrument_disable, False)
-
-        timeout_margin = utils.get_configuration(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
-        self.timeout_margin = int(timeout_margin) if timeout_margin is not None else 0
-        if self.timeout_margin <= 0:
-            self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
-
+        self.timeout_margin = config.timeout_margin()
         self.reporter = Reporter(self.api_key)
 
-        if not self.trace_instrument_disable:
+        if not config.trace_instrument_disabled():
             self.import_patcher = ImportPatcher()
 
     def __call__(self, original_func):
-        is_thundra_disabled_by_env = utils.get_configuration(constants.THUNDRA_DISABLE)
-        should_disable_thundra = utils.should_disable(is_thundra_disabled_by_env)
-        if should_disable_thundra:
+        if config.thundra_disabled():
             return original_func
 
         @wraps(original_func)
