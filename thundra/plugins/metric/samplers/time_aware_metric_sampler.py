@@ -1,4 +1,6 @@
 import time
+from threading import Lock
+
 from thundra import constants, config
 
 class TimeAwareMetricSampler:
@@ -12,10 +14,15 @@ class TimeAwareMetricSampler:
         else:
             self.time_freq = constants.DEFAULT_METRIC_SAMPLING_TIME_FREQ
         self._latest_time = 0
+        self._lock = Lock()
 
     def is_sampled(self):
-        current_time = 1000 * time.time()
-        if current_time > self._latest_time + self.time_freq:
-            self._latest_time = current_time
-            return True
-        return False
+        sampled = False
+        with self._lock:
+            current_time = 1000 * time.time()
+            if current_time > self._latest_time + self.time_freq:
+                self._latest_time = current_time
+                sampled = True
+            else:
+                sampled = False
+        return sampled

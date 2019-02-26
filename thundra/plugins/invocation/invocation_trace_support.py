@@ -1,6 +1,10 @@
+import logging
+
 from thundra import config, constants
 from thundra.opentracing.tracer import ThundraTracer
 
+
+logger = logging.getLogger(__name__)
 class Resource:
 
     def __init__(self, span):
@@ -21,6 +25,8 @@ class Resource:
     
     def merge(self, span):
         if not self.accept(span):
+            logger.error(("can not merge resource with id %s:"
+                " ids not match with target resource"), resource_id(span))
             return
         self.count += 1
         self.duration += span.get_duration()
@@ -49,19 +55,20 @@ def resource_id(span):
     ))
 
 def get_resources():
-    resources = {}
-
-    spans = ThundraTracer.get_instance().recorder.get_spans()
-
-    for span in spans:
-        if not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX']):
-            continue
-        rid = resource_id(span)
-        if not rid in resources:
-            resources[rid] = Resource(span)
-        else:
-            resources[rid].merge(span)
-    
-    return {
-        'resources': [r.to_dict() for r in resources.values()]
-    }
+    try:
+        resources = {}
+        spans = ThundraTracer.get_instance().recorder.get_spans()
+        for span in spans:
+            if not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX']):
+                continue
+            rid = resource_id(span)
+            if not rid in resources:
+                resources[rid] = Resource(span)
+            else:
+                resources[rid].merge(span)
+        return {
+            'resources': [r.to_dict() for r in resources.values()]
+        }
+    except Exception as e:
+        logger.error("error while creating the resources data for invocation: %s", e)
+        return {}
