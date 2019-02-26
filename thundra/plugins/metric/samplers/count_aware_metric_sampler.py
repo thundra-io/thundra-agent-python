@@ -12,7 +12,7 @@ class CountAwareMetricSampler:
         else:
             self.count_freq = constants.DEFAULT_METRIC_SAMPLING_COUNT_FREQ
         
-        self._counter = 0
+        self._counter = -1
         self._lock = Lock()
 
     def is_sampled(self):

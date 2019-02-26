@@ -29,3 +29,8 @@ def test_count_freq():
     
     assert res == expected
 
+def test_first_invocation_sampled():
+    cams = CountAwareMetricSampler(count_freq=10)
+
+    assert cams.is_sampled()
+
