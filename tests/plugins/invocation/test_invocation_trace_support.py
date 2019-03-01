@@ -34,7 +34,7 @@ def mocked_span():
 def test_get_resources(mocked_get_spans, mocked_span):
     span_args = [
         {
-            'cn': 'class1',
+            'cn': 'Class1',
             'on': 'operation1',
             'ot': 'type1',
             'd': 37,
@@ -43,7 +43,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'et': 'AnErrorType'
         },
         {
-            'cn': 'class1',
+            'cn': 'Class1',
             'on': 'operation1',
             'ot': 'type1',
             'd': 73,
@@ -52,7 +52,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'et': 'AnotherErrorType'
         },
         {
-            'cn': 'class2',
+            'cn': 'Class2',
             'on': 'operation2',
             'ot': 'type2',
             'd': 38,
@@ -61,7 +61,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'et': ''
         },
         {
-            'cn': 'class2',
+            'cn': 'Class2',
             'on': 'operation2',
             'ot': 'type2',
             'd': 83,
@@ -87,7 +87,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
 
     assert len(resources) == 2
     
-    assert r1['resourceType'] == 'CLASS1'
+    assert r1['resourceType'] == 'Class1'
     assert r1['resourceName'] == 'operation1'
     assert r1['resourceOperation'] == 'type1'
     assert r1['resourceCount'] == 2
@@ -97,7 +97,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
     assert 'AnErrorType' in r1['resourceErrors']
     assert 'AnotherErrorType' in r1['resourceErrors']
 
-    assert r2['resourceType'] == 'CLASS2'
+    assert r2['resourceType'] == 'Class2'
     assert r2['resourceName'] == 'operation2'
     assert r2['resourceOperation'] == 'type2'
     assert r2['resourceCount'] == 1

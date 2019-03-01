@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class Resource:
 
     def __init__(self, span):
-        self.type = span.class_name.upper()
+        self.type = span.class_name
         self.name = span.operation_name
         self.operation = str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
         self.count = 1
@@ -18,7 +18,7 @@ class Resource:
     
     def accept(self, span):
         return (
-            self.type == span.class_name.upper() and
+            self.type.upper() == span.class_name.upper() and
             self.name == span.operation_name and
             self.operation == str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
         )
