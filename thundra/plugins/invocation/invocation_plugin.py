@@ -59,7 +59,7 @@ class InvocationPlugin:
         self.invocation_data['tags'] = invocation_support.get_tags()
 
         # Get resources
-        resources = invocation_trace_support.get_resources()
+        resources = invocation_trace_support.get_resources(plugin_context)
         self.invocation_data.update(resources)
 
         # Check errors

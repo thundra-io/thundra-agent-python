@@ -54,12 +54,14 @@ def resource_id(span):
         str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
     ))
 
-def get_resources():
+def get_resources(plugin_context):
     try:
         resources = {}
+        root_span_id = plugin_context.get('span_id', '')
         spans = ThundraTracer.get_instance().recorder.get_spans()
         for span in spans:
-            if not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX']):
+            if (not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
+                or span.span_id == root_span_id):
                 continue
             rid = resource_id(span)
             if not rid in resources:
