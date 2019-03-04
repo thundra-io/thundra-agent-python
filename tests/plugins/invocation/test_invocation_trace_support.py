@@ -8,11 +8,12 @@ ot = constants.SpanTags['OPERATION_TYPE']
 
 @pytest.fixture
 def mocked_span():
-    def make_mocked_span(class_name='', operation_name='', 
+    def make_mocked_span(span_id='', class_name='', operation_name='', 
         operation_type='', topology_vertex=False,
         duration=0, errorneous=False, error_type=''):
 
         span = mock.Mock(name='mocked_span')
+        span.span_id = span_id
         span.class_name = class_name
         span.operation_name = operation_name
         span.tags = {
@@ -32,8 +33,23 @@ def mocked_span():
 
 @mock.patch('thundra.opentracing.recorder.ThundraRecorder.get_spans')
 def test_get_resources(mocked_get_spans, mocked_span):
+    plugin_context = {
+        'span_id': '0',
+    }
+
     span_args = [
         {
+            'id': '0',
+            'cn': 'Class0',
+            'on': 'operation0',
+            'ot': 'type0',
+            'd': 37,
+            'tv': True,
+            'e': False,
+            'et': ''
+        },
+        {
+            'id': '1',
             'cn': 'Class1',
             'on': 'operation1',
             'ot': 'type1',
@@ -43,6 +59,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'et': 'AnErrorType'
         },
         {
+            'id': '2',
             'cn': 'Class1',
             'on': 'operation1',
             'ot': 'type1',
@@ -52,6 +69,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'et': 'AnotherErrorType'
         },
         {
+            'id': '3',
             'cn': 'Class2',
             'on': 'operation2',
             'ot': 'type2',
@@ -61,6 +79,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'et': ''
         },
         {
+            'id': '4',
             'cn': 'Class2',
             'on': 'operation2',
             'ot': 'type2',
@@ -71,14 +90,14 @@ def test_get_resources(mocked_get_spans, mocked_span):
         },
     ]
     spans = [
-        mocked_span(class_name=args['cn'], operation_name=args['on'],
+        mocked_span(span_id=args['id'], class_name=args['cn'], operation_name=args['on'],
             topology_vertex=args['tv'], operation_type=args['ot'], 
             errorneous=args['e'], error_type=args['et'],
             duration=args['d']) for args in span_args
     ]
     mocked_get_spans.return_value = spans
 
-    resources = invocation_trace_support.get_resources()['resources']
+    resources = invocation_trace_support.get_resources(plugin_context)['resources']
 
     if resources[0]['resourceCount'] == 2:
         r1, r2 = resources[0], resources[1]

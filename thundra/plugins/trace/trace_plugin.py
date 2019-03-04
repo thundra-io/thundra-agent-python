@@ -50,6 +50,10 @@ class TracePlugin:
                                                    trace_id=trace_id,
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
+
+        # Set root span class and domain names
+        self.root_span.class_name = constants.ClassNames['LAMBDA']
+        self.root_span.domain_name = constants.DomainNames['API']
         # Add root span tags
         plugin_context['span_id'] = self.root_span.context.span_id
         self.root_span.set_tag('aws.region', utils.get_aws_region_from_arn(
