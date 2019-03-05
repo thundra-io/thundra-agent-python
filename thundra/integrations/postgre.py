@@ -5,6 +5,7 @@ from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.integrations.base_integration import BaseIntegration
+from thundra import config
 
 try:
     from psycopg2.extensions import parse_dsn
@@ -46,7 +47,6 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['DB_INSTANCE']: dsn.get('dbname', ''),
             constants.SpanTags['DB_HOST']: dsn.get('host', ''),
             constants.SpanTags['DB_TYPE']: "postgresql",
-            constants.SpanTags['DB_STATEMENT']: query,
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: "AWS-Lambda",
             constants.SpanTags['TRIGGER_CLASS_NAME']: "API",
@@ -55,6 +55,9 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
         }
+
+        if not config.rdb_statement_masked():
+            tags[constants.DBTags['DB_STATEMENT']] = query
 
         span.tags = tags
 
