@@ -3,7 +3,7 @@ import traceback
 import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
-
+from thundra import config
 
 def dummy_func(*args):
     return None
@@ -58,7 +58,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
         if 'Item' in self.request_data:
             self.escape_byte_fields(self.request_data['Item'])
 
-        self.OPERATION.get(operation_name, dummy_func)(scope)
+        # DB statement tags should not be set on span if masked
+        if not config.dynamodb_statement_masked():
+            self.OPERATION.get(operation_name, dummy_func)(scope)
 
         scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)

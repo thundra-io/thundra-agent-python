@@ -79,6 +79,9 @@ def redis_command_masked():
 def rdb_statement_masked():
     return bool_from_env(constants.THUNDRA_MASK_RDB_STATEMENT)
 
+def dynamodb_statement_masked():
+    return bool_from_env(constants.THUNDRA_MASK_DYNAMODB_STATEMENT)
+
 def aws_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_AWS_INTEGRATION)
 
