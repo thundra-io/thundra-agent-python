@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 import traceback
+from thundra import config
 import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
-from thundra import config
 
 def dummy_func(*args):
     return None
@@ -39,7 +39,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         scope.span.domain_name = constants.DomainNames['DB']
         scope.span.class_name = constants.ClassNames['DYNAMODB']
-
 
         tags = {
             constants.SpanTags['OPERATION_TYPE']: statement_type,

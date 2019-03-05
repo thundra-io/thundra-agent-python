@@ -1,11 +1,12 @@
-from thundra.opentracing.tracer import ThundraTracer
+import os
+import mock
+import boto3
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 from botocore.errorfactory import ClientError
-import boto3
-import mock
+from thundra.opentracing.tracer import ThundraTracer
 from thundra import constants
-import os
+
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 

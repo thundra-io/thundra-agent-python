@@ -1,7 +1,7 @@
-from thundra.opentracing.tracer import ThundraTracer
-from thundra import constants
-import redis
 import os
+import redis
+from thundra import constants
+from thundra.opentracing.tracer import ThundraTracer
 
 def test_set():
     try:

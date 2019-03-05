@@ -1,15 +1,13 @@
 from __future__ import absolute_import
 import traceback
-import thundra.constants as constants
+from thundra import config, constants
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.integrations.base_integration import BaseIntegration
-from thundra import config
 
 try:
     from psycopg2.extensions import parse_dsn
-
 except ImportError:
     def parse_dsn(dsn):
         return dict(

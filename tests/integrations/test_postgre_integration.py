@@ -1,8 +1,8 @@
+import os
 import psycopg2
 from psycopg2 import Error as PostgreError
-from thundra.opentracing.tracer import ThundraTracer
 from thundra import constants
-import os
+from thundra.opentracing.tracer import ThundraTracer
 
 def test_postgre_integration():
     query = "select 1 + 1 AS solution"

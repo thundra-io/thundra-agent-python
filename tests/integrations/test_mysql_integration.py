@@ -1,8 +1,8 @@
+import os
 import mysql.connector
 from mysql.connector.errors import Error as MySQLError
-from thundra.opentracing.tracer import ThundraTracer
 from thundra import constants
-import os
+from thundra.opentracing.tracer import ThundraTracer
 
 
 def test_mysql_integration():
