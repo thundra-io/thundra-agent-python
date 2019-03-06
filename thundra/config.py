@@ -70,6 +70,9 @@ def http_integration_disabled():
 def redis_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_REDIS_INTEGRATION)
 
+def es_integration_disabled():
+    return bool_from_env(constants.THUNDRA_DISABLE_ES_INTEGRATION)
+
 def rdb_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_RDB_INTEGRATION)
 

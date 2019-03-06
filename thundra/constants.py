@@ -22,8 +22,6 @@ THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE = 'thundra_agent_lambda_report_cloudwatc
 THUNDRA_DISABLE_TRACE = 'thundra_agent_lambda_trace_disable'
 THUNDRA_DISABLE_METRIC = 'thundra_agent_lambda_metric_disable'
 THUNDRA_DISABLE_LOG = 'thundra_agent_lambda_log_disable'
-THUNDRA_DISABLE_AWS_INTEGRATION = 'thundra_agent_lambda_trace_integration_aws_disable'
-THUNDRA_DISABLE_REDIS_INTEGRATION = 'thundra_agent_lambda_trace_integration_redis_disable'
 
 THUNDRA_LAMBDA_TRACE_REQUEST_SKIP = 'thundra_agent_lambda_trace_request_skip'
 THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra_agent_lambda_trace_response_skip'
@@ -39,6 +37,9 @@ DEFAULT_METRIC_SAMPLING_COUNT_FREQ = 100
 
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
 THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_disable'
+THUNDRA_DISABLE_AWS_INTEGRATION = 'thundra_agent_lambda_trace_integration_aws_disable'
+THUNDRA_DISABLE_REDIS_INTEGRATION = 'thundra_agent_lambda_trace_integration_redis_disable'
+THUNDRA_DISABLE_ES_INTEGRATION = 'thundra_agent_lambda_trace_integration_elasticsearch_disable'
 
 THUNDRA_MASK_REDIS_STATEMENT = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
 THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
