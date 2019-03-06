@@ -112,6 +112,7 @@ ClassNames = {
     'HTTP': 'HTTP',
     'MYSQL': 'MYSQL',
     'POSTGRESQL': 'POSTGRESQL',
+    'ELASTICSEARCH': 'ELASTICSEARCH',
 }
 
 DBTags = {
@@ -132,6 +133,7 @@ AwsDynamoTags = {
 DBTypes = {
     'DYNAMODB': 'aws-dynamodb',
     'REDIS': 'redis',
+    'ELASTICSEARCH': 'elasticsearch',
 }
 
 SpanTags = {
@@ -385,6 +387,13 @@ RedisTags = {
     'REDIS_COMMANDS': 'redis.commands',
     'REDIS_COMMAND_TYPE': 'redis.command.type',
     'REDIS_COMMAND_ARGS': 'redis.command.args',
+}
+
+ESTags = {
+    'ES_URI': 'elasticsearch.uri',
+    'ES_METHOD': 'elasticsearch.method',
+    'ES_PARAMS': 'elasticsearch.params',
+    'ES_BODY': 'elasticsearch.body',
 }
 
 AwsXrayConstants = {
