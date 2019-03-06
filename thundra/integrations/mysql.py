@@ -6,7 +6,8 @@ from thundra.integrations.base_integration import BaseIntegration
 
 
 class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
-
+    CLASS_TYPE = 'mysql'
+    
     def __init__(self):
         pass
 

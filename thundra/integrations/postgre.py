@@ -15,7 +15,8 @@ except ImportError:
 
 
 class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
-
+    CLASS_TYPE = 'postgresql'
+    
     def __init__(self):
         pass
 
