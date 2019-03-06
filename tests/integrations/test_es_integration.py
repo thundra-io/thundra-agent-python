@@ -50,6 +50,7 @@ def test_get_doc():
 
         hosts = span.get_tag(constants.ESTags['ES_HOSTS'])
 
+        assert span.operation_name == '/test-index/tweet/1'
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
         
