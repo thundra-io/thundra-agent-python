@@ -17,27 +17,25 @@ class ElasticsearchIntegration(BaseIntegration):
         pass
 
     def get_host_and_port(self, instance):
-        url = instance.connection_pool.connection.host
-        host, port = url.rsplit(':', 1)
-        return host, int(port)
-
+        try:
+            url = instance.connection_pool.connection.host
+            host, port = url.rsplit(':', 1)
+            return host, int(port)
+        except (AttributeError, ValueError):
+            return '', ''
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         try:
-            host, _ = self.get_host_and_port(instance)
-        except Exception:
-            host = ''
-
-        return host
+            es_uri = args[1]
+            return es_uri
+        except KeyError:
+            return ''
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         scope.span.class_name = constants.ClassNames['ELASTICSEARCH']
         scope.span.domain_name = constants.DomainNames['DB']
 
-        try:
-            host, port = self.get_host_and_port(instance)
-        except Exception:
-            host, port = '', ''
+        host, port = self.get_host_and_port(instance)
         
         http_method, es_path = args
         es_body = kwargs.get('body', {})
