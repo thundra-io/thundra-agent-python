@@ -16,6 +16,7 @@ redis = "*"
 "aws_xray_sdk" = "*"
 psycopg2 = "*"
 mysql-connector = "*"
+elasticsearch = "*"
 
 [requires]
-python_version = "3.6.4"
+python_version = "3.7.2"

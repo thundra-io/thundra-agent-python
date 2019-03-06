@@ -62,3 +62,17 @@ class ElasticsearchIntegration(BaseIntegration):
             tags[constants.ESTags['ES_BODY']] = es_body
 
         scope.span.tags = tags
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        host, port = self.get_host_and_port(instance)
+
+        tags = {
+            constants.ESTags['ES_HOST']: host,
+            constants.ESTags['ES_PORT']: port,
+            constants.DBTags['DB_HOST']: host,
+            constants.DBTags['DB_PORT']: port,
+        }
+
+        scope.span.tags.update(tags)
+        
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)

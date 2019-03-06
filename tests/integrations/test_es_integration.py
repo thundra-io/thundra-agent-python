@@ -16,6 +16,7 @@ def test_create_index():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[0]
+        tracer.clear()
 
         assert span.operation_name == '/authors/authors/1'
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
@@ -38,6 +39,7 @@ def test_create_index():
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
 
+
 def test_get_doc():
     try:
         es = Elasticsearch(['test', 'another_host'], max_retries=0)
@@ -47,6 +49,7 @@ def test_get_doc():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[0]
+        tracer.clear()
 
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
@@ -76,6 +79,7 @@ def test_refresh():
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[0]
+        tracer.clear()
 
         assert span.operation_name == '/test-index/tweet/1'
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
@@ -97,6 +101,7 @@ def test_refresh():
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
+
 def test_mask_body(monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_ES_BODY, 'true')
     try:
@@ -108,5 +113,6 @@ def test_mask_body(monkeypatch):
     finally:
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[0]
+        tracer.clear()
 
         assert span.get_tag(constants.ESTags['ES_BODY']) == None
