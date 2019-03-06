@@ -52,13 +52,10 @@ class RequestsIntegration(BaseIntegration):
         span.tags = tags
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        span = scope.span
-
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), span)
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         if response is not None:
-            self.set_response(response, span)
+            self.set_response(response, scope.span)
     
     def set_response(self, response, span):
         statusCode = response.status_code

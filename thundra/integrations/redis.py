@@ -1,3 +1,4 @@
+import traceback
 from thundra import config, constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
@@ -41,6 +42,3 @@ class RedisIntegration(BaseIntegration):
             tags[constants.RedisTags['REDIS_COMMAND']] = command
 
         scope.span.tags = tags
-
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        pass

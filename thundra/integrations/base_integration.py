@@ -7,11 +7,7 @@ from thundra.opentracing.tracer import ThundraTracer
 
 logger = logging.getLogger(__name__)
 
-
 class BaseIntegration(abc.ABC):
-
-    CLASS_TYPE = "base"
-
     def run_and_trace(self, wrapped, instance, args, kwargs):
         tracer = ThundraTracer.get_instance()
         response = None
@@ -78,6 +74,6 @@ class BaseIntegration(abc.ABC):
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         raise Exception("should be implemented")
 
-    @abc.abstractmethod
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        raise Exception("should be implemented")
+        if exception is not None:
+            self.set_exception(exception, traceback.format_exc(), scope.span)

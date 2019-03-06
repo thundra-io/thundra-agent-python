@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import wrapt
 from thundra import config
 from thundra.integrations.postgre import PostgreIntegration

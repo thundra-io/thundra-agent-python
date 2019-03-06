@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from importlib import import_module
-import thundra.integrations.modules as integrations
 from thundra import config
+import thundra.integrations.modules as integrations
 
 def _import_exists(module_name):
     try:

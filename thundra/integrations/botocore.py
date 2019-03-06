@@ -60,10 +60,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
     
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
-
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
             scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
@@ -150,9 +146,6 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -202,9 +195,6 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
     
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -241,9 +231,6 @@ class AWSKinesisIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -282,9 +269,6 @@ class AWSFirehoseIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
     
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -325,10 +309,6 @@ class AWSS3Integration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 
 class AWSLambdaIntegration(BaseIntegration):
@@ -375,8 +355,4 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
 

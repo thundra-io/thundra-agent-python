@@ -45,7 +45,4 @@ class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
             tags[constants.DBTags['DB_STATEMENT']] = query
 
         span.tags = tags
-    
-    def after_call(self, scope, cursor, connection, _args, _kwargs, response, exception):
-        if exception is not None:
-            self.set_exception(exception, traceback.format_exc(), scope.span)
+
