@@ -44,10 +44,10 @@ class ElasticsearchIntegration(BaseIntegration):
         operation_type = op_types.get(http_method, 'READ')
 
         tags = {
-            constants.DBTags['DB_STATEMENT']: es_body,
+            constants.ESTags['ES_HOST']: host,
+            constants.ESTags['ES_PORT']: port,
             constants.ESTags['ES_URI']: es_path,
             constants.ESTags['ES_METHOD']: http_method,
-            constants.ESTags['ES_BODY']: es_body,
             constants.ESTags['ES_PARAMS']: es_params,
             constants.DBTags['DB_HOST']: host,
             constants.DBTags['DB_PORT']: port,
@@ -58,5 +58,8 @@ class ElasticsearchIntegration(BaseIntegration):
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
+
+        if not config.elasticsearch_body_masked():
+            tags[constants.ESTags['ES_BODY']] = es_body
 
         scope.span.tags = tags

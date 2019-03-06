@@ -41,9 +41,10 @@ THUNDRA_DISABLE_AWS_INTEGRATION = 'thundra_agent_lambda_trace_integration_aws_di
 THUNDRA_DISABLE_REDIS_INTEGRATION = 'thundra_agent_lambda_trace_integration_redis_disable'
 THUNDRA_DISABLE_ES_INTEGRATION = 'thundra_agent_lambda_trace_integration_elasticsearch_disable'
 
-THUNDRA_MASK_REDIS_STATEMENT = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
-THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
-THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_dynamodb_statement_mask'
+THUNDRA_MASK_REDIS_COMMAND = 'thundra_agent_lambda_trace_integration_redis_command_mask'
+THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integration_rdb_statement_mask'
+THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integration_dynamodb_statement_mask'
+THUNDRA_MASK_ES_BODY = 'thundra_agent_lambda_trace_integration_elasticsearch_body_mask'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
@@ -394,6 +395,8 @@ ESTags = {
     'ES_METHOD': 'elasticsearch.method',
     'ES_PARAMS': 'elasticsearch.params',
     'ES_BODY': 'elasticsearch.body',
+    'ES_HOST': 'elasticsearch.host',
+    'ES_PORT': 'elasticsearch.port',
 }
 
 AwsXrayConstants = {

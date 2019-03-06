@@ -77,13 +77,16 @@ def rdb_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_RDB_INTEGRATION)
 
 def redis_command_masked():
-    return bool_from_env(constants.THUNDRA_MASK_REDIS_STATEMENT)
+    return bool_from_env(constants.THUNDRA_MASK_REDIS_COMMAND)
 
 def rdb_statement_masked():
     return bool_from_env(constants.THUNDRA_MASK_RDB_STATEMENT)
 
 def dynamodb_statement_masked():
     return bool_from_env(constants.THUNDRA_MASK_DYNAMODB_STATEMENT)
+
+def elasticsearch_body_masked():
+    return bool_from_env(constants.THUNDRA_MASK_ES_BODY)
 
 def aws_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_AWS_INTEGRATION)
