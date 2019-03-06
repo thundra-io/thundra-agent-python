@@ -4,7 +4,6 @@ import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 
-
 def dummy_func(*args):
     return None
 
