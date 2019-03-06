@@ -18,7 +18,8 @@ class ElasticsearchIntegration(BaseIntegration):
 
     def get_host_and_port(self, instance):
         url = instance.connection_pool.connection.host
-        return url.rsplit(':', 1)
+        host, port = url.rsplit(':', 1)
+        return host, int(port)
 
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
