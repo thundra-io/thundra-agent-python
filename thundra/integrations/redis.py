@@ -1,7 +1,5 @@
-from __future__ import absolute_import
 from thundra import config, constants
 from thundra.plugins.invocation import invocation_support
-from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.integrations.base_integration import BaseIntegration
 
 class RedisIntegration(BaseIntegration):

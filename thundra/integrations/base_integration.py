@@ -65,6 +65,10 @@ class BaseIntegration(abc.ABC):
             raise exception
         
         return response
+
+    def set_exception(self, exception, traceback_data, span):
+        span.set_tag('error.stack', traceback_data)
+        span.set_error_to_tag(exception)
                     
     @abc.abstractmethod
     def get_operation_name(self, wrapped, instance, args, kwargs):

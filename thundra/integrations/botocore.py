@@ -1,18 +1,12 @@
-from __future__ import absolute_import
 import traceback
 from thundra import config
 import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 
+
 def dummy_func(*args):
     return None
-
-def set_exception(exception, traceback_data, scope):
-    span = scope.span
-    span.set_tag('error.stack', traceback_data)
-    span.set_error_to_tag(exception)
-
 
 class AWSDynamoDBIntegration(BaseIntegration):
     CLASS_TYPE = 'dynamodb'
@@ -68,7 +62,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
@@ -158,7 +152,7 @@ class AWSSQSIntegration(BaseIntegration):
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -210,7 +204,7 @@ class AWSSNSIntegration(BaseIntegration):
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -249,7 +243,7 @@ class AWSKinesisIntegration(BaseIntegration):
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -290,7 +284,7 @@ class AWSFirehoseIntegration(BaseIntegration):
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -334,7 +328,7 @@ class AWSS3Integration(BaseIntegration):
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 
 
 class AWSLambdaIntegration(BaseIntegration):
@@ -384,5 +378,5 @@ class AWSLambdaIntegration(BaseIntegration):
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
+            self.set_exception(exception, traceback.format_exc(), scope.span)
 

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import traceback
 import thundra.constants as constants
 from urllib.parse import urlparse
@@ -60,10 +59,6 @@ class RequestsIntegration(BaseIntegration):
 
         if response is not None:
             self.set_response(response, span)
-
-    def set_exception(self, exception, traceback_data, span):
-        span.set_tag('error.stack', traceback_data)
-        span.set_error_to_tag(exception)
     
     def set_response(self, response, span):
         statusCode = response.status_code
