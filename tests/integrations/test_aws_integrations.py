@@ -1,9 +1,12 @@
-from thundra.opentracing.tracer import ThundraTracer
+import os
+import mock
+import boto3
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 from botocore.errorfactory import ClientError
-import boto3
-import mock
+from thundra.opentracing.tracer import ThundraTracer
+from thundra import constants
+
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
@@ -95,6 +98,65 @@ def test_dynamodb():
             assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
         tracer.clear()
 
+
+def test_dynamodb_statement_mask(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_DYNAMODB_STATEMENT, 'true')
+    try:
+        # Make a request over the table
+        dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
+        table = dynamodb.Table('test-table')
+        table.get_item(
+            Key={
+                'username': 'janedoe',
+                'age': 22,
+                'colors': ['red', 'green', 'blue'],
+                'numbers': [3, 7],
+                'data': b'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk',
+                'others': [b'foo', b'bar'],
+            }
+        )
+
+        # Make request over the client object
+        dynamodb.get_item(
+        TableName='test-table',
+        Key={
+            'username': {
+                'S': 'janedoe',
+            },
+            'age': {
+                'N': '22'
+            },
+            'colors': {
+                'SS': ['red', 'green', 'blue']
+            },
+            'numbers': {
+                'NS': ['3', '7']
+            },
+            'data': {
+                'B': b'dGhpcyB0ZXh0IGlzIGJhc2U2NC1lbmNvZGVk',
+            },
+            'others': {
+                'BS': [b'foo', b'bar'],
+            },
+        }
+        )
+    except botocore_errors:
+        pass
+    finally:
+        tracer = ThundraTracer.get_instance()
+        spans = tracer.get_spans()
+        for i in range(len(spans)):
+            span = spans[i]
+            assert span.class_name == 'AWS-DynamoDB'
+            assert span.domain_name == 'DB'
+            assert span.operation_name == 'test-table'
+            assert span.get_tag("operation.type") == 'READ'
+            assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
+            assert span.get_tag('db.statement') == None
+            assert span.get_tag('db.statement.type') == 'READ'
+            assert span.get_tag('db.type') == 'aws-dynamodb'
+            assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
+        tracer.clear()
 
 def test_s3():
     try:

@@ -40,6 +40,10 @@ DEFAULT_METRIC_SAMPLING_COUNT_FREQ = 100
 THUNDRA_DISABLE_HTTP_INTEGRATION = 'thundra_agent_lambda_trace_integrations_http_disable'
 THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_disable'
 
+THUNDRA_MASK_REDIS_STATEMENT = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
+THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
+THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_dynamodb_statement_mask'
+
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
 AWS_LAMBDA_FUNCTION_VERSION = 'AWS_LAMBDA_FUNCTION_VERSION'
