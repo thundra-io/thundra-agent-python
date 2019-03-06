@@ -16,13 +16,12 @@ class ElasticsearchIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_host_and_port(self, instance):
+    def get_hosts(self, instance):
         try:
-            url = instance.connection_pool.connection.host
-            host, port = url.rsplit(':', 1)
-            return host, int(port)
-        except (AttributeError, ValueError):
-            return '', ''
+            hosts = [con.host for con in instance.connection_pool.connections]
+            return hosts
+        except Exception:
+            return []
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         try:
@@ -35,7 +34,7 @@ class ElasticsearchIntegration(BaseIntegration):
         scope.span.class_name = constants.ClassNames['ELASTICSEARCH']
         scope.span.domain_name = constants.DomainNames['DB']
 
-        host, port = self.get_host_and_port(instance)
+        hosts = self.get_hosts(instance)
         
         http_method, es_path = args
         es_body = kwargs.get('body', {})
@@ -43,13 +42,10 @@ class ElasticsearchIntegration(BaseIntegration):
         operation_type = op_types.get(http_method, 'READ')
 
         tags = {
-            constants.ESTags['ES_HOST']: host,
-            constants.ESTags['ES_PORT']: port,
+            constants.ESTags['ES_HOSTS']: hosts,
             constants.ESTags['ES_URI']: es_path,
             constants.ESTags['ES_METHOD']: http_method,
             constants.ESTags['ES_PARAMS']: es_params,
-            constants.DBTags['DB_HOST']: host,
-            constants.DBTags['DB_PORT']: port,
             constants.DBTags['DB_TYPE']: 'elasticsearch',
             constants.SpanTags['OPERATION_TYPE']: operation_type,
             constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
@@ -62,17 +58,3 @@ class ElasticsearchIntegration(BaseIntegration):
             tags[constants.ESTags['ES_BODY']] = es_body
 
         scope.span.tags = tags
-
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        host, port = self.get_host_and_port(instance)
-
-        tags = {
-            constants.ESTags['ES_HOST']: host,
-            constants.ESTags['ES_PORT']: port,
-            constants.DBTags['DB_HOST']: host,
-            constants.DBTags['DB_PORT']: port,
-        }
-
-        scope.span.tags.update(tags)
-        
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)

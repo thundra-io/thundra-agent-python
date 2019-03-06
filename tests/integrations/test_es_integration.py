@@ -22,15 +22,12 @@ def test_create_index():
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
         
-        assert span.get_tag(constants.ESTags['ES_HOST']) == 'http://test'
-        assert span.get_tag(constants.ESTags['ES_PORT']) == 3737
+        assert span.get_tag(constants.ESTags['ES_HOSTS']) == ['http://test:3737']
         assert span.get_tag(constants.ESTags['ES_METHOD']) == 'PUT'
         assert span.get_tag(constants.ESTags['ES_URI']) == '/authors/authors/1'
         assert span.get_tag(constants.ESTags['ES_BODY']) == author1
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
-        assert span.get_tag(constants.DBTags['DB_HOST']) == 'http://test'
-        assert span.get_tag(constants.DBTags['DB_PORT']) == 3737
         
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
@@ -42,7 +39,7 @@ def test_create_index():
 
 def test_get_doc():
     try:
-        es = Elasticsearch(['test', 'another_host'], max_retries=0)
+        es = Elasticsearch(['one_host', 'another_host'], max_retries=0)
         es.get(index='test-index', doc_type='tweet', id=1)
     except ElasticsearchException as e:
         pass
@@ -51,18 +48,19 @@ def test_get_doc():
         span = tracer.get_spans()[0]
         tracer.clear()
 
+        hosts = span.get_tag(constants.ESTags['ES_HOSTS'])
+
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
         
-        assert span.get_tag(constants.ESTags['ES_HOST']) == 'http://test'
-        assert span.get_tag(constants.ESTags['ES_PORT']) == 9200
+        assert len(hosts) == 2
+        assert 'http://one_host:9200' in hosts
+        assert 'http://another_host:9200' in hosts
         assert span.get_tag(constants.ESTags['ES_METHOD']) == 'GET'
         assert span.get_tag(constants.ESTags['ES_URI']) == '/test-index/tweet/1'
         assert span.get_tag(constants.ESTags['ES_BODY']) == {}
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
-        assert span.get_tag(constants.DBTags['DB_HOST']) == 'http://test'
-        assert span.get_tag(constants.DBTags['DB_PORT']) == 9200
         
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
@@ -85,15 +83,12 @@ def test_refresh():
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
         
-        assert span.get_tag(constants.ESTags['ES_HOST']) == 'http://test'
-        assert span.get_tag(constants.ESTags['ES_PORT']) == 3737
+        assert span.get_tag(constants.ESTags['ES_HOSTS']) == ['http://test:3737']
         assert span.get_tag(constants.ESTags['ES_METHOD']) == 'GET'
         assert span.get_tag(constants.ESTags['ES_URI']) == '/test-index/tweet/1'
         assert span.get_tag(constants.ESTags['ES_BODY']) == {}
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
-        assert span.get_tag(constants.DBTags['DB_HOST']) == 'http://test'
-        assert span.get_tag(constants.DBTags['DB_PORT']) == 3737
         
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']

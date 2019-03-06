@@ -395,7 +395,7 @@ ESTags = {
     'ES_METHOD': 'elasticsearch.method',
     'ES_PARAMS': 'elasticsearch.params',
     'ES_BODY': 'elasticsearch.body',
-    'ES_HOST': 'elasticsearch.host',
+    'ES_HOSTS': 'elasticsearch.hosts',
     'ES_PORT': 'elasticsearch.port',
 }
 
