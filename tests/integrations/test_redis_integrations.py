@@ -27,6 +27,7 @@ def test_set():
 
 def test_set_mask_command(monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
+
     try:
         r = redis.Redis(host="test", port="12345", password="pass")
         r.set('foo', 'bar')
