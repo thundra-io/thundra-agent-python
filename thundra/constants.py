@@ -400,7 +400,6 @@ ESTags = {
     'ES_PARAMS': 'elasticsearch.params',
     'ES_BODY': 'elasticsearch.body',
     'ES_HOSTS': 'elasticsearch.hosts',
-    'ES_PORT': 'elasticsearch.port',
 }
 
 AwsXrayConstants = {
