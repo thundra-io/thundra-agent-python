@@ -20,8 +20,7 @@ class InvocationPlugin:
         self.invocation_data = {}
 
     def before_invocation(self, plugin_context):
-        context = plugin_context['context']
-        self.start_time = int(time.time() * 1000)
+        self.set_start_time(plugin_context)
 
         self.invocation_data = {
             'id': str(uuid.uuid4()),
@@ -29,10 +28,10 @@ class InvocationPlugin:
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': plugin_context.get('trace_id', ""),
-            'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
+            'transactionId': plugin_context.get('transaction_id', plugin_context['context'].aws_request_id),
             'spanId': plugin_context.get('span_id', ""),
             'functionPlatform': constants.CONTEXT_FUNCTION_PLATFORM,
-            'functionName': getattr(context, 'function_name', None),
+            'functionName': invocation_support.function_name,
             'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''),
             'duration': None, 
             'startTimestamp': int(self.start_time),
@@ -50,11 +49,27 @@ class InvocationPlugin:
         application_info = application_support.get_application_info()
         self.invocation_data.update(application_info)
 
+    def set_start_time(self, plugin_context):
+        if 'start_time' in plugin_context:
+            self.start_time = plugin_context['start_time']
+        else:
+            self.start_time = int(time.time() * 1000)
+            plugin_context['start_time'] = self.start_time
+
+    def set_end_time(self, plugin_context):
+        if 'end_time' in plugin_context:
+            self.end_time = plugin_context['end_time']
+        else:
+            self.end_time = int(time.time() * 1000)
+            plugin_context['end_time'] = self.end_time
+
     def after_invocation(self, plugin_context):
+        self.set_end_time(plugin_context)
+
         total_mem, used_mem = utils.process_memory_usage()
         used_mem_in_mb = used_mem / 1048576
-        self.end_time = time.time() * 1000
         context = plugin_context['context']
+        
         # Add user tags
         self.invocation_data['tags'] = invocation_support.get_tags()
 

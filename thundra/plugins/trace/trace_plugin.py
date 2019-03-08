@@ -23,10 +23,11 @@ class TracePlugin:
         self.span_data_list = []
 
     def before_invocation(self, plugin_context):
+        self.set_start_time(plugin_context)
+
         context = plugin_context['context']
         trace_id = str(uuid.uuid4())
         transaction_id = context.aws_request_id
-        self.start_time = int(time.time() * 1000)
         plugin_context['transaction_id'] = transaction_id
         plugin_context['trace_id'] = trace_id
         self.trace_data = {
@@ -71,19 +72,30 @@ class TracePlugin:
 
         self.root_span.on_started()
 
+    def set_start_time(self, plugin_context):
+        if 'start_time' in plugin_context:
+            self.start_time = plugin_context['start_time']
+        else:
+            self.start_time = int(time.time() * 1000)
+            plugin_context['start_time'] = self.start_time
+
+    def set_end_time(self, plugin_context):
+        if 'end_time' in plugin_context:
+            self.end_time = plugin_context['end_time']
+        else:
+            self.end_time = int(time.time() * 1000)
+            plugin_context['end_time'] = self.end_time
+
     def after_invocation(self, plugin_context):
+        self.set_end_time(plugin_context)
+
         try:
-            self.scope.span.finish()
+            self.root_span.finish(f_time=self.end_time)
         except Exception as injected_err:
             # TODO: handle root span finish errors
             pass
-        
-        self.scope.close()
-
-        if self.root_span is not None:
-            self.end_time = self.root_span.start_time + self.root_span.get_duration()
-        else:
-            self.end_time = int(time.time() * 1000)
+        finally:
+            self.scope.close()
 
         context = plugin_context['context']
         reporter = plugin_context['reporter']
