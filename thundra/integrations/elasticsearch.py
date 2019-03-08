@@ -4,12 +4,6 @@ from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 
 
-op_types = {
-    'PUT': 'WRITE',
-    'POST': 'WRITE',
-    'DELETE': 'DELETE',
-}
-
 class ElasticsearchIntegration(BaseIntegration):
     CLASS_TYPE = 'elasticsearch'
 
@@ -39,7 +33,6 @@ class ElasticsearchIntegration(BaseIntegration):
         http_method, es_path = args
         es_body = kwargs.get('body', {})
         es_params = kwargs.get('params', {})
-        operation_type = op_types.get(http_method, 'READ')
 
         tags = {
             constants.ESTags['ES_HOSTS']: hosts,
@@ -47,7 +40,7 @@ class ElasticsearchIntegration(BaseIntegration):
             constants.ESTags['ES_METHOD']: http_method,
             constants.ESTags['ES_PARAMS']: es_params,
             constants.DBTags['DB_TYPE']: 'elasticsearch',
-            constants.SpanTags['OPERATION_TYPE']: operation_type,
+            constants.SpanTags['OPERATION_TYPE']: http_method,
             constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,

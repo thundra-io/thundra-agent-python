@@ -29,7 +29,7 @@ def test_create_index():
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
         
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'PUT'
         assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
@@ -63,7 +63,7 @@ def test_get_doc():
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
         
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
@@ -92,7 +92,7 @@ def test_refresh():
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
         
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'POST'
         assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
         assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
