@@ -1,8 +1,3 @@
-"""
-botocore patcher module.
-"""
-
-from __future__ import absolute_import
 import wrapt
 import thundra.integrations.botocore
 from thundra import config

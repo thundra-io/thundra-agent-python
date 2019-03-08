@@ -1,8 +1,6 @@
-from __future__ import absolute_import
 import traceback
 from thundra import config, constants
 from thundra.plugins.invocation import invocation_support
-from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.integrations.base_integration import BaseIntegration
 
@@ -17,7 +15,8 @@ except ImportError:
 
 
 class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
-
+    CLASS_TYPE = 'postgresql'
+    
     def __init__(self):
         pass
 
@@ -59,7 +58,3 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
 
         span.tags = tags
 
-    def after_call(self, scope, cursor, connection, _args, _kwargs, response, exception):
-        span = scope.span
-        if exception is not None:
-                self.set_exception(exception, traceback.format_exc(), span)

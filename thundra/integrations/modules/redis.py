@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import wrapt
 from thundra import constants, config
 from thundra.integrations.redis import RedisIntegration

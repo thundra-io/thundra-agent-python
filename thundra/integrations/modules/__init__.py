@@ -1,11 +1,7 @@
-"""
-Automatically imports all available modules for patch
-"""
-
 from __future__ import absolute_import
 import os
-from importlib import import_module
 import traceback
+from importlib import import_module
 
 MODULES = {}
 IGNORE_MODULES = ('__init__',)

@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import traceback
 from thundra import config
 import thundra.constants as constants
@@ -7,12 +6,6 @@ from thundra.integrations.base_integration import BaseIntegration
 
 def dummy_func(*args):
     return None
-
-def set_exception(exception, traceback_data, scope):
-    span = scope.span
-    span.set_tag('error.stack', traceback_data)
-    span.set_error_to_tag(exception)
-
 
 class AWSDynamoDBIntegration(BaseIntegration):
     CLASS_TYPE = 'dynamodb'
@@ -66,10 +59,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
     
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
-
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
             scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
@@ -156,9 +145,6 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -208,9 +194,6 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
     
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -247,9 +230,6 @@ class AWSKinesisIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -288,9 +268,6 @@ class AWSFirehoseIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
     
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -331,10 +308,6 @@ class AWSS3Integration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
 
 
 class AWSLambdaIntegration(BaseIntegration):
@@ -381,8 +354,4 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
-    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        if exception is not None:
-            set_exception(exception, traceback.format_exc(), scope)
 

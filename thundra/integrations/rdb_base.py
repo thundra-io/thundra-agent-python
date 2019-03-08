@@ -14,7 +14,3 @@ class RdbBaseIntegration():
         'update': 'WRITE',
         'delete': 'DELETE'
     }
-
-    def set_exception(self, exception, traceback_data, span):
-        span.set_tag('error.stack', traceback_data)
-        span.set_error_to_tag(exception)

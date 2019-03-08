@@ -1,4 +1,3 @@
-from __future__ import absolute_import
 import wrapt
 from thundra import utils, config
 from thundra.integrations.requests import RequestsIntegration
