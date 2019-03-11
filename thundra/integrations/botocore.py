@@ -112,9 +112,7 @@ class AWSSQSIntegration(BaseIntegration):
         return constants.AWS_SERVICE_REQUEST
 
     def getRequestType(self, string):
-        if string in constants.SQSRequestTypes:
-            return constants.SQSRequestTypes[string]
-        return ''
+        return constants.SQSRequestTypes.get(string, '')
 
     def getQueueName(self, data):
         if 'QueueUrl' in data:
@@ -169,9 +167,7 @@ class AWSSNSIntegration(BaseIntegration):
         return self.topicName
 
     def getRequestType(self, string):
-        if string in constants.SNSRequestTypes:
-            return constants.SNSRequestTypes[string]
-        return ''
+        return constants.SNSRequestTypes.get(string, '')
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -203,16 +199,14 @@ class AWSKinesisIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data['StreamName'] if 'StreamName' in request_data else constants.AWS_SERVICE_REQUEST
+        return request_data.get('StreamName', constants.AWS_SERVICE_REQUEST)
 
     def getRequestType(self, string):
-        if string in constants.KinesisRequestTypes:
-            return constants.KinesisRequestTypes[string]
-        return ''
+        return constants.KinesisRequestTypes.get(string, '')
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.streamName = request_data['StreamName'] if 'StreamName' in request_data else ''
+        self.streamName = request_data.get('StreamName', '')
 
         scope.span.domain_name = constants.DomainNames['STREAM']
         scope.span.class_name = constants.ClassNames['KINESIS']
@@ -239,18 +233,14 @@ class AWSFirehoseIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data[
-            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else constants.AWS_SERVICE_REQUEST
+        return request_data.get('DeliveryStreamName', constants.AWS_SERVICE_REQUEST)
 
     def getRequestType(self, string):
-        if string in constants.FirehoseRequestTypes:
-            return constants.FirehoseRequestTypes[string]
-        return ''
+        return constants.FirehoseRequestTypes.get(string, '')
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.deliveryStreamName = request_data[
-            'DeliveryStreamName'] if 'DeliveryStreamName' in request_data else ''
+        self.deliveryStreamName = request_data.get('DeliveryStreamName', '')
 
         scope.span.domain_name = constants.DomainNames['STREAM']
         scope.span.class_name = constants.ClassNames['FIREHOSE']
@@ -292,8 +282,7 @@ class AWSS3Integration(BaseIntegration):
         scope.span.domain_name = constants.DomainNames['STORAGE']
         scope.span.class_name = constants.ClassNames['S3']
 
-        if "Key" in request_data:
-            self.objectName = request_data["Key"]
+        self.objectName = request_data.get('Key', '')
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
