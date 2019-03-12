@@ -14,7 +14,8 @@ class RequestsIntegration(BaseIntegration):
     def get_operation_name(self, wrapped, instance, args, kwargs):
         prepared_request = args[0]
         url = prepared_request.url
-        return url
+        parsed_url = urlparse(url)
+        return parsed_url.hostname + parsed_url.path
     
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
@@ -28,6 +29,7 @@ class RequestsIntegration(BaseIntegration):
             path = parsed_url.path
             query = parsed_url.query
             host = parsed_url.netloc
+            url = parsed_url.hostname + path
         except Exception:
             pass
         

@@ -15,13 +15,40 @@ def test_successful_http_call():
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
-        assert http_span.operation_name == url
+        assert http_span.operation_name == "jsonplaceholder.typicode.com/users/3"
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
         assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
-        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == url
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == "jsonplaceholder.typicode.com/users/3"
+        assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
+        assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
+        assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
+    except Exception:
+        raise
+    finally:
+        tracer.clear()
+
+def test_successful_http_call_with_query_params():
+    try:
+        url = "https://jsonplaceholder.typicode.com/users/1?test=test"
+        parsed_url = urlparse(url)
+        path = parsed_url.path
+        query = parsed_url.query
+        host = parsed_url.netloc
+
+        requests.get(url)
+        tracer = ThundraTracer.get_instance()
+        http_span = tracer.get_spans()[0]
+
+        assert http_span.operation_name == "jsonplaceholder.typicode.com/users/1"
+        assert http_span.domain_name == constants.DomainNames['API']
+        assert http_span.class_name == constants.ClassNames['HTTP']
+
+        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
+        assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == "jsonplaceholder.typicode.com/users/1"
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
@@ -71,13 +98,13 @@ def test_errorneous_http_call():
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
-        assert http_span.operation_name == url
+        assert http_span.operation_name == "adummyurlthatnotexists.xyz/"
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
         assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
-        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == url
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == "adummyurlthatnotexists.xyz/"
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
