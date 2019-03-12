@@ -13,26 +13,31 @@ class RequestsIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         prepared_request = args[0]
-        url = prepared_request.url
-        parsed_url = urlparse(url)
-        return parsed_url.hostname + parsed_url.path
+        url_dict = self._parse_http_url(prepared_request.url)
+        return url_dict.get('url')
+
+    def _parse_http_url(self, url):
+        url_dict = {
+            'path': '',
+            'query': '',
+            'host': '',
+            'url': url
+        }
+        try:
+            parsed_url = urlparse(url)
+            url_dict['path'] = parsed_url.path
+            url_dict['query'] = parsed_url.query
+            url_dict['host'] = parsed_url.netloc
+            url_dict['url'] = parsed_url.hostname + parsed_url.path
+        except Exception:
+            pass
+        return url_dict
     
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
         method = prepared_request.method
-        url = prepared_request.url
-        path = ''
-        query = ''
-        host = ''
-        try:
-            parsed_url = urlparse(url)
-            path = parsed_url.path
-            query = parsed_url.query
-            host = parsed_url.netloc
-            url = parsed_url.hostname + path
-        except Exception:
-            pass
         
+        url_dict = self._parse_http_url(prepared_request.url)
         span = scope.span
         
         span.domain_name =  constants.DomainNames['API']
@@ -41,10 +46,10 @@ class RequestsIntegration(BaseIntegration):
         tags = {
             constants.SpanTags['OPERATION_TYPE']: method,
             constants.HttpTags['HTTP_METHOD']: method,
-            constants.HttpTags['HTTP_URL']: url,
-            constants.HttpTags['HTTP_PATH']: path,
-            constants.HttpTags['HTTP_HOST']: host,
-            constants.HttpTags['QUERY_PARAMS']: query,
+            constants.HttpTags['HTTP_URL']: url_dict.get('url'),
+            constants.HttpTags['HTTP_PATH']: url_dict.get('path'),
+            constants.HttpTags['HTTP_HOST']: url_dict.get('host'),
+            constants.HttpTags['QUERY_PARAMS']: url_dict.get('query'),
             constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
