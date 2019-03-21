@@ -93,6 +93,8 @@ THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_agent_lambda_log_console_dis
 THUNDRA_LAMBDA_SPAN_LISTENER = 'thundra_agent_lambda_trace_span_listener'
 THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
 
+MAX_MONITOR_DATA_BATCH_SIZE = 100
+
 #### INTEGRATIONS ####
 
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'

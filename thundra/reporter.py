@@ -1,5 +1,8 @@
+import asyncio
+import aiohttp
 import json
 import logging
+
 from thundra import constants, config
 
 try:
@@ -7,8 +10,8 @@ try:
 except ImportError:
     from botocore.vendored import requests
 
-
 logger = logging.getLogger(__name__)
+
 
 class Reporter():
 
@@ -23,6 +26,7 @@ class Reporter():
         if not session:
             session = requests.Session()
         self.session = session
+        self.loop = asyncio.get_event_loop()
 
     def add_report(self, report):
         if config.report_cw_enabled():
@@ -30,7 +34,7 @@ class Reporter():
                 print(json.dumps(report))
             except TypeError:
                 logger.error("Couldn't dump report with type {} to json string, \
-                    probably it contains a byte array".format(report.get('type'))) 
+                    probably it contains a byte array".format(report.get('type')))
         else:
             if isinstance(report, list):
                 for data in report:
@@ -47,21 +51,43 @@ class Reporter():
         base_url = config.report_base_url()
         if base_url is not None:
             request_url = base_url + '/monitoring-data'
-        
-        report_data = self.prepare_report_json()
-        response = self.session.post(request_url, headers=headers, data=report_data)
-        
-        self.clear()
-        return response
 
-    def prepare_report_json(self):
+        batches = self.get_report_batches()
+
+        responses = []
+        if len(batches) > 1:
+            responses = self.loop.run_until_complete(
+                asyncio.gather(
+                    *[self.send_batch(request_url, self.prepare_report_json(batch), headers) for batch in batches]
+                )
+            )
+        else:
+            report_data = self.prepare_report_json(self.reports)
+            response = self.session.post(request_url, headers=headers, data=report_data)
+            responses.append(response)
+
+        self.clear()
+        return responses
+
+    async def send_batch(self, url, data, headers):
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, data=data, headers=headers) as response:
+                await response.read()
+                return response
+
+    def get_report_batches(self):
+        batch_size = constants.MAX_MONITOR_DATA_BATCH_SIZE
+        batches = [self.reports[i:i + batch_size] for i in range(0, len(self.reports), batch_size)]
+        return batches
+
+    def prepare_report_json(self, batch):
         report_jsons = []
-        for report in self.reports:
+        for report in batch:
             try:
                 report_jsons.append(json.dumps(report))
             except TypeError:
                 logger.error(("Couldn't dump report with type {} to json string, "
-                            "probably it contains a byte array").format(report.get('type'))) 
+                              "probably it contains a byte array").format(report.get('type')))
         json_string = "[{}]".format(','.join(report_jsons))
         return json_string
 
