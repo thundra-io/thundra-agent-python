@@ -57,6 +57,12 @@ class RequestsIntegration(BaseIntegration):
         }
 
         span.tags = tags
+
+        try:
+            prepared_request.headers.update({'x-thundra-span-id' :span.span_id})
+            span.set_tag(constants.SpanTags['TRACE_LINKS'], [span.span_id])
+        except Exception as e:
+            print(e)
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super().after_call(scope, wrapped, instance, args, kwargs, response, exception)

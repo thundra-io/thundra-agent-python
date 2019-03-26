@@ -165,6 +165,12 @@ def get_aws_region_from_arn(func_arn):
 
 def is_excluded_url(url):
     host = urlparse(url).netloc
+
+    for method in EXCLUDE_EXCEPTION_URLS:
+        for exclude_exception_url in EXCLUDE_EXCEPTION_URLS[method]:
+            if method(host, exclude_exception_url):
+                return False
+
     for method in EXCLUDED_URLS:
         for excluded_url in EXCLUDED_URLS[method]:
             if method(host, excluded_url):
@@ -181,4 +187,11 @@ EXCLUDED_URLS = {
         'amazonaws.com',
         'accounts.google.com',
     ],
+}
+
+# Exclude exception urls 
+EXCLUDE_EXCEPTION_URLS = {
+    str.__contains__: [
+        'execute-api',
+    ]
 }

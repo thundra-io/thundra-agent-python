@@ -153,3 +153,7 @@ def rest_composite_batchsize():
 def cloudwatch_composite_batchsize():
     return int_from_env(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE,
                         default=constants.DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
+
+
+def dynamodb_trace_enabled():
+    return bool_from_env(constants.ENABLE_DYNAMODB_TRACE_INJECTION)

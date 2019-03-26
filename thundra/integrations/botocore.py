@@ -1,11 +1,22 @@
 import traceback
+import hashlib
+import base64
+import json
+import copy
+
+from dateutil.parser import parse
+from datetime import datetime
+
 from thundra import config
 import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
+from thundra.application_support import get_application_info
+
 
 def dummy_func(*args):
     return None
+
 
 class AWSDynamoDBIntegration(BaseIntegration):
     CLASS_TYPE = 'dynamodb'
@@ -26,7 +37,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         statement_type = constants.DynamoDBRequestTypes.get(operation_name, '')
-        
+
         self.request_data = request_data.copy()
         self.endpoint = instance._endpoint.host.split('/')[-1]
 
@@ -58,7 +69,126 @@ class AWSDynamoDBIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
+
+        if config.dynamodb_trace_enabled():
+            if operation_name == 'PutItem':
+                self.inject_trace_link_on_put(scope.span, request_data, instance.meta)
+
+            if operation_name == 'UpdateItem':
+                self.inject_trace_link_on_update(scope.span, request_data, instance.meta)
+
+            if operation_name == 'DeleteItem':
+                self.inject_trace_link_on_delete(request_data)
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+
+        if scope.span.get_tag(constants.SpanTags['TRACE_LINKS']):
+            return
+
+        operation_name, request_data = args
+        trace_links = None
+
+        try:
+            params = copy.deepcopy(request_data)
+            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
+                instance.meta.events._unique_id_handlers['dynamodb-attr-value-input']['handler'](params=params,
+                                                                                                 model=instance._service_model.operation_model(
+                                                                                                     operation_name))
+            region = instance.meta.region_name
+
+            if operation_name == 'PutItem':
+                trace_links = self.generate_trace_links(region, response, params['TableName'], 'PUT',
+                                                        params['Item'])
+
+            elif operation_name == 'UpdateItem':
+                trace_links = self.generate_trace_links(region, response, params['TableName'], 'UPDATE',
+                                                        params['Key'])
+
+            elif operation_name == 'DeleteItem':
+                if config.dynamodb_trace_enabled() and 'Attributes' in response:
+                    span_id = response['Attributes'].get("x-thundra-span-id")
+                    if span_id and span_id.get('S'):
+                        trace_links = ['DELETE:' + span_id.get('S')]
+
+                if not trace_links:
+                    trace_links = self.generate_trace_links(region, response, params['TableName'], 'DELETE',
+                                                            params['Key'])
+
+            if trace_links:
+                scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
+
+        except Exception as e:
+            pass
+
+    def generate_trace_links(self, region, response, table_name, operation_type, attributes):
+        try:
+            date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
+            timestamp = parse(date_str).timestamp()
+        except:
+            timestamp = datetime.now().timestamp() - 1
+
+        attributes_hash = hashlib.md5(self.attributes_to_str(attributes).encode()).hexdigest()
+
+        trace_links = [
+            region + ':' + table_name + ':' + str(int(timestamp + i)) + ':' + operation_type + ':' + attributes_hash for
+            i in range(3)]
+        return trace_links
+
+    @staticmethod
+    def attributes_to_str(attributes):
+        sorted_keys = sorted(attributes.keys())
+        attributes_sorted = []
+        for attr in sorted_keys:
+            attributes_sorted.append(attr + '=' + str(attributes[attr]))
+        return ','.join(attributes_sorted)
+
+    def inject_trace_link_on_put(self, span, request_data, meta):
+
+        thundra_span = {'S': span.span_id}
+        try:
+            if 'dynamodb-attr-value-input' in meta.events._unique_id_handlers:
+                thundra_span = span.span_id
+        except Exception as e:
+            return
+
+        try:
+            if 'Item' in request_data:
+                request_data['Item']['x-thundra-span-id'] = thundra_span
+            else:
+                request_data['Item'] = {'x-thundra-span-id': thundra_span}
+
+            span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
+        except:
+            pass
+
+    def inject_trace_link_on_update(self, span, request_data, meta):
+
+        thundra_span = {'S': span.span_id}
+        try:
+            if 'dynamodb-attr-value-input' in meta.events._unique_id_handlers:
+                thundra_span = span.span_id
+        except Exception as e:
+            return
+
+        thundra_attr = {'Action': 'PUT', 'Value': thundra_span}
+
+        try:
+            if 'AttributeUpdates' in request_data:
+                request_data['AttributeUpdates']['x-thundra-span-id'] = thundra_attr
+            else:
+                request_data['AttributeUpdates'] = {'x-thundra-span-id': thundra_attr}
+
+            span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
+        except:
+            pass
+
+    def inject_trace_link_on_delete(self, request_data):
+        try:
+            request_data['ReturnValues'] = "ALL_OLD"
+        except:
+            pass
+
     def process_get_item_op(self, scope):
         if 'Key' in self.request_data:
             scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.request_data['Key'])
@@ -87,7 +217,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
                 req_dict[k] = v.decode()
             elif type(v) == list and len(v) != 0 and type(v[0]) == bytes:
                 req_dict[k] = [e.decode() for e in v]
-
 
     def process_batch_write_op(self, scope):
         table_name = list(self.request_data['RequestItems'].keys())[0]
@@ -143,6 +272,22 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        operation_name = args[0]
+
+        if operation_name == 'SendMessage':
+            message_id = response['MessageId']
+            scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [message_id])
+
+        elif operation_name == 'SendMessageBatch':
+            if len(response['Successful']) > 0:
+                links = []
+                entries = response['Successful']
+                for entry in entries:
+                    links.append(entry['MessageId'])
+                scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], links)
+
 
 class AWSSNSIntegration(BaseIntegration):
     CLASS_TYPE = 'sns'
@@ -189,7 +334,15 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        try:
+            message_id = response['MessageId']
+            scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [message_id])
+        except Exception:
+            pass
+
 
 class AWSKinesisIntegration(BaseIntegration):
     CLASS_TYPE = 'kinesis'
@@ -203,6 +356,10 @@ class AWSKinesisIntegration(BaseIntegration):
 
     def getRequestType(self, string):
         return constants.KinesisRequestTypes.get(string, '')
+
+    def generate_trace_link(self, span, region, shard_id, sequence_number):
+        return region + ':' + span.tags.get(
+            constants.AwsKinesisTags['STREAM_NAME']) + ':' + shard_id + ':' + sequence_number
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -224,6 +381,25 @@ class AWSKinesisIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+
+        trace_links = []
+        try:
+            region = instance.meta.region_name
+            if "Records" in response:
+                records = response["Records"]
+                for record in records:
+                    trace_links.append(
+                        self.generate_trace_link(scope.span, region, record["ShardId"], record["SequenceNumber"]))
+            else:
+                trace_links.append(
+                    self.generate_trace_link(scope.span, region, response["ShardId"], response["SequenceNumber"]))
+        except:
+            pass
+
+        scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
+
 
 class AWSFirehoseIntegration(BaseIntegration):
     CLASS_TYPE = 'firehose'
@@ -237,6 +413,20 @@ class AWSFirehoseIntegration(BaseIntegration):
 
     def getRequestType(self, string):
         return constants.FirehoseRequestTypes.get(string, '')
+
+    def generate_trace_links(self, span, region, response, data):
+
+        try:
+            date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
+            timestamp = parse(date_str).timestamp()
+        except:
+            timestamp = datetime.now().timestamp() - 1
+
+        data_md5 = hashlib.md5(data).hexdigest()
+
+        trace_links = [region + ':' + self.deliveryStreamName + ':' + str(int(timestamp + i)) + ':' + data_md5 for i in
+                       range(3)]
+        return trace_links
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -257,7 +447,29 @@ class AWSFirehoseIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
-    
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+
+        try:
+            trace_links = []
+            operation_name, request_data = args
+            region = instance.meta.region_name
+
+            if operation_name == "PutRecord":
+                data = request_data["Record"]["Data"]
+
+                trace_links = self.generate_trace_links(scope.span, region, response, data)
+
+            elif operation_name == "PutRecordBatch":
+                for record in request_data["Records"]:
+                    links = self.generate_trace_links(scope.span, region, response, record["Data"])
+                    trace_links.extend(links)
+
+            scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
+
+        except Exception as e:
+            print(e)
 
 
 class AWSS3Integration(BaseIntegration):
@@ -298,6 +510,14 @@ class AWSS3Integration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        try:
+            request_id = response["ResponseMetadata"]["HTTPHeaders"]['x-amz-request-id']
+            scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [request_id])
+        except Exception:
+            pass
+
 
 class AWSLambdaIntegration(BaseIntegration):
     CLASS_TYPE = 'lambda'
@@ -313,6 +533,26 @@ class AWSLambdaIntegration(BaseIntegration):
         if string in constants.LambdaRequestType:
             return constants.LambdaRequestType[string]
         return ''
+
+    def inject_span_context_into_client_context(self, span, request_data):
+        encoded_client_context = request_data.get('X-Amz-Client-Context', None)
+        client_context = {}
+        if encoded_client_context != None:
+            client_context = json.loads(base64.b64decode(encoded_client_context))
+
+        custom = {}
+        if 'custom' in client_context:
+            custom = client_context['custom']
+
+        application_info = get_application_info()
+
+        custom[constants.TRIGGER_DOMAIN_NAME_TAG] = application_info['applicationDomainName']
+        custom[constants.TRIGGER_CLASS_NAME_TAG] = application_info['applicationClassName']
+        custom[constants.TRIGGER_OPERATION_NAME_TAG] = application_info['applicationName']
+
+        client_context['custom'] = custom
+        encoded_client_context = base64.b64encode(json.dumps(client_context).encode()).decode()
+        request_data['ClientContext'] = encoded_client_context
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
@@ -344,3 +584,13 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+        self.inject_span_context_into_client_context(scope.span, request_data)
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+
+        try:
+            request_id = response["ResponseMetadata"]["HTTPHeaders"]['x-amzn-requestid']
+            scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [request_id])
+        except Exception:
+            pass

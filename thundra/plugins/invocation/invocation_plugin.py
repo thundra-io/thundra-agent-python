@@ -77,6 +77,15 @@ class InvocationPlugin:
         resources = invocation_trace_support.get_resources(plugin_context)
         self.invocation_data.update(resources)
 
+        # Get incoming trace links
+        incoming_trace_links = invocation_trace_support.get_incoming_trace_links()
+        self.invocation_data.update(incoming_trace_links)
+
+        # Get outgoing trace links
+        outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
+        self.invocation_data.update(outgoing_trace_links)
+
+
         # Check errors
         if 'error' in plugin_context:
             error = plugin_context['error']
@@ -125,3 +134,4 @@ class InvocationPlugin:
         }
         reporter.add_report(json.loads(json.dumps(report_data)))
         invocation_support.clear()
+        invocation_trace_support.clear()
