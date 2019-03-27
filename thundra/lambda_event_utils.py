@@ -120,6 +120,7 @@ def inject_trigger_tags_for_dynamodb(span, original_event):
     for record in original_event['Records']:
         table_name = record['eventSourceARN'].split('/')[1]
         table_names.append(table_name)
+
         region = record['awsRegion']
 
         trace_link_found = False
@@ -139,20 +140,20 @@ def inject_trigger_tags_for_dynamodb(span, original_event):
 
         if not trace_link_found:
             creation_time = record['dynamodb'].get('ApproximateCreationDateTime')
-            if record['eventName'] == "INSERT":
-                add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "PUT", record['dynamodb'].get('NewImage'))
-            
-            elif record['eventName'] == "MODIFY":
-                add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "PUT", record['dynamodb'].get('NewImage'))
-                add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "UPDATE", record['dynamodb'].get('Keys'))
+            if creation_time:
+                if record['eventName'] == "INSERT":
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "PUT", record['dynamodb'].get('NewImage'))
+                
+                elif record['eventName'] == "MODIFY":
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "PUT", record['dynamodb'].get('NewImage'))
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "UPDATE", record['dynamodb'].get('Keys'))
 
-            elif record['eventName'] == "REMOVE":
-                add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "DELETE", record['dynamodb'].get('Keys'))
+                elif record['eventName'] == "REMOVE":
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "DELETE", record['dynamodb'].get('Keys'))
 
     invocation_trace_support.add_incoming_trace_links(trace_links)
 
     operation_names = list(set(table_names))
-
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
