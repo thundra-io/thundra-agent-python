@@ -40,10 +40,8 @@ class LambdaTriggeredMockContext:
         self.aws_request_id = 'aws_request_id'
         self.invoked_function_arn = 'invoked_function_arn'
         self.function_version = 'function_version'
-        self.clientContext = {
-            "custom": {
-                'x-thundra-lambda-trigger-operation-name': 'Sample Context'
-            }
+        self.client_context.custom = {
+            'x-thundra-lambda-trigger-operation-name': 'Sample Context'
         }
 
 
