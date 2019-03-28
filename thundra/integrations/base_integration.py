@@ -4,8 +4,8 @@ import time
 import traceback
 from thundra.opentracing.tracer import ThundraTracer
 
-
 logger = logging.getLogger(__name__)
+
 
 class BaseIntegration(abc.ABC):
     def run_and_trace(self, wrapped, instance, args, kwargs):
@@ -13,7 +13,8 @@ class BaseIntegration(abc.ABC):
         response = None
         exception = None
 
-        scope = tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),finish_on_close=False)
+        scope = tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),
+                                         finish_on_close=False)
         # Inject before span tags
         try:
             self.before_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -25,15 +26,15 @@ class BaseIntegration(abc.ABC):
                 'time': time.time()
             }
             scope.span.set_tag('instrumentation_error', e)
-        
+
         try:
             # Inform span that initialization completed
             scope.span.on_started()
             # Call original
-            response = wrapped(*args, **kwargs)
+            response = self.actual_call(wrapped, args, kwargs)
         except Exception as e:
             exception = e
-        
+
         # Inject after span tags 
         try:
             self.after_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -45,7 +46,7 @@ class BaseIntegration(abc.ABC):
                 'time': time.time()
             }
             scope.span.set_tag('instrumentation_error', e)
-            
+
         try:
             scope.span.finish()
         except Exception as e:
@@ -53,19 +54,22 @@ class BaseIntegration(abc.ABC):
                 exception = e
             else:
                 logger.error(e)
-            
+
         scope.close()
 
         if exception is not None:
             scope.span.set_error_to_tag(exception)
             raise exception
-        
+
         return response
+
+    def actual_call(self, wrapped, args, kwargs):
+        return wrapped(*args, **kwargs)
 
     def set_exception(self, exception, traceback_data, span):
         span.set_tag('error.stack', traceback_data)
         span.set_error_to_tag(exception)
-                    
+
     @abc.abstractmethod
     def get_operation_name(self, wrapped, instance, args, kwargs):
         raise Exception("should be implemented")

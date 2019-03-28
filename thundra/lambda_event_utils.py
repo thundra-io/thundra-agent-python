@@ -71,7 +71,7 @@ def inject_trigger_tags_for_kinesis(span, original_event):
         stream_name = event_source_arn[index:]
         stream_names.append(stream_name)
 
-        region = event_source_arn.split(':')[3]
+        region = record['awsRegion']
         if "eventID" in record:
             trace_links.append(region + ':' + stream_name + ':' + record["eventID"])
     operation_names = list(set(stream_names))
@@ -99,12 +99,13 @@ def inject_trigger_tags_for_firehose(span, original_event):
                 try:
                     data = base64.b64decode(record["data"])
                     data_md5 = hashlib.md5(data).hexdigest()
-                except Exception as e:
-                    print(e)
 
-                trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp - 1)) + ':' + data_md5)
-                trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp)) + ':' + data_md5)
-                trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp + 1)) + ':' + data_md5)
+                    trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp - 1)) + ':' + data_md5)
+                    trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp)) + ':' + data_md5)
+                    trace_links.append(region + ':' + stream_name + ':' + str(int(timestamp + 1)) + ':' + data_md5)
+
+                except Exception:
+                    pass
 
     invocation_trace_support.add_incoming_trace_links(trace_links)
 
@@ -171,8 +172,12 @@ def attributes_to_str(attributes):
     sorted_keys = sorted(attributes.keys())
     attributes_sorted = []
     for attr in sorted_keys:
-        attributes_sorted.append(attr + '=' + str(attributes[attr]))
-    return ','.join(attributes_sorted)
+        try:
+            key = list(attributes[attr].keys())[0]
+            attributes_sorted.append(attr + '=' + '{' + key + ': '+  str(attributes[attr][key]) + '}')
+        except Exception as e:
+            pass
+    return ', '.join(attributes_sorted)
 
 def inject_trigger_tags_for_sns(span, original_event):
     domain_name = constants.DomainNames['MESSAGING']
@@ -301,7 +306,7 @@ def inject_trigger_tags_for_lambda(span, original_context):
         if 'aws_request_id' in vars(original_context):
             invocation_trace_support.add_incoming_trace_links([original_context.aws_request_id])
     except Exception as e:
-        print(e)
+        pass
 
 def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names, topology_vertex=True):
     span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)
