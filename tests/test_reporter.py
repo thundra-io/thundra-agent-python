@@ -1,7 +1,5 @@
 import json
 import mock
-import asyncio
-import asynctest
 import os
 
 from thundra import constants
