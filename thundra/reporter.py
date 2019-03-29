@@ -1,14 +1,17 @@
-import asyncio
-import aiohttp
 import json
 import logging
+import traceback
+import time
 
 from thundra import constants, config
+from multiprocessing.dummy import Pool as ThreadPool
+from functools import partial
 
 try:
     import requests
 except ImportError:
     from botocore.vendored import requests
+
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +28,11 @@ class Reporter():
 
         if not session:
             session = requests.Session()
+            adapter = requests.adapters.HTTPAdapter(pool_maxsize=20)
+            session.mount("https://", adapter)
         self.session = session
-        self.loop = asyncio.get_event_loop()
+        self.pool = ThreadPool(20)
+
 
     def add_report(self, report):
         if config.report_cw_enabled():
@@ -53,27 +59,22 @@ class Reporter():
             request_url = base_url + '/monitoring-data'
 
         batches = self.get_report_batches()
+        reports_json = [self.prepare_report_json(batch) for batch in batches]
 
         responses = []
         if len(batches) > 1:
-            responses = self.loop.run_until_complete(
-                asyncio.gather(
-                    *[self.send_batch(request_url, self.prepare_report_json(batch), headers) for batch in batches]
-                )
-            )
+            responses = self.pool.map(self.send_batch, [(request_url, headers, data) for data in reports_json])
+
         else:
-            report_data = self.prepare_report_json(self.reports)
-            response = self.session.post(request_url, headers=headers, data=report_data)
+            response = self.session.post(request_url, headers=headers, data=self.prepare_report_json(self.reports))
             responses.append(response)
 
         self.clear()
         return responses
 
-    async def send_batch(self, url, data, headers):
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=data, headers=headers) as response:
-                await response.read()
-                return response
+    def send_batch(self, args):
+        url, headers, data = args
+        return self.session.post(url, data=data, headers=headers)
 
     def get_report_batches(self):
         batch_size = constants.MAX_MONITOR_DATA_BATCH_SIZE
