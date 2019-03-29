@@ -1,11 +1,8 @@
 import json
 import logging
-import traceback
-import time
 
 from thundra import constants, config
 from multiprocessing.dummy import Pool as ThreadPool
-from functools import partial
 
 try:
     import requests
