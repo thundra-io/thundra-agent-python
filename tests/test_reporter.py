@@ -136,8 +136,10 @@ def test_prepare_report_json_batch(mock_report):
     assert len(reports) == 1
 
 def test_prepare_composite_report_json(mock_report, mock_invocation_report):
+    constants.MAX_MONITOR_DATA_BATCH_SIZE=2
     reporter = Reporter('api key')
     reporter.add_report(mock_invocation_report)
+    reporter.add_report(mock_report)
     reporter.add_report(mock_report)
 
     batched_reports = reporter.prepare_composite_report_json()
@@ -147,3 +149,8 @@ def test_prepare_composite_report_json(mock_report, mock_invocation_report):
     assert composite_report["apiKey"] == "api key"
     assert len(composite_report["data"]["allMonitoringData"]) == 2
 
+    composite_report = json.loads(batched_reports[1])
+
+    assert composite_report["type"] == "Composite"
+    assert composite_report["apiKey"] == "api key"
+    assert len(composite_report["data"]["allMonitoringData"]) == 1

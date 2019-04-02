@@ -9,7 +9,6 @@ try:
 except ImportError:
     from botocore.vendored import requests
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,7 +28,6 @@ class Reporter():
             session.mount("https://", adapter)
         self.session = session
         self.pool = ThreadPool(20)
-
 
     def add_report(self, report):
         if config.report_cw_enabled():
@@ -90,7 +88,7 @@ class Reporter():
                     report_jsons.append(json.dumps(report))
                 except TypeError:
                     logger.error(("Couldn't dump report with type {} to json string, "
-                                "probably it contains a byte array").format(report.get('type')))
+                                  "probably it contains a byte array").format(report.get('type')))
             json_string = "[{}]".format(','.join(report_jsons))
             batched_reports.append(json_string)
         return batched_reports
@@ -99,7 +97,7 @@ class Reporter():
         invocation_report = None
         for report in self.reports:
             if report["type"] == "Invocation":
-                invocation_report = report   
+                invocation_report = report
 
         if not invocation_report:
             return []
@@ -110,17 +108,17 @@ class Reporter():
         batched_reports = []
 
         for batch in batches:
-            all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in self.reports]
+            all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in batch]
             composite_data = composite.get_composite_data(all_monitoring_data, self.api_key)
             try:
                 batched_reports.append(json.dumps(composite_data))
 
             except TypeError:
                 logger.error("Couldn't dump report with type Composite to json string, "
-                                "probably it contains a byte array")
+                             "probably it contains a byte array")
 
         composite.clear()
         return batched_reports
-        
+
     def clear(self):
         self.reports.clear()
