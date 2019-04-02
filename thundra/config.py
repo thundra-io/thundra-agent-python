@@ -52,6 +52,9 @@ def debug_enabled():
 def report_cw_enabled():
     return bool_from_env(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE)
 
+def composite_data_enabled():
+    return bool_from_env(constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED)
+
 def report_base_url():
     return str_from_env(constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL)
 

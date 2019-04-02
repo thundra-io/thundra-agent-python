@@ -81,6 +81,69 @@ def mock_report_with_byte_field():
         'data': b'byte_data'
     }
 
+@pytest.fixture()
+def mock_invocation_report():
+    return {
+        "apiKey": "api key",
+        "type": "Invocation",
+        "dataModelVersion": "2.0",
+        "data": {
+            "id": "testid",
+            "type": "Invocation",
+            "agentVersion": "2.2.5",
+            "dataModelVersion": "2.0",
+            "traceId": "testtraceId",
+            "transactionId": "testtransactionId",
+            "spanId": "testspanId",
+            "functionPlatform": "AWS-Lambda",
+            "functionName": "",
+            "functionRegion": "us-west-2",
+            "duration": 1000,
+            "startTimestamp": 1554193011000,
+            "finishTimestamp": 1554193012000,
+            "erroneous": False,
+            "errorType": "",
+            "errorMessage": "",
+            "errorCode": -1,
+            "coldStart": True,
+            "timeout": False,
+            "tags": {
+                "aws.region": "us-west-2",
+                "aws.lambda.name": "test",
+                "aws.lambda.arn": "arn:aws:lambda:us-west-2:123456789101:function:test",
+                "aws.lambda.memory_limit": 512,
+                "aws.lambda.log_group_name": "/aws/lambda/test",
+                "aws.lambda.log_stream_name": "2019/4/1/[$LATEST]111a11a11111aa11",
+                "aws.lambda.invocation.coldstart": True,
+                "aws.lambda.invocation.timeout": False,
+                "aws.lambda.invocation.request_id": "",
+                "aws.lambda.invocation.memory_usage": 33
+            },
+            "applicationId": "111a11a11111aa11",
+            "applicationDomainName": "API",
+            "applicationClassName": "AWS-Lambda",
+            "applicationName": "test",
+            "applicationVersion": "$LATEST",
+            "applicationStage": "",
+            "applicationRuntime": "python",
+            "applicationRuntimeVersion": "3",
+            "applicationTags": {
+            },
+            "resources": [
+                {
+                    "resourceType": "HTTP",
+                    "resourceName": "test.com",
+                    "resourceOperation": "GET",
+                    "resourceCount": 5,
+                    "resourceErrorCount": 0,
+                    "resourceDuration": 700,
+                    "resourceErrors": [
+                    ]
+                }
+            ]
+        }
+    }
+
 
 @pytest.fixture
 @mock.patch('thundra.reporter.requests')
