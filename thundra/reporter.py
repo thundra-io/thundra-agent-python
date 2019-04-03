@@ -30,18 +30,11 @@ class Reporter():
         self.pool = ThreadPool(20)
 
     def add_report(self, report):
-        if config.report_cw_enabled():
-            try:
-                print(json.dumps(report))
-            except TypeError:
-                logger.error("Couldn't dump report with type {} to json string, \
-                    probably it contains a byte array".format(report.get('type')))
+        if isinstance(report, list):
+            for data in report:
+                self.reports.append(data)
         else:
-            if isinstance(report, list):
-                for data in report:
-                    self.reports.append(data)
-            else:
-                self.reports.append(report)
+            self.reports.append(report)
 
     def send_report(self):
         headers = {
@@ -58,9 +51,21 @@ class Reporter():
 
         if config.composite_data_enabled():
             reports_json = self.prepare_composite_report_json()
-
         else:
             reports_json = self.prepare_report_json()
+
+        if config.report_cw_enabled():
+            if config.composite_data_enabled():
+                for report in reports_json:
+                    print(report)
+            else:
+                for report in self.reports:
+                    try:
+                        print(json.dumps(report))
+                    except TypeError:
+                        logger.error(("Couldn't dump report with type {} to json string, "
+                                    "probably it contains a byte array").format(report.get('type')))
+            return []
 
         responses = []
         if len(reports_json) > 0:
