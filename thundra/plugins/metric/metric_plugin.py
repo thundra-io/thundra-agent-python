@@ -50,12 +50,13 @@ class MetricPlugin:
         context = plugin_context['context']
         metric_time = time.time() * 1000
         active_span = self.tracer.get_active_span()
+        plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
         self.metric_data = {
             'type': "Metric",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': active_span.trace_id if active_span is not None else '',
-            'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
+            'transactionId': plugin_context.get('transaction_id'),
             'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
             'tags': {

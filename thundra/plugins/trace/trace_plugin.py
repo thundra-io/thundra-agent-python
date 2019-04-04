@@ -27,7 +27,7 @@ class TracePlugin:
 
         context = plugin_context['context']
         trace_id = str(uuid.uuid4())
-        transaction_id = context.aws_request_id
+        transaction_id = plugin_context.get('transaction_id', str(uuid.uuid4()))
         plugin_context['transaction_id'] = transaction_id
         plugin_context['trace_id'] = trace_id
         self.trace_data = {
@@ -169,7 +169,7 @@ class TracePlugin:
 
     def build_span(self, span, plugin_context):
         context = plugin_context['context']
-        transaction_id = plugin_context['transaction_id'] or plugin_context['context'].aws_request_id
+        transaction_id = plugin_context['transaction_id'] or str(uuid.uuid4())
 
         span_data = {
             'id': span.context.span_id,

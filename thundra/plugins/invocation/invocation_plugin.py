@@ -22,13 +22,14 @@ class InvocationPlugin:
     def before_invocation(self, plugin_context):
         self.set_start_time(plugin_context)
 
+        plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
         self.invocation_data = {
             'id': str(uuid.uuid4()),
             'type': "Invocation",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': plugin_context.get('trace_id', ""),
-            'transactionId': plugin_context.get('transaction_id', plugin_context['context'].aws_request_id),
+            'transactionId': plugin_context.get('transaction_id'),
             'spanId': plugin_context.get('span_id', ""),
             'functionPlatform': constants.CONTEXT_FUNCTION_PLATFORM,
             'functionName': invocation_support.function_name,
