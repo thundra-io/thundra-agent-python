@@ -30,6 +30,10 @@ THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_
 THUNDRA_LAMBDA_TRACE_ENABLE_XRAY = 'thundra_agent_lambda_trace_enable_xray'
 LAMBDA_TRIGGER_OPERATION_NAME = 'x-thundra-lambda-trigger-operation-name'
 
+THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE = 'thundra_agent_lambda_trace_kinesis_request_enable'
+THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE = 'thundra_agent_lambda_trace_firehose_request_enable'
+THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE = 'thundra_agent_lambda_trace_cloudwatchlog_request_enable'
+
 THUNDRA_AGENT_METRIC_TIME_AWARE_SAMPLER_TIME_FREQ = 'thundra_agent_lambda_metric_sample_sampler_timeAware_timeFreq'
 THUNDRA_AGENT_METRIC_COUNT_AWARE_SAMPLER_COUNT_FREQ = 'thundra_agent_lambda_metric_sample_sampler_countAware_countFreq'
 DEFAULT_METRIC_SAMPLING_TIME_FREQ = 5 * 60 * 1000
@@ -101,6 +105,9 @@ DomainNames = {
     'STORAGE': 'Storage',
     'API': 'API',
     'CACHE': 'Cache',
+    'SCHEDULE': 'Schedule',
+    'LOG': 'Log',
+    'CDN': 'CDN',
 }
 
 ClassNames = {
@@ -118,6 +125,10 @@ ClassNames = {
     'MYSQL': 'MYSQL',
     'POSTGRESQL': 'POSTGRESQL',
     'ELASTICSEARCH': 'ELASTICSEARCH',
+    'SCHEDULE': 'AWS-CloudWatch-Schedule',
+    'CLOUDWATCHLOG': 'AWS-CloudWatch-Log',
+    'CLOUDFRONT': 'AWS-CloudFront',
+    'APIGATEWAY': 'AWS-APIGateway',
 }
 
 DBTags = {

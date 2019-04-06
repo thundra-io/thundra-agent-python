@@ -69,7 +69,7 @@ class TracePlugin:
         self.root_span.set_tag('aws.lambda.invocation.request_id',
                                getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
         self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
-
+        
         self.root_span.on_started()
 
     def set_start_time(self, plugin_context):
@@ -100,10 +100,27 @@ class TracePlugin:
         context = plugin_context['context']
         reporter = plugin_context['reporter']
 
-        #### ADDING TAGS ####
-        if config.skip_trace_request() != True:
+        trigger_class_name = self.root_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME'])
+
+        # Disable request data sending for cloudwatchlog, firehose and kinesis if not
+        # enabled by configuration because requests can get too big for these
+        enable_request_data = True
+        if (
+                trigger_class_name == constants.ClassNames['CLOUDWATCHLOG'] and
+                not config.enable_trace_cloudwatchlog_request()) or (
+
+                trigger_class_name == constants.ClassNames['FIREHOSE'] and
+                not config.enable_trace_firehose_request()) or (
+
+                trigger_class_name == constants.ClassNames['KINESIS'] and
+                not config.enable_trace_kinesis_request()
+        ):
+            enable_request_data = False
+
+        # ADDING TAGS #
+        if (not config.skip_trace_request()) and enable_request_data:
             self.root_span.set_tag('aws.lambda.invocation.request', plugin_context.get('request', None))
-        if config.skip_trace_response() != True:
+        if not config.skip_trace_response():
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
         duration = self.end_time - self.start_time
@@ -113,7 +130,7 @@ class TracePlugin:
         for span in span_stack:
             current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
             self.span_data_list.append(current_span_data)
-        
+
         self.tracer.clear()
         self.trace_data['rootSpanId'] = self.root_span.context.span_id
         self.trace_data['duration'] = duration
