@@ -48,4 +48,4 @@ def get_composite_data(all_monitoring_data, api_key):
 
 
 def clear():
-    _common_fields = {}
+    _common_fields.clear()

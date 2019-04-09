@@ -24,4 +24,5 @@ def clear():
     _invocation_tags.clear()
 
 def parse_invocation_info(context):
+    global function_name
     function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, '')
