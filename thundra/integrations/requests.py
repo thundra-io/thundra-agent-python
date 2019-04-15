@@ -1,6 +1,8 @@
 import traceback
-import thundra.constants as constants
 from urllib.parse import urlparse
+
+from thundra import config
+import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 
@@ -58,11 +60,15 @@ class RequestsIntegration(BaseIntegration):
 
         span.tags = tags
 
+        if not config.http_body_masked():
+            body = prepared_request.body if prepared_request.body else ""
+            scope.span.set_tag(constants.HttpTags["BODY"], body)
+
         try:
             prepared_request.headers.update({'x-thundra-span-id' :span.span_id})
             span.set_tag(constants.SpanTags['TRACE_LINKS'], [span.span_id])
         except Exception as e:
-            print(e)
+            pass
     
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super().after_call(scope, wrapped, instance, args, kwargs, response, exception)

@@ -56,6 +56,10 @@ THUNDRA_MASK_REDIS_COMMAND = 'thundra_agent_lambda_trace_integrations_redis_comm
 THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
 THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_aws_dynamodb_statement_mask'
 THUNDRA_MASK_ES_BODY = 'thundra_agent_lambda_trace_integrations_elasticsearch_body_mask'
+THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_message_mask'
+THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_message_mask'
+THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
+THUNDRA_MASK_HTTP_BODY = 'thundra_agent_lambda_trace_integrations_aws_http_body_mask'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
@@ -209,6 +213,8 @@ SQSRequestTypes = {
 
 AwsSQSTags = {
     'QUEUE_NAME': 'aws.sqs.queue.name',
+    'MESSAGE': 'aws.sqs.message',
+    'MESSAGES': 'aws.sqs.messages',
 }
 
 SNSRequestTypes = {
@@ -217,6 +223,7 @@ SNSRequestTypes = {
 
 AwsSNSTags = {
     'TOPIC_NAME': 'aws.sns.topic.name',
+    'MESSAGE': 'aws.sns.message',
 }
 
 AwsKinesisTags = {
@@ -275,6 +282,7 @@ HttpTags = {
     'HTTP_HOST': 'http.host',
     'HTTP_STATUS': 'http.status_code',
     'QUERY_PARAMS': 'http.query_params',
+    'BODY': 'http.body',
 }
 
 RedisCommandTypes = {

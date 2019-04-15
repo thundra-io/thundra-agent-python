@@ -161,3 +161,19 @@ def dynamodb_trace_enabled():
 
 def lambda_trace_disabled():
     return bool_from_env(constants.DISABLE_LAMBDA_TRACE_INJECTION)
+
+
+def sns_message_masked():
+    return bool_from_env(constants.THUNDRA_MASK_SNS_MESSAGE)
+
+
+def sqs_message_masked():
+    return bool_from_env(constants.THUNDRA_MASK_SQS_MESSAGE)
+
+
+def lambda_payload_masked():
+    return bool_from_env(constants.THUNDRA_MASK_LAMBDA_PAYLOAD)
+
+
+def http_body_masked():
+    return bool_from_env(constants.THUNDRA_MASK_HTTP_BODY)

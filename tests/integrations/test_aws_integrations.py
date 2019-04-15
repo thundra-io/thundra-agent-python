@@ -302,6 +302,40 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
     tracer.clear()
     invocation_support.function_name = ""
 
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event, mock_context, monkeypatch):
+    mock_actual_call.return_value = mock_lambda_response
+    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_LAMBDA_PAYLOAD, 'true')
+
+    def handler(event, context):
+        lambdaFunc = boto3.client('lambda', region_name='us-west-2')
+        lambdaFunc.invoke(
+            FunctionName='Test',
+            InvocationType='RequestResponse',
+            Payload=b"{\"name\": \"thundra\"}"
+        )
+
+    tracer = ThundraTracer.get_instance()
+
+    with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
+        with mock.patch('thundra.reporter.Reporter.clear'):
+            thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+            try:
+                wrapped_handler(mock_event, mock_context)
+            except:
+                pass
+
+            # Check span tags
+            span = tracer.get_spans()[1]
+            assert span.class_name == 'AWS-Lambda'
+            assert span.domain_name == 'API'
+            assert span.get_tag('aws.lambda.name') == 'Test'
+            assert span.get_tag('aws.lambda.qualifier') is None
+            assert span.get_tag('aws.lambda.invocation.payload') == None
+            assert span.get_tag('aws.request.name') == 'Invoke'
+            assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
+    tracer.clear()
+
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_sqs(mock_actual_call, mock_sqs_response):
@@ -324,6 +358,33 @@ def test_sqs(mock_actual_call, mock_sqs_response):
         assert span.get_tag('aws.sqs.queue.name') == 'test-queue'
         assert span.get_tag('aws.request.name') == 'SendMessage'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
+        assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == 'Hello Thundra!'
+        tracer.clear()
+
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_sqs_message_masked(mock_actual_call, mock_sqs_response, monkeypatch):
+    mock_actual_call.return_value = mock_sqs_response
+    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_SQS_MESSAGE, 'true')
+    try:
+        sqs = boto3.client('sqs', region_name='us-west-2')
+        sqs.send_message(
+            QueueUrl='test-queue',
+            MessageBody='Hello Thundra!',
+            DelaySeconds=123,
+        )
+    except botocore_errors:
+        pass
+    finally:
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-SQS'
+        assert span.domain_name == 'Messaging'
+        assert span.get_tag('operation.type') == 'WRITE'
+        assert span.get_tag('aws.sqs.queue.name') == 'test-queue'
+        assert span.get_tag('aws.request.name') == 'SendMessage'
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
+        assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == None
         tracer.clear()
 
 
@@ -348,6 +409,32 @@ def test_sns(mock_actual_call, mock_sns_response):
         assert span.get_tag('aws.sns.topic.name') == 'Test-topic'
         assert span.get_tag('aws.request.name') == 'Publish'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
+        assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == 'Hello Thundra!'
+        tracer.clear()
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_sns_message_masked(mock_actual_call, mock_sns_response, monkeypatch):
+    mock_actual_call.return_value = mock_sns_response
+    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_SNS_MESSAGE, 'true')
+
+    try:
+        sns = boto3.client('sns', region_name='us-west-2')
+        sns.publish(
+            TopicArn='Test-topic',
+            Message='Hello Thundra!',
+        )
+    except botocore_errors:
+        pass
+    finally:
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-SNS'
+        assert span.domain_name == 'Messaging'
+        assert span.get_tag('operation.type') == 'WRITE'
+        assert span.get_tag('aws.sns.topic.name') == 'Test-topic'
+        assert span.get_tag('aws.request.name') == 'Publish'
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
+        assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == None
         tracer.clear()
 
 

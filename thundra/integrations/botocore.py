@@ -279,6 +279,19 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+        if not config.sqs_message_masked():
+            if operation_name == "SendMessage":
+                message = request_data.get("MessageBody", "")
+                scope.span.set_tag(constants.AwsSQSTags['MESSAGE'], message)
+
+            elif operation_name == "SendMessageBatch":
+                entries = request_data.get('Entries', None)
+                messages = []
+                if entries:
+                    for entry in entries:
+                        messages.append(entry.get("MessageBody", ""))
+                scope.span.set_tag(constants.AwsSQSTags['MESSAGES'], messages)
+
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
         operation_name = args[0]
@@ -332,6 +345,7 @@ class AWSSNSIntegration(BaseIntegration):
         operation_name, request_data = args
         self.request_data = request_data
         self.response = response
+        self.message = request_data.get('Message', '')
 
         scope.span.domain_name = constants.DomainNames['MESSAGING']
         scope.span.class_name = constants.ClassNames['SNS']
@@ -348,6 +362,9 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+
+        if not config.sns_message_masked():
+            scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -599,7 +616,7 @@ class AWSLambdaIntegration(BaseIntegration):
             constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
 
-        if 'Payload' in request_data:
+        if not config.lambda_payload_masked() and 'Payload' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
                 request_data['Payload']) is not str else request_data['Payload']
