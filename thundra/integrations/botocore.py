@@ -103,11 +103,11 @@ class AWSDynamoDBIntegration(BaseIntegration):
             region = instance.meta.region_name
 
             if operation_name == 'PutItem':
-                trace_links = self.generate_trace_links(region, response, params['TableName'], 'PUT',
+                trace_links = self.generate_trace_links(region, response, params['TableName'], 'SAVE',
                                                         params['Item'])
 
             elif operation_name == 'UpdateItem':
-                trace_links = self.generate_trace_links(region, response, params['TableName'], 'UPDATE',
+                trace_links = self.generate_trace_links(region, response, params['TableName'], 'SAVE',
                                                         params['Key'])
 
             elif operation_name == 'DeleteItem':

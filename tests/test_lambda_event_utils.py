@@ -64,15 +64,15 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
         region + ':' + table_name + ':' + str(timestamp) + ':' + 'DELETE' + ':' + md5_key,
         region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'DELETE' + ':' + md5_key,
         region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'DELETE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'UPDATE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'UPDATE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'UPDATE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'PUT' + ':' + md5_image_1,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'PUT' + ':' + md5_image_1,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'PUT' + ':' + md5_image_1,
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'PUT' + ':' + md5_image_2,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'PUT' + ':' + md5_image_2,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'PUT' + ':' + md5_image_2
+        region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_key,
+        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_key,
+        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_key,
+        region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_image_1,
+        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_image_1,
+        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_image_1,
+        region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_image_2,
+        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_image_2,
+        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_image_2
     ]
     assert sorted(invocation_plugin.invocation_data['incomingTraceLinks']) == sorted(links)
 
