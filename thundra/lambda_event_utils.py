@@ -133,8 +133,8 @@ def inject_trigger_tags_for_s3(span, original_event):
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 def inject_trigger_tags_for_cloudwatch_schedule(span, original_event):
-    domain_name = 'Schedule'
-    class_name = 'AWS-CloudWatch-Schedule'
+    domain_name = constants.DomainNames['SCHEDULE']
+    class_name = constants.ClassNames['SCHEDULE']
     schedule_names = []
     for resource in original_event['resources']:
         schedule_names.append(resource.split('/')[-1])
@@ -144,8 +144,8 @@ def inject_trigger_tags_for_cloudwatch_schedule(span, original_event):
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 def inject_trigger_tags_for_cloudwatch_logs(span, original_event):
-    domain_name = 'Log'
-    class_name = 'AWS-CloudWatch-Log'
+    domain_name = constants.DomainNames['LOG']
+    class_name = constants.ClassNames['CLOUDWATCHLOG']
     operation_names = []
     try:
         compressed_data = base64.b64decode(original_event['awslogs']['data'])
@@ -158,8 +158,8 @@ def inject_trigger_tags_for_cloudwatch_logs(span, original_event):
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 def inject_trigger_tags_for_cloudfront(span, original_event):
-    domain_name = 'CDN'
-    class_name = 'AWS-CloudFront'
+    domain_name = constants.DomainNames['CDN']
+    class_name = constants.ClassNames['CLOUDFRONT']
     uris = []
     for record in original_event['Records']:
         try:
@@ -172,8 +172,8 @@ def inject_trigger_tags_for_cloudfront(span, original_event):
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
-    domain_name = 'API'
-    class_name = 'AWS-APIGateway'
+    domain_name = constants.DomainNames['API']
+    class_name = constants.ClassNames['APIGATEWAY']
     operation_names = [original_event['headers']['Host'] + '/' + original_event['requestContext']['stage'] + \
                         original_event['path']]
 
@@ -181,8 +181,8 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 def inject_trigger_tags_for_api_gateway(span, original_event):
-    domain_name = 'API'
-    class_name = 'AWS-APIGateway'
+    domain_name = constants.DomainNames['API']
+    class_name = constants.ClassNames['APIGATEWAY']
     operation_names = [str(original_event['params']['header']['Host']) + '/' + str(
         original_event['context']['stage']) + str(original_event['params']['path'])]
     

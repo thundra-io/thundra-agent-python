@@ -58,6 +58,15 @@ def report_base_url():
 def skip_trace_request():
     return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)
 
+def enable_trace_kinesis_request():
+    return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE)
+
+def enable_trace_firehose_request():
+    return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE)
+
+def enable_trace_cloudwatchlog_request():
+    return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE)
+
 def skip_trace_response():
     return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP)
 
