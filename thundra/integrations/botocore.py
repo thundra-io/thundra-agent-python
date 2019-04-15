@@ -617,7 +617,8 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-        self.inject_span_context_into_client_context(request_data)
+        if not config.lambda_trace_disabled():
+            self.inject_span_context_into_client_context(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super().after_call(scope, wrapped, instance, args, kwargs, response, exception)

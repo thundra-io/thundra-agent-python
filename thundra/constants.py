@@ -103,6 +103,7 @@ THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_report_r
 THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_report_cloudwatch_composite_batchsize'
 
 ENABLE_DYNAMODB_TRACE_INJECTION = 'thundra_agent_trace_integrations_dynamodb_trace_injection_enable'
+DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_trace_integrations_aws_lambda_traceInjection_disable'
 
 #### INTEGRATIONS ####
 

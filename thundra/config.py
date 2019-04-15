@@ -157,3 +157,7 @@ def cloudwatch_composite_batchsize():
 
 def dynamodb_trace_enabled():
     return bool_from_env(constants.ENABLE_DYNAMODB_TRACE_INJECTION)
+
+
+def lambda_trace_disabled():
+    return bool_from_env(constants.DISABLE_LAMBDA_TRACE_INJECTION)
