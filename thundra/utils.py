@@ -170,6 +170,7 @@ def is_excluded_url(url):
             if method(host, excluded_url):
                 return True
     return False
+    
 
 # Excluded url's 
 EXCLUDED_URLS = {

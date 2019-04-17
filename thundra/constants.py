@@ -1,7 +1,8 @@
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 
-HOST = "https://api.thundra.io"
-PATH = "/v1/monitoring-data"
+HOST = "https://api.thundra.io/v1"
+PATH = "/monitoring-data"
+COMPOSITE_DATA_PATH = "/composite-monitoring-data"
 
 REQUEST_COUNT = 0
 
@@ -18,7 +19,10 @@ LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
 LAMBDA_FUNCTION_PLATFORM = 'AWS Lambda'
 THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra_agent_lambda_timeout_margin'
 THUNDRA_LAMBDA_REPORT_REST_BASEURL = 'thundra_agent_lambda_report_rest_baseUrl'
+THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED = 'thundra_agent_lambda_report_rest_composite_enable'
 THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE = 'thundra_agent_lambda_report_cloudwatch_enable'
+THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_ENABLED = 'thundra_agent_lambda_report_cloudwatch_composite_enable'
+
 THUNDRA_DISABLE_TRACE = 'thundra_agent_lambda_trace_disable'
 THUNDRA_DISABLE_METRIC = 'thundra_agent_lambda_metric_disable'
 THUNDRA_DISABLE_LOG = 'thundra_agent_lambda_log_disable'
@@ -92,6 +96,12 @@ THUNDRA_LAMBDA_DEBUG_ENABLE = 'thundra_agent_lambda_debug_enable'
 THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_agent_lambda_log_console_disable'
 THUNDRA_LAMBDA_SPAN_LISTENER = 'thundra_agent_lambda_trace_span_listener'
 THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
+
+DEFAULT_REPORT_REST_COMPOSITE_BATCH_SIZE = 100
+DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 10
+
+THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_report_rest_composite_batchsize'
+THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_report_cloudwatch_composite_batchsize'
 
 #### INTEGRATIONS ####
 

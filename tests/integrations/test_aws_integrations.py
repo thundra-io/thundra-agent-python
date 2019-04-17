@@ -5,6 +5,8 @@ from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 from botocore.errorfactory import ClientError
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.invocation import invocation_support
+
 from thundra import constants
 
 
@@ -219,6 +221,7 @@ def test_lambda(wrap_handler_with_thundra, mock_event, mock_context):
             assert report['tags']['aws.lambda.invocation.type'] == 'RequestResponse'
     
     tracer.clear()
+    invocation_support.function_name = ""
 
 
 def test_sqs():
