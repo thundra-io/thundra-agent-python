@@ -46,13 +46,16 @@ class LambdaTriggeredMockContext:
             }
         }
 
+
 @pytest.fixture
 def mock_context():
     return MockContext()
 
+
 @pytest.fixture
 def mock_lambda_context():
     return LambdaTriggeredMockContext()
+
 
 @pytest.fixture
 def mock_event():
@@ -80,6 +83,7 @@ def mock_report_with_byte_field():
         'dataFormatVersion': '1.1.1',
         'data': b'byte_data'
     }
+
 
 @pytest.fixture()
 def mock_invocation_report():

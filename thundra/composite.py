@@ -27,12 +27,13 @@ def get_composite_common_fields():
 
 
 def remove_common_fields(data):
+    without_common_fields = data.copy()
     for field in _common_fields_list:
         try:
-            del data[field]
+            del without_common_fields[field]
         except (KeyError, TypeError):
             pass
-    return data
+    return without_common_fields
 
 
 def get_composite_data(all_monitoring_data, api_key):

@@ -42,20 +42,16 @@ class Reporter():
             'Authorization': 'ApiKey ' + self.api_key
         }
 
-        path = constants.COMPOSITE_DATA_PATH if config.composite_data_enabled() else constants.PATH
+        path = constants.COMPOSITE_DATA_PATH if config.rest_composite_data_enabled() else constants.PATH
 
         request_url = constants.HOST + path
         base_url = config.report_base_url()
         if base_url is not None:
             request_url = base_url + path
 
-        if config.composite_data_enabled():
-            reports_json = self.prepare_composite_report_json()
-        else:
-            reports_json = self.prepare_report_json()
-
         if config.report_cw_enabled():
-            if config.composite_data_enabled():
+            if config.cw_composite_data_enabled():
+                reports_json = self.prepare_composite_report_json()
                 for report in reports_json:
                     print(report)
             else:
@@ -65,7 +61,13 @@ class Reporter():
                     except TypeError:
                         logger.error(("Couldn't dump report with type {} to json string, "
                                     "probably it contains a byte array").format(report.get('type')))
+
             return []
+
+        if config.rest_composite_data_enabled():
+            reports_json = self.prepare_composite_report_json()
+        else:
+            reports_json = self.prepare_report_json()
 
         responses = []
         if len(reports_json) > 0:
@@ -79,7 +81,10 @@ class Reporter():
         return self.session.post(url, data=data, headers=headers)
 
     def get_report_batches(self):
-        batch_size = constants.MAX_MONITOR_DATA_BATCH_SIZE
+        batch_size = config.rest_composite_batchsize()
+        if config.report_cw_enabled():
+            batch_size = config.cloudwatch_composite_batchsize()
+
         batches = [self.reports[i:i + batch_size] for i in range(0, len(self.reports), batch_size)]
         return batches
 
