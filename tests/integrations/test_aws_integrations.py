@@ -300,7 +300,6 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
             assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
     tracer.clear()
-    invocation_support.function_name = ""
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event, mock_context, monkeypatch):

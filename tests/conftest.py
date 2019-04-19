@@ -3,6 +3,7 @@ import pytest
 import mock
 from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
+from thundra.plugins.invocation import invocation_support
 from thundra import constants
 
 
@@ -45,6 +46,9 @@ class LambdaTriggeredMockContext:
             'x-thundra-trigger-operation-name': 'Sample Context'
         }
 
+@pytest.fixture(scope="module", autouse=True)
+def clear_function_name():
+    invocation_support.function_name = ""
 
 @pytest.fixture
 def mock_context():
