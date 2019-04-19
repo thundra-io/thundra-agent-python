@@ -75,6 +75,8 @@ class RequestsIntegration(BaseIntegration):
 
         if response is not None:
             self.set_response(response, scope.span)
+            if response.headers and response.headers.get("x-amz-apigw-id"):
+                scope.span.class_name = constants.ClassNames['APIGATEWAY']
     
     def set_response(self, response, span):
         statusCode = response.status_code

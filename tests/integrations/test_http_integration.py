@@ -1,4 +1,5 @@
 import os
+import mock
 import requests
 from thundra.opentracing.tracer import ThundraTracer
 from urllib.parse import urlparse
@@ -167,6 +168,37 @@ def test_errorneous_http_call():
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
         assert http_span.get_tag('error') == True
+    except Exception:
+        raise
+    finally:
+        tracer.clear()
+
+
+@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+def test_apigw_call(mock_actual_call):
+    mock_actual_call.return_value = requests.Response()
+    mock_actual_call.return_value.headers = {"x-amz-apigw-id": "test_id"}
+    try:
+        url = 'https://1a23bcdefg.execute-api.us-west-2.amazonaws.com/dev/test'
+        parsed_url = urlparse(url)
+        path = parsed_url.path
+        query = parsed_url.query
+        host = parsed_url.netloc
+
+        requests.get(url)
+        tracer = ThundraTracer.get_instance()
+        http_span = tracer.get_spans()[0]
+
+        assert http_span.operation_name == host+path
+        assert http_span.domain_name == constants.DomainNames['API']
+        assert http_span.class_name == constants.ClassNames['APIGATEWAY']
+
+        assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
+        assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host+path
+        assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
+        assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
+        assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
     except Exception:
         raise
     finally:
