@@ -3,6 +3,7 @@ import logging
 from thundra import config, constants
 from thundra.opentracing.tracer import ThundraTracer
 
+_incoming_trace_links = []
 
 logger = logging.getLogger(__name__)
 class Resource:
@@ -74,3 +75,34 @@ def get_resources(plugin_context):
     except Exception as e:
         logger.error("error while creating the resources data for invocation: %s", e)
         return {}
+
+def get_incoming_trace_links():
+    if config.thundra_disabled():
+        return []
+    
+    return {"incomingTraceLinks": list(set(_incoming_trace_links))}
+    
+
+def get_outgoing_trace_links():
+    if config.thundra_disabled():
+        return []
+    
+    spans = ThundraTracer.get_instance().recorder.get_spans()
+
+    outgoing_trace_links = []
+    for span in spans:
+        links = get_outgoing_trace_link(span)
+        if links:
+            outgoing_trace_links += links
+    
+    return {"outgoingTraceLinks": list(set(outgoing_trace_links))}
+
+def get_outgoing_trace_link(span):
+    return span.get_tag(constants.SpanTags["TRACE_LINKS"])
+
+def add_incoming_trace_links(trace_links):
+    _incoming_trace_links.extend(trace_links)
+
+
+def clear():
+    _incoming_trace_links.clear()

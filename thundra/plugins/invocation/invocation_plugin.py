@@ -22,13 +22,14 @@ class InvocationPlugin:
     def before_invocation(self, plugin_context):
         self.set_start_time(plugin_context)
 
+        plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
         self.invocation_data = {
             'id': str(uuid.uuid4()),
             'type': "Invocation",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': plugin_context.get('trace_id', ""),
-            'transactionId': plugin_context.get('transaction_id', plugin_context['context'].aws_request_id),
+            'transactionId': plugin_context.get('transaction_id'),
             'spanId': plugin_context.get('span_id', ""),
             'functionPlatform': constants.CONTEXT_FUNCTION_PLATFORM,
             'functionName': invocation_support.function_name,
@@ -76,6 +77,15 @@ class InvocationPlugin:
         # Get resources
         resources = invocation_trace_support.get_resources(plugin_context)
         self.invocation_data.update(resources)
+
+        # Get incoming trace links
+        incoming_trace_links = invocation_trace_support.get_incoming_trace_links()
+        self.invocation_data.update(incoming_trace_links)
+
+        # Get outgoing trace links
+        outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
+        self.invocation_data.update(outgoing_trace_links)
+
 
         # Check errors
         if 'error' in plugin_context:
@@ -125,3 +135,4 @@ class InvocationPlugin:
         }
         reporter.add_report(json.loads(json.dumps(report_data)))
         invocation_support.clear()
+        invocation_trace_support.clear()

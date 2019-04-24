@@ -3,6 +3,7 @@ import pytest
 import mock
 from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
+from thundra.plugins.invocation import invocation_support
 from thundra import constants
 
 
@@ -40,12 +41,14 @@ class LambdaTriggeredMockContext:
         self.aws_request_id = 'aws_request_id'
         self.invoked_function_arn = 'invoked_function_arn'
         self.function_version = 'function_version'
-        self.clientContext = {
-            "custom": {
-                'x-thundra-lambda-trigger-operation-name': 'Sample Context'
-            }
+        self.client_context = type('', (), {})()
+        self.client_context.custom = {
+            'x-thundra-trigger-operation-name': 'Sample Context'
         }
 
+@pytest.fixture(scope="module", autouse=True)
+def clear_function_name():
+    invocation_support.function_name = ""
 
 @pytest.fixture
 def mock_context():
@@ -188,6 +191,74 @@ def wrap_handler_with_thundra(thundra):
     return _wrap_handler_with_thundra
 
 
+@pytest.fixture()
+def mock_sqs_response():
+    return {
+        'MessageId': 'MessageID_1',
+    }
+
+
+@pytest.fixture()
+def mock_sns_response():
+    return {
+        'MessageId': 'MessageID_1',
+    }
+
+
+@pytest.fixture()
+def mock_kinesis_response():
+    sequence_number = '49568167373333333333333333333333333333333333333333333333'
+    shard_id = 'shardId--000000000000'
+    response = {
+        'Records': [
+            {
+                'SequenceNumber': sequence_number,
+                'ShardId': shard_id,
+            },
+        ],
+    }
+    return response
+
+
+@pytest.fixture()
+def mock_firehose_response():
+    response = {
+        "ResponseMetadata":
+            {
+                "HTTPHeaders": {
+                    "date": "Wed, 27 Mar 2019 14:00:00 GMT"
+                }
+            }
+    }
+    return response
+
+
+@pytest.fixture()
+def mock_s3_response():
+    response = {
+        "ResponseMetadata":
+            {
+                "HTTPHeaders": {
+                    "x-amz-request-id": "C3D13FE58DE4C810"
+                }
+            }
+    }
+    return response
+
+
+@pytest.fixture()
+def mock_lambda_response():
+    response = {
+        "ResponseMetadata":
+            {
+                "HTTPHeaders": {
+                    "x-amzn-requestid": "test-request-id"
+                }
+            }
+    }
+    return response
+
+
 @pytest.fixture
 def mock_dynamodb_event():
     event = {
@@ -211,7 +282,8 @@ def mock_dynamodb_event():
                     },
                     "StreamViewType": "NEW_AND_OLD_IMAGES",
                     "SequenceNumber": "111",
-                    "SizeBytes": 26
+                    "SizeBytes": 26,
+                    "ApproximateCreationDateTime": 1480642020,
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "INSERT",
@@ -245,7 +317,9 @@ def mock_dynamodb_event():
                             "N": "101"
                         }
                     },
-                    "StreamViewType": "NEW_AND_OLD_IMAGES"
+                    "StreamViewType": "NEW_AND_OLD_IMAGES",
+                    "ApproximateCreationDateTime": 1480642020,
+
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "MODIFY",
@@ -271,7 +345,118 @@ def mock_dynamodb_event():
                             "N": "101"
                         }
                     },
-                    "StreamViewType": "NEW_AND_OLD_IMAGES"
+                    "StreamViewType": "NEW_AND_OLD_IMAGES",
+                    "ApproximateCreationDateTime": 1480642020,
+
+                },
+                "awsRegion": "eu-west-2",
+                "eventName": "REMOVE",
+                "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
+                "eventSource": "aws:dynamodb"
+            }
+        ]
+    }
+    return event
+
+
+@pytest.fixture
+def mock_dynamodb_event_trace_injected():
+    event = {
+        "Records": [
+            {
+                "eventID": "1",
+                "eventVersion": "1.0",
+                "dynamodb": {
+                    "Keys": {
+                        "Id": {
+                            "N": "101"
+                        }
+                    },
+                    "NewImage": {
+                        "Message": {
+                            "S": "New item!"
+                        },
+                        "Id": {
+                            "N": "101"
+                        },
+                        "x-thundra-span-id": {
+                            "S": "test_id1"
+                        }
+                    },
+                    "StreamViewType": "NEW_AND_OLD_IMAGES",
+                    "SequenceNumber": "111",
+                    "SizeBytes": 26,
+                    "ApproximateCreationDateTime": 1480642020,
+                },
+                "awsRegion": "eu-west-2",
+                "eventName": "INSERT",
+                "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
+                "eventSource": "aws:dynamodb"
+            },
+            {
+                "eventID": "2",
+                "eventVersion": "1.0",
+                "dynamodb": {
+                    "OldImage": {
+                        "Message": {
+                            "S": "New item!"
+                        },
+                        "Id": {
+                            "N": "101"
+                        }
+                    },
+                    "SequenceNumber": "222",
+                    "Keys": {
+                        "Id": {
+                            "N": "101"
+                        }
+                    },
+                    "SizeBytes": 59,
+                    "NewImage": {
+                        "Message": {
+                            "S": "This item has changed"
+                        },
+                        "Id": {
+                            "N": "101"
+                        },
+                        "x-thundra-span-id": {
+                            "S": "test_id2"
+                        }
+                    },
+                    "StreamViewType": "NEW_AND_OLD_IMAGES",
+                    "ApproximateCreationDateTime": 1480642020,
+
+                },
+                "awsRegion": "eu-west-2",
+                "eventName": "MODIFY",
+                "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
+                "eventSource": "aws:dynamodb"
+            },
+            {
+                "eventID": "3",
+                "eventVersion": "1.0",
+                "dynamodb": {
+                    "Keys": {
+                        "Id": {
+                            "N": "101"
+                        }
+                    },
+                    "SizeBytes": 38,
+                    "SequenceNumber": "333",
+                    "OldImage": {
+                        "Message": {
+                            "S": "This item has changed!"
+                        },
+                        "Id": {
+                            "N": "101"
+                        },
+                        "x-thundra-span-id": {
+                            "S": "test_id3"
+                        }
+                    },
+                    "StreamViewType": "NEW_AND_OLD_IMAGES",
+                    "ApproximateCreationDateTime": 1480642020,
+
                 },
                 "awsRegion": "eu-west-2",
                 "eventName": "REMOVE",
@@ -361,7 +546,7 @@ def mock_kinesis_event():
                 "invokeIdentityArn": "arn:aws:iam::EXAMPLE",
                 "eventVersion": "1.0",
                 "eventName": "aws:kinesis:record",
-                "eventSourceARN": "arn:aws:kinesis:EXAMPLE/example_stream",
+                "eventSourceARN": "arn:aws:kinesis:eu-west-2:123456789012:stream/example_stream",
                 "awsRegion": "eu-west-2"
             }
         ]

@@ -153,3 +153,27 @@ def rest_composite_batchsize():
 def cloudwatch_composite_batchsize():
     return int_from_env(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE,
                         default=constants.DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
+
+
+def dynamodb_trace_enabled():
+    return bool_from_env(constants.ENABLE_DYNAMODB_TRACE_INJECTION)
+
+
+def lambda_trace_disabled():
+    return bool_from_env(constants.DISABLE_LAMBDA_TRACE_INJECTION)
+
+
+def sns_message_masked():
+    return bool_from_env(constants.THUNDRA_MASK_SNS_MESSAGE)
+
+
+def sqs_message_masked():
+    return bool_from_env(constants.THUNDRA_MASK_SQS_MESSAGE)
+
+
+def lambda_payload_masked():
+    return bool_from_env(constants.THUNDRA_MASK_LAMBDA_PAYLOAD)
+
+
+def http_body_masked():
+    return bool_from_env(constants.THUNDRA_MASK_HTTP_BODY)

@@ -1,5 +1,6 @@
 import wrapt
 import logging
+import uuid
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
@@ -39,12 +40,13 @@ class LogPlugin:
     def before_invocation(self, plugin_context):
         logs.clear()
         context = plugin_context['context']
+        plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
         self.log_data = {
             'type': "Log",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': plugin_context.get('trace_id', ""),
-            'transactionId': plugin_context.get('transaction_id', context.aws_request_id),
+            'transactionId': plugin_context.get('transaction_id'),
             'tags': {}
         }
         # Add application related data

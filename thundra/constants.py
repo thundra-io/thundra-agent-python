@@ -32,7 +32,10 @@ THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra_agent_lambda_trace_response_skip'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE = 'thundra_agent_lambda_trace_instrument_disable'
 THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_traceableConfig'
 THUNDRA_LAMBDA_TRACE_ENABLE_XRAY = 'thundra_agent_lambda_trace_enable_xray'
-LAMBDA_TRIGGER_OPERATION_NAME = 'x-thundra-lambda-trigger-operation-name'
+
+TRIGGER_OPERATION_NAME_TAG = 'x-thundra-trigger-operation-name'
+TRIGGER_CLASS_NAME_TAG = 'x-thundra-trigger-class-name'
+TRIGGER_DOMAIN_NAME_TAG = 'x-thundra-trigger-domain-name'
 
 THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE = 'thundra_agent_lambda_trace_kinesis_request_enable'
 THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE = 'thundra_agent_lambda_trace_firehose_request_enable'
@@ -53,10 +56,10 @@ THUNDRA_MASK_REDIS_COMMAND = 'thundra_agent_lambda_trace_integrations_redis_comm
 THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
 THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_aws_dynamodb_statement_mask'
 THUNDRA_MASK_ES_BODY = 'thundra_agent_lambda_trace_integrations_elasticsearch_body_mask'
-
-THUNDRA_MASK_REDIS_STATEMENT = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
-THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
-THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_dynamodb_statement_mask'
+THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_message_mask'
+THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_message_mask'
+THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
+THUNDRA_MASK_HTTP_BODY = 'thundra_agent_lambda_trace_integrations_aws_http_body_mask'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
@@ -102,6 +105,9 @@ DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 10
 
 THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_report_rest_composite_batchsize'
 THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_report_cloudwatch_composite_batchsize'
+
+ENABLE_DYNAMODB_TRACE_INJECTION = 'thundra_agent_trace_integrations_dynamodb_trace_injection_enable'
+DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_trace_integrations_aws_lambda_traceInjection_disable'
 
 #### INTEGRATIONS ####
 
@@ -173,6 +179,7 @@ SpanTags = {
     'TOPOLOGY_VERTEX': 'topology.vertex',
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type:',
+    'TRACE_LINKS': 'trace.links'
 }
 
 DynamoDBRequestTypes = {
@@ -206,6 +213,8 @@ SQSRequestTypes = {
 
 AwsSQSTags = {
     'QUEUE_NAME': 'aws.sqs.queue.name',
+    'MESSAGE': 'aws.sqs.message',
+    'MESSAGES': 'aws.sqs.messages',
 }
 
 SNSRequestTypes = {
@@ -214,6 +223,7 @@ SNSRequestTypes = {
 
 AwsSNSTags = {
     'TOPIC_NAME': 'aws.sns.topic.name',
+    'MESSAGE': 'aws.sns.message',
 }
 
 AwsKinesisTags = {
@@ -272,6 +282,7 @@ HttpTags = {
     'HTTP_HOST': 'http.host',
     'HTTP_STATUS': 'http.status_code',
     'QUERY_PARAMS': 'http.query_params',
+    'BODY': 'http.body',
 }
 
 RedisCommandTypes = {
