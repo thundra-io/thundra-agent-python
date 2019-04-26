@@ -121,6 +121,10 @@ def rdb_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_RDB_INTEGRATION)
 
 
+def sqlalchemy_integration_disabled():
+    return bool_from_env(constants.THUNDRA_DISABLE_SQLALCHEMY_INTEGRATION)
+
+
 def redis_command_masked():
     return bool_from_env(constants.THUNDRA_MASK_REDIS_COMMAND)
 

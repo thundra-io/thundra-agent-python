@@ -52,6 +52,7 @@ THUNDRA_DISABLE_AWS_INTEGRATION = 'thundra_agent_lambda_trace_integrations_aws_d
 THUNDRA_DISABLE_REDIS_INTEGRATION = 'thundra_agent_lambda_trace_integrations_redis_disable'
 THUNDRA_DISABLE_ES_INTEGRATION = 'thundra_agent_lambda_trace_integrations_elasticsearch_disable'
 THUNDRA_DISABLE_MONGO_INTEGRATION = 'thundra_agent_lambda_trace_integrations_mongodb_disable'
+THUNDRA_DISABLE_SQLALCHEMY_INTEGRATION = 'thundra_agent_lambda_trace_integrations_sqlalchemy_disable'
 
 THUNDRA_MASK_REDIS_COMMAND = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
 THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
@@ -150,6 +151,7 @@ ClassNames = {
     'CLOUDFRONT': 'AWS-CloudFront',
     'APIGATEWAY': 'AWS-APIGateway',
     'MONGODB': 'MONGODB',
+    'SQLALCHEMY': 'SQLALCHEMY',
 }
 
 DBTags = {

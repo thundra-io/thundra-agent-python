@@ -14,10 +14,11 @@ pytest = "*"
 "boto3" = "*"
 redis = "*"
 "aws_xray_sdk" = "*"
-psycopg2-binary = "*"
+pymongo = "*"
 mysql-connector = "*"
 elasticsearch = "*"
-pymongo = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
 
 [requires]
 python_version = "3.6.4"
