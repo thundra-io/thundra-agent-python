@@ -2,11 +2,10 @@ import wrapt
 from thundra import utils, config
 from thundra.integrations.sqlalchemy import SqlAlchemyIntegration
 
-sqlalchemy_integration = SqlAlchemyIntegration()
 
 def _wrapper(wrapped, instance, args, kwargs):
     engine = wrapped(*args, **kwargs)
-    sqlalchemy_integration.trace_engine(engine)
+    SqlAlchemyIntegration(engine)
     return engine
 
 def patch():

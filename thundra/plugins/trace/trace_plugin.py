@@ -5,6 +5,7 @@ import logging
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.plugins.trace import trace_support
 from thundra import utils, constants, application_support, lambda_event_utils, config
 from thundra.plugins.trace import trace_support
 
@@ -55,6 +56,7 @@ class TracePlugin:
                                                    trace_id=trace_id,
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
+        trace_support.root_span_started = True
 
         # Set root span class and domain names
         self.root_span.class_name = constants.ClassNames['LAMBDA']

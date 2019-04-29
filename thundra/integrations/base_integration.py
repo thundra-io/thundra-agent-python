@@ -3,19 +3,20 @@ import logging
 import time
 import traceback
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.trace import trace_support
 
 logger = logging.getLogger(__name__)
 
 
 class BaseIntegration(abc.ABC):
     def run_and_trace(self, wrapped, instance, args, kwargs):
-        tracer = ThundraTracer.get_instance()
-        if tracer.global_span_order == 0:
+        if not trace_support.root_span_started:
             return wrapped(*args, **kwargs)
 
         response = None
         exception = None
 
+        tracer = ThundraTracer.get_instance()
         scope = tracer.start_active_span(operation_name=self.get_operation_name(wrapped, instance, args, kwargs),
                                          finish_on_close=False)
         # Inject before span tags
