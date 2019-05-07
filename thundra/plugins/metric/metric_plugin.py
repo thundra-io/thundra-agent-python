@@ -4,26 +4,17 @@ import gc, time, logging
 from thundra import utils, constants
 from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.metric.samplers import (
-    TimeAwareMetricSampler, CountAwareMetricSampler,
-    CompositeMetricSampler
-)
 
+from thundra.plugins.metric import metric_support
 
 logger = logging.getLogger(__name__)
+
 
 class MetricPlugin:
 
     def __init__(self):
         self.metric_data = {}
         self.sampled = True
-        self.sampler = CompositeMetricSampler(
-            samplers=[
-                TimeAwareMetricSampler(), 
-                CountAwareMetricSampler()
-            ],
-            operator='or'
-        )
         self.tracer = ThundraTracer.get_instance()
         self.system_cpu_usage_start = float(0)
         self.system_cpu_usage_end = float(0)
@@ -37,17 +28,6 @@ class MetricPlugin:
         }
 
     def before_invocation(self, plugin_context):
-        if self.sampler is not None:
-            try:
-                self.sampled = self.sampler.is_sampled()
-            except Exception as e:
-                logger.error("error while sampling metrics: %s", e)
-                self.sampled = True
-        
-        if not self.sampled:
-            return
-        
-        context = plugin_context['context']
         metric_time = time.time() * 1000
         active_span = self.tracer.get_active_span()
         plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
@@ -70,14 +50,24 @@ class MetricPlugin:
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, plugin_context):
+        self.check_sampled()
         if not self.sampled:
             return
-        
+
         reporter = plugin_context['reporter']
         self.add_thread_metric_report(reporter)
         self.add_gc_metric_report(reporter)
         self.add_memory_metric_report(reporter)
         self.add_cpu_metric_report(reporter)
+
+    def check_sampled(self):
+        sampler = metric_support.get_sampler()
+        if sampler is not None:
+            try:
+                self.sampled = sampler.is_sampled(self.metric_data)
+            except Exception as e:
+                logger.error("error while sampling metrics: %s", e)
+                self.sampled = True
 
     def add_thread_metric_report(self, reporter):
         active_thread_counts = threading.active_count()
@@ -149,9 +139,9 @@ class MetricPlugin:
         system_cpu_usage = self.system_cpu_usage_end - self.system_cpu_usage_start
         process_cpu_usage = self.process_cpu_usage_end - self.process_cpu_usage_start
         if system_cpu_total != 0:
-            cpu_load = process_cpu_usage/system_cpu_total
+            cpu_load = process_cpu_usage / system_cpu_total
             process_cpu_load = 1 if cpu_load > 1 else cpu_load
-            cpu_load = system_cpu_usage/system_cpu_total
+            cpu_load = system_cpu_usage / system_cpu_total
             system_cpu_load = 1 if cpu_load > 1 else cpu_load
 
         cpu_metric_data = {

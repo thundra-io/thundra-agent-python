@@ -1,32 +1,35 @@
+from thundra.samplers.base_sampler import BaseSampler
 
 
-class TraceAwareMetricSampler:
+class TraceAwareSampler(BaseSampler):
 
     def __init__(self, trace_id=None, transaction_id=None, sample_non_traced=False):
         self.trace_id = trace_id
         self.transaction_id = transaction_id
         self.sample_non_traced = sample_non_traced
 
-    def is_sampled(metric_data):
+    def is_sampled(self, data=None):
+        if not data:
+            return True
         if self.trace_id is None:
             if self.transaction_id is None:
                 return True
             else:
-                metric_transaction_id = metric_data.get('transaction_id')
-                if metric_transaction_id is None:
+                transaction_id = data.get('transaction_id')
+                if transaction_id is None:
                     return self.sample_non_traced
-                return self.transaction_id == metric_transaction_id
+                return self.transaction_id == transaction_id
         else:
-            metric_trace_id = metric_data.get('trace_id')
-            if metric_trace_id is None:
+            trace_id = data.get('trace_id')
+            if trace_id is None:
                 return self.sample_non_traced
-            if metric_trace_id == self.trace_id:
+            if trace_id == self.trace_id:
                 if self.transaction_id is None:
                     return True
                 else:
-                    metric_transaction_id = metric_data.get('transaction_id')
-                    if metric_transaction_id is None:
+                    transaction_id = data.get('transaction_id')
+                    if transaction_id is None:
                         return self.sample_non_traced
-                    return self.transaction_id == metric_transaction_id
+                    return self.transaction_id == transaction_id
             else:
                 return False
