@@ -8,9 +8,10 @@ from thundra.listeners import ThundraSpanListener, AWSXRayListener
 logger = logging.getLogger(__name__)
 
 _active_span_listeners = []
+_sampler = None
 
 SPAN_LISTENERS = {
-    sl_class.__name__: sl_class 
+    sl_class.__name__: sl_class
     for sl_class in ThundraSpanListener.__subclasses__()
 }
 
@@ -22,15 +23,18 @@ r2 = r'[\w.]+=[\w.\!\?\-\"\'\:\(\) ]*'
 p1 = re.compile(r1)
 p2 = re.compile(r2)
 
-                
+
 def get_span_listeners():
     return _active_span_listeners
+
 
 def register_span_listener(listener):
     _active_span_listeners.append(listener)
 
+
 def clear_span_listeners():
     _active_span_listeners.clear()
+
 
 def _parse_config(config_str):
     config = {}
@@ -39,8 +43,9 @@ def _parse_config(config_str):
         for kv in kv_pairs:
             [k, v] = kv.split('=')
             config[k] = v
-    
+
     return config
+
 
 def _get_sl_class(sl_class_name):
     sl_class = None
@@ -50,6 +55,7 @@ def _get_sl_class(sl_class_name):
         except KeyError:
             logger.error('given span listener class %s is not found', sl_class_name)
     return sl_class
+
 
 def _get_class_and_config_parts(env_v):
     m = p1.match(env_v)
@@ -61,9 +67,8 @@ def _get_class_and_config_parts(env_v):
         except IndexError as e:
             logger.error(("couldn't parse thundra span "
                           "listener environment variable: %s"), e)
-    
+
     return (None, None)
-    
 
 
 def parse_span_listeners():
@@ -77,14 +82,14 @@ def parse_span_listeners():
 
                 config = _parse_config(config_str)
                 sl_class = _get_sl_class(sl_class_name)
-                
-                if sl_class is not None:    
+
+                if sl_class is not None:
                     sl = sl_class.from_config(config)
                     # Register parsed span listener
                     register_span_listener(sl)
             except Exception as e:
                 logger.error(("couldn't parse environment variable %s "
-                    "to create a span listener"), env_k)
+                              "to create a span listener"), env_k)
     # Add AWSXRayListener if enabled
     if thundra_config.xray_trace_enabled():
         xray_listener = AWSXRayListener()
@@ -94,3 +99,11 @@ def parse_span_listeners():
 # Parse span listeners from environment variables
 parse_span_listeners()
 
+
+def get_sampler():
+    return _sampler
+
+
+def set_sampler(sampler):
+    global _sampler
+    _sampler = sampler

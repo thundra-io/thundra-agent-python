@@ -1,10 +1,14 @@
 import time
 import uuid
+import logging
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import utils, constants, application_support, lambda_event_utils, config
+from thundra.plugins.trace import trace_support
+
+logger = logging.getLogger(__name__)
 
 
 class TracePlugin:
@@ -69,7 +73,7 @@ class TracePlugin:
         self.root_span.set_tag('aws.lambda.invocation.request_id',
                                getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None))
         self._inject_trigger_tags(self.root_span, plugin_context['request'], context)
-        
+
         self.root_span.on_started()
 
     def set_start_time(self, plugin_context):
@@ -97,7 +101,6 @@ class TracePlugin:
         finally:
             self.scope.close()
 
-        context = plugin_context['context']
         reporter = plugin_context['reporter']
 
         trigger_class_name = self.root_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME'])
@@ -127,9 +130,14 @@ class TracePlugin:
 
         span_stack = self.tracer.get_spans()
 
+        sampled = True
+        if len(span_stack) > 0:
+            sampled = self.check_sampled(span_stack[0])
+
         for span in span_stack:
-            current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
-            self.span_data_list.append(current_span_data)
+            if sampled:
+                current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
+                self.span_data_list.append(current_span_data)
 
         self.tracer.clear()
         self.trace_data['rootSpanId'] = self.root_span.context.span_id
@@ -168,7 +176,6 @@ class TracePlugin:
         self.span_data_list.clear()
 
     def build_span(self, span, plugin_context):
-        context = plugin_context['context']
         transaction_id = plugin_context['transaction_id'] or str(uuid.uuid4())
 
         span_data = {
@@ -237,3 +244,14 @@ class TracePlugin:
                 lambda_event_utils.inject_trigger_tags_for_lambda(span, original_context)
         except Exception as e:
             debug_logger("Cannot inject trigger tags. " + str(e))
+
+    def check_sampled(self, span):
+        sampler = trace_support.get_sampler()
+        sampled = True
+        if sampler is not None:
+            try:
+                sampled = sampler.is_sampled(span)
+            except Exception as e:
+                logger.error("error while sampling spans: %s", e)
+        return sampled
+

@@ -6,6 +6,9 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
 from thundra import utils, constants, config, application_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
+from thundra.plugins.log import log_support
+
+logger = logging.getLogger(__name__)
 
 
 class LogPlugin:
@@ -57,7 +60,8 @@ class LogPlugin:
         context = plugin_context['context']
 
         #### ADDING TAGS ####
-        self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
+        self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(
+            getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
         self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
         self.log_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
         self.log_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
@@ -81,12 +85,22 @@ class LogPlugin:
         reporter = plugin_context['reporter']
         for log in logs:
             log.update(self.log_data)
-            log_report = {
-                'data': log,
-                'type': 'Log',
-                'apiKey': reporter.api_key,
-                'dataModelVersion': constants.DATA_FORMAT_VERSION
-            }
-            reporter.add_report(log_report)
-
+            if self.check_sampled(log):
+                log_report = {
+                    'data': log,
+                    'type': 'Log',
+                    'apiKey': reporter.api_key,
+                    'dataModelVersion': constants.DATA_FORMAT_VERSION
+                }
+                reporter.add_report(log_report)
         logs.clear()
+
+    def check_sampled(self, log):
+        sampler = log_support.get_sampler()
+        sampled = True
+        if sampler is not None:
+            try:
+                sampled = sampler.is_sampled(log)
+            except Exception as e:
+                pass
+        return sampled
