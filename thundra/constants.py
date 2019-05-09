@@ -152,6 +152,7 @@ ClassNames = {
     'APIGATEWAY': 'AWS-APIGateway',
     'MONGODB': 'MONGODB',
     'SQLALCHEMY': 'SQLALCHEMY',
+    'SQLITE': 'SQLITE',
 }
 
 DBTags = {

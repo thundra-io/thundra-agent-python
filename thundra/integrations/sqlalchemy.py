@@ -29,7 +29,16 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
     def get_db_config(self, conn):
         params = {}
         try:
-            params['db_type'] = conn.engine.name
+            db_name = conn.engine.name
+            if 'postgres' in db_name or 'psycopg2' in db_name:
+                params['db_type'] = 'postgresql'
+            elif 'sqlite' in db_name:
+                params['db_type'] = 'sqlite'
+            elif 'mysql' in db_name:
+                params['db_type'] = 'mysql'
+            else:
+                params['db_type'] = db_name
+
             _url = conn.engine.url
             if _url.host:
                 params['host'] = _url.host
@@ -44,7 +53,9 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
         return params
 
     def before_call(self, scope, conn, statement):
-        scope.span.class_name = constants.ClassNames['SQLALCHEMY']
+        db_config = self.get_db_config(conn)
+
+        scope.span.class_name = constants.ClassNames.get(db_config.get('db_type', '').upper())
         scope.span.domain_name = constants.DomainNames['DB']
 
         try:
@@ -52,7 +63,6 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
         except:
             operation = ""
 
-        db_config = self.get_db_config(conn)
 
         tags = {
             constants.SpanTags['OPERATION_TYPE']: SqlAlchemyIntegration._OPERATION_TO_TYPE.get(operation, ''),

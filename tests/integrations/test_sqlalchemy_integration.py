@@ -58,7 +58,7 @@ def test_sqlalchemy_session_pqsql(monkeypatch):
     statement = "INSERT INTO movies (title, release_date) VALUES (%(title)s, %(release_date)s) RETURNING movies.id"
 
     assert span.domain_name == constants.DomainNames['DB']
-    assert span.class_name == constants.ClassNames['SQLALCHEMY']
+    assert span.class_name == constants.ClassNames['POSTGRESQL']
     assert span.operation_name == 'db'
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
     assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
@@ -82,7 +82,7 @@ def test_sqlalchemy_connection_execute_pqsql(monkeypatch):
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
-    assert span.class_name == constants.ClassNames['SQLALCHEMY']
+    assert span.class_name == constants.ClassNames['POSTGRESQL']
     assert span.operation_name == 'db'
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
     assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
@@ -106,7 +106,7 @@ def test_sqlalchemy_connection_execute_mysql(monkeypatch):
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
-    assert span.class_name == constants.ClassNames['SQLALCHEMY']
+    assert span.class_name == constants.ClassNames['MYSQL']
     assert span.operation_name == 'db'
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
     assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
@@ -132,7 +132,7 @@ def test_sqlalchemy_connection_execute_mysql_error(monkeypatch):
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
-    assert span.class_name == constants.ClassNames['SQLALCHEMY']
+    assert span.class_name == constants.ClassNames['MYSQL']
     assert span.operation_name == 'db'
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
     assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
@@ -158,7 +158,7 @@ def test_sqlalchemy_connection_execute_sqlite(monkeypatch):
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
-    assert span.class_name == constants.ClassNames['SQLALCHEMY']
+    assert span.class_name == constants.ClassNames['SQLITE']
     assert span.operation_name == ':memory:'
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
     assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == ':memory:'
