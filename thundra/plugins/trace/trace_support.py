@@ -7,7 +7,6 @@ from thundra.listeners import ThundraSpanListener, AWSXRayListener
 
 logger = logging.getLogger(__name__)
 
-root_span_started = False
 _active_span_listeners = []
 _sampler = None
 

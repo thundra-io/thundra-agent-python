@@ -3,7 +3,6 @@ import time
 import logging
 from thundra import config, constants
 from thundra.plugins.invocation import invocation_support
-from thundra.plugins.trace import trace_support
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.opentracing.tracer import ThundraTracer
 
@@ -81,7 +80,8 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
         if not context:
             return
         tracer = ThundraTracer.get_instance()
-        if not trace_support.root_span_started:
+
+        if not tracer.get_active_span():
             return
         scope = tracer.start_active_span(operation_name=self.get_operation_name(conn), finish_on_close=False)
 

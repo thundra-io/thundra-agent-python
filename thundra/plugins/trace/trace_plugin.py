@@ -56,7 +56,6 @@ class TracePlugin:
                                                    trace_id=trace_id,
                                                    transaction_id=transaction_id)
         self.root_span = self.scope.span
-        trace_support.root_span_started = True
 
         # Set root span class and domain names
         self.root_span.class_name = constants.ClassNames['LAMBDA']
