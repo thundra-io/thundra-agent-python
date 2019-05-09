@@ -14,7 +14,6 @@ class MetricPlugin:
 
     def __init__(self):
         self.metric_data = {}
-        self.sampled = True
         self.tracer = ThundraTracer.get_instance()
         self.system_cpu_usage_start = float(0)
         self.system_cpu_usage_end = float(0)
@@ -50,8 +49,7 @@ class MetricPlugin:
         self.process_cpu_usage_start = utils.process_cpu_usage()
 
     def after_invocation(self, plugin_context):
-        self.check_sampled()
-        if not self.sampled:
+        if not self.check_sampled():
             return
 
         reporter = plugin_context['reporter']
@@ -62,12 +60,13 @@ class MetricPlugin:
 
     def check_sampled(self):
         sampler = metric_support.get_sampler()
+        sampled = True
         if sampler is not None:
             try:
-                self.sampled = sampler.is_sampled(self.metric_data)
+                sampled = sampler.is_sampled(self.metric_data)
             except Exception as e:
                 logger.error("error while sampling metrics: %s", e)
-                self.sampled = True
+        return sampled
 
     def add_thread_metric_report(self, reporter):
         active_thread_counts = threading.active_count()

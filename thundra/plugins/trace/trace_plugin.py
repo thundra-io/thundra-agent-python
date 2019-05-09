@@ -19,7 +19,6 @@ class TracePlugin:
             'after:invocation': self.after_invocation
         }
         self.tracer = ThundraTracer.get_instance()
-        self.sampled = True
         self.start_time = 0
         self.end_time = 0
         self.trace_data = {}
@@ -131,11 +130,12 @@ class TracePlugin:
 
         span_stack = self.tracer.get_spans()
 
+        sampled = True
         if len(span_stack) > 0:
-            self.check_sampled(span_stack[0])
+            sampled = self.check_sampled(span_stack[0])
 
         for span in span_stack:
-            if self.sampled:
+            if sampled:
                 current_span_data = self.wrap_span(self.build_span(span, plugin_context), reporter.api_key)
                 self.span_data_list.append(current_span_data)
 
@@ -247,9 +247,11 @@ class TracePlugin:
 
     def check_sampled(self, span):
         sampler = trace_support.get_sampler()
+        sampled = True
         if sampler is not None:
             try:
-                self.sampled = sampler.is_sampled(span)
+                sampled = sampler.is_sampled(span)
             except Exception as e:
                 logger.error("error while sampling spans: %s", e)
-                self.sampled = True
+        return sampled
+

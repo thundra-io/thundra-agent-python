@@ -19,7 +19,6 @@ class LogPlugin:
             'after:invocation': self.after_invocation
         }
         self.log_data = {}
-        self.sampled = True
         self.tracer = ThundraTracer.get_instance()
         if not config.disable_stdout_logs():
             self.logger = logging.getLogger('STDOUT')
@@ -86,8 +85,7 @@ class LogPlugin:
         reporter = plugin_context['reporter']
         for log in logs:
             log.update(self.log_data)
-            self.check_sampled(log)
-            if self.sampled:
+            if self.check_sampled(log):
                 log_report = {
                     'data': log,
                     'type': 'Log',
@@ -99,8 +97,10 @@ class LogPlugin:
 
     def check_sampled(self, log):
         sampler = log_support.get_sampler()
+        sampled = True
         if sampler is not None:
             try:
-                self.sampled = sampler.is_sampled(log)
+                sampled = sampler.is_sampled(log)
             except Exception as e:
-                self.sampled = True
+                pass
+        return sampled
