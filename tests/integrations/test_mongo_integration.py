@@ -118,3 +118,4 @@ def test_mongo_command_masked(monkeypatch):
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
     assert span.get_tag(constants.MongoDBTags['MONGO_COMMAND']) == None
+    tracer.clear()
