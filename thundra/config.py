@@ -113,6 +113,10 @@ def es_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_ES_INTEGRATION)
 
 
+def mongo_integration_disabled():
+    return bool_from_env(constants.THUNDRA_DISABLE_MONGO_INTEGRATION)
+
+
 def rdb_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_RDB_INTEGRATION)
 
@@ -131,6 +135,10 @@ def dynamodb_statement_masked():
 
 def elasticsearch_body_masked():
     return bool_from_env(constants.THUNDRA_MASK_ES_BODY)
+
+
+def mongodb_command_masked():
+    return bool_from_env(constants.THUNDRA_MASK_MONGODB_COMMAND)
 
 
 def aws_integration_disabled():
