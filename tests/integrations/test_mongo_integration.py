@@ -18,21 +18,21 @@ def test_command_insert():
     span = tracer.get_spans()[0]
 
     assert span.operation_name == 'test'
-    assert span.class_name == constants.ClassNames['MONGO']
+    assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
     assert span.get_tag(constants.DBTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.DBTags['DB_PORT']) == 27017
     assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
-    assert span.get_tag(constants.MongoDBTags['MONGO_COMMAND_NAME']) == 'insert'
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'insert'
 
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
     assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
-    mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGO_COMMAND']))
+    mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
     assert mongo_command.get('documents')[0].get('text') == "My first blog post!"
 
     tracer.clear()
@@ -55,21 +55,21 @@ def test_command_update():
     span = tracer.get_spans()[0]
 
     assert span.operation_name == 'test'
-    assert span.class_name == constants.ClassNames['MONGO']
+    assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
     assert span.get_tag(constants.DBTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.DBTags['DB_PORT']) == 27017
     assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
-    assert span.get_tag(constants.MongoDBTags['MONGO_COMMAND_NAME']) == 'update'
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'update'
 
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
     assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
-    mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGO_COMMAND']))
+    mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
     assert mongo_command.get('updates')[0].get('q') == {'author': 'Mike'}
     assert mongo_command.get('updates')[0].get('u').get('$set') == {'text': 'My edited blog post!'}
 
@@ -90,14 +90,14 @@ def test_command_failed():
     span = tracer.get_spans()[0]
 
     assert span.operation_name == 'test'
-    assert span.class_name == constants.ClassNames['MONGO']
+    assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
     assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
     assert span.get_tag(constants.DBTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.DBTags['DB_PORT']) == 27017
     assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
-    assert span.get_tag(constants.MongoDBTags['MONGO_COMMAND_NAME']) == 'find'
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'find'
 
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
@@ -117,5 +117,5 @@ def test_mongo_command_masked(monkeypatch):
 
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
-    assert span.get_tag(constants.MongoDBTags['MONGO_COMMAND']) == None
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']) == None
     tracer.clear()
