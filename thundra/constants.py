@@ -447,7 +447,7 @@ AwsXrayConstants = {
 MongoDBTags = {
     'MONGODB_COMMAND': 'mongodb.command',
     'MONGODB_COMMAND_NAME': 'mongodb.command.name',
-    'MONGODB_COLLECTION': 'mongodb.collection',
+    'MONGODB_COLLECTION': 'mongodb.collection.name',
 }
 
 MongoDBCommandTypes = {
