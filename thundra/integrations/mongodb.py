@@ -28,7 +28,7 @@ class CommandTracer(CommandListener):
         # Inject before span tags
         try:
             command_name = event.command_name
-            scope.span.class_name = constants.ClassNames['MONGO']
+            scope.span.class_name = constants.ClassNames['MONGODB']
             scope.span.domain_name = constants.DomainNames['DB']
 
             try:
@@ -36,15 +36,21 @@ class CommandTracer(CommandListener):
             except:
                 host, port = "", ""
 
+            try:
+                collection_name = next(iter(event.command.items()))[1]
+            except:
+                collection_name = ""
+
             operation_type = constants.MongoDBCommandTypes.get(command_name.upper(), '')
 
             tags = {
                 constants.SpanTags['OPERATION_TYPE']: operation_type,
-                constants.DBTags['DB_TYPE']: 'mongo',
+                constants.DBTags['DB_TYPE']: 'mongodb',
                 constants.DBTags['DB_HOST']: host,
                 constants.DBTags['DB_PORT']: port,
                 constants.SpanTags['DB_INSTANCE']: event.database_name,
-                constants.MongoDBTags['MONGO_COMMAND_NAME']: command_name,
+                constants.MongoDBTags['MONGODB_COMMAND_NAME']: command_name,
+                constants.MongoDBTags['MONGODB_COLLECTION']: collection_name,
                 constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
                 constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
                 constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
@@ -53,10 +59,10 @@ class CommandTracer(CommandListener):
 
             if not config.mongodb_command_masked():
                 try:
-                    tags[constants.MongoDBTags['MONGO_COMMAND']] = dumps(event.command)[
+                    tags[constants.MongoDBTags['MONGODB_COMMAND']] = dumps(event.command)[
                                                                    :constants.DEFAULT_MONGO_COMMAND_SIZE_LIMIT]
                 except Exception as e:
-                    tags[constants.MongoDBTags['MONGO_COMMAND']] = ''
+                    tags[constants.MongoDBTags['MONGODB_COMMAND']] = ''
 
             scope.span.tags = tags
 

@@ -149,7 +149,7 @@ ClassNames = {
     'CLOUDWATCHLOG': 'AWS-CloudWatch-Log',
     'CLOUDFRONT': 'AWS-CloudFront',
     'APIGATEWAY': 'AWS-APIGateway',
-    'MONGO': 'MONGO',
+    'MONGODB': 'MONGODB',
 }
 
 DBTags = {
@@ -445,8 +445,9 @@ AwsXrayConstants = {
 }
 
 MongoDBTags = {
-    'MONGO_COMMAND': 'mongodb.command',
-    'MONGO_COMMAND_NAME': 'mongodb.command.name'
+    'MONGODB_COMMAND': 'mongodb.command',
+    'MONGODB_COMMAND_NAME': 'mongodb.command.name',
+    'MONGODB_COLLECTION': 'mongodb.collection',
 }
 
 MongoDBCommandTypes = {

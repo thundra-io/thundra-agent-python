@@ -1,7 +1,7 @@
 import wrapt
 
 from thundra import constants, config
-from thundra.integrations.mongo import CommandTracer
+from thundra.integrations.mongodb import CommandTracer
 
 
 def _wrapper(wrapped, instance, args, kwargs):
