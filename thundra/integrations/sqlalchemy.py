@@ -6,8 +6,11 @@ from thundra.plugins.invocation import invocation_support
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.opentracing.tracer import ThundraTracer
 
-from sqlalchemy.event import listen
-from sqlalchemy.engine.interfaces import ExecutionContext
+try:
+    from sqlalchemy.event import listen
+    from sqlalchemy.engine.interfaces import ExecutionContext
+except:
+    pass
 
 logger = logging.getLogger(__name__)
 
