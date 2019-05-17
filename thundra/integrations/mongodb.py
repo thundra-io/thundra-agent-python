@@ -25,7 +25,7 @@ class CommandTracer(CommandListener):
         if not tracer.get_active_span():
             return
 
-        scope = tracer.start_active_span(operation_name=event.command_name, finish_on_close=False)
+        scope = tracer.start_active_span(operation_name=event.command_name.upper(), finish_on_close=False)
 
         self._scopes[event.request_id] = scope
         span = scope.span
@@ -54,7 +54,7 @@ class CommandTracer(CommandListener):
                 constants.DBTags['DB_HOST']: host,
                 constants.DBTags['DB_PORT']: port,
                 constants.SpanTags['DB_INSTANCE']: event.database_name,
-                constants.MongoDBTags['MONGODB_COMMAND_NAME']: command_name,
+                constants.MongoDBTags['MONGODB_COMMAND_NAME']: command_name.upper(),
                 constants.MongoDBTags['MONGODB_COLLECTION']: collection_name,
                 constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
                 constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
