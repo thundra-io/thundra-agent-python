@@ -17,7 +17,7 @@ def test_command_insert():
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
 
-    assert span.operation_name == 'insert'
+    assert span.operation_name == 'INSERT'
     assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
@@ -25,7 +25,7 @@ def test_command_insert():
     assert span.get_tag(constants.DBTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.DBTags['DB_PORT']) == 27017
     assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
-    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'insert'
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'INSERT'
 
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
@@ -54,7 +54,7 @@ def test_command_update():
 
     span = tracer.get_spans()[0]
 
-    assert span.operation_name == 'update'
+    assert span.operation_name == 'UPDATE'
     assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
@@ -62,7 +62,7 @@ def test_command_update():
     assert span.get_tag(constants.DBTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.DBTags['DB_PORT']) == 27017
     assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
-    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'update'
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'UPDATE'
 
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
@@ -89,7 +89,7 @@ def test_command_failed():
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
 
-    assert span.operation_name == 'find'
+    assert span.operation_name == 'FIND'
     assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
@@ -97,7 +97,7 @@ def test_command_failed():
     assert span.get_tag(constants.DBTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.DBTags['DB_PORT']) == 27017
     assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
-    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'find'
+    assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'FIND'
 
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
