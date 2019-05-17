@@ -11,7 +11,7 @@ try:
     from pymongo.monitoring import CommandListener
     from bson.json_util import dumps
 except ImportError:
-    pass
+    CommandListener = object
 
 
 logger = logging.getLogger(__name__)
