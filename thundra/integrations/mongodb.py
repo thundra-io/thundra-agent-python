@@ -5,9 +5,14 @@ import logging
 from thundra import config, constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
-from pymongo.monitoring import CommandListener
 from thundra.opentracing.tracer import ThundraTracer
-from bson.json_util import dumps
+
+try:
+    from pymongo.monitoring import CommandListener
+    from bson.json_util import dumps
+except ImportError:
+    pass
+
 
 logger = logging.getLogger(__name__)
 

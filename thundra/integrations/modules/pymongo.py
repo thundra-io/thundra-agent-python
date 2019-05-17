@@ -15,6 +15,7 @@ def patch():
     if not config.mongo_integration_disabled():
         try:
             import pymongo.monitoring
+            from bson.json_util import dumps
             wrapt.wrap_function_wrapper(
                 'pymongo',
                 'MongoClient.__init__',
