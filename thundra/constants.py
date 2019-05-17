@@ -51,11 +51,13 @@ THUNDRA_DISABLE_RDB_INTEGRATION = 'thundra_agent_lambda_trace_integrations_rdb_d
 THUNDRA_DISABLE_AWS_INTEGRATION = 'thundra_agent_lambda_trace_integrations_aws_disable'
 THUNDRA_DISABLE_REDIS_INTEGRATION = 'thundra_agent_lambda_trace_integrations_redis_disable'
 THUNDRA_DISABLE_ES_INTEGRATION = 'thundra_agent_lambda_trace_integrations_elasticsearch_disable'
+THUNDRA_DISABLE_MONGO_INTEGRATION = 'thundra_agent_lambda_trace_integrations_mongodb_disable'
 
 THUNDRA_MASK_REDIS_COMMAND = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
 THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
 THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_aws_dynamodb_statement_mask'
 THUNDRA_MASK_ES_BODY = 'thundra_agent_lambda_trace_integrations_elasticsearch_body_mask'
+THUNDRA_MASK_MONGODB_COMMAND = 'thundra_agent_lambda_trace_integrations_mongodb_command_mask'
 THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_message_mask'
 THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_message_mask'
 THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
@@ -111,6 +113,8 @@ DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_trace_integrations_aws_lambda_tr
 
 #### INTEGRATIONS ####
 
+DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
+
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'
 
 DomainNames = {
@@ -145,6 +149,7 @@ ClassNames = {
     'CLOUDWATCHLOG': 'AWS-CloudWatch-Log',
     'CLOUDFRONT': 'AWS-CloudFront',
     'APIGATEWAY': 'AWS-APIGateway',
+    'MONGODB': 'MONGODB',
 }
 
 DBTags = {
@@ -437,4 +442,170 @@ ESTags = {
 AwsXrayConstants = {
     'DEFAULT_OPERATION_NAME': 'AWS X-Ray',
     'XRAY_SUBSEGMENTED_TAG_NAME': 'THUNDRA::XRAY_SUBSEGMENTED',
+}
+
+MongoDBTags = {
+    'MONGODB_COMMAND': 'mongodb.command',
+    'MONGODB_COMMAND_NAME': 'mongodb.command.name',
+    'MONGODB_COLLECTION': 'mongodb.collection.name',
+}
+
+MongoDBCommandTypes = {
+    # Aggregate Commands
+    'AGGREGATE': 'READ',
+    'COUNT': 'READ',
+    'DISTINCT': 'READ',
+    'GROUP': 'READ',
+    'MAPREDUCE': 'READ',
+
+    # Geospatial Commands
+    'GEONEAR': 'READ',
+    'GEOSEARCH': 'READ',
+
+    # Query and Write Operation Commands
+    'DELETE': 'DELETE',
+    'EVAL': 'EXECUTE',
+    'FIND': 'READ',
+    'FINDANDMODIFY': 'WRITE',
+    'GETLASTERROR': 'READ',
+    'GETMORE': 'READ',
+    'GETPREVERROR': 'READ',
+    'INSERT': 'WRITE',
+    'PARALLELCOLLECTIONSCAN': 'READ',
+    'RESETERROR': 'WRITE',
+    'UPDATE': 'WRITE',
+
+    # Query Plan Cache Commands
+    'PLANCACHECLEAR': 'DELETE',
+    'PLANCACHECLEARFILTERS': 'DELETE',
+    'PLANCACHELISTFILTERS': 'READ',
+    'PLANCACHELISTPLANS': 'READ',
+    'PLANCACHELISTQUERYSHAPES': 'READ',
+    'PLANCACHESETFILTER': 'WRITE',
+
+    # Authentication Commands
+    'AUTHENTICATE': 'EXECUTE',
+    'LOGOUT': 'EXECUTE',
+
+    # User Management Commands
+    'CREATEUSER': 'WRITE',
+    'DROPALLUSERSFROMDATABASE': 'DELETE',
+    'DROPUSER': 'DELETE',
+    'GRANROLESTOUSER': 'WRITE',
+    'REVOKEROLESFROMUSER': 'WRITE',
+    'UPDATEUSER': 'WRITE',
+    'USERSINFO': 'READ',
+
+    # Role Management Commands
+    'CREATEROLE': 'WRITE',
+    'DROPROLE': 'DELETE',
+    'DROPALLROLESFROMDATABASE': 'DELETE',
+    'GRANTPRIVILEGESTOROLE': 'WRITE',
+    'GRANTROLESTOROLE': 'WRITE',
+    'INVALIDATEUSERCACHE': 'DELETE',
+    'REVOKEPRIVILEGESFROMROLE': 'WRITE',
+    'REVOKEROLESFROMROLE': 'WRITE',
+    'ROLESINFO': 'READ',
+    'UPDATEROLE': 'WRITE',
+
+    # Replication Commands
+    'ISMASTER': 'READ',
+    'REPLSETABORTPRIMARYCATCHUP': 'EXECUTE',
+    'REPLSETFREEZE': 'EXECUTE',
+    'REPLSETGETCONFIG': 'READ',
+    'REPLSETGETSTATUS': 'READ',
+    'REPLSETINITIATE': 'EXECUTE',
+    'REPLSETMAINTENANCE': 'EXECUTE',
+    'REPLSETRECONFIG': 'EXECUTE',
+    'REPLSETRESIZEOPLOG': 'EXECUTE',
+    'REPLSETSTEPDOWN': 'EXECUTE',
+    'REPLSETSYNCFROM': 'EXECUTE',
+
+    # Sharding Commands
+    'ADDSHARD': 'EXECUTE',
+    'ADDSHARDTOZONE': 'EXECUTE',
+    'BALANCERSTART': 'EXECUTE',
+    'BALANCERSTATUS': 'READ',
+    'BALANCERSTOP': 'EXECUTE',
+    'CLEANUPORPHANED': 'EXECUTE',
+    'ENABLESHARDING': 'EXECUTE',
+    'FLUSHROUTERCONFIG': 'EXECUTE',
+    'ISDBGRID': 'READ',
+    'LISTSHARDS': 'READ',
+    'MOVEPRIMARY': 'EXECUTE',
+    'MERGECHUNKS': 'EXECUTE',
+    'REMOVESHARD': 'EXECUTE',
+    'REMOVESHARDFROMZONE': 'EXECUTE',
+    'SHARDCOLLECTION': 'EXECUTE',
+    'SHARDINGSTATE': 'READ',
+    'SPLIT': 'EXECUTE',
+    'UPDATEZONEKEYRANGE': 'EXECUTE',
+
+    # Session Commands
+    'ABORTTRANSACTION': 'EXECUTE',
+    'COMMITTRANSACTION': 'EXECUTE',
+    'ENDSESSIONS': 'EXECUTE',
+    'KILLALLSESSIONS': 'EXECUTE',
+    'KILLALLSESSIONSBYPATTERN': 'EXECUTE',
+    'KILLSESSIONS': 'EXECUTE',
+    'REFRESHSESSIONS': 'EXECUTE',
+    'STARTSESSION': 'EXECUTE',
+
+    # Administration Commands 
+    'CLONE': 'EXECUTE',
+    'CLONECOLLECTION': 'EXECUTE',
+    'CLONECOLLECTIONASCAPPED': 'EXECUTE',
+    'COLLMOD': 'WRITE',
+    'COMPACT': 'EXECUTE',
+    'CONVERTTOCAPPED': 'EXECUTE',
+    'COPYDB': 'EXECUTE',
+    'CREATE': 'WRITE',
+    'CREATEINDEXES': 'WRITE',
+    'CURRENTOP': 'READ',
+    'DROP': 'DELETE',
+    'DROPDATABASE': 'DELETE',
+    'DROPINDEXES': 'DELETE',
+    'FILEMD5': 'READ',
+    'FSYNC': 'EXECUTE',
+    'FSYNCUNLOCK': 'EXECUTE',
+    'GETPARAMETER': 'READ',
+    'KILLCURSORS': 'EXECUTE',
+    'KILLOP': 'EXECUTE',
+    'LISTCOLLECTIONS': 'READ',
+    'LISTDATABASES': 'READ',
+    'LISTINDEXES': 'READ',
+    'LOGROTATE': 'EXECUTE',
+    'REINDEX': 'WRITE',
+    'RENAMECOLLECTION': 'WRITE',
+    'REPAIRDATABASE': 'EXECUTE',
+    'SETFEATURECOMPATIBILITYVERSION': 'WRITE',
+    'SETPARAMETER': 'WRITE',
+    'SHUTDOWN': 'EXECUTE',
+    'TOUCH': 'EXECUTE',
+
+    # Diagnostic Commands
+    'BUILDINFO': 'READ',
+    'COLLSTATS': 'READ',
+    'CONNPOOLSTATS': 'READ',
+    'CONNECTIONSTATUS': 'READ',
+    'CURSORINFO': 'READ',
+    'DBHASH': 'READ',
+    'DBSTATS': 'READ',
+    'DIAGLOGGING': 'READ',
+    'EXPLAIN': 'READ',
+    'FEATURES': 'READ',
+    'GETCMDLINEOPTS': 'READ',
+    'GETLOG': 'READ',
+    'HOSTINFO': 'READ',
+    'LISTCOMMANDS': 'READ',
+    'PROFILE': 'READ',
+    'SERVERSTATUS': 'READ',
+    'SHARDCONNPOOLSTATS': 'READ',
+    'TOP': 'READ',
+
+    # Free Monitoring Commands
+    'SETFREEMONITORING': 'EXECUTE',
+
+    # Auditing Commands
+    'LOGAPPLICATIONMESSAGE': 'EXECUTE',
 }
