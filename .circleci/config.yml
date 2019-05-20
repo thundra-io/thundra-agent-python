@@ -7,6 +7,18 @@ jobs:
           PIPENV_VENV_IN_PROJECT: 1
 
       - image: mongo
+      - image: postgres:latest
+        environment:
+          - POSTGRES_PASSWORD=userpass
+          - POSTGRES_USER=user
+          - POSTGRES_DB=db
+
+      - image: mysql:5.7
+        environment:
+          - MYSQL_ROOT_PASSWORD=rootpass
+          - MYSQL_PASSWORD=userpass
+          - MYSQL_USER=user
+          - MYSQL_DATABASE=db
 
     steps:
       - checkout
@@ -34,7 +46,7 @@ jobs:
       - run: 
           name: Start tests
           command: |
-            pipenv run pytest --junitxml=test-reports/pytest/junit.xml --ignore=tests/integrations/test_mysql_integration.py --ignore=tests/integrations/test_postgre_integration.py  tests
+            pipenv run pytest --junitxml=test-reports/pytest/junit.xml tests
 
       - store_test_results:
           path: test-reports

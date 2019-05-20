@@ -1,4 +1,5 @@
 import wrapt
+import copy
 from thundra import config
 from thundra.integrations.postgre import PostgreIntegration
 
@@ -33,8 +34,23 @@ def _wrapper(wrapped, instance, args, kwargs):
     return PostgreConnectionWrapper(connection)
 
 
+def _wrapper_register_type(wrapped, instance, args, kwargs):
+    _args = list(copy.copy(args))
+    if len(_args) == 2 and isinstance(_args[1], (PostgreConnectionWrapper, PostgreCursorWrapper)):
+        _args[1] = _args[1].__wrapped__
+    
+    return wrapped(*_args, **kwargs)
+
+
 def patch():
     if not config.rdb_integration_disabled():
+        
+        wrapt.wrap_function_wrapper(
+            'psycopg2.extensions',
+            'register_type',
+            _wrapper_register_type
+        )
+
         wrapt.wrap_function_wrapper(
             'psycopg2',
             'connect',

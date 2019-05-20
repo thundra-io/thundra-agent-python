@@ -10,6 +10,9 @@ logger = logging.getLogger(__name__)
 class BaseIntegration(abc.ABC):
     def run_and_trace(self, wrapped, instance, args, kwargs):
         tracer = ThundraTracer.get_instance()
+        if not tracer.get_active_span():
+            return wrapped(*args, **kwargs)
+
         response = None
         exception = None
 
