@@ -25,7 +25,7 @@ class CommandTracer(CommandListener):
         if not tracer.get_active_span():
             return
 
-        scope = tracer.start_active_span(operation_name=event.command_name.upper(), finish_on_close=False)
+        scope = tracer.start_active_span(operation_name=event.database_name, finish_on_close=False)
 
         self._scopes[event.request_id] = scope
         span = scope.span
