@@ -108,6 +108,8 @@ class Traceable:
                     raise traced_err
             return response
 
+        # Put to this to identify wrapper
+        trace.thundra_wrapper = True
         return trace
 
     call = __call__
