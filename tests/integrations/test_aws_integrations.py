@@ -302,6 +302,45 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
     tracer.clear()
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event, mock_context):
+    mock_actual_call.return_value = mock_lambda_response
+
+    def handler(event, context):
+        lambdaFunc = boto3.client('lambda', region_name='us-west-2')
+        lambdaFunc.list_functions()
+
+    tracer = ThundraTracer.get_instance()
+
+    with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
+        with mock.patch('thundra.reporter.Reporter.clear'):
+            thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+            try:
+                wrapped_handler(mock_event, mock_context)
+            except:
+                pass
+
+            # Check span tags
+            span = tracer.get_spans()[1]
+            assert span.class_name == 'AWS-Lambda'
+            assert span.domain_name == 'API'
+            assert span.get_tag('aws.lambda.name') == ''
+            assert span.get_tag('aws.lambda.qualifier') is None
+            assert span.get_tag('aws.lambda.invocation.payload') == None
+            assert span.get_tag('aws.request.name') == 'ListFunctions'
+            assert span.get_tag('aws.lambda.invocation.type') == None
+
+            # Check report
+            report = thundra.reporter.reports[3]['data']
+            assert report['className'] == 'AWS-Lambda'
+            assert report['domainName'] == 'API'
+            assert report['tags']['aws.request.name'] == 'ListFunctions'
+            assert report['tags']['operation.type'] == ''
+            assert report['tags']['aws.lambda.name'] == ''
+            assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
+
+    tracer.clear()
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event, mock_context, monkeypatch):
     mock_actual_call.return_value = mock_lambda_response
     monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_LAMBDA_PAYLOAD, 'true')
