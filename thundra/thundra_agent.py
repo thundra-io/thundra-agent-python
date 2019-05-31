@@ -12,6 +12,7 @@ from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.integrations import chalice
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,9 @@ class Thundra:
 
         if not config.trace_instrument_disabled():
             self.import_patcher = ImportPatcher()
+
+            # Need to pass thundra instance to chalice integration for wrapping each handler
+            chalice.patch(self)
 
     def __call__(self, original_func):
         if config.thundra_disabled():
