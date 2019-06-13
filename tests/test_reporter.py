@@ -39,7 +39,7 @@ def test_send_report_to_url(mock_requests, mock_report, monkeypatch):
         'Authorization': 'ApiKey api key'
     }
 
-    reporter.session.post.assert_called_once_with(post_url, data=json.dumps([mock_report]), headers=headers)
+    reporter.session.post.assert_called_once_with(post_url, data=json.dumps([mock_report], separators=(',', ':')), headers=headers)
     reporter.session.post.return_value.status_code = 200
     for response in responses:
         assert response.status_code == 200
