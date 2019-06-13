@@ -288,7 +288,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
             assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
             # Check report
-            report = thundra.reporter.reports[3]['data']
+            report = thundra.reporter.reports[2]['data']
             assert report['className'] == 'AWS-Lambda'
             assert report['domainName'] == 'API'
             assert report['tags']['aws.request.name'] == 'Invoke'
@@ -330,7 +330,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
             assert span.get_tag('aws.lambda.invocation.type') == None
 
             # Check report
-            report = thundra.reporter.reports[3]['data']
+            report = thundra.reporter.reports[2]['data']
             assert report['className'] == 'AWS-Lambda'
             assert report['domainName'] == 'API'
             assert report['tags']['aws.request.name'] == 'ListFunctions'
