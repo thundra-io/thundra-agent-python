@@ -58,6 +58,7 @@ THUNDRA_DISABLE_CHALICE_INTEGRATION = 'thundra_agent_lambda_trace_integrations_c
 THUNDRA_MASK_REDIS_COMMAND = 'thundra_agent_lambda_trace_integrations_redis_command_mask'
 THUNDRA_MASK_RDB_STATEMENT = 'thundra_agent_lambda_trace_integrations_rdb_statement_mask'
 THUNDRA_MASK_DYNAMODB_STATEMENT = 'thundra_agent_lambda_trace_integrations_aws_dynamodb_statement_mask'
+THUNDRA_MASK_ATHENA_STATEMENT = 'thundra_agent_lambda_trace_integrations_aws_athena_statement_mask'
 THUNDRA_MASK_ES_BODY = 'thundra_agent_lambda_trace_integrations_elasticsearch_body_mask'
 THUNDRA_MASK_MONGODB_COMMAND = 'thundra_agent_lambda_trace_integrations_mongodb_command_mask'
 THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_message_mask'
@@ -154,6 +155,7 @@ ClassNames = {
     'MONGODB': 'MONGODB',
     'SQLALCHEMY': 'SQLALCHEMY',
     'SQLITE': 'SQLITE',
+    'ATHENA': 'AWS-Athena',
 }
 
 DBTags = {
@@ -189,6 +191,14 @@ SpanTags = {
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type:',
     'TRACE_LINKS': 'trace.links'
+}
+
+AthenaTags = {
+    'S3_OUTPUT_LOCATION': "aws.s3.outputLocation",
+    'REQUEST_QUERY_EXECUTION_IDS': "request.query.execution.id",
+    'RESPONSE_QUERY_EXECUTION_IDS': "response.query.execution.ids",
+    'REQUEST_NAMED_QUERY_IDS': "request.named.query.ids",
+    'RESPONSE_NAMED_QUERY_IDS': "response.named.query.ids",
 }
 
 DynamoDBRequestTypes = {
@@ -612,4 +622,26 @@ MongoDBCommandTypes = {
 
     # Auditing Commands
     'LOGAPPLICATIONMESSAGE': 'EXECUTE',
+}
+
+AthenaOperationTypes = {
+    'BatchGetNamedQuery': 'READ',
+    'BatchGetQueryExecution': 'READ',
+    'CreateNamedQuery': 'WRITE',
+    'CreateWorkGroup': 'WRITE',
+    'DeleteNamedQuery': 'DELETE',
+    'DeleteWorkGroup': 'DELETE',
+    'GetNamedQuery': 'READ',
+    'GetQueryExecution': 'READ',
+    'GetQueryResults': 'READ',
+    'GetWorkGroup': 'READ',
+    'ListNamedQueries': 'READ',
+    'ListQueryExecutions': 'READ',
+    'ListTagsForResource': 'READ',
+    'ListWorkGroups': 'READ',
+    'StartQueryExecution': 'EXECUTE',
+    'StopQueryExecution': 'EXECUTE',
+    'TagResource': 'WRITE',
+    'UntagResource': 'DELETE',
+    'UpdateWorkGroup': 'WRITE',
 }

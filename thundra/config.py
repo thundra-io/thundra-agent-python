@@ -124,8 +124,10 @@ def rdb_integration_disabled():
 def sqlalchemy_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_SQLALCHEMY_INTEGRATION)
 
+
 def chalice_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_CHALICE_INTEGRATION)
+
 
 def redis_command_masked():
     return bool_from_env(constants.THUNDRA_MASK_REDIS_COMMAND)
@@ -137,6 +139,10 @@ def rdb_statement_masked():
 
 def dynamodb_statement_masked():
     return bool_from_env(constants.THUNDRA_MASK_DYNAMODB_STATEMENT)
+
+
+def athena_statement_masked():
+    return bool_from_env(constants.THUNDRA_MASK_ATHENA_STATEMENT)
 
 
 def elasticsearch_body_masked():

@@ -258,6 +258,12 @@ def mock_lambda_response():
     }
     return response
 
+@pytest.fixture()
+def mock_athena_start_query_exec_response():
+    response = {
+        "QueryExecutionId": "98765432-1111-1111-1111-12345678910"
+    }
+    return response
 
 @pytest.fixture
 def mock_dynamodb_event():
