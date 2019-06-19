@@ -768,7 +768,7 @@ class AWSAthenaIntegration(BaseIntegration):
                                    [response.get("QueryExecutionId")])
             elif "QueryExecutionIds" in response:
                 scope.span.set_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS'],
-                                   response.get("QueryExecutionId"))
+                                   response.get("QueryExecutionIds"))
             elif "NamedQueryId" in response:
                 scope.span.set_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS'], [response.get("NamedQueryId")])
             elif "NamedQueryIds" in response:

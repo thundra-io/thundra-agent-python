@@ -956,3 +956,58 @@ def test_athena_get_query_results():
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
         tracer.clear()
+
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_athena_list_query_executions(mock_actual_call):
+    mock_actual_call.return_value = {
+        'QueryExecutionIds': [
+            '98765432-1111-1111-1111-12345678910',
+        ],
+        'NextToken': 'string'
+    }
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.list_query_executions(
+            NextToken='string',
+            MaxResults=123,
+            WorkGroup='string'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'ListQueryExecutions'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_default_aws_service():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        # Test with a non traced service client
+        client = boto3.client('mediastore', region_name='us-west-2')
+        response = client.create_container(
+            ContainerName='string'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWSService'
+        assert span.domain_name == 'AWS'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'mediastore'
+        tracer.clear()
