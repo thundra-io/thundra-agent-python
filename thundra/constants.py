@@ -195,7 +195,7 @@ SpanTags = {
 
 AthenaTags = {
     'S3_OUTPUT_LOCATION': "aws.athena.s3.outputLocation",
-    'REQUEST_QUERY_EXECUTION_IDS': "aws.athena.request.query.execution.id",
+    'REQUEST_QUERY_EXECUTION_IDS': "aws.athena.request.query.execution.ids",
     'RESPONSE_QUERY_EXECUTION_IDS': "aws.athena.response.query.execution.ids",
     'REQUEST_NAMED_QUERY_IDS': "aws.athena.request.named.query.ids",
     'RESPONSE_NAMED_QUERY_IDS': "aws.athena.response.named.query.ids",
