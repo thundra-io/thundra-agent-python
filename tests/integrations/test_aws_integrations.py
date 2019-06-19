@@ -647,9 +647,9 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
     table = "persons"
     query = "SELECT * FROM %s.%s where age = 10;" % (database, table)
     s3_output = 's3://athena-test-bucket/results/'
-    client = boto3.client('athena')
 
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.start_query_execution(
             QueryString=query,
             QueryExecutionContext={
@@ -684,9 +684,9 @@ def test_athena_statement_masked(monkeypatch):
     table = "persons"
     query = "SELECT * FROM %s.%s where age = 10;" % (database, table)
     s3_output = 's3://athena-test-bucket/results/'
-    client = boto3.client('athena')
 
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.start_query_execution(
             QueryString=query,
             QueryExecutionContext={
@@ -715,10 +715,9 @@ def test_athena_stop_query_execution():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
-    client = boto3.client('athena')
-
     query_execution_id = "98765432-1111-1111-1111-12345678910"
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.stop_query_execution(
             QueryExecutionId=query_execution_id
         )
@@ -741,8 +740,8 @@ def test_athena_batch_get_named_query():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.batch_get_named_query(
             NamedQueryIds=[
                 'test',
@@ -768,8 +767,8 @@ def test_athena_batch_get_query_execution():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.batch_get_query_execution(
             QueryExecutionIds=[
                 'test',
@@ -802,8 +801,8 @@ def test_athena_create_named_query(mock_actual_call):
 
     query = "SELECT * FROM persons where age = 10;"
 
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.create_named_query(
             QueryString=query,
             Database="test",
@@ -830,8 +829,8 @@ def test_athena_create_named_query(mock_actual_call):
 def test_athena_delete_named_query():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.delete_named_query(
             NamedQueryId='98765432-1111-1111-1111-12345678910'
         )
@@ -856,8 +855,8 @@ def test_athena_delete_named_query():
 def test_athena_get_named_query():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.get_named_query(
             NamedQueryId='98765432-1111-1111-1111-12345678910'
         )
@@ -883,8 +882,8 @@ def test_athena_get_named_query():
 def test_athena_get_query_execution():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.get_query_execution(
             QueryExecutionId='98765432-1111-1111-1111-12345678910'
         )
@@ -910,8 +909,8 @@ def test_athena_get_query_execution():
 def test_athena_get_query_results():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.get_query_results(
         QueryExecutionId='98765432-1111-1111-1111-12345678910'
     )
@@ -936,8 +935,8 @@ def test_athena_get_query_results():
 def test_athena_get_query_results():
     tracer = ThundraTracer.get_instance()
     tracer.clear()
-    client = boto3.client('athena')
     try:
+        client = boto3.client('athena', region_name='us-west-2')
         response = client.get_query_results(
         QueryExecutionId='98765432-1111-1111-1111-12345678910'
     )
