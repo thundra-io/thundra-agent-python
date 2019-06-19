@@ -194,11 +194,11 @@ SpanTags = {
 }
 
 AthenaTags = {
-    'S3_OUTPUT_LOCATION': "aws.s3.outputLocation",
-    'REQUEST_QUERY_EXECUTION_IDS': "request.query.execution.id",
-    'RESPONSE_QUERY_EXECUTION_IDS': "response.query.execution.ids",
-    'REQUEST_NAMED_QUERY_IDS': "request.named.query.ids",
-    'RESPONSE_NAMED_QUERY_IDS': "response.named.query.ids",
+    'S3_OUTPUT_LOCATION': "aws.athena.s3.outputLocation",
+    'REQUEST_QUERY_EXECUTION_IDS': "aws.athena.request.query.execution.id",
+    'RESPONSE_QUERY_EXECUTION_IDS': "aws.athena.response.query.execution.ids",
+    'REQUEST_NAMED_QUERY_IDS': "aws.athena.request.named.query.ids",
+    'RESPONSE_NAMED_QUERY_IDS': "aws.athena.response.named.query.ids",
 }
 
 DynamoDBRequestTypes = {
