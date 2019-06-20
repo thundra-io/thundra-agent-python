@@ -792,10 +792,8 @@ def test_athena_batch_get_query_execution():
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_athena_create_named_query(mock_actual_call):
-    mock_actual_call.return_value = {
-        "NamedQueryId": "98765432-1111-1111-1111-12345678910"
-    }
+def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_query_response):
+    mock_actual_call.return_value = mock_athena_create_named_query_response
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
@@ -959,13 +957,8 @@ def test_athena_get_query_results():
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_athena_list_query_executions(mock_actual_call):
-    mock_actual_call.return_value = {
-        'QueryExecutionIds': [
-            '98765432-1111-1111-1111-12345678910',
-        ],
-        'NextToken': 'string'
-    }
+def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_executions_response):
+    mock_actual_call.return_value = mock_athena_list_query_executions_response
     tracer = ThundraTracer.get_instance()
     tracer.clear()
     try:

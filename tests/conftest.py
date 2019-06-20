@@ -265,6 +265,24 @@ def mock_athena_start_query_exec_response():
     }
     return response
 
+
+@pytest.fixture()
+def mock_athena_list_query_executions_response():
+    return {
+        'QueryExecutionIds': [
+            '98765432-1111-1111-1111-12345678910',
+        ],
+        'NextToken': 'string'
+    }
+
+
+@pytest.fixture()
+def mock_athena_create_named_query_response():
+    return {
+        "NamedQueryId": "98765432-1111-1111-1111-12345678910"
+    }
+
+
 @pytest.fixture
 def mock_dynamodb_event():
     event = {
