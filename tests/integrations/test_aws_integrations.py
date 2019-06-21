@@ -636,3 +636,371 @@ def test_firehose_get_trace_links_put_record_batch():
         region + ":" + "test-stream" + ":" + str(timestamp + 1) + ":" + md5,
         region + ":" + "test-stream" + ":" + str(timestamp + 2) + ":" + md5
     ]
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_exec_response):
+    mock_actual_call.return_value = mock_athena_start_query_exec_response
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    database = "test"
+    table = "persons"
+    query = "SELECT * FROM %s.%s where age = 10;" % (database, table)
+    s3_output = 's3://athena-test-bucket/results/'
+
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.start_query_execution(
+            QueryString=query,
+            QueryExecutionContext={
+                'Database': database
+                },
+            ResultConfiguration={
+                'OutputLocation': s3_output,
+                }
+            )
+    except:
+        pass
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'EXECUTE'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartQueryExecution'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == database
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == ["98765432-1111-1111-1111-12345678910"]
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == query
+        tracer.clear()
+
+
+def test_athena_statement_masked(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_ATHENA_STATEMENT, 'true')
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    database = "test"
+    table = "persons"
+    query = "SELECT * FROM %s.%s where age = 10;" % (database, table)
+    s3_output = 's3://athena-test-bucket/results/'
+
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.start_query_execution(
+            QueryString=query,
+            QueryExecutionContext={
+                'Database': database
+                },
+            ResultConfiguration={
+                'OutputLocation': s3_output,
+                }
+            )
+    except:
+        pass
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'EXECUTE'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartQueryExecution'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == database
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_athena_stop_query_execution():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    query_execution_id = "98765432-1111-1111-1111-12345678910"
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.stop_query_execution(
+            QueryExecutionId=query_execution_id
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'EXECUTE'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StopQueryExecution'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [query_execution_id]
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_athena_batch_get_named_query():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.batch_get_named_query(
+            NamedQueryIds=[
+                'test',
+            ]
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'BatchGetNamedQuery'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ["test"]
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_athena_batch_get_query_execution():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.batch_get_query_execution(
+            QueryExecutionIds=[
+                'test',
+                'test2'
+            ]
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'BatchGetQueryExecution'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert sorted(span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS'])) == ['test', 'test2']
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_query_response):
+    mock_actual_call.return_value = mock_athena_create_named_query_response
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    query = "SELECT * FROM persons where age = 10;"
+
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.create_named_query(
+            QueryString=query,
+            Database="test",
+            Name="test",
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateNamedQuery'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == ["98765432-1111-1111-1111-12345678910"]
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == query
+        tracer.clear()
+
+
+def test_athena_delete_named_query():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.delete_named_query(
+            NamedQueryId='98765432-1111-1111-1111-12345678910'
+        )
+
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'DELETE'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'DeleteNamedQuery'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+def test_athena_get_named_query():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.get_named_query(
+            NamedQueryId='98765432-1111-1111-1111-12345678910'
+        )
+
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetNamedQuery'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_athena_get_query_execution():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.get_query_execution(
+            QueryExecutionId='98765432-1111-1111-1111-12345678910'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryExecution'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+
+def test_athena_get_query_results():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.get_query_results(
+        QueryExecutionId='98765432-1111-1111-1111-12345678910'
+    )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryResults'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_athena_get_query_results():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.get_query_results(
+        QueryExecutionId='98765432-1111-1111-1111-12345678910'
+    )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryResults'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_executions_response):
+    mock_actual_call.return_value = mock_athena_list_query_executions_response
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    try:
+        client = boto3.client('athena', region_name='us-west-2')
+        response = client.list_query_executions(
+            NextToken='string',
+            MaxResults=123,
+            WorkGroup='string'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-Athena'
+        assert span.domain_name == 'DB'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'ListQueryExecutions'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == ['98765432-1111-1111-1111-12345678910']
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        tracer.clear()
+
+
+def test_default_aws_service():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        # Test with a non traced service client
+        client = boto3.client('mediastore', region_name='us-west-2')
+        response = client.create_container(
+            ContainerName='string'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWSService'
+        assert span.domain_name == 'AWS'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'mediastore'
+        tracer.clear()
