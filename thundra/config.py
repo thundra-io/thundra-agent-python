@@ -37,6 +37,9 @@ def metric_disabled(disable_metric):
 def log_disabled(disable_log):
     return bool_from_env(constants.THUNDRA_DISABLE_LOG, default=disable_log)
 
+def warmup_aware():
+    return bool_from_env(constants.THUNDRA_LAMBDA_WARMUP_AWARE)
+
 
 def trace_instrument_disabled():
     return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)

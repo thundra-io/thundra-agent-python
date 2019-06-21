@@ -69,7 +69,7 @@ class Thundra:
             
             # Before running user's handler
             try:
-                if self.check_and_handle_warmup_request(event):
+                if config.warmup_aware() and self.check_and_handle_warmup_request(event):
                     return None
 
                 constants.REQUEST_COUNT += 1
