@@ -22,6 +22,7 @@ THUNDRA_LAMBDA_REPORT_REST_BASEURL = 'thundra_agent_lambda_report_rest_baseUrl'
 THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED = 'thundra_agent_lambda_report_rest_composite_enable'
 THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE = 'thundra_agent_lambda_report_cloudwatch_enable'
 THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_ENABLED = 'thundra_agent_lambda_report_cloudwatch_composite_enable'
+THUNDRA_LAMBDA_WARMUP_AWARE = 'thundra_agent_lambda_warmup_warmupAware'
 
 THUNDRA_DISABLE_TRACE = 'thundra_agent_lambda_trace_disable'
 THUNDRA_DISABLE_METRIC = 'thundra_agent_lambda_metric_disable'
