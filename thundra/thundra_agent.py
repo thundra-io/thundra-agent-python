@@ -53,7 +53,7 @@ class Thundra:
             handler_wrappers.patch_modules(self)
 
     def __call__(self, original_func):
-        if config.thundra_disabled():
+        if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
             return original_func
 
         @wraps(original_func)
@@ -125,7 +125,7 @@ class Thundra:
                     self.reporter.reports.clear()
                 
             return response
-
+        setattr(wrapper, 'thundra_wrapper', True)
         return wrapper
 
     call = __call__
