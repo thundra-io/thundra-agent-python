@@ -74,7 +74,6 @@ class ThundraLoader(SourceFileLoader):
             return module
 
         try:
-            import_patcher = ImportPatcher()
             module_name = utils.get_module_name(module)
 
             trace_args, trace_return_value, trace_error = self.get_trace_parameters()

@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from importlib import import_module
 from thundra import config
 import thundra.integrations.modules as integrations
+from thundra.plugins.trace.patcher import ImportPatcher
 
 def _import_exists(module_name):
     try:
@@ -17,3 +18,6 @@ def patch_modules():
 
 if not config.thundra_disabled():
     patch_modules()
+
+if not config.trace_instrument_disabled():
+    ImportPatcher()

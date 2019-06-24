@@ -6,7 +6,6 @@ from functools import wraps
 
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
-from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
@@ -45,8 +44,6 @@ class Thundra:
         self.timeout_margin = config.timeout_margin()
         self.reporter = Reporter(self.api_key)
 
-        if not config.trace_instrument_disabled():
-            self.import_patcher = ImportPatcher()
 
     def __call__(self, original_func):
         if config.thundra_disabled():
