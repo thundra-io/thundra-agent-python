@@ -160,14 +160,6 @@ class TracePlugin:
             if hasattr(error, 'stack'):
                 self.root_span.set_tag('error.stack', error.stack)
 
-        report_data = {
-            'apiKey': reporter.api_key,
-            'type': 'Trace',
-            'dataModelVersion': constants.DATA_FORMAT_VERSION,
-            'data': self.trace_data
-        }
-
-        reporter.add_report(report_data)
         reporter.add_report(self.span_data_list)
 
         self.tracer.clear()

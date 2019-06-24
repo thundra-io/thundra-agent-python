@@ -12,6 +12,7 @@ from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.integrations import handler_wrappers
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,9 @@ class Thundra:
         if not config.trace_instrument_disabled():
             self.import_patcher = ImportPatcher()
 
+            # Pass thundra instance to integration for wrapping handler wrappers
+            handler_wrappers.patch_modules(self)
+
     def __call__(self, original_func):
         if config.thundra_disabled():
             return original_func
@@ -65,7 +69,7 @@ class Thundra:
             
             # Before running user's handler
             try:
-                if self.check_and_handle_warmup_request(event):
+                if config.warmup_aware() and self.check_and_handle_warmup_request(event):
                     return None
 
                 constants.REQUEST_COUNT += 1

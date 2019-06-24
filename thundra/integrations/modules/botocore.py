@@ -19,9 +19,14 @@ def _wrapper(wrapped, instance, args, kwargs):
             instance,
             args,
             kwargs
-        )
+        )    
 
-    return wrapped(*args, **kwargs)
+    return INTEGRATIONS['default'].run_and_trace(
+            wrapped,
+            instance,
+            args,
+            kwargs
+        )  
 
 def patch():
     if not config.aws_integration_disabled():

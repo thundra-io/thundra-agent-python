@@ -37,6 +37,9 @@ def metric_disabled(disable_metric):
 def log_disabled(disable_log):
     return bool_from_env(constants.THUNDRA_DISABLE_LOG, default=disable_log)
 
+def warmup_aware():
+    return bool_from_env(constants.THUNDRA_LAMBDA_WARMUP_AWARE)
+
 
 def trace_instrument_disabled():
     return bool_from_env(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE)
@@ -125,6 +128,10 @@ def sqlalchemy_integration_disabled():
     return bool_from_env(constants.THUNDRA_DISABLE_SQLALCHEMY_INTEGRATION)
 
 
+def chalice_integration_disabled():
+    return bool_from_env(constants.THUNDRA_DISABLE_CHALICE_INTEGRATION)
+
+
 def redis_command_masked():
     return bool_from_env(constants.THUNDRA_MASK_REDIS_COMMAND)
 
@@ -135,6 +142,10 @@ def rdb_statement_masked():
 
 def dynamodb_statement_masked():
     return bool_from_env(constants.THUNDRA_MASK_DYNAMODB_STATEMENT)
+
+
+def athena_statement_masked():
+    return bool_from_env(constants.THUNDRA_MASK_ATHENA_STATEMENT)
 
 
 def elasticsearch_body_masked():
