@@ -634,7 +634,7 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-        if not config.lambda_trace_disabled():
+        if not config.lambda_trace_disabled() and 'invoke' in operation_name.lower():
             self.inject_span_context_into_client_context(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -650,3 +650,126 @@ class AWSLambdaIntegration(BaseIntegration):
             return [request_id]
         except Exception:
             return None
+
+
+class AWSServiceIntegration(BaseIntegration):
+    CLASS_TYPE = 'default'
+
+    def __init__(self):
+        pass
+
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        return constants.AWS_SERVICE_REQUEST
+
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        scope.span.domain_name = constants.DomainNames['AWS']
+        scope.span.class_name = constants.ClassNames['AWSSERVICE']
+
+        service_name = instance.__class__.__name__.lower()
+
+        tags = {
+            constants.AwsSDKTags['REQUEST_NAME']: service_name,
+        }
+        scope.span.tags = tags
+
+
+class AWSAthenaIntegration(BaseIntegration):
+    CLASS_TYPE = 'athena'
+
+    def __init__(self):
+        pass
+
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        return self.get_database_name(args) or constants.AWS_SERVICE_REQUEST
+
+    def get_database_name(self, args):
+        try:
+            database = args[1]['QueryExecutionContext']['Database']
+        except:
+            database = None
+        return database
+
+    def get_output_location(self, args):
+        try:
+            output_location = args[1]['ResultConfiguration']['OutputLocation']
+        except:
+            output_location = None
+        return output_location
+
+    def get_query(self, args):
+        try:
+            query = args[1]['QueryString']
+        except:
+            query = None
+        return query
+
+    def get_query_execution_ids(self, args):
+        query_execution_ids = None
+        if len(args) > 1:
+            params = args[1]
+
+            if params and "QueryExecutionId" in params:
+                query_execution_ids = [params.get("QueryExecutionId")]
+            elif params and "QueryExecutionIds" in params:
+                query_execution_ids = params.get("QueryExecutionIds")
+        return query_execution_ids
+
+    def get_named_query_ids(self, args):
+        named_query_ids = None
+        if len(args) > 1:
+            params = args[1]
+
+            if params and "NamedQueryId" in params:
+                named_query_ids = [params.get("NamedQueryId")]
+            elif params and "NamedQueryIds" in params:
+                named_query_ids = params.get("NamedQueryIds")
+        return named_query_ids
+
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        operation_name = args[0]
+        scope.span.domain_name = constants.DomainNames['DB']
+        scope.span.class_name = constants.ClassNames['ATHENA']
+
+        tags = {
+            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
+            constants.SpanTags['TOPOLOGY_VERTEX']: True,
+            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
+            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: constants.AthenaOperationTypes.get(operation_name, ""),
+        }
+
+        scope.span.tags = tags
+
+        database = self.get_database_name(args)
+        output_location = self.get_output_location(args)
+        query_execution_ids = self.get_query_execution_ids(args)
+        named_query_ids = self.get_named_query_ids(args)
+
+        if database:
+            scope.span.set_tag(constants.SpanTags['DB_INSTANCE'], database)
+
+        if output_location:
+            scope.span.set_tag(constants.AthenaTags['S3_OUTPUT_LOCATION'], output_location)
+
+        if not config.athena_statement_masked():
+            scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.get_query(args))
+
+        if query_execution_ids:
+            scope.span.set_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS'], query_execution_ids)
+
+        if named_query_ids:
+            scope.span.set_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS'], named_query_ids)
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        if response:
+            if "QueryExecutionId" in response:
+                scope.span.set_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS'],
+                                   [response.get("QueryExecutionId")])
+            elif "QueryExecutionIds" in response:
+                scope.span.set_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS'],
+                                   response.get("QueryExecutionIds"))
+            elif "NamedQueryId" in response:
+                scope.span.set_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS'], [response.get("NamedQueryId")])
+            elif "NamedQueryIds" in response:
+                scope.span.set_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS'], response.get("NamedQueryIds"))

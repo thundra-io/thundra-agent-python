@@ -17,7 +17,7 @@ def test_command_insert():
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
 
-    assert span.operation_name == 'INSERT'
+    assert span.operation_name == 'test'
     assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
@@ -54,7 +54,7 @@ def test_command_update():
 
     span = tracer.get_spans()[0]
 
-    assert span.operation_name == 'UPDATE'
+    assert span.operation_name == 'test'
     assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
@@ -89,7 +89,7 @@ def test_command_failed():
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
 
-    assert span.operation_name == 'FIND'
+    assert span.operation_name == 'test'
     assert span.class_name == constants.ClassNames['MONGODB']
     assert span.domain_name == constants.DomainNames['DB']
 
