@@ -45,7 +45,7 @@ class Thundra:
         self.timeout_margin = config.timeout_margin()
         self.reporter = Reporter(self.api_key)
 
-
+        if not config.trace_instrument_disabled():
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
 
