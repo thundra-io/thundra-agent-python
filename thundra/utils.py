@@ -140,24 +140,19 @@ def process_trace_def_env_var(value):
     value = value.strip().split('[')
     path = value[0].split('.')
     trace_args = {}
+    function_regex = path[-1].replace('*', '.*')
+    module_path_regex = ".".join(path[:-1]).replace('*', '.*')
 
-    function_prefix = path[-1][:-1] if path[-1] != '*' else '*'
-    module_path = ".".join(path[:-1])
-
-    if len(value) > 1 :
+    if len(value) > 1:
         trace_string = value[1].strip(']').split(',')
         for arg in trace_string:
             arg = arg.split('=')
             try:
-                trace_args[arg[0].strip()] = arg[1].strip()
+                trace_args[arg[0]] = arg[1]
             except:
                 pass
-    else:
-        trace_args["trace_args"] = 'False'
-        trace_args["trace_return_value"] = 'False'
-        trace_args["trace_error"] = 'False'
 
-    return module_path, function_prefix, trace_args
+    return module_path_regex, function_regex, trace_args
 
 
 def classesinmodule(module):
