@@ -16,7 +16,7 @@ class RequestsIntegration(BaseIntegration):
     def get_operation_name(self, wrapped, instance, args, kwargs):
         prepared_request = args[0]
         url_dict = self._parse_http_url(prepared_request.url)
-        return url_dict.get('url')
+        return url_dict.get('operation_name')
 
     def _parse_http_url(self, url):
         url_dict = {
@@ -30,20 +30,41 @@ class RequestsIntegration(BaseIntegration):
             url_dict['path'] = parsed_url.path
             url_dict['query'] = parsed_url.query
             url_dict['host'] = parsed_url.netloc
+
+            normalized_path = self.get_normalized_path(parsed_url.path)
+            url_dict['operation_name'] = parsed_url.hostname + normalized_path
+
             url_dict['url'] = parsed_url.hostname + parsed_url.path
         except Exception:
             pass
         return url_dict
-    
+
+    def get_normalized_path(self, url_path):
+        path_depth = config.http_integration_url_path_depth()
+
+        path_seperator_count = 0
+        normalized_path = ''
+        prev_c = ''
+        for c in url_path:
+            if c == '/' and prev_c != '/':
+                path_seperator_count += 1
+
+            if path_seperator_count > path_depth:
+                break
+
+            normalized_path += c
+            prev_c = c
+        return normalized_path
+
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
         method = prepared_request.method
-        
+
         url_dict = self._parse_http_url(prepared_request.url)
         span = scope.span
-        
-        span.domain_name =  constants.DomainNames['API']
-        span.class_name =  constants.ClassNames['HTTP']
+
+        span.domain_name = constants.DomainNames['API']
+        span.class_name = constants.ClassNames['HTTP']
 
         tags = {
             constants.SpanTags['OPERATION_TYPE']: method,
@@ -65,11 +86,11 @@ class RequestsIntegration(BaseIntegration):
             scope.span.set_tag(constants.HttpTags["BODY"], body)
 
         try:
-            prepared_request.headers.update({'x-thundra-span-id' :span.span_id})
+            prepared_request.headers.update({'x-thundra-span-id': span.span_id})
             span.set_tag(constants.SpanTags['TRACE_LINKS'], [span.span_id])
         except Exception as e:
             pass
-    
+
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
@@ -77,7 +98,7 @@ class RequestsIntegration(BaseIntegration):
             self.set_response(response, scope.span)
             if response.headers and response.headers.get("x-amz-apigw-id"):
                 scope.span.class_name = constants.ClassNames['APIGATEWAY']
-    
+
     def set_response(self, response, span):
         statusCode = response.status_code
         span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
