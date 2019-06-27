@@ -1002,5 +1002,6 @@ def test_default_aws_service():
         span = tracer.get_spans()[0]
         assert span.class_name == 'AWSService'
         assert span.domain_name == 'AWS'
-        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'mediastore'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateContainer'
+        assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'mediastore'
         tracer.clear()
