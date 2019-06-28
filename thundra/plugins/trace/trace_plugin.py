@@ -127,6 +127,9 @@ class TracePlugin:
         if not config.skip_trace_response():
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
+        if trigger_class_name == constants.ClassNames['APIGATEWAY']:
+            self.process_response(plugin_context)
+
         duration = self.end_time - self.start_time
 
         span_stack = self.tracer.get_spans()
@@ -164,6 +167,16 @@ class TracePlugin:
 
         self.tracer.clear()
         self.flush_current_span_data()
+
+    def process_response(self, plugin_context):
+        try:
+            if plugin_context.get('response'):
+                if not plugin_context.get('response', {}).get('headers'):
+                    plugin_context['response']['headers'] = {}
+
+                plugin_context['response']['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = plugin_context['request']['resource']
+        except:
+            pass
 
     def flush_current_span_data(self):
         self.span_data_list.clear()

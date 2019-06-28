@@ -269,10 +269,10 @@ def inject_trigger_tags_for_cloudfront(span, original_event):
 def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     domain_name = constants.DomainNames['API']
     class_name = constants.ClassNames['APIGATEWAY']
-    operation_names = [original_event['headers']['Host'] + '/' + original_event['requestContext']['stage'] + \
-                        original_event['path']]
 
-    if 'x-thundra-span-id' in original_event['headers']:
+    operation_names = [original_event['resource']]
+
+    if original_event.get('headers') and 'x-thundra-span-id' in original_event['headers']:
         invocation_trace_support.add_incoming_trace_links([original_event['headers']['x-thundra-span-id']])
 
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)

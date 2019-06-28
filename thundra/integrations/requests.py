@@ -99,6 +99,10 @@ class RequestsIntegration(BaseIntegration):
             if response.headers and response.headers.get("x-amz-apigw-id"):
                 scope.span.class_name = constants.ClassNames['APIGATEWAY']
 
+            if response.headers and response.headers.get("x-thundra-resource-name"):
+                resource_name = response.headers.get("x-thundra-resource-name")
+                scope.span.operation_name = resource_name
+
     def set_response(self, response, span):
         statusCode = response.status_code
         span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)

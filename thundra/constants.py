@@ -37,6 +37,7 @@ THUNDRA_LAMBDA_TRACE_ENABLE_XRAY = 'thundra_agent_lambda_trace_enable_xray'
 TRIGGER_OPERATION_NAME_TAG = 'x-thundra-trigger-operation-name'
 TRIGGER_CLASS_NAME_TAG = 'x-thundra-trigger-class-name'
 TRIGGER_DOMAIN_NAME_TAG = 'x-thundra-trigger-domain-name'
+TRIGGER_RESOURCE_NAME_TAG = 'x-thundra-resource-name'
 
 THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE = 'thundra_agent_lambda_trace_kinesis_request_enable'
 THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE = 'thundra_agent_lambda_trace_firehose_request_enable'
