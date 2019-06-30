@@ -1,7 +1,7 @@
 import mock
 import base64
 import gzip
-import json
+import simplejson as json
 import pytest
 import hashlib
 from contextlib import ExitStack

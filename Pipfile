@@ -7,6 +7,7 @@ name = "pypi"
 opentracing = "*"
 requests = "*"
 wrapt = "*"
+simplejson = "*"
 
 [dev-packages]
 mock = "*"

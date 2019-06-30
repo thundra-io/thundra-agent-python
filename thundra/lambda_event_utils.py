@@ -1,6 +1,6 @@
 import base64
 import gzip
-import json
+import simplejson as json
 import hashlib
 from enum import Enum
 from thundra import constants
