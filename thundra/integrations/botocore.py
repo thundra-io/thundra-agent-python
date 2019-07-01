@@ -667,10 +667,10 @@ class AWSServiceIntegration(BaseIntegration):
 
         service_name = instance.__class__.__name__.lower()
 
-        tags = {
-            constants.AwsSDKTags['REQUEST_NAME']: service_name,
-        }
-        scope.span.tags = tags
+        if len(args) > 0:
+            scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
+
+        scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
 
 
 class AWSAthenaIntegration(BaseIntegration):

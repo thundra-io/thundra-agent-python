@@ -115,6 +115,8 @@ THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_re
 ENABLE_DYNAMODB_TRACE_INJECTION = 'thundra_agent_trace_integrations_dynamodb_trace_injection_enable'
 DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_trace_integrations_aws_lambda_traceInjection_disable'
 
+THUNDRA_AGENT_TRACE_INTEGRATTIONS_HTTP_URL_DEPTH = "thundra_agent_trace_integrations_http_url_depth"
+
 #### INTEGRATIONS ####
 
 DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
