@@ -1,7 +1,7 @@
 import traceback
 import hashlib
 import base64
-import json
+import simplejson as json
 import copy
 
 from dateutil.parser import parse

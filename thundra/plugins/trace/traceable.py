@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 from functools import wraps
 
 from thundra.opentracing.tracer import ThundraTracer

@@ -1,4 +1,4 @@
-import json
+import simplejson as json
 import mock
 import os
 
@@ -134,8 +134,9 @@ def test_prepare_report_json(mock_report, mock_report_with_byte_field):
     reports = reporter.prepare_report_json()
     reports = json.loads(reports[0])
 
-    assert len(reports) == 1
+    assert len(reports) == 2
     assert reports[0].get('type') != 'bytes'
+    assert reports[1].get('type') == 'bytes'
 
 def test_prepare_report_json_batch(mock_report, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")

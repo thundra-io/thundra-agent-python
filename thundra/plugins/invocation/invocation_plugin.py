@@ -1,7 +1,7 @@
 import math
 import time
 import uuid
-import json
+import simplejson as json
 from thundra import constants, utils
 from thundra import application_support
 from thundra.plugins.invocation import invocation_support
