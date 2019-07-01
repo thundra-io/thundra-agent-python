@@ -128,7 +128,7 @@ class TracePlugin:
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
         if trigger_class_name == constants.ClassNames['APIGATEWAY']:
-            self.process_response(plugin_context)
+            self.process_api_gw_response(plugin_context)
 
         duration = self.end_time - self.start_time
 
@@ -168,7 +168,7 @@ class TracePlugin:
         self.tracer.clear()
         self.flush_current_span_data()
 
-    def process_response(self, plugin_context):
+    def process_api_gw_response(self, plugin_context):
         try:
             if plugin_context.get('response'):
                 if not plugin_context.get('response', {}).get('headers'):
