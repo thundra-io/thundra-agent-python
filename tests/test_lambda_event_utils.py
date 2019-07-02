@@ -323,14 +323,12 @@ def test_apigateway_proxy_trigger(tracer_and_invocation_support, handler, mock_a
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
-    assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [
-        '1234567890.execute-api.eu-west-2.amazonaws.com/prod/path/to/resource']
+    assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/{proxy+}']
     assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert invocation_support.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
-    assert invocation_support.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [
-        '1234567890.execute-api.eu-west-2.amazonaws.com/prod/path/to/resource']
+    assert invocation_support.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/{proxy+}']
 
 
 def test_apigateway_trigger(tracer_and_invocation_support, handler, mock_apigateway_event, mock_context):
