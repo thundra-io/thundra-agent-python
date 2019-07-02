@@ -50,6 +50,11 @@ class LambdaTriggeredMockContext:
 def clear_function_name():
     invocation_support.function_name = ""
 
+
+@pytest.fixture(scope="module", autouse=True)
+def clear_invocation_tags():
+    invocation_support.clear()
+
 @pytest.fixture
 def mock_context():
     return MockContext()

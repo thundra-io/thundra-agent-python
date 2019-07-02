@@ -312,6 +312,6 @@ def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names, 
     span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], operation_names)
 
 def inject_trigger_tags_to_invocation(domain_name, class_name, operation_names):
-    invocation_support.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)
-    invocation_support.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], class_name)
-    invocation_support.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], operation_names)
+    invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)
+    invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], class_name)
+    invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], operation_names)

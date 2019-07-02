@@ -72,7 +72,10 @@ class InvocationPlugin:
         context = plugin_context['context']
         
         # Add user tags
-        self.invocation_data['tags'] = invocation_support.get_tags()
+        self.invocation_data['userTags'] = invocation_support.get_tags()
+
+        # Add agent tags
+        self.invocation_data['tags'] = invocation_support.get_agent_tags()
 
         # Get resources
         resources = invocation_trace_support.get_resources(plugin_context)
