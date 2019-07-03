@@ -50,7 +50,6 @@ class LogPlugin:
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': plugin_context.get('trace_id', ""),
             'transactionId': plugin_context.get('transaction_id'),
-            'tags': {}
         }
         # Add application related data
         application_info = application_support.get_application_info()
@@ -58,29 +57,6 @@ class LogPlugin:
 
     def after_invocation(self, plugin_context):
         context = plugin_context['context']
-
-        #### ADDING TAGS ####
-        self.log_data['tags']['aws.region'] = utils.get_aws_region_from_arn(
-            getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
-        self.log_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-        self.log_data['tags']['aws.lambda.arn'] = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
-        self.log_data['tags']['aws.lambda.memory.limit'] = getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, None)
-        self.log_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
-        self.log_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-
-        if 'error' in plugin_context:
-            error = plugin_context['error']
-            error_type = type(error)
-            # Adding tags
-            self.log_data['tags']['error'] = True
-            self.log_data['tags']['error.kind'] = error_type.__name__
-            self.log_data['tags']['error.message'] = str(error)
-            if hasattr(error, 'code'):
-                self.log_data['tags']['error.code'] = error.code
-            if hasattr(error, 'object'):
-                self.log_data['tags']['error.object'] = error.object
-            if hasattr(error, 'stack'):
-                self.log_data['tags']['error.stack'] = error.stack
 
         reporter = plugin_context['reporter']
         for log in logs:
