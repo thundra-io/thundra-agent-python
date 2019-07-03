@@ -12,7 +12,7 @@ THUNDRA_APPLICATION_DOMAIN_NAME = 'thundra_agent_lambda_application_domainName'
 THUNDRA_APPLICATION_CLASS_NAME = 'thundra_agent_lambda_application_className'
 THUNDRA_APPLICATION_STAGE = 'thundra_agent_lambda_application_stage'
 THUNDRA_APPLICATION_VERSION = 'thundra_agent_lambda_application_version'
-THUNDRA_AGENT_VERSION = '2.3.3'
+THUNDRA_AGENT_VERSION = '2.3.4'
 
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
