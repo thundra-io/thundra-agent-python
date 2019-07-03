@@ -20,7 +20,7 @@ def test_log_plugin_with_initialization():
     assert len(logs) == 1
     log = logs[0]
 
-    assert log['log'] == "This is an info log"
+    assert log['logMessage'] == "This is an info log"
     assert log['logContextName'] == 'test_handler'
     assert log['logLevel'] == "INFO"
     assert log['logLevelCode'] == 2
@@ -38,7 +38,7 @@ def test_log_plugin_with_config_file():
     assert len(logs) == 1
     log = logs[0]
 
-    assert log['log'] == "This is a debug log"
+    assert log['logMessage'] == "This is a debug log"
     assert log['logContextName'] == 'test_config_handler'
     assert log['logLevel'] == "DEBUG"
     assert log['logLevelCode'] == 1
