@@ -161,7 +161,7 @@ def get_allowed_functions(module):
 
 
 def get_aws_region_from_arn(func_arn):
-    return func_arn.split(':')[3] if len(func_arn.split(':')) >= 3 else ""
+    return func_arn.split(':')[3] if func_arn and len(func_arn.split(':')) >= 3 else ""
 
 def is_excluded_url(url):
     host = urlparse(url).netloc
@@ -177,6 +177,27 @@ def is_excluded_url(url):
                 return True
     return False
     
+def get_default_timeout_margin():
+    region = get_configuration(constants.AWS_REGION, default='')
+    size_from_env_var = get_aws_lambda_function_memory_size()
+    memory = -1
+    if size_from_env_var:
+        memory = int(float(size_from_env_var))
+
+    timeout_margin = 1000
+
+    if region == 'us-west-2':
+        timeout_margin = 200
+    elif region.startswith('us-west-'):
+        timeout_margin = 400
+    elif region.startswith('us-') or region.startswith('ca-'):
+        timeout_margin = 600
+    elif region.startswith('sa-'):
+        timeout_margin = 800
+
+    normalized_timeout_margin = int((384.0/memory) * timeout_margin)
+    return max(timeout_margin, normalized_timeout_margin)
+
 
 # Excluded url's 
 EXCLUDED_URLS = {

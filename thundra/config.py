@@ -53,7 +53,7 @@ def timeout_margin():
     timeout_margin = int_from_env(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
     if timeout_margin > 0:
         return timeout_margin
-    return constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+    return utils.get_default_timeout_margin()
 
 
 def thundra_disabled():
