@@ -193,7 +193,7 @@ SpanTags = {
     'TRIGGER_OPERATION_NAMES': 'trigger.operationNames',
     'TOPOLOGY_VERTEX': 'topology.vertex',
     'DB_STATEMENT': 'db.statement',
-    'DB_STATEMENT_TYPE': 'db.statement.type:',
+    'DB_STATEMENT_TYPE': 'db.statement.type',
     'TRACE_LINKS': 'trace.links'
 }
 
