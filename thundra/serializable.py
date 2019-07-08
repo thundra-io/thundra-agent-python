@@ -1,6 +1,9 @@
 import abc
 
-class Serializable(abc.ABC):
+ABC = abc.ABCMeta('ABC', (object,), {})
+
+
+class Serializable(ABC):
 
     @abc.abstractmethod
     def serialize(self):

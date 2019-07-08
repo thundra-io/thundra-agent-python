@@ -105,4 +105,5 @@ def add_incoming_trace_links(trace_links):
 
 
 def clear():
-    _incoming_trace_links.clear()
+    global _incoming_trace_links
+    _incoming_trace_links = []

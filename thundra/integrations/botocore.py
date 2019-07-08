@@ -1,3 +1,4 @@
+from builtins import super
 import traceback
 import hashlib
 import base64
@@ -128,9 +129,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def generate_trace_links(self, region, response, table_name, operation_type, attributes):
         try:
             date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
-            timestamp = parse(date_str).timestamp()
+            timestamp = (parse(date_str).replace(tzinfo=None) - datetime(1970, 1, 1)).total_seconds()
         except:
-            timestamp = datetime.now().timestamp() - 1
+            timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds() - 1
 
         attributes_hash = hashlib.md5(self.attributes_to_str(attributes).encode()).hexdigest()
 
@@ -457,9 +458,10 @@ class AWSFirehoseIntegration(BaseIntegration):
     def generate_trace_links(self, region, response, data):
         try:
             date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
-            timestamp = parse(date_str).timestamp()
+            timestamp = (parse(date_str).replace(tzinfo=None) - datetime(1970, 1, 1)).total_seconds()
+
         except:
-            timestamp = datetime.now().timestamp() - 1
+            timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds() - 1
 
         if isinstance(data, str):
             data = data.encode()

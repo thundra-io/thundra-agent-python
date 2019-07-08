@@ -1,5 +1,7 @@
+from builtins import super
 import traceback
-from urllib.parse import urlparse
+
+from thundra.compat import urlparse
 
 from thundra import config
 import thundra.constants as constants

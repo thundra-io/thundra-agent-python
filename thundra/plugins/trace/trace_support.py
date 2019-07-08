@@ -33,7 +33,8 @@ def register_span_listener(listener):
 
 
 def clear_span_listeners():
-    _active_span_listeners.clear()
+    global _active_span_listeners
+    _active_span_listeners = []
 
 
 def _parse_config(config_str):
