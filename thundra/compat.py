@@ -19,7 +19,6 @@ PY37 = (PY3 and _ver[1] == 7)
 
 if PY2:
     from urlparse import urlparse
-    from StringIO import StringIO
 
     builtin_str = str
     bytes = str
@@ -29,7 +28,6 @@ if PY2:
 
 elif PY3:
     from urllib.parse import urlparse
-    from io import StringIO
 
     builtin_str = str
     str = str

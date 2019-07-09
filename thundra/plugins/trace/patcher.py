@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import absolute_import, unicode_literals
 from builtins import super
 from thundra import constants
 import thundra.utils as utils

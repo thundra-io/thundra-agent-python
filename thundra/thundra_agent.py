@@ -12,7 +12,7 @@ from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
-from six import PY2
+from thundra.compat import PY2
 
 logger = logging.getLogger(__name__)
 
