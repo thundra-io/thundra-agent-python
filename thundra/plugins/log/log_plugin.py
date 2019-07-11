@@ -7,20 +7,12 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
 from thundra import utils, constants, config, application_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
+from thundra.plugins.log.thundra_logger import StreamToLogger
 from thundra.plugins.log import log_support
 from thundra.compat import PY37
 
 logger = logging.getLogger(__name__)
 
-
-class StreamToLogger(object):
-    def __init__(self, logger):
-        self.logger = logger
-
-    def write(self, buf):
-        for line in buf.rstrip().splitlines():
-            self.logger.info(line.rstrip())
-        sys.__stdout__.write(buf)
 
 class LogPlugin:
 
@@ -31,6 +23,7 @@ class LogPlugin:
         }
         self.log_data = {}
         self.tracer = ThundraTracer.get_instance()
+        self.old_stdout = sys.stdout
         if not config.disable_stdout_logs():
             self.logger = logging.getLogger('STDOUT')
             self.handler = ThundraLogHandler()
@@ -54,8 +47,9 @@ class LogPlugin:
 
     def before_invocation(self, plugin_context):
         del logs[:]
+        self.old_stdout = sys.stdout
         if (not config.disable_stdout_logs()) and (not PY37):
-            sys.stdout = StreamToLogger(self.logger)
+            sys.stdout = StreamToLogger(self.logger, self.old_stdout)
         context = plugin_context['context']
         plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
         self.log_data = {
@@ -71,7 +65,7 @@ class LogPlugin:
 
     def after_invocation(self, plugin_context):
         if (not config.disable_stdout_logs()) and (not PY37):
-            sys.stdout = sys.__stdout__
+            sys.stdout = self.old_stdout
         context = plugin_context['context']
 
         reporter = plugin_context['reporter']

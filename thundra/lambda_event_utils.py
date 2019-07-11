@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from builtins import str
+from future.builtins import str
 import base64
 import gzip
 import simplejson as json

@@ -1,4 +1,4 @@
-from builtins import super
+from future.builtins import super
 import traceback
 
 from thundra.compat import urlparse

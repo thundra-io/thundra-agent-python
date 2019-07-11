@@ -4,6 +4,17 @@ from thundra import config
 
 loggers = {}
 
+class StreamToLogger(object):
+    def __init__(self, logger, old_stdout):
+        self.logger = logger
+        self.old_stdout = old_stdout
+
+    def write(self, buf):
+        for line in buf.rstrip().splitlines():
+            self.logger.info(line.rstrip())
+        self.old_stdout.write(buf)
+
+
 def get_logger(name):
     global loggers
     if loggers.get(name):

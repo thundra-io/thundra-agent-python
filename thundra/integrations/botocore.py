@@ -1,4 +1,4 @@
-from builtins import super
+from future.builtins import super
 import traceback
 import hashlib
 import base64
@@ -14,6 +14,7 @@ from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.application_support import get_application_info
 
+from thundra.compat import PY37
 
 def dummy_func(*args):
     return None
@@ -97,10 +98,15 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         try:
             params = copy.deepcopy(request_data)
-            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
-                instance.meta.events._unique_id_handlers['dynamodb-attr-value-input']['handler'](params=params,
-                                                                                                 model=instance._service_model.operation_model(
-                                                                                                     operation_name))
+            if PY37:
+                id_handlers = instance.meta.events._emitter._unique_id_handlers
+            else:
+                id_handlers = instance.meta.events._unique_id_handlers
+
+            if 'dynamodb-attr-value-input' in id_handlers:
+                id_handlers['dynamodb-attr-value-input']['handler'](params=params,
+                                                                    model=instance._service_model.operation_model(operation_name))
+
             region = instance.meta.region_name
 
             if operation_name == 'PutItem':
@@ -156,7 +162,12 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         thundra_span = {'S': span.span_id}
         try:
-            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
+            if PY37:
+                id_handlers = instance.meta.events._emitter._unique_id_handlers
+            else:
+                id_handlers = instance.meta.events._unique_id_handlers
+
+            if 'dynamodb-attr-value-input' in id_handlers:
                 thundra_span = span.span_id
         except Exception as e:
             pass
@@ -175,7 +186,11 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         thundra_span = {'S': span.span_id}
         try:
-            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
+            if PY37:
+                id_handlers = instance.meta.events._emitter._unique_id_handlers
+            else:
+                id_handlers = instance.meta.events._unique_id_handlers
+            if 'dynamodb-attr-value-input' in id_handlers:
                 thundra_span = span.span_id
         except Exception as e:
             pass

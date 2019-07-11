@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import builtins
 import logging
 from threading import Lock
 from importlib import import_module
@@ -10,6 +9,10 @@ logger = logging.getLogger(__name__)
 default_error_message = "Error injected by Thundra!"
 default_error_type = Exception
 
+try:
+    import builtins
+except:
+    import __builtin__ as builtins
 
 class ErrorInjectorSpanListener(ThundraSpanListener):
     def __init__(self, error_message=default_error_message,
