@@ -1,5 +1,4 @@
 from __future__ import absolute_import, unicode_literals
-from future.builtins import super
 from thundra import constants
 import thundra.utils as utils
 from thundra.plugins.trace.traceable import Traceable
@@ -49,7 +48,7 @@ class ThundraFinder(PathFinder):
 
     def find_spec(self, fullname, path=None, target=None):
         if fullname == self.module_name:
-            spec = super().find_spec(fullname, path, target)
+            spec = super(ThundraFinder, self).find_spec(fullname, path, target)
             loader = ThundraLoader(fullname, spec.origin)
             return ModuleSpec(fullname, loader)
 
@@ -58,7 +57,7 @@ class ThundraFinder(PathFinder):
 class ThundraLoader(SourceFileLoader):
   
     def exec_module(self, module):
-        super().exec_module(module)
+        super(ThundraLoader, self).exec_module(module)
         import_patcher = ImportPatcher()
         module_name = utils.get_module_name(module)
         function_prefix = import_patcher.get_module_function_prefix(module_name)

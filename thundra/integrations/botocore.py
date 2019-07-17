@@ -1,4 +1,3 @@
-from future.builtins import super
 import traceback
 import hashlib
 import base64
@@ -83,7 +82,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
                 self.inject_trace_link_on_delete(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSDynamoDBIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         if scope.span.get_tag(constants.SpanTags['TRACE_LINKS']):
             return
@@ -309,7 +308,7 @@ class AWSSQSIntegration(BaseIntegration):
                 scope.span.set_tag(constants.AwsSQSTags['MESSAGES'], messages)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSSQSIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
         operation_name = args[0]
 
         trace_links = self.get_trace_links(operation_name, response)
@@ -383,7 +382,7 @@ class AWSSNSIntegration(BaseIntegration):
             scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSSNSIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(response)
         if trace_links:
@@ -435,7 +434,7 @@ class AWSKinesisIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSKinesisIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(instance.meta.region_name, response)
         scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
@@ -507,7 +506,7 @@ class AWSFirehoseIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSFirehoseIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(args, instance.meta.region_name, response)
         if trace_links:
@@ -572,7 +571,7 @@ class AWSS3Integration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSS3Integration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(response)
         if trace_links:
@@ -655,7 +654,7 @@ class AWSLambdaIntegration(BaseIntegration):
             self.inject_span_context_into_client_context(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSLambdaIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(response)
         if trace_links:

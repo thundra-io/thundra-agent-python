@@ -1,5 +1,5 @@
 from __future__ import unicode_literals
-from future.builtins import str
+from thundra.compat import str
 import base64
 import gzip
 import simplejson as json

@@ -1,4 +1,3 @@
-from future.builtins import super
 import traceback
 
 from thundra.compat import urlparse
@@ -94,7 +93,7 @@ class RequestsIntegration(BaseIntegration):
             pass
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(RequestsIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         if response is not None:
             self.set_response(response, scope.span)
