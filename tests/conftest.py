@@ -107,7 +107,7 @@ def mock_invocation_report():
             "traceId": "testtraceId",
             "transactionId": "testtransactionId",
             "spanId": "testspanId",
-            "functionPlatform": "AWS-Lambda",
+            "applicationPlatform": "AWS-Lambda",
             "functionName": "",
             "functionRegion": "us-west-2",
             "duration": 1000,
