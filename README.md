@@ -1,4 +1,5 @@
 # Thundra Lambda Agent Python 
+[![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
 [![CircleCI](https://circleci.com/gh/thundra-io/thundra-lambda-agent-python.svg?style=svg)](https://circleci.com/gh/thundra-io/thundra-lambda-agent-python)
 [![PyPI](https://img.shields.io/pypi/v/thundra.svg)](https://pypi.org/project/thundra/)
 
