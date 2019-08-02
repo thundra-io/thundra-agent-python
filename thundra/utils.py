@@ -201,7 +201,7 @@ def get_default_timeout_margin():
 
 
 def get_nearest_collector():
-    region = get_configuration(constants.AWS_REGION, default='us-west-2')
+    region = get_configuration(constants.AWS_REGION, default="us-west-2")
 
     if region.startswith("us-west-"):
         return "api.thundra.io"
@@ -213,6 +213,13 @@ def get_nearest_collector():
         return "api-ap-northeast-1.thundra.io"
 
     return "api.thundra.io"
+
+
+def get_aws_account_no(arn):
+    try:
+        return arn.split(":")[4]
+    except:
+        return ""
 
 
 # Excluded url's 

@@ -12,7 +12,7 @@ class MockContext:
     log_group_name = 'log_group_name'
     log_stream_name = 'log_stream_name[]id'
     aws_request_id = 'aws_request_id'
-    invoked_function_arn = 'invoked_function_arn'
+    invoked_function_arn = 'arn:aws:lambda:us-west-2:123456789123:function:test'
     function_version = 'function_version'
 
     def __init__(self, f_name='test_func'):
@@ -21,7 +21,7 @@ class MockContext:
         self.log_group_name = 'log_group_name'
         self.log_stream_name = 'log_stream_name[]id'
         self.aws_request_id = 'aws_request_id'
-        self.invoked_function_arn = 'invoked_function_arn'
+        self.invoked_function_arn = 'arn:aws:lambda:us-west-2:123456789123:function:test'
         self.function_version = 'function_version'
 
 
@@ -30,7 +30,7 @@ class LambdaTriggeredMockContext:
     log_group_name = 'log_group_name'
     log_stream_name = 'log_stream_name[]id'
     aws_request_id = 'aws_request_id'
-    invoked_function_arn = 'invoked_function_arn'
+    invoked_function_arn = 'arn:aws:lambda:us-west-2:123456789123:function:test'
     function_version = 'function_version'
 
     def __init__(self, f_name='test_func'):
@@ -39,7 +39,7 @@ class LambdaTriggeredMockContext:
         self.log_group_name = 'log_group_name'
         self.log_stream_name = 'log_stream_name[]id'
         self.aws_request_id = 'aws_request_id'
-        self.invoked_function_arn = 'invoked_function_arn'
+        self.invoked_function_arn = 'arn:aws:lambda:us-west-2:123456789123:function:test'
         self.function_version = 'function_version'
         self.client_context = type('', (), {})()
         self.client_context.custom = {

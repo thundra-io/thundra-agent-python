@@ -101,7 +101,8 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
     except Exception as e:
         pass
 
-    assert invocation_plugin.invocation_data['tags']['aws.lambda.arn'] == 'invoked_function_arn'
+    assert invocation_plugin.invocation_data['tags']['aws.lambda.arn'] == 'arn:aws:lambda:us-west-2:123456789123:function:test'
+    assert invocation_plugin.invocation_data['tags']['aws.account_no'] == '123456789123'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.memory_limit'] == 128
     assert invocation_plugin.invocation_data['tags']['aws.lambda.log_group_name'] == 'log_group_name'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.log_stream_name'] == 'log_stream_name[]id'
