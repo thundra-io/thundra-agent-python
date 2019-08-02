@@ -6,6 +6,7 @@ from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
 
 from thundra.plugins.metric import metric_support
+from thundra.compat import PY2
 
 logger = logging.getLogger(__name__)
 
@@ -88,16 +89,23 @@ class MetricPlugin:
         reporter.add_report(thread_metric_report)
 
     def add_gc_metric_report(self, reporter):
-        gc_metrics = gc.get_stats()
+        gc_metrics = gc.get_count()
+        if not PY2:
+            gc_metrics = gc.get_stats()
+
         gc_metric_data = {
             'id': str(uuid.uuid4()),
             'metricName': 'GCMetric'
         }
+
         gen = 0
         metrics = {}
         for metric in gc_metrics:
             key = 'generation' + str(gen) + 'Collections'
-            metrics[key] = metric['collections']
+            if PY2:
+                metrics[key] = metric
+            else:
+                metrics[key] = metric['collections']
             gen += 1
         gc_metric_data.update(self.metric_data)
         gc_metric_data['metrics'] = metrics

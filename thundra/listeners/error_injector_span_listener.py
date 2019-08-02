@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-import builtins
 import logging
 from threading import Lock
 from importlib import import_module
@@ -10,10 +9,15 @@ logger = logging.getLogger(__name__)
 default_error_message = "Error injected by Thundra!"
 default_error_type = Exception
 
+try:
+    import builtins
+except:
+    import __builtin__ as builtins
+
 class ErrorInjectorSpanListener(ThundraSpanListener):
-    def __init__(self, error_message=default_error_message, 
-        error_type=default_error_type, inject_on_finish=False,
-        inject_count_freq=1, add_info_tags=True):
+    def __init__(self, error_message=default_error_message,
+                 error_type=default_error_type, inject_on_finish=False,
+                 inject_count_freq=1, add_info_tags=True):
 
         self._counter = 0
         self._lock = Lock()
@@ -23,15 +27,15 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
         self.inject_on_finish = inject_on_finish
         self.inject_count_freq = max(inject_count_freq, 1)
         self.add_info_tags = add_info_tags
-    
+
     def on_span_started(self, span):
         if (not self.inject_on_finish
-            and self._able_to_raise()):
+                and self._able_to_raise()):
             self._raise_error(span)
 
     def on_span_finished(self, span):
         if (self.inject_on_finish
-            and self._able_to_raise()):
+                and self._able_to_raise()):
             self._raise_error(span)
 
     def _raise_error(self, span):
@@ -39,7 +43,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
         if self.add_info_tags:
             self._add_info_tags(span)
         raise err
-    
+
     def _able_to_raise(self):
         if self._increment_and_get_counter() % self.inject_count_freq == 0:
             return True
@@ -48,9 +52,9 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
     def _increment_and_get_counter(self):
         with self._lock:
             self._counter += 1
-        
+
         return self._counter
-    
+
     def _add_info_tags(self, span):
         try:
             info_dict = {
@@ -63,7 +67,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
             span.set_tag(constants.THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
         except Exception as e:
             logger.error("error while adding ErrorInjectorSpanListener info tags: %s", e)
-    
+
     @staticmethod
     def from_config(config):
         kwargs = {}
@@ -114,7 +118,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
     @staticmethod
     def _log_value_parse_err(param, param_name):
         logger.error(("couldn't parse %s parameter (%s) of "
-            "ErrorInjectorSpanListener, using the default value"), param_name, param)
+                      "ErrorInjectorSpanListener, using the default value"), param_name, param)
 
     @staticmethod
     def should_raise_exceptions():

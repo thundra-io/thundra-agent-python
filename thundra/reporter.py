@@ -60,7 +60,7 @@ class Reporter():
                         print(json.dumps(report, separators=(',', ':')))
                     except TypeError:
                         logger.error(("Couldn't dump report with type {} to json string, "
-                                    "probably it contains a byte array").format(report.get('type')))
+                                      "probably it contains a byte array").format(report.get('type')))
 
             return []
 
@@ -131,4 +131,4 @@ class Reporter():
         return batched_reports
 
     def clear(self):
-        self.reports.clear()
+        self.reports = []

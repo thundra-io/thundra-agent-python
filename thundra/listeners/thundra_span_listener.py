@@ -1,6 +1,8 @@
 import abc
 
-class ThundraSpanListener(abc.ABC):
+ABC = abc.ABCMeta('ABC', (object,), {})
+
+class ThundraSpanListener(ABC):
     @abc.abstractmethod
     def on_span_started(self, operation_name):
         raise Exception("should be implemented")

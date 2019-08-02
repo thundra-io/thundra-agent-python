@@ -6,15 +6,19 @@ from functools import wraps
 
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
-from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
+from thundra.compat import PY2
 
 logger = logging.getLogger(__name__)
+
+if not PY2:
+    from thundra.plugins.trace.patcher import ImportPatcher
+
 
 class Thundra:
 
@@ -26,7 +30,7 @@ class Thundra:
 
         constants.REQUEST_COUNT = 0
         self.plugins = []
-        
+
         self.api_key = config.api_key(api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
@@ -47,7 +51,8 @@ class Thundra:
         self.reporter = Reporter(self.api_key)
 
         if not config.trace_instrument_disabled():
-            self.import_patcher = ImportPatcher()
+            if not PY2:
+                self.import_patcher = ImportPatcher()
 
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
@@ -62,11 +67,10 @@ class Thundra:
             after_done = False
 
             # Clear plugin context for each invocation
-            self.plugin_context = {}
-            self.plugin_context['reporter'] = self.reporter
+            self.plugin_context = {'reporter': self.reporter}
             application_support.parse_application_info(context)
             invocation_support.parse_invocation_info(context)
-            
+
             # Before running user's handler
             try:
                 if config.warmup_aware() and self.check_and_handle_warmup_request(event):
@@ -83,16 +87,16 @@ class Thundra:
                         timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
                         if timeout_duration <= 0:
                             timeout_duration = context.get_remaining_time_in_millis() - \
-                                                        constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                                               constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
                             logger.warning('Given timeout margin is bigger than lambda timeout duration and '
-                                        'since the difference is negative, it is set to default value (' +
-                                        str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+                                           'since the difference is negative, it is set to default value (' +
+                                           str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
                         signal.setitimer(signal.ITIMER_REAL, timeout_duration / 1000.0)
                 before_done = True
             except Exception as e:
                 logger.error("Error during the before part of Thundra: {}".format(e))
                 before_done = False
-            
+
             # Invoke user handler
             if before_done:
                 try:
@@ -105,7 +109,7 @@ class Thundra:
                         after_done = True
                     except Exception as e_in:
                         logger.error("Error during the after part of Thundra: {}".format(e_in))
-                        self.reporter.reports.clear()
+                        self.reporter.reports = []
                         after_done = False
                         pass
                     raise e
@@ -113,18 +117,19 @@ class Thundra:
                     self.stop_timer()
             else:
                 self.stop_timer()
-                self.reporter.reports.clear()
+                self.reporter.reports = []
                 return original_func(event, context)
-            
+
             # After having run the user's handler
             if before_done and not after_done:
                 try:
                     self.prepare_and_send_reports()
                 except Exception as e:
                     logger.error("Error during the after part of Thundra: {}".format(e))
-                    self.reporter.reports.clear()
-                
+                    self.reporter.reports = []
+
             return response
+
         setattr(wrapper, 'thundra_wrapper', True)
         return wrapper
 
@@ -133,7 +138,7 @@ class Thundra:
     def execute_hook(self, name, data):
         if name == 'after:invocation':
             [plugin.hooks[name](data) for plugin in reversed(self.plugins) if hasattr(plugin, 'hooks') \
-                                                                                and name in plugin.hooks]
+             and name in plugin.hooks]
         else:
             [plugin.hooks[name](data) for plugin in self.plugins if hasattr(plugin, 'hooks') and name in plugin.hooks]
 

@@ -24,8 +24,7 @@ def test_log_plugin_with_initialization():
     assert log['logContextName'] == 'test_handler'
     assert log['logLevel'] == "INFO"
     assert log['logLevelCode'] == 2
-
-    logs.clear()
+    del logs[:]
 
 
 def test_log_plugin_with_config_file():

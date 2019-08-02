@@ -1,12 +1,13 @@
 import os
 import logging
-from urllib.parse import urlparse
+
+from thundra.compat import urlparse
 from thundra import constants
 
 logger = logging.getLogger(__name__)
 
 def get_configuration(key, default=None):
-    return os.environ.get(key, default=default)
+    return os.environ.get(key, default)
 
 def str_to_proper_type(val):
     result = val

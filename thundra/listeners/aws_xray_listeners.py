@@ -3,18 +3,19 @@ import logging
 import traceback
 from thundra import constants, application_support
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
+
 try:
     from aws_xray_sdk.core import xray_recorder
 except ImportError:
     xray_recorder = None
 
-
 logger = logging.getLogger(__name__)
+
 
 class AWSXRayListener(ThundraSpanListener):
     def __init__(self):
         pass
-    
+
     def _start_subsegment(self, span):
         subsegment_name = self._normalize_operation_name(span.operation_name)
         xray_recorder.begin_subsegment(subsegment_name)
@@ -26,12 +27,12 @@ class AWSXRayListener(ThundraSpanListener):
                 span.tags[constants.AwsXrayConstants['XRAY_SUBSEGMENTED_TAG_NAME']] = True
             except Exception as e:
                 logger.error(("error occured while starting XRay subsegment "
-                        "for span with name %s: %s"), span.operation_name, e)
+                              "for span with name %s: %s"), span.operation_name, e)
 
     def _end_subsegment(self, span):
         if not span.get_tag(constants.AwsXrayConstants['XRAY_SUBSEGMENTED_TAG_NAME']):
             return
-        
+
         try:
             subsegment = xray_recorder.current_subsegment()
             if subsegment is not None:
@@ -72,7 +73,6 @@ class AWSXRayListener(ThundraSpanListener):
         for k, v in annotations.items():
             if isinstance(v, str) or isinstance(v, int) or isinstance(v, bool):
                 subsegment.put_annotation(self._normalize_annotation_name(k), self._normalize_annotation_value(v))
-            
 
     def _add_metadata(self, subsegment, span):
         for k, v in span.tags.items():
@@ -107,7 +107,7 @@ class AWSXRayListener(ThundraSpanListener):
     @staticmethod
     def get_xray_recorder():
         return xray_recorder
-        
+
     @staticmethod
     def from_config(config):
         raise NotImplementedError

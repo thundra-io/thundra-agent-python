@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+from thundra.compat import str
 import base64
 import gzip
 import simplejson as json
@@ -6,7 +8,12 @@ from enum import Enum
 from thundra import constants
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 
-from datetime import datetime
+try:
+    from BytesIO import BytesIO
+except ImportError:
+    from io import BytesIO
+from gzip import GzipFile
+
 
 class LambdaEventType(Enum):
     Kinesis = 'kinesis',
@@ -60,6 +67,7 @@ def get_lambda_event_type(original_event, original_context):
     elif 'client_context' in vars(original_context):
         return LambdaEventType.Lambda
 
+
 def inject_trigger_tags_for_kinesis(span, original_event):
     domain_name = constants.DomainNames['STREAM']
     class_name = constants.ClassNames['KINESIS']
@@ -81,6 +89,7 @@ def inject_trigger_tags_for_kinesis(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_firehose(span, original_event):
     domain_name = constants.DomainNames['STREAM']
     class_name = constants.ClassNames['FIREHOSE']
@@ -95,7 +104,7 @@ def inject_trigger_tags_for_firehose(span, original_event):
     if 'records' in original_event:
         for record in original_event['records']:
             if "approximateArrivalTimestamp" in record and "data" in record:
-                timestamp = record["approximateArrivalTimestamp"]/1000
+                timestamp = record["approximateArrivalTimestamp"] / 1000
                 try:
                     data = base64.b64decode(record["data"])
                     data_md5 = hashlib.md5(data).hexdigest()
@@ -131,7 +140,7 @@ def inject_trigger_tags_for_dynamodb(span, original_event):
                 span_id = new_image.get('x-thundra-span-id').get('S')
                 trace_link_found = True
                 trace_links.append("SAVE:" + span_id)
-        
+
         elif record['eventName'] == "REMOVE":
             old_image = record['dynamodb'].get('OldImage')
             if old_image and old_image.get('x-thundra-span-id'):
@@ -143,17 +152,21 @@ def inject_trigger_tags_for_dynamodb(span, original_event):
             creation_time = record['dynamodb'].get('ApproximateCreationDateTime')
             if creation_time:
                 if record['eventName'] == "INSERT" or record['eventName'] == "MODIFY":
-                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "SAVE", record['dynamodb'].get('NewImage'))
-                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "SAVE", record['dynamodb'].get('Keys'))
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "SAVE",
+                                             record['dynamodb'].get('NewImage'))
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "SAVE",
+                                             record['dynamodb'].get('Keys'))
 
                 elif record['eventName'] == "REMOVE":
-                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "DELETE", record['dynamodb'].get('Keys'))
+                    add_dynamodb_trace_links(trace_links, region, table_name, creation_time, "DELETE",
+                                             record['dynamodb'].get('Keys'))
 
     invocation_trace_support.add_incoming_trace_links(trace_links)
 
     operation_names = list(set(table_names))
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
+
 
 def add_dynamodb_trace_links(trace_links, region, table_name, creation_time, operation_type, attributes):
     timestamp = creation_time - 1
@@ -163,7 +176,9 @@ def add_dynamodb_trace_links(trace_links, region, table_name, creation_time, ope
 
     if attributes_hash:
         for i in range(3):
-            trace_links.append(region + ':' + table_name+ ':' + str(int(timestamp + i)) + ':' + operation_type + ':' + attributes_hash)
+            trace_links.append(region + ':' + table_name + ':' + str(
+                int(timestamp + i)) + ':' + operation_type + ':' + attributes_hash)
+
 
 def attributes_to_str(attributes):
     sorted_keys = sorted(attributes.keys())
@@ -171,10 +186,11 @@ def attributes_to_str(attributes):
     for attr in sorted_keys:
         try:
             key = list(attributes[attr].keys())[0]
-            attributes_sorted.append(attr + '=' + '{' + key + ': '+  str(attributes[attr][key]) + '}')
+            attributes_sorted.append(attr + '=' + '{' + key + ': ' + str(attributes[attr][key]) + '}')
         except Exception as e:
             pass
     return ', '.join(attributes_sorted)
+
 
 def inject_trigger_tags_for_sns(span, original_event):
     domain_name = constants.DomainNames['MESSAGING']
@@ -194,6 +210,7 @@ def inject_trigger_tags_for_sns(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_sqs(span, original_event):
     domain_name = constants.DomainNames['MESSAGING']
     class_name = constants.ClassNames['SQS']
@@ -211,6 +228,7 @@ def inject_trigger_tags_for_sqs(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_s3(span, original_event):
     domain_name = constants.DomainNames['STORAGE']
     class_name = constants.ClassNames['S3']
@@ -227,6 +245,7 @@ def inject_trigger_tags_for_s3(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_cloudwatch_schedule(span, original_event):
     domain_name = constants.DomainNames['SCHEDULE']
     class_name = constants.ClassNames['SCHEDULE']
@@ -238,19 +257,21 @@ def inject_trigger_tags_for_cloudwatch_schedule(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_cloudwatch_logs(span, original_event):
     domain_name = constants.DomainNames['LOG']
     class_name = constants.ClassNames['CLOUDWATCHLOG']
     operation_names = []
     try:
         compressed_data = base64.b64decode(original_event['awslogs']['data'])
-        decompressed_data = json.loads(str(gzip.decompress(compressed_data), 'utf-8'))
+        decompressed_data = json.loads(str(GzipFile(fileobj=BytesIO(compressed_data)).read(), 'utf-8'))
         operation_names = [decompressed_data['logGroup']]
-    except:
-        print('Error handling base64 format!')
-    
+    except Exception as e:
+        print('Error handling base64 format!', e)
+
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
+
 
 def inject_trigger_tags_for_cloudfront(span, original_event):
     domain_name = constants.DomainNames['CDN']
@@ -266,6 +287,7 @@ def inject_trigger_tags_for_cloudfront(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     domain_name = constants.DomainNames['API']
     class_name = constants.ClassNames['APIGATEWAY']
@@ -278,14 +300,16 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
+
 def inject_trigger_tags_for_api_gateway(span, original_event):
     domain_name = constants.DomainNames['API']
     class_name = constants.ClassNames['APIGATEWAY']
     operation_names = [str(original_event['params']['header']['Host']) + '/' + str(
         original_event['context']['stage']) + str(original_event['params']['path'])]
-    
+
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
+
 
 def inject_trigger_tags_for_lambda(span, original_context):
     try:
@@ -305,11 +329,13 @@ def inject_trigger_tags_for_lambda(span, original_context):
     except Exception as e:
         pass
 
+
 def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names, topology_vertex=True):
     span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)
     span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], class_name)
     span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], topology_vertex)
     span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], operation_names)
+
 
 def inject_trigger_tags_to_invocation(domain_name, class_name, operation_names):
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)

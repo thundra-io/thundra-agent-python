@@ -1,5 +1,5 @@
 import opentracing
-
+import copy
 
 class ThundraSpanContext(opentracing.SpanContext):
 
@@ -40,7 +40,7 @@ class ThundraSpanContext(opentracing.SpanContext):
         return self._baggage
 
     def context_with_baggage_item(self, key, value):
-        new_baggage_item = self.baggage.copy()
+        new_baggage_item = copy.copy(self.baggage)
         new_baggage_item[key] = value
         return ThundraSpanContext(trace_id=self.trace_id,
                                   transaction_id=self.transaction_id,

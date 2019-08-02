@@ -10,7 +10,7 @@ def test_coldstarts(handler, mock_context, mock_event, monkeypatch):
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -28,7 +28,7 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     try:
@@ -47,7 +47,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -74,7 +74,7 @@ def test_tags_error(handler_with_exception, mock_context, mock_event, monkeypatc
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     try:
@@ -93,7 +93,7 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     try:
@@ -114,7 +114,7 @@ def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -127,7 +127,7 @@ def test_when_app_stage_not_exists(handler, mock_context, mock_event):
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is InvocationPlugin:
+        if isinstance(plugin, InvocationPlugin):
             invocation_plugin = plugin
 
     handler(mock_event, mock_context)

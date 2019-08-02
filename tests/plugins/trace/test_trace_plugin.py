@@ -6,7 +6,7 @@ def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is TracePlugin:
+        if isinstance(plugin, TracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -19,7 +19,7 @@ def test_when_app_stage_not_exists(handler, mock_context, mock_event):
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is TracePlugin:
+        if isinstance(plugin, TracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -32,7 +32,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if type(plugin) is TracePlugin:
+        if isinstance(plugin, TracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)

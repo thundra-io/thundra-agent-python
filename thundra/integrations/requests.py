@@ -1,5 +1,6 @@
 import traceback
-from urllib.parse import urlparse
+
+from thundra.compat import urlparse
 
 from thundra import config
 import thundra.constants as constants
@@ -92,7 +93,7 @@ class RequestsIntegration(BaseIntegration):
             pass
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(RequestsIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         if response is not None:
             self.set_response(response, scope.span)

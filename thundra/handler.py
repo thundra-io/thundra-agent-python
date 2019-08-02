@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 from importlib import import_module
 from thundra.thundra_agent import Thundra

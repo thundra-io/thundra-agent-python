@@ -13,6 +13,7 @@ from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.application_support import get_application_info
 
+from thundra.compat import PY37
 
 def dummy_func(*args):
     return None
@@ -81,7 +82,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
                 self.inject_trace_link_on_delete(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSDynamoDBIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         if scope.span.get_tag(constants.SpanTags['TRACE_LINKS']):
             return
@@ -96,10 +97,15 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         try:
             params = copy.deepcopy(request_data)
-            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
-                instance.meta.events._unique_id_handlers['dynamodb-attr-value-input']['handler'](params=params,
-                                                                                                 model=instance._service_model.operation_model(
-                                                                                                     operation_name))
+            if PY37:
+                id_handlers = instance.meta.events._emitter._unique_id_handlers
+            else:
+                id_handlers = instance.meta.events._unique_id_handlers
+
+            if 'dynamodb-attr-value-input' in id_handlers:
+                id_handlers['dynamodb-attr-value-input']['handler'](params=params,
+                                                                    model=instance._service_model.operation_model(operation_name))
+
             region = instance.meta.region_name
 
             if operation_name == 'PutItem':
@@ -128,9 +134,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def generate_trace_links(self, region, response, table_name, operation_type, attributes):
         try:
             date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
-            timestamp = parse(date_str).timestamp()
+            timestamp = (parse(date_str).replace(tzinfo=None) - datetime(1970, 1, 1)).total_seconds()
         except:
-            timestamp = datetime.now().timestamp() - 1
+            timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds() - 1
 
         attributes_hash = hashlib.md5(self.attributes_to_str(attributes).encode()).hexdigest()
 
@@ -155,7 +161,12 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         thundra_span = {'S': span.span_id}
         try:
-            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
+            if PY37:
+                id_handlers = instance.meta.events._emitter._unique_id_handlers
+            else:
+                id_handlers = instance.meta.events._unique_id_handlers
+
+            if 'dynamodb-attr-value-input' in id_handlers:
                 thundra_span = span.span_id
         except Exception as e:
             pass
@@ -174,7 +185,11 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         thundra_span = {'S': span.span_id}
         try:
-            if 'dynamodb-attr-value-input' in instance.meta.events._unique_id_handlers:
+            if PY37:
+                id_handlers = instance.meta.events._emitter._unique_id_handlers
+            else:
+                id_handlers = instance.meta.events._unique_id_handlers
+            if 'dynamodb-attr-value-input' in id_handlers:
                 thundra_span = span.span_id
         except Exception as e:
             pass
@@ -293,7 +308,7 @@ class AWSSQSIntegration(BaseIntegration):
                 scope.span.set_tag(constants.AwsSQSTags['MESSAGES'], messages)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSSQSIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
         operation_name = args[0]
 
         trace_links = self.get_trace_links(operation_name, response)
@@ -367,7 +382,7 @@ class AWSSNSIntegration(BaseIntegration):
             scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSSNSIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(response)
         if trace_links:
@@ -419,7 +434,7 @@ class AWSKinesisIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSKinesisIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(instance.meta.region_name, response)
         scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
@@ -457,9 +472,10 @@ class AWSFirehoseIntegration(BaseIntegration):
     def generate_trace_links(self, region, response, data):
         try:
             date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
-            timestamp = parse(date_str).timestamp()
+            timestamp = (parse(date_str).replace(tzinfo=None) - datetime(1970, 1, 1)).total_seconds()
+
         except:
-            timestamp = datetime.now().timestamp() - 1
+            timestamp = (datetime.now() - datetime(1970, 1, 1)).total_seconds() - 1
 
         if isinstance(data, str):
             data = data.encode()
@@ -490,7 +506,7 @@ class AWSFirehoseIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSFirehoseIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(args, instance.meta.region_name, response)
         if trace_links:
@@ -555,7 +571,7 @@ class AWSS3Integration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSS3Integration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(response)
         if trace_links:
@@ -638,7 +654,7 @@ class AWSLambdaIntegration(BaseIntegration):
             self.inject_span_context_into_client_context(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
-        super().after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        super(AWSLambdaIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
         trace_links = self.get_trace_links(response)
         if trace_links:

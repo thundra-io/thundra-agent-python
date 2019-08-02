@@ -179,7 +179,7 @@ class TracePlugin:
             pass
 
     def flush_current_span_data(self):
-        self.span_data_list.clear()
+        self.span_data_list = []
 
     def build_span(self, span, plugin_context):
         transaction_id = plugin_context['transaction_id'] or str(uuid.uuid4())

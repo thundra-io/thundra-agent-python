@@ -12,6 +12,8 @@ from thundra.opentracing.tracer import ThundraTracer
 
 Base = declarative_base()
 
+from thundra.compat import PY2
+
 class Movie(Base):
     __tablename__ = 'movies'
 
@@ -146,30 +148,30 @@ def test_sqlalchemy_connection_execute_mysql_error(monkeypatch):
 
     tracer.clear()
 
+if not PY2:
+    def test_sqlalchemy_connection_execute_sqlite(monkeypatch):
+        engine = set_up_engine_and_table('sqlite:///:memory:')
 
-def test_sqlalchemy_connection_execute_sqlite(monkeypatch):
-    engine = set_up_engine_and_table('sqlite:///:memory:')
+        query = "SELECT title FROM movies"
+        connection = engine.connect()
+        result = connection.execute(query)
 
-    query = "SELECT title FROM movies"
-    connection = engine.connect()
-    result = connection.execute(query)
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[0]
 
-    tracer = ThundraTracer.get_instance()
-    span = tracer.get_spans()[0]
+        assert span.domain_name == constants.DomainNames['DB']
+        assert span.class_name == constants.ClassNames['SQLITE']
+        assert span.operation_name == ':memory:'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == ':memory:'
+        assert span.get_tag(constants.SpanTags['DB_TYPE']) == "sqlite"
+        assert span.get_tag(constants.SpanTags['DB_HOST']) == ''
+        assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
+        assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
+        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
+        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
-    assert span.domain_name == constants.DomainNames['DB']
-    assert span.class_name == constants.ClassNames['SQLITE']
-    assert span.operation_name == ':memory:'
-    assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
-    assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == ':memory:'
-    assert span.get_tag(constants.SpanTags['DB_TYPE']) == "sqlite"
-    assert span.get_tag(constants.SpanTags['DB_HOST']) == ''
-    assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
-    assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-    assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-    assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
-
-    tracer.clear()
+        tracer.clear()
 
 
 

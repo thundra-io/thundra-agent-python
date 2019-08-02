@@ -1,14 +1,16 @@
 import abc
 import thundra.utils as utils
 
-class SpanFilterer(abc.ABC):
+ABC = abc.ABCMeta('ABC', (object,), {})
+
+class SpanFilterer(ABC):
     @abc.abstractmethod
     def accept(self, span):
         '''
         Returns whether or not given span is able to pass through
         the filterer.
         '''
-class SpanFilter(abc.ABC):
+class SpanFilter(ABC):
     @abc.abstractmethod
     def accept(self, span):
         '''
@@ -34,7 +36,7 @@ class ThundraSpanFilterer(SpanFilterer):
         self.span_filters.append(filter)
     
     def clear_filters(self):
-        self.span_filters.clear()
+        self.span_filters = []
 
 class ThundraSpanFilter(SpanFilter):
     

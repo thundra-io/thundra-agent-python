@@ -2,8 +2,11 @@ import os
 import mock
 import requests
 from thundra.opentracing.tracer import ThundraTracer
-from urllib.parse import urlparse
+
+from thundra.compat import urlparse
+
 from thundra import constants
+
 
 def test_successful_http_call():
     try:
@@ -17,13 +20,13 @@ def test_successful_http_call():
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
-        assert http_span.operation_name == host+path
+        assert http_span.operation_name == host + path
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
         assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
-        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host+path
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host + path
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
@@ -31,6 +34,7 @@ def test_successful_http_call():
         raise
     finally:
         tracer.clear()
+
 
 def test_http_put():
     try:
@@ -45,7 +49,7 @@ def test_http_put():
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
-        assert http_span.operation_name == host+normalized_path
+        assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
@@ -61,6 +65,7 @@ def test_http_put():
     finally:
         tracer.clear()
 
+
 def test_http_put_body_masked(monkeypatch):
     try:
         monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_HTTP_BODY, 'true')
@@ -75,13 +80,13 @@ def test_http_put_body_masked(monkeypatch):
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
-        assert http_span.operation_name == host+normalized_path
+        assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
         assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'PUT'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'PUT'
-        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host+path
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host + path
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
@@ -90,6 +95,7 @@ def test_http_put_body_masked(monkeypatch):
         raise
     finally:
         tracer.clear()
+
 
 def test_successful_http_call_with_query_params():
     try:
@@ -119,16 +125,17 @@ def test_successful_http_call_with_query_params():
     finally:
         tracer.clear()
 
+
 def test_http_call_with_session():
     try:
         url = 'https://httpbin.org/cookies/set/sessioncookie/123456789'
         parsed_url = urlparse(url)
         query = parsed_url.query
         host = parsed_url.netloc
-        
+
         s = requests.Session()
         s.get(url)
-        
+
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
@@ -144,6 +151,7 @@ def test_http_call_with_session():
     finally:
         tracer.clear()
 
+
 def test_errorneous_http_call():
     try:
         url = 'http://adummyurlthatnotexists.xyz/'
@@ -151,7 +159,7 @@ def test_errorneous_http_call():
         path = parsed_url.path
         query = parsed_url.query
         host = parsed_url.netloc
-        
+
         try:
             requests.get(url)
         except Exception:
@@ -160,13 +168,13 @@ def test_errorneous_http_call():
         tracer = ThundraTracer.get_instance()
         http_span = tracer.get_spans()[0]
 
-        assert http_span.operation_name == host+path
+        assert http_span.operation_name == host + path
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
 
         assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
-        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host+path
+        assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host + path
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query

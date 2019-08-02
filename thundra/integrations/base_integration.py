@@ -6,8 +6,10 @@ from thundra.opentracing.tracer import ThundraTracer
 
 logger = logging.getLogger(__name__)
 
+ABC = abc.ABCMeta('ABC', (object,), {})
 
-class BaseIntegration(abc.ABC):
+
+class BaseIntegration(ABC):
     def run_and_trace(self, wrapped, instance, args, kwargs):
         tracer = ThundraTracer.get_instance()
         if not tracer.get_active_span():
