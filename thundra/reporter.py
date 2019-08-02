@@ -1,7 +1,7 @@
 import simplejson as json
 import logging
 
-from thundra import constants, config, composite
+from thundra import constants, config, composite, utils
 from multiprocessing.dummy import Pool as ThreadPool
 
 try:
@@ -44,7 +44,7 @@ class Reporter():
 
         path = constants.COMPOSITE_DATA_PATH if config.rest_composite_data_enabled() else constants.PATH
 
-        request_url = constants.HOST + path
+        request_url = "https://" + utils.get_nearest_collector() + "/v1" + path
         base_url = config.report_base_url()
         if base_url is not None:
             request_url = base_url + path

@@ -176,7 +176,8 @@ def is_excluded_url(url):
             if method(host, excluded_url):
                 return True
     return False
-    
+
+
 def get_default_timeout_margin():
     region = get_configuration(constants.AWS_REGION, default='')
     size_from_env_var = get_aws_lambda_function_memory_size()
@@ -197,6 +198,21 @@ def get_default_timeout_margin():
 
     normalized_timeout_margin = int((384.0/memory) * timeout_margin)
     return max(timeout_margin, normalized_timeout_margin)
+
+
+def get_nearest_collector():
+    region = get_configuration(constants.AWS_REGION, default='us-west-2')
+
+    if region.startswith("us-west-"):
+        return "api.thundra.io"
+    elif region.startswith("us-east-") or region.startswith("sa-") or region.startswith("ca-"):
+        return "api-us-east-1.thundra.io"
+    elif region.startswith("eu-"):
+        return "api-eu-west-2.thundra.io"
+    elif region.startswith("ap-"):
+        return "api-ap-northeast-1.thundra.io"
+
+    return "api.thundra.io"
 
 
 # Excluded url's 
