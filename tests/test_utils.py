@@ -29,3 +29,21 @@ def test_get_default_timeout_margin(monkeypatch):
 
     timeout_margin = utils.get_default_timeout_margin()
     assert timeout_margin == 3000
+
+
+def test_get_nearest_collector(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'us-west-2')
+    collector = utils.get_nearest_collector()
+    assert collector == "api.thundra.io"
+
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'us-east-2')
+    collector = utils.get_nearest_collector()
+    assert collector == "api-us-east-1.thundra.io"
+
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'eu-west-1')
+    collector = utils.get_nearest_collector()
+    assert collector == "api-eu-west-2.thundra.io"
+
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'ap-')
+    collector = utils.get_nearest_collector()
+    assert collector == "api-ap-northeast-1.thundra.io"
