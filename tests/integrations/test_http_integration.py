@@ -245,3 +245,71 @@ def test_apigw_call(mock_actual_call):
         raise
     finally:
         tracer.clear()
+
+
+@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+def test_http_4xx_error(mock_actual_call):
+    mock_actual_call.return_value = requests.Response()
+    mock_actual_call.return_value.status_code = 404
+    mock_actual_call.return_value.reason = "Not Found"
+
+    url = 'http://adummyurlthatnotexists.xyz/'
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+    query = parsed_url.query
+    host = parsed_url.netloc
+
+    requests.get(url)
+
+    tracer = ThundraTracer.get_instance()
+    http_span = tracer.get_spans()[0]
+
+    assert http_span.operation_name == host + path
+    assert http_span.domain_name == constants.DomainNames['API']
+    assert http_span.class_name == constants.ClassNames['HTTP']
+
+    assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
+    assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
+    assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host + path
+    assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
+    assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
+    assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
+    assert http_span.get_tag('error') == True
+    assert http_span.get_tag('error.kind') == 'HttpError'
+    assert http_span.get_tag('error.message') == 'Not Found'
+
+    tracer.clear()
+
+
+@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+def test_http_5xx_error(mock_actual_call):
+    mock_actual_call.return_value = requests.Response()
+    mock_actual_call.return_value.status_code = 500
+    mock_actual_call.return_value.reason = "Internal Server Error"
+
+    url = 'http://adummyurlthatnotexists.xyz/'
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+    query = parsed_url.query
+    host = parsed_url.netloc
+
+    requests.get(url)
+
+    tracer = ThundraTracer.get_instance()
+    http_span = tracer.get_spans()[0]
+
+    assert http_span.operation_name == host + path
+    assert http_span.domain_name == constants.DomainNames['API']
+    assert http_span.class_name == constants.ClassNames['HTTP']
+
+    assert http_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
+    assert http_span.get_tag(constants.HttpTags['HTTP_METHOD']) == 'GET'
+    assert http_span.get_tag(constants.HttpTags['HTTP_URL']) == host + path
+    assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
+    assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
+    assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
+    assert http_span.get_tag('error') == True
+    assert http_span.get_tag('error.kind') == 'HttpError'
+    assert http_span.get_tag('error.message') == 'Internal Server Error'
+
+    tracer.clear()

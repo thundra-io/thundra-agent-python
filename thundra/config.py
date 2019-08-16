@@ -204,3 +204,11 @@ def http_body_masked():
 
 def http_integration_url_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATTIONS_HTTP_URL_DEPTH, default=1)
+
+
+def http_4xx_set_error_disabled():
+    return bool_from_env(constants.THUNDRA_DISABLE_HTTP_4XX_ERROR)
+
+
+def http_5xx_set_error_disabled():
+    return bool_from_env(constants.THUNDRA_DISABLE_HTTP_5XX_ERROR)
