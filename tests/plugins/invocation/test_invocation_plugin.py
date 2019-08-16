@@ -134,3 +134,19 @@ def test_when_app_stage_not_exists(handler, mock_context, mock_event):
     handler(mock_event, mock_context)
 
     assert invocation_plugin.invocation_data['applicationStage'] is ''
+
+
+def test_invocation_support_error_set(handler_with_user_error, mock_context, mock_event, monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+    thundra, handler = handler_with_user_error
+
+    invocation_plugin = None
+    for plugin in thundra.plugins:
+        if isinstance(plugin, InvocationPlugin):
+            invocation_plugin = plugin
+
+    handler(mock_event, mock_context)
+
+    assert invocation_plugin.invocation_data['tags']['error'] is True
+    assert invocation_plugin.invocation_data['tags']['error.kind'] == 'Exception'
+    assert invocation_plugin.invocation_data['tags']['error.message'] == 'test'

@@ -187,6 +187,15 @@ def handler_with_exception(thundra):
 
     return thundra, _handler
 
+@pytest.fixture
+def handler_with_user_error(thundra):
+    @thundra.call
+    def _handler(event, context):
+        invocation_support.set_error(Exception("test"))
+
+    return thundra, _handler
+
+
 
 @pytest.fixture
 def wrap_handler_with_thundra(thundra):

@@ -63,6 +63,25 @@ class InvocationPlugin:
             self.end_time = int(time.time() * 1000)
             plugin_context['end_time'] = self.end_time
 
+    def set_error(self, error):
+        error_type = type(error)
+        self.invocation_data['erroneous'] = True
+        self.invocation_data['errorType'] = error_type.__name__
+        self.invocation_data['errorMessage'] = str(error)
+        if hasattr(error, 'code'):
+            self.invocation_data['errorCode'] = error.code
+
+        # Adding tags
+        self.invocation_data['tags']['error'] = True
+        self.invocation_data['tags']['error.kind'] = error_type.__name__
+        self.invocation_data['tags']['error.message'] = str(error)
+        if hasattr(error, 'code'):
+            self.invocation_data['tags']['error.code'] = error.code
+        if hasattr(error, 'object'):
+            self.invocation_data['tags']['error.object'] = error.object
+        if hasattr(error, 'stack'):
+            self.invocation_data['tags']['error.stack'] = error.stack
+
     def after_invocation(self, plugin_context):
         self.set_end_time(plugin_context)
 
@@ -88,27 +107,14 @@ class InvocationPlugin:
         outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
         self.invocation_data.update(outgoing_trace_links)
 
-
         # Check errors
+        user_error = invocation_support.get_error()
         if 'error' in plugin_context:
             error = plugin_context['error']
-            error_type = type(error)
-            self.invocation_data['erroneous'] = True
-            self.invocation_data['errorType'] = error_type.__name__
-            self.invocation_data['errorMessage'] = str(error)
-            if hasattr(error, 'code'):
-                self.invocation_data['errorCode'] = error.code
-
-            # Adding tags
-            self.invocation_data['tags']['error'] = True
-            self.invocation_data['tags']['error.kind'] = error_type.__name__
-            self.invocation_data['tags']['error.message'] = str(error)
-            if hasattr(error, 'code'):
-                self.invocation_data['tags']['error.code'] = error.code
-            if hasattr(error, 'object'):
-                self.invocation_data['tags']['error.object'] = error.object
-            if hasattr(error, 'stack'):
-                self.invocation_data['tags']['error.stack'] = error.stack
+            self.set_error(error)
+        elif user_error:
+            plugin_context['error'] = user_error
+            self.set_error(user_error)
 
         self.invocation_data['timeout'] = plugin_context.get('timeout', False)
 

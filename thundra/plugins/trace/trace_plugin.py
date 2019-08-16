@@ -149,24 +149,31 @@ class TracePlugin:
         self.trace_data['startTimestamp'] = self.start_time
         self.trace_data['finishTimestamp'] = self.end_time
 
+        user_error = invocation_support.get_error()
         if 'error' in plugin_context:
             error = plugin_context['error']
-            error_type = type(error)
-            # Adding tags
-            self.root_span.set_tag('error', True)
-            self.root_span.set_tag('error.kind', error_type.__name__)
-            self.root_span.set_tag('error.message', str(error))
-            if hasattr(error, 'code'):
-                self.root_span.set_tag('error.code', error.code)
-            if hasattr(error, 'object'):
-                self.root_span.set_tag('error.object', error.object)
-            if hasattr(error, 'stack'):
-                self.root_span.set_tag('error.stack', error.stack)
+            self.set_error_to_root_span(error)
+        elif user_error:
+            self.set_error_to_root_span(user_error)
 
         reporter.add_report(self.span_data_list)
 
         self.tracer.clear()
         self.flush_current_span_data()
+
+    def set_error_to_root_span(self, error):
+        error_type = type(error)
+
+        self.root_span.set_tag('error', True)
+        self.root_span.set_tag('error.kind', error_type.__name__)
+        self.root_span.set_tag('error.message', str(error))
+
+        if hasattr(error, 'code'):
+            self.root_span.set_tag('error.code', error.code)
+        if hasattr(error, 'object'):
+            self.root_span.set_tag('error.object', error.object)
+        if hasattr(error, 'stack'):
+            self.root_span.set_tag('error.stack', error.stack)
 
     def process_api_gw_response(self, plugin_context):
         try:
