@@ -158,6 +158,7 @@ class TracePlugin:
 
         reporter.add_report(self.span_data_list)
 
+        invocation_support.clear_error()
         self.tracer.clear()
         self.flush_current_span_data()
 

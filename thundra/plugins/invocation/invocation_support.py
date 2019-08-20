@@ -40,9 +40,11 @@ def remove_tag(key):
     return _user_invocation_tags.pop(key, None)
 
 def clear():
-    global _user_error
     _invocation_tags.clear()
     _user_invocation_tags.clear()
+
+def clear_error():
+    global _user_error
     _user_error = None
 
 def set_error(err):

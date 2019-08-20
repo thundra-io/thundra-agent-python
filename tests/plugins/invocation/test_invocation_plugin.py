@@ -68,25 +68,6 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert invocation_plugin.invocation_data['functionRegion'] == 'region'
 
 
-def test_tags_error(handler_with_exception, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
-    thundra, handler = handler_with_exception
-
-    invocation_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
-            invocation_plugin = plugin
-
-    try:
-        handler(mock_event, mock_context)
-    except Exception as e:
-        pass
-
-    assert invocation_plugin.invocation_data['tags']['error'] is True
-    assert invocation_plugin.invocation_data['tags']['error.kind'] == 'Exception'
-    assert invocation_plugin.invocation_data['tags']['error.message'] == 'hello'
-
-
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_profile
@@ -147,6 +128,6 @@ def test_invocation_support_error_set(handler_with_user_error, mock_context, moc
 
     handler(mock_event, mock_context)
 
-    assert invocation_plugin.invocation_data['tags']['error'] is True
-    assert invocation_plugin.invocation_data['tags']['error.kind'] == 'Exception'
-    assert invocation_plugin.invocation_data['tags']['error.message'] == 'test'
+    assert invocation_plugin.invocation_data['erroneous'] is True
+    assert invocation_plugin.invocation_data['errorType'] == 'Exception'
+    assert invocation_plugin.invocation_data['errorMessage'] == 'test'
