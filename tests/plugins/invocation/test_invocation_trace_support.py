@@ -112,6 +112,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
     assert r1['resourceCount'] == 2
     assert r1['resourceErrorCount'] == 2
     assert r1['resourceDuration'] == 110
+    assert r1['resourceMaxDuration'] == 73
     assert len(r1['resourceErrors']) == 2
     assert 'AnErrorType' in r1['resourceErrors']
     assert 'AnotherErrorType' in r1['resourceErrors']
@@ -122,5 +123,6 @@ def test_get_resources(mocked_get_spans, mocked_span):
     assert r2['resourceCount'] == 1
     assert r2['resourceErrorCount'] == 1
     assert r2['resourceDuration'] == 83
+    assert r2['resourceMaxDuration'] == 83
     assert len(r2['resourceErrors']) == 1
     assert 'WeirdError' in r2['resourceErrors']
