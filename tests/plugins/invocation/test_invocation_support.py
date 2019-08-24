@@ -47,3 +47,9 @@ def test_clear_agent_tags():
     invocation_support.clear()
 
     assert all([invocation_support.get_agent_tag(key) is None for key in pairs])
+
+def test_set_error():
+    e = Exception("test exception")
+    invocation_support.set_error(e)
+
+    assert invocation_support.get_error() == e

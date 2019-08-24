@@ -2,6 +2,7 @@ from thundra import constants
 
 _invocation_tags = {}
 _user_invocation_tags = {}
+_user_error = None
 function_name = ''
 
 def set_agent_tag(key, value):
@@ -38,10 +39,20 @@ def get_tags():
 def remove_tag(key):
     return _user_invocation_tags.pop(key, None)
 
-
 def clear():
     _invocation_tags.clear()
     _user_invocation_tags.clear()
+
+def clear_error():
+    global _user_error
+    _user_error = None
+
+def set_error(err):
+    global _user_error
+    _user_error = err
+
+def get_error():
+    return _user_error
 
 def parse_invocation_info(context):
     global function_name
