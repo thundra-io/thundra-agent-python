@@ -49,7 +49,8 @@ class Resource:
             'resourceErrorCount': self.error_count,
             'resourceDuration': self.duration,
             'resourceErrors': list(self.error_types),
-            'resourceMaxDuration': self.resource_max_duration
+            'resourceMaxDuration': self.resource_max_duration,
+            'resourceAvgDuration': self.duration / self.count
         }
 
 
