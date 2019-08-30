@@ -1,3 +1,4 @@
+from __future__ import division
 import logging
 
 from thundra import config, constants
@@ -16,6 +17,7 @@ class Resource:
         self.error_count = 1 if span.errorneous() else 0
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
+        self.resource_max_duration = self.duration
     
     def accept(self, span):
         return (
@@ -35,7 +37,10 @@ class Resource:
         if errorneous:
             self.error_count += 1
             self.error_types.add(span.get_tag('error.kind'))
-    
+
+        if span.get_duration() > self.resource_max_duration:
+            self.resource_max_duration = span.get_duration()
+
     def to_dict(self):
         return {
             'resourceType': self.type,
@@ -44,7 +49,9 @@ class Resource:
             'resourceCount': self.count,
             'resourceErrorCount': self.error_count,
             'resourceDuration': self.duration,
-            'resourceErrors': list(self.error_types)
+            'resourceErrors': list(self.error_types),
+            'resourceMaxDuration': self.resource_max_duration,
+            'resourceAvgDuration': self.duration / self.count
         }
 
 
