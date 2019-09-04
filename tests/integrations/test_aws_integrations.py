@@ -1023,7 +1023,7 @@ def test_sfn():
     tracer.clear()
 
     try:
-        client = boto3.client('sfn', region_name='us-west-2')
+        client = boto3.client('stepfunctions', region_name='us-west-2')
         response = client.start_execution(
             stateMachineArn='string',
             name='string',
@@ -1033,10 +1033,9 @@ def test_sfn():
         print(e)
     finally:
         span = tracer.get_spans()[0]
-        assert span.class_name == 'AWSService'
+        assert span.class_name == 'AWS-StepFunctions'
         assert span.domain_name == 'AWS'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartExecution'
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'sfn'
 
         tracer.clear()
->>>>>>> Step function integration
