@@ -230,6 +230,8 @@ class TracePlugin:
 
     def _inject_trigger_tags(self, span, original_event, original_context):
         try:
+            lambda_event_utils.handle_stepfunctions(span, original_event)
+
             lambda_event_type = lambda_event_utils.get_lambda_event_type(original_event, original_context)
 
             if lambda_event_type == lambda_event_utils.LambdaEventType.Kinesis:

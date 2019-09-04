@@ -210,3 +210,6 @@ def elasticsearch_integration_path_depth():
 
 def http_error_status_code_min():
     return int_from_env(constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, 400)
+
+def is_lambda_step_function():
+    return bool_from_env(constants.THUNDRA_LAMBDA_IS_STEPFUNCTION, default=1)

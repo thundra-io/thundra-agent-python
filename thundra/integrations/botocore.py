@@ -3,6 +3,7 @@ import hashlib
 import base64
 import simplejson as json
 import copy
+import uuid
 
 from dateutil.parser import parse
 from datetime import datetime
@@ -687,6 +688,46 @@ class AWSServiceIntegration(BaseIntegration):
             scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
 
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
+
+
+class StepFunctionIntegration(BaseIntegration):
+    CLASS_TYPE = 'sfn'
+
+    def __init__(self):
+        pass
+
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        return request_data.get('stateMachineArn', constants.AWS_SERVICE_REQUEST)
+
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        scope.span.domain_name = constants.DomainNames['AWS']
+        scope.span.class_name = constants.ClassNames['STEPFUNCTIONS']
+
+        service_name = instance.__class__.__name__.lower()
+
+        try:
+            orig_input = args[1].get('input', None)
+            if orig_input != None:
+                parsed_input = json.loads(orig_input)
+                trace_link = str(uuid.uuid4())
+                parsed_input['thundra_step_info'] = {
+                    "trace_link": trace_link,
+                    "step": 0
+                }
+                args[1]['input'] = json.dumps(parsed_input)
+                scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [trace_link])
+        except:
+            pass
+
+        if len(args) > 0:
+            scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
+
+        scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
+
+        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
 
 class AWSAthenaIntegration(BaseIntegration):

@@ -2,7 +2,7 @@ import math
 import time
 import uuid
 import simplejson as json
-from thundra import constants, utils
+from thundra import constants, utils, config
 from thundra import application_support
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.invocation import invocation_trace_support
@@ -94,6 +94,12 @@ class InvocationPlugin:
 
         # Get outgoing trace links
         outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
+
+        try:
+            if config.is_lambda_step_function():
+                outgoing_trace_links["outgoingTraceLinks"].append(plugin_context['step_function_trace_link'])
+        except Exception as e:
+            print(e)
         self.invocation_data.update(outgoing_trace_links)
 
         # Check errors

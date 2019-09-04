@@ -1016,3 +1016,27 @@ def test_default_aws_service():
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateContainer'
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'mediastore'
         tracer.clear()
+
+
+def test_sfn():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        client = boto3.client('sfn', region_name='us-west-2')
+        response = client.start_execution(
+            stateMachineArn='string',
+            name='string',
+            input='{}'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWSService'
+        assert span.domain_name == 'AWS'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartExecution'
+        assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'sfn'
+
+        tracer.clear()
+>>>>>>> Step function integration

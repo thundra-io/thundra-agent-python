@@ -3,7 +3,7 @@ from thundra.compat import str
 import base64
 import gzip
 import simplejson as json
-import hashlib
+import hashlib, uuid
 from enum import Enum
 from thundra import constants
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
@@ -26,7 +26,7 @@ class LambdaEventType(Enum):
     CloudWatchLogs = 'cloudWatchLogs',
     CloudFront = 'cloudFront',
     APIGatewayProxy = 'apiGatewayProxy',
-    APIGateway = 'apiGateway'
+    APIGateway = 'apiGateway',
     Lambda = 'lambda'
 
 
@@ -326,6 +326,14 @@ def inject_trigger_tags_for_lambda(span, original_context):
 
         if 'aws_request_id' in vars(original_context):
             invocation_trace_support.add_incoming_trace_links([original_context.aws_request_id])
+    except Exception as e:
+        pass
+
+
+def handle_stepfunctions(span, original_event):
+    try:
+        if 'thundra_step_info' in original_event:
+            invocation_trace_support.add_incoming_trace_links([original_event['thundra_step_info']['trace_link']])
     except Exception as e:
         pass
 

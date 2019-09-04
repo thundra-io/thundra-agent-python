@@ -3,6 +3,7 @@ import threading
 import time
 import logging
 from functools import wraps
+import uuid
 
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
@@ -102,7 +103,24 @@ class Thundra:
             if before_done:
                 try:
                     response = original_func(event, context)
+                    try:
+                        if config.is_lambda_step_function():
+                            if 'thundra_step_info' in event:
+                                step = event['thundra_step_info']['step']
+                            else:
+                                step = 0
+
+                            trace_link = str(uuid.uuid4())
+                            self.plugin_context['step_function_trace_link'] = trace_link
+                            if isinstance(response, dict):
+                                response['thundra_step_info'] = {
+                                    'trace_link': trace_link,
+                                    'step': step + 1
+                                }
+                    except Exception as e:
+                        print(e)
                     self.plugin_context['response'] = response
+
                 except Exception as e:
                     try:
                         self.plugin_context['error'] = e
