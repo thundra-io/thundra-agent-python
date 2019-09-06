@@ -3,7 +3,7 @@ from thundra.compat import str
 import base64
 import gzip
 import simplejson as json
-import hashlib, uuid
+import hashlib
 from enum import Enum
 from thundra import constants
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
