@@ -7,6 +7,8 @@ from thundra.opentracing.recorder import ThundraRecorder
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
+from thundra import application_support
+import thundra.constants as constants
 
 class ThundraTracer(opentracing.Tracer):
     __instance = None
@@ -136,6 +138,11 @@ class ThundraTracer(opentracing.Tracer):
                             tags=tags,
                             start_time=start_time,
                             span_order=_span_order)
+
+        application_info = application_support.get_application_info()
+        _span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [application_info['applicationName']])
+        _span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], application_info['applicationClassName'])
+        _span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], application_info['applicationDomainName'])
 
         return _span
 

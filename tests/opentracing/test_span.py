@@ -17,8 +17,6 @@ def test_tag():
     tracer = ThundraTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:
         span = scope.span
-        assert bool(span.tags) == False
-
         span.set_tag('tag', 'test')
         tag = span.get_tag('tag')
         assert tag == 'test'

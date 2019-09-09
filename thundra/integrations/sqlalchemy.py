@@ -73,18 +73,13 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
             constants.SpanTags['DB_HOST']: db_config.get('host', ''),
             constants.SpanTags['DB_TYPE']: db_config.get('db_type', ''),
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: 'AWS-Lambda',
-            constants.SpanTags['TRIGGER_CLASS_NAME']: 'API',
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-            constants.SpanTags['TOPOLOGY_VERTEX']: True,
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
+            constants.SpanTags['TOPOLOGY_VERTEX']: True
         }
 
         if not config.rdb_statement_masked():
             tags[constants.DBTags['DB_STATEMENT']] = statement
 
-        scope.span.tags = tags
+        scope.span.tags.update(tags)
 
     def after_call(self, scope, conn, statement):
         pass

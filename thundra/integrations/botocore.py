@@ -69,7 +69,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
             constants.DBTags['DB_STATEMENT_TYPE']: operation_type,
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
-        scope.span.tags = tags
+        scope.span.tags.update(tags)
 
         # Check if Key and Item fields have any byte field and convert to string
         if 'Key' in self.request_data:
@@ -81,10 +81,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         if not config.dynamodb_statement_masked():
             self.OPERATION.get(operation_name, dummy_func)(scope)
 
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
         if config.dynamodb_trace_enabled():
             if operation_name == 'PutItem':
@@ -299,12 +296,8 @@ class AWSSQSIntegration(BaseIntegration):
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
 
-        scope.span.tags = tags
-
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
         if not config.sqs_message_masked():
             if operation_name == "SendMessage":
@@ -380,12 +373,8 @@ class AWSSNSIntegration(BaseIntegration):
             constants.AwsSNSTags['TOPIC_NAME']: self.topicName
         }
 
-        scope.span.tags = tags
-
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
         if not config.sns_message_masked():
             scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
@@ -432,12 +421,8 @@ class AWSKinesisIntegration(BaseIntegration):
             constants.AwsKinesisTags['STREAM_NAME']: self.streamName
         }
 
-        scope.span.tags = tags
-
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSKinesisIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -501,12 +486,8 @@ class AWSFirehoseIntegration(BaseIntegration):
             constants.AwsFirehoseTags['STREAM_NAME']: self.deliveryStreamName
         }
 
-        scope.span.tags = tags
-
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSFirehoseIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -561,12 +542,8 @@ class AWSS3Integration(BaseIntegration):
             constants.AwsS3Tags['OBJECT_NAME']: self.objectName
         }
 
-        scope.span.tags = tags
-
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSS3Integration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -636,12 +613,8 @@ class AWSLambdaIntegration(BaseIntegration):
         if 'InvocationType' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_TYPE']] = request_data['InvocationType']
 
-        scope.span.tags = tags
-
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
         if not config.lambda_trace_disabled() and 'invoke' in operation_name.lower():
             self.inject_span_context_into_client_context(request_data)
@@ -741,15 +714,12 @@ class AWSAthenaIntegration(BaseIntegration):
         scope.span.class_name = constants.ClassNames['ATHENA']
 
         tags = {
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
             constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
         }
 
-        scope.span.tags = tags
+        scope.span.tags.update(tags)
 
         database = self.get_database_name(args)
         output_location = self.get_output_location(args)

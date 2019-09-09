@@ -60,13 +60,10 @@ class ElasticsearchIntegration(BaseIntegration):
             constants.ESTags['ES_PARAMS']: es_params,
             constants.DBTags['DB_TYPE']: 'elasticsearch',
             constants.SpanTags['OPERATION_TYPE']: http_method,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
         if not config.elasticsearch_body_masked():
             tags[constants.ESTags['ES_BODY']] = es_body
 
-        scope.span.tags = tags
+        scope.span.tags.update(tags)
