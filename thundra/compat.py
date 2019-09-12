@@ -17,6 +17,10 @@ PY36 = (PY3 and _ver[1] == 6)
 # Python 3.7.x
 PY37 = (PY3 and _ver[1] == 7)
 
+class TimeoutError(Exception):
+    def __init__(self, msg="Task timed out"):
+        super(TimeoutError, self).__init__(msg)
+
 if PY2:
     from urlparse import urlparse
 

@@ -12,7 +12,8 @@ from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
-from thundra.compat import PY2
+from thundra import utils
+from thundra.compat import PY2, TimeoutError
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,7 @@ class Thundra:
             self.plugin_context = {'reporter': self.reporter}
             application_support.parse_application_info(context)
             invocation_support.parse_invocation_info(context)
+            utils.parse_x_ray_trace_info()
 
             # Before running user's handler
             try:

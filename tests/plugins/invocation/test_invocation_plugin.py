@@ -70,6 +70,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
     monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+    monkeypatch.setitem(os.environ, "_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")
     thundra, handler = handler_with_profile
 
     invocation_plugin = None
@@ -88,6 +89,8 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
     assert invocation_plugin.invocation_data['tags']['aws.lambda.log_group_name'] == 'log_group_name'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.log_stream_name'] == 'log_stream_name[]id'
     assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.request_id'] == 'aws_request_id'
+    assert invocation_plugin.invocation_data['tags']['aws.xray.trace.id'] == '1-5759e988-bd862e3fe1be46a994272793'
+    assert invocation_plugin.invocation_data['tags']['aws.xray.segment.id'] == '53995c3f42cd8ad8'
 
 
 def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):

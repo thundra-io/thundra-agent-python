@@ -2,6 +2,7 @@ import os
 import logging
 
 from thundra.compat import urlparse
+from thundra.plugins.invocation import invocation_support
 from thundra import constants
 
 logger = logging.getLogger(__name__)
@@ -221,6 +222,17 @@ def get_aws_account_no(arn):
         return arn.split(":")[4]
     except:
         return ""
+
+
+def parse_x_ray_trace_info():
+    xray_trace_header = os.environ.get("_X_AMZN_TRACE_ID")
+    if xray_trace_header:
+        for trace_header_part in xray_trace_header.split(";"):
+            trace_info = trace_header_part.split("=")
+            if len(trace_info) == 2 and trace_info[0] == "Root":
+                invocation_support.set_agent_tag("aws.xray.trace.id",  trace_info[1])
+            elif len(trace_info) == 2 and trace_info[0] == "Parent":
+                invocation_support.set_agent_tag("aws.xray.segment.id",  trace_info[1])
 
 
 # Excluded url's 
