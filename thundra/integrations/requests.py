@@ -104,6 +104,11 @@ class RequestsIntegration(BaseIntegration):
                 resource_name = response.headers.get("x-thundra-resource-name")
                 scope.span.operation_name = resource_name
 
+            if (response.status_code and config.http_error_status_code_min() <= response.status_code):
+                scope.span.set_tag('error.kind', "HttpError")
+                scope.span.set_tag('error', True)
+                scope.span.set_tag('error.message', response.reason)
+
     def set_response(self, response, span):
         statusCode = response.status_code
         span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
