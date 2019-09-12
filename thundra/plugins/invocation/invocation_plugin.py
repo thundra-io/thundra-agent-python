@@ -125,6 +125,12 @@ class InvocationPlugin:
         self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
         self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = math.floor(used_mem_in_mb)
 
+        xray_info = utils.parse_x_ray_trace_info()
+        if xray_info.get("trace_id"):
+            self.invocation_data['tags']['aws.xray.trace.id'] = xray_info.get("trace_id")
+        if xray_info.get("segment_id"):
+            self.invocation_data['tags']['aws.xray.segment.id'] = xray_info.get("segment_id")
+
         reporter = plugin_context['reporter']
         report_data = {
             'apiKey': reporter.api_key,

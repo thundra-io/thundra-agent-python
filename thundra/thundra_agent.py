@@ -71,7 +71,6 @@ class Thundra:
             self.plugin_context = {'reporter': self.reporter}
             application_support.parse_application_info(context)
             invocation_support.parse_invocation_info(context)
-            utils.parse_x_ray_trace_info()
 
             # Before running user's handler
             try:
