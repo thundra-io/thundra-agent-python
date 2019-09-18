@@ -203,7 +203,10 @@ def http_body_masked():
 
 
 def http_integration_url_path_depth():
-    return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATTIONS_HTTP_URL_DEPTH, default=1)
+    return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, default=1)
+
+def elasticsearch_integration_path_depth():
+    return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, default=1)
 
 def http_error_status_code_min():
     return int_from_env(constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, 400)

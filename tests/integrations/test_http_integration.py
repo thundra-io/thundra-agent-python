@@ -186,7 +186,7 @@ def test_errorneous_http_call():
 
 
 def test_http_path_depth(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATTIONS_HTTP_URL_DEPTH, "2")
+    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, "2")
     try:
         url = 'https://jsonplaceholder.typicode.com/asd/qwe/xyz'
         parsed_url = urlparse(url)
