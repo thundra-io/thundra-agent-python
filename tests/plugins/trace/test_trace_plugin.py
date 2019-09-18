@@ -1,13 +1,14 @@
 import os
-from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.plugins.trace.lambda_trace_plugin import LambdaTracePlugin
 from thundra import constants
+
 
 def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
     thundra, handler = handler_with_profile
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -20,7 +21,7 @@ def test_when_app_stage_not_exists(handler, mock_context, mock_event):
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -33,7 +34,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)
@@ -61,7 +62,7 @@ def test_invocation_support_error_set_to_root_span(handler_with_user_error, mock
 
     trace_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_plugin = plugin
 
     handler(mock_event, mock_context)

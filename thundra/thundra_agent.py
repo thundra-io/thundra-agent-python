@@ -7,12 +7,12 @@ from functools import wraps
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.invocation import invocation_support
-from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.plugins.trace.lambda_trace_plugin import LambdaTracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
-from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.plugins.invocation.lambda_invocation_plugin import LambdaInvocationPlugin
 from thundra.integrations import handler_wrappers
-from thundra import utils
+
 from thundra.compat import PY2, TimeoutError
 
 logger = logging.getLogger(__name__)
@@ -37,9 +37,9 @@ class Thundra:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
         if not config.trace_disabled(disable_trace):
-            self.plugins.append(TracePlugin())
+            self.plugins.append(LambdaTracePlugin())
 
-        self.plugins.append(InvocationPlugin())
+        self.plugins.append(LambdaInvocationPlugin())
         self.plugin_context = {}
 
         if not config.metric_disabled(disable_metric):
@@ -143,7 +143,8 @@ class Thundra:
         else:
             [plugin.hooks[name](data) for plugin in self.plugins if hasattr(plugin, 'hooks') and name in plugin.hooks]
 
-    def check_and_handle_warmup_request(self, event):
+    @staticmethod
+    def check_and_handle_warmup_request(event):
 
         # Check whether it is empty request which is used as default warmup request
         if not event:
@@ -183,7 +184,8 @@ class Thundra:
             self.plugin_context['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
 
-    def stop_timer(self):
+    @staticmethod
+    def stop_timer():
         if threading.current_thread().__class__.__name__ == '_MainThread':
             signal.setitimer(signal.ITIMER_REAL, 0)
 

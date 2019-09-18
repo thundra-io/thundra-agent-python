@@ -1,4 +1,4 @@
-import math
+import abc
 import time
 import uuid
 import simplejson as json
@@ -8,7 +8,7 @@ from thundra.plugins.invocation import invocation_support
 from thundra.plugins.invocation import invocation_trace_support
 
 
-class InvocationPlugin:
+class BaseInvocationPlugin:
 
     def __init__(self):
         self.hooks = {
@@ -33,7 +33,7 @@ class InvocationPlugin:
             'spanId': plugin_context.get('span_id', ""),
             'applicationPlatform': constants.CONTEXT_APPLICATION_PLATFORM,
             'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''),
-            'duration': None, 
+            'duration': None,
             'startTimestamp': int(self.start_time),
             'finishTimestamp': None,
             'erroneous': False,
@@ -43,11 +43,14 @@ class InvocationPlugin:
             'coldStart': constants.REQUEST_COUNT == 1,
             'timeout': False,
             'tags': {},
+            'userTags': {}
         }
 
         # Add application related data
         application_info = application_support.get_application_info()
         self.invocation_data.update(application_info)
+
+        self.before_invocation_hook(plugin_context)
 
     def set_start_time(self, plugin_context):
         if 'start_time' in plugin_context:
@@ -74,15 +77,11 @@ class InvocationPlugin:
     def after_invocation(self, plugin_context):
         self.set_end_time(plugin_context)
 
-        total_mem, used_mem = utils.process_memory_usage()
-        used_mem_in_mb = used_mem / 1048576
-        context = plugin_context['context']
-        
         # Add user tags
-        self.invocation_data['userTags'] = invocation_support.get_tags()
+        self.invocation_data['userTags'].update(invocation_support.get_tags())
 
         # Add agent tags
-        self.invocation_data['tags'] = invocation_support.get_agent_tags()
+        self.invocation_data['tags'].update(invocation_support.get_agent_tags())
 
         # Get resources
         resources = invocation_trace_support.get_resources(plugin_context)
@@ -110,27 +109,13 @@ class InvocationPlugin:
         self.invocation_data['duration'] = int(duration)
         self.invocation_data['finishTimestamp'] = int(self.end_time)
 
-        arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
+        self.after_invocation_hook(plugin_context)
 
-        # Add AWS tags
-        self.invocation_data['tags']['aws.region'] = utils.get_aws_region_from_arn(getattr (context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None))
-        self.invocation_data['tags']['aws.lambda.name'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, None)
-        self.invocation_data['tags']['aws.lambda.arn'] = arn
-        self.invocation_data['tags']['aws.account_no'] = utils.get_aws_account_no(arn)
-        self.invocation_data['tags']['aws.lambda.memory_limit'] = int(getattr(context, constants.CONTEXT_MEMORY_LIMIT_IN_MB, 0))
-        self.invocation_data['tags']['aws.lambda.log_group_name'] = getattr(context, constants.CONTEXT_LOG_GROUP_NAME, None)
-        self.invocation_data['tags']['aws.lambda.log_stream_name'] = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-        self.invocation_data['tags']['aws.lambda.invocation.coldstart'] = self.invocation_data['coldStart']
-        self.invocation_data['tags']['aws.lambda.invocation.timeout'] = plugin_context.get('timeout', False)
-        self.invocation_data['tags']['aws.lambda.invocation.request_id'] = getattr(context, constants.CONTEXT_AWS_REQUEST_ID, None)
-        self.invocation_data['tags']['aws.lambda.invocation.memory_usage'] = math.floor(used_mem_in_mb)
+        invocation_support.clear()
+        invocation_trace_support.clear()
+        self.report(plugin_context)
 
-        xray_info = utils.parse_x_ray_trace_info()
-        if xray_info.get("trace_id"):
-            self.invocation_data['tags']['aws.xray.trace.id'] = xray_info.get("trace_id")
-        if xray_info.get("segment_id"):
-            self.invocation_data['tags']['aws.xray.segment.id'] = xray_info.get("segment_id")
-
+    def report(self, plugin_context):
         reporter = plugin_context['reporter']
         report_data = {
             'apiKey': reporter.api_key,
@@ -139,5 +124,11 @@ class InvocationPlugin:
             'data': self.invocation_data
         }
         reporter.add_report(json.loads(json.dumps(report_data)))
-        invocation_support.clear()
-        invocation_trace_support.clear()
+
+    @abc.abstractmethod
+    def before_invocation_hook(self, plugin_context):
+        raise Exception("should be implemented")
+
+    @abc.abstractmethod
+    def after_invocation_hook(self, plugin_context):
+        raise Exception("should be implemented")

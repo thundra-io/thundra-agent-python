@@ -3,7 +3,7 @@ import os
 import mock
 import pytest
 from thundra import constants
-from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.plugins.trace.lambda_trace_plugin import LambdaTracePlugin
 from thundra.thundra_agent import Thundra
 
 
@@ -17,7 +17,7 @@ def test_if_disable_trace_is_set_to_true():
     thundra = Thundra('api key', disable_trace=True)
 
     for plugin in thundra.plugins:
-        assert not type(plugin) is TracePlugin
+        assert not type(plugin) is LambdaTracePlugin
 
 
 def test_if_disable_trace_is_set_to_false():
@@ -25,7 +25,7 @@ def test_if_disable_trace_is_set_to_false():
 
     trace_exist = False
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_exist = True
 
     assert trace_exist is True
@@ -36,7 +36,7 @@ def test_if_disable_trace_is_not_set():
 
     trace_exist = False
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_exist = True
 
     assert trace_exist is True
@@ -48,7 +48,7 @@ def test_disable_trace_plugin_from_environment_variable(monkeypatch):
 
     trace_exist = False
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_exist = True
 
     assert trace_exist is False
@@ -60,7 +60,7 @@ def test_enable_trace_plugin_from_environment_variable(monkeypatch):
 
     trace_exist = False
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_exist = True
 
     assert trace_exist is True
@@ -72,7 +72,7 @@ def test_if_disable_trace_plugin_from_environment_variable_is_prior(monkeypatch)
 
     trace_exist = False
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_exist = True
 
     assert trace_exist is False
@@ -84,7 +84,7 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
 
     trace_exist = False
     for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
+        if isinstance(plugin, LambdaTracePlugin):
             trace_exist = True
 
     assert trace_exist is True

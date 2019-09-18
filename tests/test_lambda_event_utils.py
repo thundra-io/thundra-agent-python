@@ -14,7 +14,7 @@ except ImportError:
 from thundra import lambda_event_utils, constants
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins import invocation
-from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.plugins.invocation.lambda_invocation_plugin import LambdaInvocationPlugin
 
 try:
     from BytesIO import BytesIO
@@ -41,7 +41,7 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
     tracer, invocation_support = tracer_and_invocation_support
     try:
         response = handler(mock_dynamodb_event, mock_context)
-    except:
+    except Exception as e:
         print("Error running handler!")
         raise
     span = tracer.recorder.get_spans()[0]
@@ -49,7 +49,7 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert lambda_event_utils.get_lambda_event_type(mock_dynamodb_event,
@@ -101,7 +101,7 @@ def test_dynamodb_trigger_trace_injected(tracer_and_invocation_support, handler,
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert lambda_event_utils.get_lambda_event_type(mock_dynamodb_event_trace_injected,
@@ -131,7 +131,7 @@ def test_sqs_trigger(tracer_and_invocation_support, handler, mock_sqs_event, moc
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert lambda_event_utils.get_lambda_event_type(mock_sqs_event,
@@ -160,7 +160,7 @@ def test_sns_trigger(tracer_and_invocation_support, handler, mock_sns_event, moc
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert lambda_event_utils.get_lambda_event_type(mock_sns_event,
@@ -189,7 +189,7 @@ def test_kinesis_trigger(tracer_and_invocation_support, handler, mock_kinesis_ev
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert lambda_event_utils.get_lambda_event_type(mock_kinesis_event,
@@ -291,7 +291,7 @@ def test_firehose_trigger(tracer_and_invocation_support, handler, mock_firehose_
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
@@ -370,7 +370,7 @@ def test_s3_trigger(tracer_and_invocation_support, handler, mock_s3_event, mock_
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STORAGE']
@@ -398,7 +398,7 @@ def test_lambda_trigger(tracer_and_invocation_support, handler, mock_event, mock
 
     invocation_plugin = None
     for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
+        if isinstance(plugin, LambdaInvocationPlugin):
             invocation_plugin = plugin
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['API']

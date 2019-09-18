@@ -7,6 +7,7 @@ import hashlib
 from enum import Enum
 from thundra import constants
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
+from thundra.plugins.log.thundra_logger import debug_logger
 
 try:
     from BytesIO import BytesIO
@@ -28,6 +29,38 @@ class LambdaEventType(Enum):
     APIGatewayProxy = 'apiGatewayProxy',
     APIGateway = 'apiGateway'
     Lambda = 'lambda'
+
+
+def inject_trigger_tags(span, original_event, original_context):
+    try:
+        lambda_event_type = get_lambda_event_type(original_event, original_context)
+
+        if lambda_event_type == LambdaEventType.Kinesis:
+            inject_trigger_tags_for_kinesis(span, original_event)
+        elif lambda_event_type == LambdaEventType.Firehose:
+            inject_trigger_tags_for_firehose(span, original_event)
+        elif lambda_event_type == LambdaEventType.DynamoDB:
+            inject_trigger_tags_for_dynamodb(span, original_event)
+        elif lambda_event_type == LambdaEventType.SNS:
+            inject_trigger_tags_for_sns(span, original_event)
+        elif lambda_event_type == LambdaEventType.SQS:
+            inject_trigger_tags_for_sqs(span, original_event)
+        elif lambda_event_type == LambdaEventType.S3:
+            inject_trigger_tags_for_s3(span, original_event)
+        elif lambda_event_type == LambdaEventType.CloudWatchSchedule:
+            inject_trigger_tags_for_cloudwatch_schedule(span, original_event)
+        elif lambda_event_type == LambdaEventType.CloudWatchLogs:
+            inject_trigger_tags_for_cloudwatch_logs(span, original_event)
+        elif lambda_event_type == LambdaEventType.CloudFront:
+            inject_trigger_tags_for_cloudfront(span, original_event)
+        elif lambda_event_type == LambdaEventType.APIGatewayProxy:
+            inject_trigger_tags_for_api_gateway_proxy(span, original_event)
+        elif lambda_event_type == LambdaEventType.APIGateway:
+            inject_trigger_tags_for_api_gateway(span, original_event)
+        elif lambda_event_type == LambdaEventType.Lambda:
+            inject_trigger_tags_for_lambda(span, original_context)
+    except Exception as e:
+        debug_logger("Cannot inject trigger tags. " + str(e))
 
 
 def get_lambda_event_type(original_event, original_context):
