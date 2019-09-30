@@ -26,8 +26,8 @@ class Thundra:
     def __init__(self,
                  api_key=None,
                  disable_trace=False,
-                 disable_metric=False,
-                 disable_log=False):
+                 disable_metric=True,
+                 disable_log=True):
 
         constants.REQUEST_COUNT = 0
         self.plugins = []
