@@ -117,7 +117,8 @@ THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra_agent_lambda_re
 ENABLE_DYNAMODB_TRACE_INJECTION = 'thundra_agent_lambda_trace_integrations_dynamodb_trace_injection_enable'
 DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_lambda_trace_integrations_aws_lambda_traceInjection_disable'
 
-THUNDRA_AGENT_TRACE_INTEGRATTIONS_HTTP_URL_DEPTH = "thundra_agent_lambda_trace_integrations_http_url_depth"
+THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH = "thundra_agent_lambda_trace_integrations_http_url_depth"
+THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH = "thundra_agent_lambda_trace_integrations_elasticsearch_path_depth"
 
 #### INTEGRATIONS ####
 

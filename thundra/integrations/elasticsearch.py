@@ -17,10 +17,27 @@ class ElasticsearchIntegration(BaseIntegration):
         except Exception:
             return []
 
+    def get_normalized_path(self, es_uri):
+        path_depth = config.elasticsearch_integration_path_depth()
+
+        path_seperator_count = 0
+        normalized_path = ''
+        prev_c = ''
+        for c in es_uri:
+            if c == '/' and prev_c != '/':
+                path_seperator_count += 1
+
+            if path_seperator_count > path_depth:
+                break
+
+            normalized_path += c
+            prev_c = c
+        return normalized_path
+
     def get_operation_name(self, wrapped, instance, args, kwargs):
         try:
             es_uri = args[1]
-            return es_uri
+            return self.get_normalized_path(es_uri)
         except KeyError:
             return ''
 

@@ -6,7 +6,8 @@ from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
 
 
-def test_create_index():
+def test_create_index(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
         author1 = {"name": "Sidney Sheldon", "novels_count": 18}
@@ -37,7 +38,8 @@ def test_create_index():
 
 
 
-def test_get_doc():
+def test_get_doc(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
     try:
         es = Elasticsearch(['one_host', 'another_host'], max_retries=0)
         es.get(index='test-index', doc_type='tweet', id=1)
@@ -69,7 +71,8 @@ def test_get_doc():
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
-def test_refresh():
+def test_refresh(monkeypatch):
+    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '2')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
         res = es.indices.refresh(index='test-index')
