@@ -162,13 +162,6 @@ class Traceable:
     def __call__(self, original_func):
         @wraps(original_func)
         def ___thundra_trace___(*args, **kwargs):
-            _trace_args = self._trace_args
-            _trace_return_value = self._trace_return_value
-            _trace_error = self._trace_error
-            _trace_line_by_line = self._trace_line_by_line
-            _trace_lines_with_source = self._trace_lines_with_source
-            _trace_local_variables = self._trace_local_variables
-
             parent_scope = self.tracer.scope_manager.active
             parent_span = parent_scope.span if parent_scope is not None else None
 
