@@ -28,6 +28,7 @@ def clear_application_tags():
 
 def parse_application_info(context):
     _application_info['applicationId'] = application_id if application_id is not None else utils.get_application_id(context)
+    _application_info['applicationInstanceId'] = utils.get_application_instance_id(context)
     _application_info['applicationDomainName'] = application_domain_name if application_domain_name is not None else constants.AWS_LAMBDA_APPLICATION_DOMAIN_NAME
     _application_info['applicationClassName'] = application_class_name if application_class_name is not None else constants.AWS_LAMBDA_APPLICATION_CLASS_NAME
     _application_info['applicationName'] = application_name if application_name is not None else getattr(context, constants.CONTEXT_FUNCTION_NAME, '')
