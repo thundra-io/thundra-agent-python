@@ -8,6 +8,7 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.serializable import Serializable
 
 
+
 def __get_traceable_from_back_frame(frame):
     _back_frame = frame.f_back
     if _back_frame and 'self' in _back_frame.f_locals:
@@ -17,7 +18,7 @@ def __get_traceable_from_back_frame(frame):
     return None
 
 
-def __trace_lines(frame, event, arg):
+def trace_lines(frame, event, arg):
     if event != 'line':
         return
 
@@ -68,7 +69,7 @@ def __trace_lines(frame, event, arg):
     _scope.span.set_tag('method.lines', method_lines_list)
 
 
-def __trace_calls(frame, event, arg):
+def trace_calls(frame, event, arg):
     if event != 'call':
         return
 
@@ -79,10 +80,10 @@ def __trace_calls(frame, event, arg):
 
     _traceable = __get_traceable_from_back_frame(frame)
     if _traceable and _traceable.trace_line_by_line and _traceable._tracing:
-        return __trace_lines
+        return trace_lines
 
 
-sys.settrace(__trace_calls)
+call_tracing_enabled = False
 
 
 class Traceable:
@@ -98,6 +99,10 @@ class Traceable:
         self._trace_local_variables = trace_local_variables
         self._tracing = False
         self._tracer = ThundraTracer.get_instance()
+        global call_tracing_enabled
+        if trace_line_by_line and call_tracing_enabled is False:
+            sys.settrace(trace_calls)
+            call_tracing_enabled = True
 
     @property
     def tracer(self):
