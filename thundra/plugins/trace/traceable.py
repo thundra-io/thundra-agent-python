@@ -1,16 +1,102 @@
 import simplejson as json
+import sys
+import linecache
+import copy
 from functools import wraps
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.serializable import Serializable
 
 
+def __get_traceable_from_back_frame(frame):
+    _back_frame = frame.f_back
+    if _back_frame and 'self' in _back_frame.f_locals:
+        _self = _back_frame.f_locals['self']
+        if isinstance(_self, Traceable):
+            return _self
+    return None
+
+
+def __trace_lines(frame, event, arg):
+    if event != 'line':
+        return
+
+    _co = frame.f_code
+    _func_name = _co.co_name
+    _line_no = frame.f_lineno
+    _filename = _co.co_filename
+
+    _trace_local_variables_ = False
+    _trace_lines_with_source = False
+    _traceable = __get_traceable_from_back_frame(frame)
+    if _traceable:
+        _trace_local_variables_ = _traceable._trace_local_variables
+        _trace_lines_with_source = _traceable._trace_lines_with_source
+
+    _tracer = ThundraTracer.get_instance()
+
+    _active_scope = _tracer.scope_manager.active
+    _active_span = _active_scope.span if _active_scope is not None else None
+
+    if _active_span is not None and _active_span.class_name == 'Line':
+        _active_scope.close()
+
+    _scope = _tracer.start_active_span('@' + str(_line_no), child_of=_active_span, finish_on_close=True)
+    _scope.span.class_name = 'Line'
+    _scope.span.on_started()
+
+    _line_source = None
+    if _trace_lines_with_source:
+        _line_source = linecache.getline(_filename, _line_no).strip()
+    _local_vars = []
+    if _trace_local_variables_:
+        for l in frame.f_locals:
+            _local_var_value = frame.f_locals[l]
+            _local_var = {
+                'name': l,
+                'value': copy.deepcopy(_local_var_value),
+                'type': type(_local_var_value).__name__
+            }
+            _local_vars.append(_local_var)
+
+    method_line = {
+        'line': _line_no,
+        'source': _line_source,
+        'localVars': _local_vars
+    }
+    method_lines_list = [method_line]
+    _scope.span.set_tag('method.lines', method_lines_list)
+
+
+def __trace_calls(frame, event, arg):
+    if event != 'call':
+        return
+
+    _func_name = frame.f_code.co_name
+    if _func_name == 'write' or _func_name == '___thundra_trace___':
+        # Ignore write() calls from print statements
+        return
+
+    _traceable = __get_traceable_from_back_frame(frame)
+    if _traceable and _traceable.trace_line_by_line and _traceable._tracing:
+        return __trace_lines
+
+
+sys.settrace(__trace_calls)
+
+
 class Traceable:
 
-    def __init__(self, trace_args=False, trace_return_value=False, trace_error=True):
+    def __init__(self,
+                 trace_args=False, trace_return_value=False, trace_error=True,
+                 trace_line_by_line=False, trace_lines_with_source=False, trace_local_variables=False):
         self._trace_args = trace_args
         self._trace_return_value = trace_return_value
         self._trace_error = trace_error
+        self._trace_line_by_line = trace_line_by_line
+        self._trace_lines_with_source = trace_lines_with_source
+        self._trace_local_variables = trace_local_variables
+        self._tracing = False
         self._tracer = ThundraTracer.get_instance()
 
     @property
@@ -29,6 +115,18 @@ class Traceable:
     def trace_error(self):
         return self._trace_error
 
+    @property
+    def trace_line_by_line(self):
+        return self._trace_line_by_line
+
+    @property
+    def trace_lines_with_source(self):
+        return self._trace_lines_with_source
+
+    @property
+    def trace_local_variables(self):
+        return self._trace_local_variables
+
     def __is_serializable__(self, value):
         return value is None or isinstance(value, (str, int, float, bool))
 
@@ -45,9 +143,27 @@ class Traceable:
             except TypeError:
                 return 'Unable to serialize the object'
 
+    def __close_line_span_if_there_is(self, traced_err):
+        _line_scope = self.tracer.scope_manager.active
+        _line_span = _line_scope.span if _line_scope is not None else None
+        if _line_span and _line_span.class_name == 'Line':
+            try:
+                if traced_err is not None:
+                    _line_span.set_error_to_tag(traced_err)
+                _line_span.finish()
+            finally:
+                _line_scope.close()
+
     def __call__(self, original_func):
         @wraps(original_func)
-        def trace(*args, **kwargs):
+        def ___thundra_trace___(*args, **kwargs):
+            _trace_args = self._trace_args
+            _trace_return_value = self._trace_return_value
+            _trace_error = self._trace_error
+            _trace_line_by_line = self._trace_line_by_line
+            _trace_lines_with_source = self._trace_lines_with_source
+            _trace_local_variables = self._trace_local_variables
+
             parent_scope = self.tracer.scope_manager.active
             parent_span = parent_scope.span if parent_scope is not None else None
 
@@ -80,8 +196,10 @@ class Traceable:
                     scope.span.set_tag('method.args', function_args_list)
                 # Inform that span is initalized
                 scope.span.on_started()
+                self._tracing = True
                 # Call original func
                 response = original_func(*args, **kwargs)
+                self._tracing = False
                 # Add return value related tags after having called the original func
                 if self._trace_return_value is True and response is not None:
                     return_value = {
@@ -94,6 +212,16 @@ class Traceable:
                     traced_err = e
                 raise e
             finally:
+                self._tracing = False
+
+                # If line by line tracing is active, first close last opened line span
+                if self._trace_line_by_line:
+                    try:
+                        self.__close_line_span_if_there_is(traced_err)
+                    except Exception as injected_err:
+                        if traced_err is None:
+                            traced_err = injected_err
+
                 try:
                     # Since span's finish method calls listeners, it can raise an error
                     scope.span.finish()
@@ -108,6 +236,6 @@ class Traceable:
                     raise traced_err
             return response
 
-        return trace
+        return ___thundra_trace___
 
     call = __call__
