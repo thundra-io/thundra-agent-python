@@ -42,7 +42,7 @@ def trace_lines(frame, event, arg):
     if _active_span is not None and _active_span.class_name == 'Line':
         _active_scope.close()
 
-    _scope = _tracer.start_active_span('@' + str(_line_no), child_of=_active_span, finish_on_close=True)
+    _scope = _tracer.start_active_span('@' + str(_line_no), finish_on_close=True)
     _scope.span.class_name = 'Line'
     _scope.span.on_started()
 
