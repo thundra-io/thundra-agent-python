@@ -25,16 +25,42 @@ def str_to_proper_type(val):
     
     return result
 
+def get_application_instance_id(context):
+    aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, '')
+    try:
+        return aws_lambda_log_stream_name.split(']')[1]
+    except:
+        return ''
 
 def get_application_id(context):
-    aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, None)
-    application_id = aws_lambda_log_stream_name.split("]")[1] if aws_lambda_log_stream_name is not None else ''
-    return application_id
+    arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, '')
 
+    region = get_aws_region_from_arn(arn)
+    account_no = get_aws_account_no(arn)
+    function_name = get_aws_funtion_name(arn)
+
+    application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
+    
+    return application_id_template.format(region=region, account_no=account_no, function_name=function_name)
+
+def get_aws_funtion_name(arn):
+    return get_arn_part(arn, 6)
+
+def get_aws_region_from_arn(arn):
+    return get_arn_part(arn, 3)
+
+def get_aws_account_no(arn):
+    return get_arn_part(arn, 4)
+
+def get_arn_part(arn, index):
+    # ARN format: arn:aws:lambda:{region}:{account_no}:function:{function_name}
+    try:
+        return arn.split(":")[index]
+    except:
+        return ""
 
 def get_aws_lambda_function_memory_size():
     return os.environ.get(constants.AWS_LAMBDA_FUNCTION_MEMORY_SIZE)
-
 
 #### memory ####
 def process_memory_usage():
@@ -161,10 +187,6 @@ def get_allowed_functions(module):
         allowed_functions.append(str(prop))
     return allowed_functions
 
-
-def get_aws_region_from_arn(func_arn):
-    return func_arn.split(':')[3] if func_arn and len(func_arn.split(':')) >= 3 else ""
-
 def is_excluded_url(url):
     host = urlparse(url).netloc
 
@@ -178,7 +200,6 @@ def is_excluded_url(url):
             if method(host, excluded_url):
                 return True
     return False
-
 
 def get_default_timeout_margin():
     region = get_configuration(constants.AWS_REGION, default='')
@@ -201,6 +222,18 @@ def get_default_timeout_margin():
     normalized_timeout_margin = int((384.0/memory) * timeout_margin)
     return max(timeout_margin, normalized_timeout_margin)
 
+def parse_x_ray_trace_info():
+    xray_trace_header = os.environ.get("_X_AMZN_TRACE_ID")
+    xray_info = {"trace_id": None, "segment_id": None}
+    if xray_trace_header:
+        for trace_header_part in xray_trace_header.split(";"):
+            trace_info = trace_header_part.split("=")
+            if len(trace_info) == 2 and trace_info[0] == "Root":
+                xray_info["trace_id"] = trace_info[1]
+            elif len(trace_info) == 2 and trace_info[0] == "Parent":
+                xray_info["segment_id"] = trace_info[1]
+
+    return xray_info
 
 def get_nearest_collector():
     region = get_configuration(constants.AWS_REGION, default="us-west-2")
@@ -215,27 +248,6 @@ def get_nearest_collector():
         return "api-ap-northeast-1.thundra.io"
 
     return "api.thundra.io"
-
-
-def get_aws_account_no(arn):
-    try:
-        return arn.split(":")[4]
-    except:
-        return ""
-
-
-def parse_x_ray_trace_info():
-    xray_trace_header = os.environ.get("_X_AMZN_TRACE_ID")
-    xray_info = {"trace_id": None, "segment_id": None}
-    if xray_trace_header:
-        for trace_header_part in xray_trace_header.split(";"):
-            trace_info = trace_header_part.split("=")
-            if len(trace_info) == 2 and trace_info[0] == "Root":
-                xray_info["trace_id"] = trace_info[1]
-            elif len(trace_info) == 2 and trace_info[0] == "Parent":
-                xray_info["segment_id"] = trace_info[1]
-
-    return xray_info
 
 
 # Excluded url's 
