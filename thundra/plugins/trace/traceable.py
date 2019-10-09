@@ -3,11 +3,10 @@ import sys
 import linecache
 import copy
 from functools import wraps
+from threading import Lock
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.serializable import Serializable
-
-
 
 def __get_traceable_from_back_frame(frame):
     _back_frame = frame.f_back
@@ -16,7 +15,6 @@ def __get_traceable_from_back_frame(frame):
         if isinstance(_self, Traceable):
             return _self
     return None
-
 
 def trace_lines(frame, event, arg):
     if event != 'line':
@@ -68,7 +66,6 @@ def trace_lines(frame, event, arg):
     method_lines_list = [method_line]
     _scope.span.set_tag('method.lines', method_lines_list)
 
-
 def trace_calls(frame, event, arg):
     if event != 'call':
         return
@@ -83,8 +80,9 @@ def trace_calls(frame, event, arg):
         return trace_lines
 
 
-call_tracing_enabled = False
-
+# To keep track of the active line-by-line traced Tracable count
+_lock = Lock()
+_line_traced_count = 0
 
 class Traceable:
 
@@ -99,10 +97,6 @@ class Traceable:
         self._trace_local_variables = trace_local_variables
         self._tracing = False
         self._tracer = ThundraTracer.get_instance()
-        global call_tracing_enabled
-        if trace_line_by_line and call_tracing_enabled is False:
-            sys.settrace(trace_calls)
-            call_tracing_enabled = True
 
     @property
     def tracer(self):
@@ -195,6 +189,14 @@ class Traceable:
                 # Inform that span is initalized
                 scope.span.on_started()
                 self._tracing = True
+                # Check if line-by-line tracing enabled
+                if self.trace_line_by_line:
+                    global _line_traced_count
+                    with _lock:
+                        if _line_traced_count == 0:
+                            sys.settrace(trace_calls)
+                        _line_traced_count += 1
+
                 # Call original func
                 response = original_func(*args, **kwargs)
                 self._tracing = False
@@ -211,9 +213,14 @@ class Traceable:
                 raise e
             finally:
                 self._tracing = False
-
-                # If line by line tracing is active, first close last opened line span
+                # Disable line-by-line tracing if it is not used
                 if self._trace_line_by_line:
+                    with _lock:
+                        _line_traced_count -= 1
+                        if _line_traced_count == 0:
+                            sys.settrace(None)
+
+                    # If line by line tracing is active, first close last opened line span
                     try:
                         self.__close_line_span_if_there_is(traced_err)
                     except Exception as injected_err:
