@@ -44,7 +44,7 @@ def trace_lines(frame, event, arg):
     _scope.span.class_name = 'Line'
     _scope.span.on_started()
 
-    _line_source = None
+    _line_source = ''
     if _trace_lines_with_source:
         _line_source = linecache.getline(_filename, _line_no).strip()
     _local_vars = []
