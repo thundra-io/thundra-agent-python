@@ -36,7 +36,7 @@ def get_application_id(context):
     arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, '')
 
     region = get_aws_region_from_arn(arn)
-    account_no = get_aws_account_no(arn)
+    account_no = 'sam_local' if sam_local_debugging() else get_aws_account_no(arn)
     function_name = get_aws_funtion_name(arn)
 
     application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
@@ -61,6 +61,9 @@ def get_arn_part(arn, index):
 
 def get_aws_lambda_function_memory_size():
     return os.environ.get(constants.AWS_LAMBDA_FUNCTION_MEMORY_SIZE)
+
+def sam_local_debugging():
+    return os.environ.get(constants.AWS_SAM_LOCAL) == 'true'
 
 #### memory ####
 def process_memory_usage():
