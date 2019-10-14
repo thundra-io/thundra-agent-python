@@ -57,7 +57,6 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
@@ -110,7 +109,6 @@ def test_dynamodb_trigger_trace_injected(tracer_and_invocation_support, handler,
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
@@ -141,7 +139,6 @@ def test_sqs_trigger(tracer_and_invocation_support, handler, mock_sqs_event, moc
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SQS']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['MyQueue']
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
@@ -172,7 +169,6 @@ def test_sns_trigger(tracer_and_invocation_support, handler, mock_sns_event, moc
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SNS']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTopic']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SNS']
@@ -202,7 +198,6 @@ def test_kinesis_trigger(tracer_and_invocation_support, handler, mock_kinesis_ev
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['KINESIS']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example_stream']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['KINESIS']
@@ -229,7 +224,6 @@ def test_cloudwatch_schedule_trigger(tracer_and_invocation_support, handler, moc
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Schedule'
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Schedule'
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleRule']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Schedule'
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Schedule'
@@ -255,7 +249,6 @@ def test_cloudwatch_logs_trigger(tracer_and_invocation_support, handler, mock_cl
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Log'
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Log'
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [decompressed_data['logGroup']]
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Log'
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Log'
@@ -278,7 +271,6 @@ def test_cloudfront_event_trigger(tracer_and_invocation_support, handler, mock_c
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'CDN'
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudFront'
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/test']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'CDN'
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudFront'
@@ -305,7 +297,6 @@ def test_firehose_trigger(tracer_and_invocation_support, handler, mock_firehose_
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['FIREHOSE']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['exampleStream']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['FIREHOSE']
@@ -335,7 +326,6 @@ def test_apigateway_proxy_trigger(tracer_and_invocation_support, handler, mock_a
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/{proxy+}']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
@@ -359,7 +349,6 @@ def test_apigateway_trigger(tracer_and_invocation_support, handler, mock_apigate
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [
         'random.execute-api.us-west-2.amazonaws.com/dev{}']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-APIGateway'
@@ -388,8 +377,6 @@ def test_s3_trigger(tracer_and_invocation_support, handler, mock_s3_event, mock_
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['S3']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example-bucket']
 
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
-
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STORAGE']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['S3']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example-bucket']
@@ -417,7 +404,6 @@ def test_lambda_trigger(tracer_and_invocation_support, handler, mock_event, mock
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['API']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['LAMBDA']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['Sample Context']
-    assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['API']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['LAMBDA']
