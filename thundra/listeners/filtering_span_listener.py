@@ -30,7 +30,6 @@ class FilteringSpanListener(ThundraSpanListener):
 
     @staticmethod
     def from_config(config):
-        print(config)
         listener = FilteringSpanListener._get_span_listener_from_config(config)
         filterer = FilteringSpanListener._get_span_filterer_from_config(config)
         return FilteringSpanListener(listener=listener, filterer=filterer)
