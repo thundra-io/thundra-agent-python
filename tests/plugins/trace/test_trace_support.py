@@ -104,33 +104,6 @@ def test_with_non_existing_listener_type(monkeypatch):
 
     assert len(trace_support.get_span_listeners()) == 0
 
-def test_get_class_and_config_parts():
-    def prepare_case(case):
-        return {
-            'val': case[0],
-            'listener': case[1],
-            'config': case[2],
-        }
-
-    cases = [
-        ('', None, None),
-        ('dummy_listener[]','dummy_listener',''),
-        ('dummy_listener[a=a,b=b,c=c]','dummy_listener','a=a,b=b,c=c'),
-        ('dummy_listener[a=a, b=b, c=c]','dummy_listener','a=a, b=b, c=c'),
-        ('dummy_listener[a=b.c,b=c.d,c=d.e.f]','dummy_listener','a=b.c,b=c.d,c=d.e.f'),
-        ('dummy_listener_2[a=1,b=2,c=3]','dummy_listener_2','a=1,b=2,c=3'),
-        ('dummy_listener[?!./+-,;:]','dummy_listener','?!./+-,;:'),
-        ('dummy_listener[?!./+-,;:]','dummy_listener','?!./+-,;:'),
-        ('foo[bar]', 'foo', 'bar'),
-        ('37[73]', '37', '73'),
-        ('[foo]', None, None),
-        ('//73%37![==,==,==]', None, None),
-    ]
-
-    for case in map(prepare_case, cases):
-        listener, config = trace_support._get_class_and_config_parts(case['val'])
-        assert listener == case['listener']
-        assert config == case['config']
 
 def test_get_sl_class():
     def prepare_case(case):
@@ -183,57 +156,3 @@ def test_xray_sl_not_added(monkeypatch):
     span_listeners = trace_support.get_span_listeners()
 
     assert len(span_listeners) == 0
-
-
-def test_parse_config():
-    cases = [
-        {
-            'config_str': '',
-            'config': {}
-        },
-        {
-            'config_str': 'foobar',
-            'config': {}
-        },
-        {
-            'config_str': 'a=1,b=',
-            'config': {
-                'a': '1',
-                'b': '',
-            }
-        },
-        {
-            'config_str': 'a=1,b=2,c=3',
-            'config': {
-                'a': '1',
-                'b': '2',
-                'c': '3',
-            }
-        },
-        {
-            'config_str': 'listener=SampleListener, config.param1=val1, config.param2=val2',
-            'config': {
-                'listener': 'SampleListener',
-                'config.param1': 'val1',
-                'config.param2': 'val2',
-            }
-        },
-        {
-            'config_str': 'listener=boto3.exceptions.Boto3Error,foo_bar=foo-bar',
-            'config': {
-                'listener': 'boto3.exceptions.Boto3Error',
-                'foo_bar': 'foo-bar',
-            }
-        },
-        {
-            'config_str': 'listener=boto3.exceptions.Boto3Error,foo_bar=foo-bar',
-            'config': {
-                'listener': 'boto3.exceptions.Boto3Error',
-                'foo_bar': 'foo-bar',
-            }
-        },
-    ]
-
-    for case in cases:
-        config = trace_support._parse_config(case['config_str'])
-        assert config == case['config']

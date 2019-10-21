@@ -44,17 +44,6 @@ def clear_span_listeners():
     _active_span_listeners = []
 
 
-def _parse_config(config_str):
-    config = {}
-    if config_str is not None:
-        kv_pairs = p2.findall(config_str)
-        for kv in kv_pairs:
-            [k, v] = kv.split('=')
-            config[k] = v
-
-    return config
-
-
 def _get_sl_class(sl_class_name):
     sl_class = None
     if sl_class_name is not None:
@@ -63,20 +52,6 @@ def _get_sl_class(sl_class_name):
         except KeyError:
             logger.error('given span listener class %s is not found', sl_class_name)
     return sl_class
-
-
-def _get_class_and_config_parts(env_v):
-    m = p1.match(env_v)
-    if m is not None:
-        try:
-            sl_class_name = m.group(1)
-            config_str = m.group(2)
-            return (sl_class_name, config_str)
-        except IndexError as e:
-            logger.error(("couldn't parse thundra span "
-                          "listener environment variable: %s"), e)
-
-    return (None, None)
 
 
 def parse_span_listeners():
@@ -107,7 +82,6 @@ def parse_span_listeners():
                     register_span_listener(span_listener)
 
             except Exception as e:
-                print(e)
                 logger.error(("couldn't parse environment variable %s "
                               "to create a span listener"), env_k)
     # Add AWSXRayListener if enabled
