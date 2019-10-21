@@ -79,7 +79,11 @@ class SimpleSpanFilter(SpanFilter):
         
         if accepted and self.tags is not None:
             for k, v in self.tags.items():
-                if span.get_tag(k) != v:
+                if isinstance(v, list):
+                    if not(span.get_tag(k) in v):
+                        accepted = False
+                        break
+                elif span.get_tag(k) != v:
                     accepted = False
                     break
         if self.reverse:
