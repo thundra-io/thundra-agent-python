@@ -88,7 +88,7 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
                LatencyInjectorSpanListener._log_value_parse_err(distribution, 'distribution')
         if add_info_tags is not None:
             try:
-                kwargs['add_info_tags'] = utils.str2bool(add_info_tags)
+                kwargs['add_info_tags'] = add_info_tags
             except ValueError:
                 LatencyInjectorSpanListener._log_value_parse_err(add_info_tags, 'add_info_tags')
     

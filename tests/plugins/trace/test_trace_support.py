@@ -2,9 +2,10 @@ import os
 from thundra import constants
 from thundra.plugins.trace import trace_support
 from thundra.listeners import *
+from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
 
 def test_create_empty_span_listener(monkeypatch):
-    sl_env_var = 'FilteringSpanListener[]'
+    sl_env_var = '{"type":"FilteringSpanListener", "config": {"listener": {"type": "ErrorInjectorSpanListener"}}}'
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
 
     trace_support.parse_span_listeners()
@@ -12,11 +13,11 @@ def test_create_empty_span_listener(monkeypatch):
     sl = trace_support.get_span_listeners()[0]
 
     assert type(sl) is FilteringSpanListener
-    assert sl.listener is None
-    assert sl.filterer is None
+    assert type(sl.listener) is ErrorInjectorSpanListener
+    assert type(sl.filterer) is StandardSpanFilterer
 
 def test_create_span_listener_with_only_listener(monkeypatch):
-    sl_env_var = 'FilteringSpanListener[listener=ErrorInjectorSpanListener,config.errorType=NameError,config.errorMessage="foo"]'
+    sl_env_var = '{"type": "FilteringSpanListener", "config": { "listener": {"type": "ErrorInjectorSpanListener", "config": {"errorType":"NameError","errorMessage":"foo"}}}}'
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
 
     trace_support.parse_span_listeners()
@@ -27,10 +28,10 @@ def test_create_span_listener_with_only_listener(monkeypatch):
     assert type(sl.listener) is ErrorInjectorSpanListener
     assert sl.listener.error_type is NameError
     assert sl.listener.error_message == 'foo'
-    assert sl.filterer is None
+    assert type(sl.filterer) is StandardSpanFilterer
 
 def test_create_span_listener_with_only_filterer(monkeypatch):
-    sl_env_var = 'FilteringSpanListener[filter.className=AWS-SQS,filter.domainName=Messaging,filter.tag.foo=bar]'
+    sl_env_var = '{"type": "FilteringSpanListener", "config": { "filters": [ { "className":"AWS-SQS","domainName":"Messaging","tags":{"foo": "bar"}}]}}'
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
 
     trace_support.parse_span_listeners()
@@ -45,9 +46,9 @@ def test_create_span_listener_with_only_filterer(monkeypatch):
     assert f.tags == {'foo': 'bar'}
 
 def test_create_span_listener_with_filterer_and_listener(monkeypatch):
-    sl_env_var = ('FilteringSpanListener[listener=ErrorInjectorSpanListener,config.errorType=NameError,'
-                    'config.errorMessage="foo",config.injectOnFinish=true,config.injectCountFreq=3,'
-                    'filter.className=AWS-SQS,filter.domainName=Messaging,filter.tag.foo=bar]')
+    sl_env_var = ('{"type": "FilteringSpanListener", "config": {"listener": {"type": "ErrorInjectorSpanListener", "config": {"errorType": "NameError",'
+                    '"errorMessage":"foo", "injectOnFinish": true, "injectCountFreq":3}},'
+                    '"filters": [{"className":"AWS-SQS", "domainName":"Messaging", "tags": {"foo":"bar"}}]}}')
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
 
     trace_support.parse_span_listeners()
@@ -67,10 +68,10 @@ def test_create_span_listener_with_filterer_and_listener(monkeypatch):
     assert f.tags == {'foo': 'bar'}
 
 def test_create_span_listener_with_multiple_filter_and_listener(monkeypatch):
-    sl_env_var = ('FilteringSpanListener[listener=LatencyInjectorSpanListener,config.delay=370,'
-                    'config.distribution=normal,config.sigma=73,config.variation=37,'
-                    'filter1.className=AWS-SQS,filter1.domainName=Messaging,filter1.tag.foo=bar,'
-                    'filter2.className=HTTP,filter2.operationName=http_request,filter2.tag.http.host=foobar.com]')
+    sl_env_var = ('{"type": "FilteringSpanListener", "config": {"listener": {"type": "LatencyInjectorSpanListener","config": {"delay":370,'
+                    '"distribution":"normal", "sigma": 73, "variation":37}},'
+                    '"filters": [{"className":"AWS-SQS", "domainName": "Messaging", "tags": {"foo":"bar"}},'
+                    '{"className":"HTTP", "operationName": "http_request", "tags": {"http.host": "foobar.com"}}]}}')
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
 
     trace_support.parse_span_listeners()
@@ -95,7 +96,7 @@ def test_create_span_listener_with_multiple_filter_and_listener(monkeypatch):
     assert f2.tags == {'http.host': 'foobar.com'}
 
 def test_with_non_existing_listener_type(monkeypatch):
-    sl_env_var = 'NonExistingSpanListener[]'
+    sl_env_var = '{"type": "NonExistingSpanListener", "config": {"config": {}}}'
     monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
 
     trace_support.parse_span_listeners()
