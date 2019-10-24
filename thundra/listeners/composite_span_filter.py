@@ -3,8 +3,7 @@ from thundra.listeners.thundra_span_filterer import SpanFilter
 
 class CompositeSpanFilter(SpanFilter):
     
-    def __init__(self, composite=True, is_all=False, filters=[]):
-        self.composite = composite
+    def __init__(self, is_all=False, filters=[]):
         self.all = is_all
         self.filters = filters
 
@@ -23,4 +22,4 @@ class CompositeSpanFilter(SpanFilter):
         return result
     
     def set_filters(self, filters):
-        self.filters = []
+        self.filters = filters
