@@ -35,11 +35,36 @@ class FilteringSpanListener(ThundraSpanListener):
         return FilteringSpanListener(listener=listener, filterer=filterer)
 
     @staticmethod
+    def _get_span_filters_from_config(config):
+        span_filters = []
+        is_all = config.get('all', False)
+        if not config.get('filters'):
+            return StandardSpanFilterer(span_filters=[], all_mandatory=is_all)
+        for filter_config in config.get('filters'):
+            composite = filter_config.get('composite')
+            if composite:
+                composite_filter = CompositeSpanFilter(is_all=filter_config.get('all', False))
+                filters = FilteringSpanListener._get_span_filters_from_config(filter_config)
+                composite_filter.set_filters(filters)
+                span_filters.append(composite_filter)
+            else:
+                span_filters.append(SimpleSpanFilter(
+                    filter_config.get('domainName'),
+                    filter_config.get('className'),
+                    filter_config.get('operationName'),
+                    filter_config.get('tags'),
+                    filter_config.get('reverse')
+                ))
+        
+        return span_filters
+
+    @staticmethod
     def _get_span_filterer_from_config(config):
         SPAN_FILTERERS= {
             sl_class.__name__: sl_class 
             for sl_class in SpanFilterer.__subclasses__()
         }
+        is_all = config.get('all', False)
 
         filterer_class = None
         if 'filterer' in config:
@@ -52,26 +77,7 @@ class FilteringSpanListener(ThundraSpanListener):
                 return None
         else:
             filterer_class = StandardSpanFilterer
-
-        span_filters = []
-        is_all = config.get('all', False)
-        if not config.get('filters'):
-            return StandardSpanFilterer(span_filters=[], all_mandatory=is_all)
-        for filter_config in config.get('filters'):
-            composite = filter_config.get('composite')
-            if composite:
-                composite_filter = CompositeSpanFilter(is_all=filter_config.get('all', False))
-                filters = FilteringSpanListener._get_span_filterer_from_config(filter_config)
-                composite_filter.set_filters(filters)
-            else:
-                span_filters.append(SimpleSpanFilter(
-                    filter_config.get('domainName'),
-                    filter_config.get('className'),
-                    filter_config.get('operationName'),
-                    filter_config.get('tags'),
-                    filter_config.get('reverse')
-                ))
-        
+        span_filters = FilteringSpanListener._get_span_filters_from_config(config)
         return filterer_class(span_filters=span_filters, all_mandatory=is_all)
 
     @staticmethod
