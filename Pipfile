@@ -8,7 +8,7 @@ opentracing = "*"
 requests = "*"
 wrapt = "*"
 simplejson = "*"
-enum34 = "*"
+enum-compat = "*"
 
 [dev-packages]
 mock = "*"

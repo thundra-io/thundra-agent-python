@@ -330,10 +330,9 @@ def inject_trigger_tags_for_lambda(span, original_context):
         pass
 
 
-def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names, topology_vertex=True):
+def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names):
     span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)
     span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], class_name)
-    span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], topology_vertex)
     span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], operation_names)
 
 
