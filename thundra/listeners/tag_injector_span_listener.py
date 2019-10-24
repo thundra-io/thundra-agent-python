@@ -35,7 +35,7 @@ class TagInjectorSpanListener(ThundraSpanListener):
     def from_config(config):
         kwargs = {}
         inject_on_finish = config.get('injectOnFinish')
-        tags_to_inject = config.get('tagsToInject')
+        tags_to_inject = config.get('tags')
         if inject_on_finish != None:
             kwargs['inject_on_finish'] = inject_on_finish
         if tags_to_inject != None:
