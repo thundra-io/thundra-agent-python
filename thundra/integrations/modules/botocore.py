@@ -36,8 +36,12 @@ def patch():
             _wrapper
         )
     if not config.http_integration_disabled():
-        wrapt.wrap_function_wrapper(
-            'botocore.vendored.requests',
-            'Session.send',
-            request_wrapper
-        )
+        try:
+            wrapt.wrap_function_wrapper(
+                'botocore.vendored.requests',
+                'Session.send',
+                request_wrapper
+            )
+        except Exception:
+            # Vendored version of requests is removed from botocore
+            pass
