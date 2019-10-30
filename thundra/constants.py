@@ -69,6 +69,8 @@ THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_mess
 THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
 THUNDRA_MASK_HTTP_BODY = 'thundra_agent_lambda_trace_integrations_aws_http_body_mask'
 
+THUNDRA_ENABLE_LOCALSTACK_FORWARDING = 'thundra_agent_lambda_trace_integrations_localstack_enable'
+
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
 AWS_SAM_LOCAL = 'AWS_SAM_LOCAL'
 AWS_LAMBDA_LOG_STREAM_NAME = 'AWS_LAMBDA_LOG_STREAM_NAME'
@@ -651,4 +653,29 @@ AthenaOperationTypes = {
     'TagResource': 'WRITE',
     'UntagResource': 'DELETE',
     'UpdateWorkGroup': 'WRITE',
+}
+
+LOCALSTACK_PORT_MAPPING = {
+    'apigateway': 4567,
+    'kinesis': 4568,
+    'dynamodb': 4569,
+    'dynamodbstreams': 4570,
+    's3': 4572,
+    'lambda': 4574,
+    'sns': 4575,
+    'sqs': 4576,
+    'redshift': 4577,
+    'es': 4578,
+    'ses': 4579,
+    'route53': 4580,
+    'cloudformation': 4581,
+    'cloudwatch': 4582,
+    'ssm': 4583,
+    'secretsmanager': 4584,
+    'stepfunctions': 4585,
+    'logs': 4586,
+    'events': 4587,
+    'sts': 4592,
+    'iam': 4593,
+    'ec2': 4597
 }
