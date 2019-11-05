@@ -1015,6 +1015,7 @@ def test_default_aws_service():
         assert span.domain_name == 'AWS'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateContainer'
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'mediastore'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         tracer.clear()
 
 

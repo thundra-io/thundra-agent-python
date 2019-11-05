@@ -19,6 +19,7 @@ from thundra.compat import PY37
 def dummy_func(*args):
     return None
 
+
 def get_operation_type(class_name, operation_name):
     if class_name in constants.OperationTypeMappings["exclusions"] and \
         operation_name in constants.OperationTypeMappings["exclusions"][class_name]:
@@ -674,6 +675,7 @@ class AWSServiceIntegration(BaseIntegration):
 
         if len(args) > 0:
             scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
+            scope.span.set_tag(constants.SpanTags['OPERATION_TYPE'], get_operation_type(scope.span.class_name, args[0]))
 
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
 
