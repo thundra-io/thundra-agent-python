@@ -3,6 +3,7 @@ import hashlib
 import base64
 import simplejson as json
 import copy
+import re
 
 from dateutil.parser import parse
 from datetime import datetime
@@ -17,6 +18,16 @@ from thundra.compat import PY37
 
 def dummy_func(*args):
     return None
+
+def get_operation_type(class_name, operation_name):
+    if class_name in constants.OperationTypeMappings["exclusions"] and \
+        operation_name in constants.OperationTypeMappings["exclusions"][class_name]:
+        return constants.OperationTypeMappings["exclusions"][class_name][operation_name]
+    
+    for pattern in constants.OperationTypeMappings["patterns"]:
+        if re.match(pattern, operation_name):
+            return constants.OperationTypeMappings["patterns"][pattern]
+    return ''
 
 
 class AWSDynamoDBIntegration(BaseIntegration):
@@ -36,22 +47,22 @@ class AWSDynamoDBIntegration(BaseIntegration):
         return str(request_data['TableName']) if 'TableName' in request_data else constants.AWS_SERVICE_REQUEST
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        scope.span.domain_name = constants.DomainNames['DB']
+        scope.span.class_name = constants.ClassNames['DYNAMODB']
+
         operation_name, request_data = args
-        statement_type = constants.DynamoDBRequestTypes.get(operation_name, '')
+        operation_type = get_operation_type(scope.span.class_name, operation_name)
 
         self.request_data = request_data.copy()
         self.endpoint = instance._endpoint.host.split('/')[-1]
 
-        scope.span.domain_name = constants.DomainNames['DB']
-        scope.span.class_name = constants.ClassNames['DYNAMODB']
-
         tags = {
-            constants.SpanTags['OPERATION_TYPE']: statement_type,
+            constants.SpanTags['OPERATION_TYPE']: operation_type,
             constants.DBTags['DB_INSTANCE']: self.endpoint,
             constants.DBTags['DB_TYPE']: constants.DBTypes['DYNAMODB'],
             constants.AwsDynamoTags['TABLE_NAME']: str(
                 self.request_data['TableName']) if 'TableName' in self.request_data else None,
-            constants.DBTags['DB_STATEMENT_TYPE']: statement_type,
+            constants.DBTags['DB_STATEMENT_TYPE']: operation_type,
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
         scope.span.tags = tags
@@ -263,9 +274,6 @@ class AWSSQSIntegration(BaseIntegration):
             return queue_name
         return constants.AWS_SERVICE_REQUEST
 
-    def getRequestType(self, string):
-        return constants.SQSRequestTypes.get(string, '')
-
     def getQueueName(self, data):
         if 'QueueUrl' in data:
             return data['QueueUrl'].split('/')[-1]
@@ -283,7 +291,7 @@ class AWSSQSIntegration(BaseIntegration):
 
         tags = {
             constants.AwsSQSTags['QUEUE_NAME']: self.queueName,
-            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
         }
 
@@ -353,9 +361,6 @@ class AWSSNSIntegration(BaseIntegration):
 
         return self.topicName
 
-    def getRequestType(self, string):
-        return constants.SNSRequestTypes.get(string, '')
-
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         self.request_data = request_data
@@ -367,7 +372,7 @@ class AWSSNSIntegration(BaseIntegration):
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
             constants.AwsSNSTags['TOPIC_NAME']: self.topicName
         }
 
@@ -407,9 +412,6 @@ class AWSKinesisIntegration(BaseIntegration):
         _, request_data = args
         return request_data.get('StreamName', constants.AWS_SERVICE_REQUEST)
 
-    def getRequestType(self, string):
-        return constants.KinesisRequestTypes.get(string, '')
-
     def generate_trace_link(self, region, shard_id, sequence_number):
         return region + ':' + self.streamName + ':' + shard_id + ':' + sequence_number
 
@@ -422,7 +424,7 @@ class AWSKinesisIntegration(BaseIntegration):
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
             constants.AwsKinesisTags['STREAM_NAME']: self.streamName
         }
 
@@ -466,9 +468,6 @@ class AWSFirehoseIntegration(BaseIntegration):
         _, request_data = args
         return request_data.get('DeliveryStreamName', constants.AWS_SERVICE_REQUEST)
 
-    def getRequestType(self, string):
-        return constants.FirehoseRequestTypes.get(string, '')
-
     def generate_trace_links(self, region, response, data):
         try:
             date_str = response["ResponseMetadata"]["HTTPHeaders"]["date"]
@@ -494,7 +493,7 @@ class AWSFirehoseIntegration(BaseIntegration):
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
             constants.AwsFirehoseTags['STREAM_NAME']: self.deliveryStreamName
         }
 
@@ -542,11 +541,6 @@ class AWSS3Integration(BaseIntegration):
         _, request_data = args
         return request_data['Bucket'] if 'Bucket' in request_data else constants.AWS_SERVICE_REQUEST
 
-    def getRequestType(self, string):
-        if string in constants.S3RequestTypes:
-            return constants.S3RequestTypes[string]
-        return ''
-
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
         self.bucket = request_data['Bucket'] if 'Bucket' in request_data else ''
@@ -558,7 +552,7 @@ class AWSS3Integration(BaseIntegration):
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
             constants.AwsS3Tags['BUCKET_NAME']: self.bucket,
             constants.AwsS3Tags['OBJECT_NAME']: self.objectName
         }
@@ -595,11 +589,6 @@ class AWSLambdaIntegration(BaseIntegration):
         _, request_data = args
         return request_data.get('FunctionName', constants.AWS_SERVICE_REQUEST)
 
-    def getRequestType(self, string):
-        if string in constants.LambdaRequestType:
-            return constants.LambdaRequestType[string]
-        return ''
-
     def inject_span_context_into_client_context(self, request_data):
         encoded_client_context = request_data.get('X-Amz-Client-Context', None)
         client_context = {}
@@ -628,7 +617,7 @@ class AWSLambdaIntegration(BaseIntegration):
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: self.getRequestType(operation_name),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
             constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
 
@@ -752,7 +741,7 @@ class AWSAthenaIntegration(BaseIntegration):
             constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: constants.AthenaOperationTypes.get(operation_name, ""),
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
         }
 
         scope.span.tags = tags
