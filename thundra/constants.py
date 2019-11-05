@@ -202,6 +202,11 @@ SpanTags = {
     'TRACE_LINKS': 'trace.links'
 }
 
+SecurityTags = {
+    'BLOCKED': 'security.blocked',
+    'VIOLATED': 'security.violated'
+}
+
 AthenaTags = {
     'S3_OUTPUT_LOCATION': "aws.athena.s3.outputLocation",
     'REQUEST_QUERY_EXECUTION_IDS': "aws.athena.request.query.executionIds",
