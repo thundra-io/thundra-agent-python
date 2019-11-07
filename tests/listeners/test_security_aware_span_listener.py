@@ -11,39 +11,38 @@ def test_create_from_config():
             {
                 "className": "HTTP",
                 "tags": {
-                    "http.host": ["www.google.com", "www.yahoo.com"]
-                },
-               "operations": [
-                 "GET",
-                 "POST",
-                 "PUT",
-               ]
+                    "http.host": ["www.google.com", "www.yahoo.com"],
+                    "operation.type": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                    ]
+                }
             },
             {
                 "className": "AWS-DynamoDB",
                 "tags": {
-                    "aws.dynamodb.table.name": ["Users"]
-                },
-               "operations": [
-                 "List",
-                 "Read",
-                 "Write",
-                 "Tagging",
-                 "PermissionsManagement"
-               ]
+                    "aws.dynamodb.table.name": ["Users"],
+                    "operation.type": [
+                        "List",
+                        "Read",
+                        "Write",
+                        "Tagging",
+                        "PermissionsManagement"
+                    ]
+                }
             }
-        ]  
+        ]
     }
 
     sasl = SecurityAwareSpanListener.from_config(config)
 
     assert sasl.block == True
-    assert sasl.whitelist == []     
+    assert sasl.whitelist == []
     assert len(sasl.blacklist) == 2
     op1 = sasl.blacklist[0]
     assert op1.class_name == "HTTP"
-    assert op1.tags == {"http.host": ["www.google.com", "www.yahoo.com"]}
-    assert op1.operation_types == ["GET", "POST", "PUT"]
+    assert op1.tags == {"http.host": ["www.google.com", "www.yahoo.com"], 'operation.type': ['GET', 'POST', 'PUT']}
 
 
 def test_violate():
@@ -53,26 +52,26 @@ def test_violate():
             {
                 "className": "HTTP",
                 "tags": {
-                    "http.host": ["www.google.com", "www.yahoo.com"]
-                },
-               "operations": [
-                 "GET",
-                 "POST",
-                 "PUT",
-               ]
+                    "http.host": ["www.google.com", "www.yahoo.com"],
+                    "operation.type": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                    ]
+                }
             },
             {
                 "className": "AWS-DynamoDB",
                 "tags": {
-                    "aws.dynamodb.table.name": ["Users"]
-                },
-               "operations": [
-                 "List",
-                 "Read",
-                 "Write",
-                 "Tagging",
-                 "PermissionsManagement"
-               ]
+                    "aws.dynamodb.table.name": ["Users"],
+                    "operation.type": [
+                        "List",
+                        "Read",
+                        "Write",
+                        "Tagging",
+                        "PermissionsManagement"
+                    ]
+                }
             }
         ]  
     }
@@ -102,26 +101,26 @@ def test_block():
             {
                 "className": "HTTP",
                 "tags": {
-                    "http.host": ["www.google.com", "www.yahoo.com"]
-                },
-               "operations": [
-                 "GET",
-                 "POST",
-                 "PUT",
-               ]
+                    "http.host": ["www.google.com", "www.yahoo.com"],
+                    "operation.type": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                    ]
+                }
             },
             {
                 "className": "AWS-DynamoDB",
                 "tags": {
-                    "aws.dynamodb.table.name": ["Users"]
-                },
-               "operations": [
-                 "List",
-                 "Read",
-                 "Write",
-                 "Tagging",
-                 "PermissionsManagement"
-               ]
+                    "aws.dynamodb.table.name": ["Users"],
+                    "operation.type": [
+                        "List",
+                        "Read",
+                        "Write",
+                        "Tagging",
+                        "PermissionsManagement"
+                    ]
+                }
             }
         ]  
     }
@@ -141,7 +140,7 @@ def test_block():
         error_thrown = e
     
     assert str(error_thrown) == "Operation was blocked due to security configuration"
-    assert span.get_tag(constants.SecurityTags["VIOLATED"]) == None
+    assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True
     assert span.get_tag(constants.SecurityTags["BLOCKED"]) == True
 
 
@@ -152,26 +151,26 @@ def test_whitelist():
             {
                 "className": "HTTP",
                 "tags": {
-                    "http.host": ["www.google.com", "www.yahoo.com"]
-                },
-               "operations": [
-                 "GET",
-                 "POST",
-                 "PUT",
-               ]
+                    "http.host": ["www.google.com", "www.yahoo.com"],
+                    "operation.type": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                    ]
+                }
             },
             {
                 "className": "AWS-DynamoDB",
                 "tags": {
-                    "aws.dynamodb.table.name": ["Users"]
-                },
-               "operations": [
-                 "List",
-                 "Read",
-                 "Write",
-                 "Tagging",
-                 "PermissionsManagement"
-               ]
+                    "aws.dynamodb.table.name": ["Users"],
+                    "operation.type": [
+                        "List",
+                        "Read",
+                        "Write",
+                        "Tagging",
+                        "PermissionsManagement"
+                    ]
+                }
             }
         ]  
     }
@@ -208,5 +207,5 @@ def test_whitelist():
         error_thrown = e
     
     assert str(error_thrown) == "Operation was blocked due to security configuration"
-    assert span.get_tag(constants.SecurityTags["VIOLATED"]) == None
+    assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True
     assert span.get_tag(constants.SecurityTags["BLOCKED"]) == True

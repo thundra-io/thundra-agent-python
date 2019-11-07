@@ -4,6 +4,7 @@ from threading import Lock
 from importlib import import_module
 from thundra import constants, utils
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
+from thundra.plugins.invocation import invocation_support
 
 try:
     import builtins
@@ -57,11 +58,15 @@ class SecurityAwareSpanListener(ThundraSpanListener):
     def handle_security_issue(self, span):
         if self.block:
             err = SecurityError()
+            span.set_tag(constants.SecurityTags['VIOLATED'], True)
             span.set_tag(constants.SecurityTags['BLOCKED'], True)
             span.set_error_to_tag(err)
+            invocation_support.set_agent_tag(constants.SecurityTags['VIOLATED'], True)
+            invocation_support.set_agent_tag(constants.SecurityTags['BLOCKED'], True)
             raise err
         else:
             span.set_tag(constants.SecurityTags['VIOLATED'], True)
+            invocation_support.set_agent_tag(constants.SecurityTags['VIOLATED'], True)
             
 
 class SecurityError(Exception):
@@ -72,14 +77,10 @@ class SecurityError(Exception):
 class Operation:
     def __init__(self, config):
         self.class_name = config.get('className', '')
-        self.operation_types = config.get('operations')
         self.tags = config.get('tags')
     
     def matches(self, span):
         matched = self.class_name == span.class_name
-        
-        if matched and self.operation_types:
-            matched = self.get_operation_type(span) in self.operation_types
 
         if matched and self.tags:
             for k, v in self.tags.items():
@@ -91,6 +92,3 @@ class Operation:
                     matched = False
                     break
         return matched
-
-    def get_operation_type(self, span):
-        return span.get_tag(constants.SpanTags['OPERATION_TYPE'])
