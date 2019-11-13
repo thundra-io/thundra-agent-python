@@ -10,7 +10,7 @@ ot = constants.SpanTags['OPERATION_TYPE']
 def mocked_span():
     def make_mocked_span(span_id='', class_name='', operation_name='', 
         operation_type='', topology_vertex=False,
-        duration=0, errorneous=False, error_type=''):
+        duration=0, errorneous=False, error_type='', violated=None, blocked=None):
 
         span = mock.Mock(name='mocked_span')
         span.span_id = span_id
@@ -19,7 +19,10 @@ def mocked_span():
         span.tags = {
             tv: topology_vertex, 
             ot: operation_type, 
-            'error.kind': error_type
+            'error.kind': error_type,
+            'security.violated': violated,
+            'security.blocked': blocked
+            
         }
         span.get_duration.return_value = duration
         span.errorneous.return_value = errorneous
@@ -46,7 +49,9 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'd': 37,
             'tv': True,
             'e': False,
-            'et': ''
+            'et': '',
+            'v': None,
+            'b': None
         },
         {
             'id': '1',
@@ -56,7 +61,9 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'd': 37,
             'tv': True,
             'e': True,
-            'et': 'AnErrorType'
+            'et': 'AnErrorType',
+            'v': True,
+            'b': True
         },
         {
             'id': '2',
@@ -66,7 +73,10 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'd': 73,
             'tv': True,
             'e': True,
-            'et': 'AnotherErrorType'
+            'et': 'AnotherErrorType',
+            'v': True,
+            'b': None
+            
         },
         {
             'id': '3',
@@ -76,7 +86,9 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'd': 38,
             'tv': False,
             'e': False,
-            'et': ''
+            'et': '',
+            'v': True,
+            'b': True
         },
         {
             'id': '4',
@@ -86,14 +98,16 @@ def test_get_resources(mocked_get_spans, mocked_span):
             'd': 83,
             'tv': True,
             'e': True,
-            'et': 'WeirdError'
+            'et': 'WeirdError',
+            'v': True,
+            'b': None
         },
     ]
     spans = [
         mocked_span(span_id=args['id'], class_name=args['cn'], operation_name=args['on'],
             topology_vertex=args['tv'], operation_type=args['ot'], 
             errorneous=args['e'], error_type=args['et'],
-            duration=args['d']) for args in span_args
+            duration=args['d'], violated=args['v'], blocked=args['b']) for args in span_args
     ]
     mocked_get_spans.return_value = spans
 
@@ -114,6 +128,8 @@ def test_get_resources(mocked_get_spans, mocked_span):
     assert r1['resourceDuration'] == 110
     assert r1['resourceMaxDuration'] == 73
     assert r1['resourceAvgDuration'] == 55
+    assert r1['resourceViolatedCount'] == 2
+    assert r1['resourceBlockedCount'] == 1
     assert len(r1['resourceErrors']) == 2
     assert 'AnErrorType' in r1['resourceErrors']
     assert 'AnotherErrorType' in r1['resourceErrors']
@@ -126,5 +142,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
     assert r2['resourceDuration'] == 83
     assert r2['resourceMaxDuration'] == 83
     assert r2['resourceAvgDuration'] == 83
+    assert r2['resourceViolatedCount'] == 1
+    assert r2['resourceBlockedCount'] == 0
     assert len(r2['resourceErrors']) == 1
     assert 'WeirdError' in r2['resourceErrors']

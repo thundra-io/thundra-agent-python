@@ -15,6 +15,8 @@ class Resource:
         self.operation = str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
         self.count = 1
         self.error_count = 1 if span.errorneous() else 0
+        self.security_violated_count = 1 if span.get_tag(constants.SecurityTags['VIOLATED']) else 0
+        self.security_blocked_count = 1 if span.get_tag(constants.SecurityTags['BLOCKED']) else 0
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
@@ -34,6 +36,13 @@ class Resource:
         self.count += 1
         self.duration += span.get_duration()
         errorneous = span.errorneous()
+
+        if span.get_tag(constants.SecurityTags['VIOLATED']):
+            self.security_violated_count += 1
+
+        if span.get_tag(constants.SecurityTags['BLOCKED']):
+            self.security_blocked_count += 1
+
         if errorneous:
             self.error_count += 1
             self.error_types.add(span.get_tag('error.kind'))
@@ -48,6 +57,8 @@ class Resource:
             'resourceOperation': self.operation,
             'resourceCount': self.count,
             'resourceErrorCount': self.error_count,
+            'resourceViolatedCount': self.security_violated_count,
+            'resourceBlockedCount': self.security_blocked_count,            
             'resourceDuration': self.duration,
             'resourceErrors': list(self.error_types),
             'resourceMaxDuration': self.resource_max_duration,
