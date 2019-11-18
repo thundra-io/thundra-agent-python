@@ -152,11 +152,7 @@ def test_whitelist():
                 "className": "HTTP",
                 "tags": {
                     "http.host": ["www.google.com", "www.yahoo.com"],
-                    "operation.type": [
-                        "GET",
-                        "POST",
-                        "PUT",
-                    ]
+                    "operation.type": "*"
                 }
             },
             {

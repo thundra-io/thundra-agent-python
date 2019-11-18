@@ -42,9 +42,9 @@ class SecurityAwareSpanListener(ThundraSpanListener):
     @staticmethod
     def from_config(config):
         kwargs = {}
-        kwargs["block"] = config.get('block')
-        kwargs["whitelist"] = list(map(Operation, config.get('whitelist', [])))
-        kwargs["blacklist"] = list(map(Operation, config.get('blacklist', [])))
+        kwargs['block'] = config.get('block')
+        kwargs['whitelist'] = list(map(Operation, config.get('whitelist', [])))
+        kwargs['blacklist'] = list(map(Operation, config.get('blacklist', [])))
 
         return SecurityAwareSpanListener(**kwargs)
 
@@ -70,7 +70,7 @@ class SecurityAwareSpanListener(ThundraSpanListener):
             
 
 class SecurityError(Exception):
-    def __init__(self, msg="Operation was blocked due to security configuration"):
+    def __init__(self, msg='Operation was blocked due to security configuration'):
         super(Exception, self).__init__(msg)
 
 
@@ -80,7 +80,7 @@ class Operation:
         self.tags = config.get('tags')
     
     def matches(self, span):
-        matched = self.class_name == span.class_name
+        matched = self.class_name == span.class_name or self.class_name == '*'
 
         if matched and self.tags:
             for k, v in self.tags.items():
@@ -88,7 +88,7 @@ class Operation:
                     if not(span.get_tag(k) in v):
                         matched = False
                         break
-                elif span.get_tag(k) != v:
+                elif v != '*' and span.get_tag(k) != v:
                     matched = False
                     break
         return matched
