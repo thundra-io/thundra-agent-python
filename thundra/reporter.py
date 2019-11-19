@@ -1,8 +1,8 @@
 import simplejson as json
 import logging
+import concurrent.futures as futures
 
 from thundra import constants, config, composite, utils
-from multiprocessing.dummy import Pool as ThreadPool
 
 try:
     import requests
@@ -26,8 +26,9 @@ class Reporter():
             session = requests.Session()
             adapter = requests.adapters.HTTPAdapter(pool_maxsize=20)
             session.mount("https://", adapter)
+
         self.session = session
-        self.pool = ThreadPool(20)
+        self.pool = futures.ThreadPoolExecutor(max_workers=20)
 
     def add_report(self, report):
         if isinstance(report, list):
@@ -71,7 +72,8 @@ class Reporter():
 
         responses = []
         if len(reports_json) > 0:
-            responses = self.pool.map(self.send_batch, [(request_url, headers, data) for data in reports_json])
+            _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
+            responses = [future.result() for future in futures.as_completed(_futures)]
 
         self.clear()
         return responses
