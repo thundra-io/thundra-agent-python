@@ -85,10 +85,10 @@ class Operation:
         if matched and self.tags:
             for k, v in self.tags.items():
                 if isinstance(v, list):
-                    if not(span.get_tag(k) in v):
+                    if not(span.get_tag(k) in v or '*' in v):
                         matched = False
                         break
-                elif v != '*' and span.get_tag(k) != v:
+                elif span.get_tag(k) != v:
                     matched = False
                     break
         return matched
