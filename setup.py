@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='thundra',
-      version='2.3.9',
+      version='2.4.0',
       description='Thundra Python agent',
       url='https://github.com/thundra-io/thundra-lambda-agent-python',
       author='Thundra',
@@ -20,5 +20,6 @@ setup(name='thundra',
           "Programming Language :: Python :: 3",
           "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
+          "Programming Language :: Python :: 3.8",
       ],
       )

@@ -26,7 +26,7 @@ do
     PUBLISHED_LAYER_VERSION=$(aws lambda publish-layer-version \
         --layer-name $LAYER_NAME \
         --content S3Bucket=$ARTIFACT_BUCKET,S3Key=$ARTIFACT_OBJECT \
-        --compatible-runtimes python2.7 python3.6 python3.7 \
+        --compatible-runtimes python2.7 python3.6 python3.7 python3.8 \
         --region $REGION \
         --query 'Version')
 
