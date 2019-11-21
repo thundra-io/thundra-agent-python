@@ -13,8 +13,11 @@ import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.application_support import get_application_info
+import thundra.utils as utils
 
 from thundra.compat import PY37
+
+OPERATION_TYPE_MAPPING_PATTERNS = utils.get_compiled_operation_type_patterns()
 
 def dummy_func(*args):
     return None
@@ -25,9 +28,9 @@ def get_operation_type(class_name, operation_name):
         operation_name in constants.OperationTypeMappings["exclusions"][class_name]:
         return constants.OperationTypeMappings["exclusions"][class_name][operation_name]
     
-    for pattern in constants.OperationTypeMappings["patterns"]:
-        if re.match(pattern, operation_name):
-            return constants.OperationTypeMappings["patterns"][pattern]
+    for sre in OPERATION_TYPE_MAPPING_PATTERNS:
+        if sre.match(operation_name):
+            return constants.OperationTypeMappings["patterns"][sre.pattern]
     return ''
 
 
