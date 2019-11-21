@@ -13,7 +13,7 @@ except:
 
 
 class SecurityAwareSpanListener(ThundraSpanListener):
-    def __init__(self, block=False, whitelist=[], blacklist=[]):
+    def __init__(self, block=False, whitelist=None, blacklist=None):
         self.block = block
         self.whitelist = whitelist
         self.blacklist = blacklist
@@ -22,17 +22,20 @@ class SecurityAwareSpanListener(ThundraSpanListener):
         if not self.is_external_operation(span):
             return
 
-        for op in self.blacklist:
-            if op.matches(span):
-                self.handle_security_issue(span)
-                return
+        has_whitelist = isinstance(self.whitelist, list)
+        has_blacklist = isinstance(self.blacklist, list)
+
+        if has_blacklist:
+            for op in self.blacklist:
+                if op.matches(span):
+                    self.handle_security_issue(span)
+                    return
         
-        has_whitelist = len(self.whitelist) > 0
         if has_whitelist:
             for op in self.whitelist:
                 if op.matches(span):
                     return
-        
+
             self.handle_security_issue(span)
 
 
@@ -43,8 +46,14 @@ class SecurityAwareSpanListener(ThundraSpanListener):
     def from_config(config):
         kwargs = {}
         kwargs['block'] = config.get('block')
-        kwargs['whitelist'] = list(map(Operation, config.get('whitelist', [])))
-        kwargs['blacklist'] = list(map(Operation, config.get('blacklist', [])))
+        whitelist = config.get('whitelist', None)
+        blacklist = config.get('blacklist', None)
+
+        if isinstance(whitelist, list):
+            kwargs['whitelist'] = list(map(Operation, whitelist))
+
+        if isinstance(blacklist, list):
+            kwargs['blacklist'] = list(map(Operation, blacklist))
 
         return SecurityAwareSpanListener(**kwargs)
 

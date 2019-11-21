@@ -38,7 +38,7 @@ def test_create_from_config():
     sasl = SecurityAwareSpanListener.from_config(config)
 
     assert sasl.block == True
-    assert sasl.whitelist == []
+    assert sasl.whitelist == None
     assert len(sasl.blacklist) == 2
     op1 = sasl.blacklist[0]
     assert op1.class_name == "HTTP"
