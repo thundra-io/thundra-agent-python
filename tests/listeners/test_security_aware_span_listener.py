@@ -205,3 +205,42 @@ def test_whitelist():
     assert str(error_thrown) == "Operation was blocked due to security configuration"
     assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True
     assert span.get_tag(constants.SecurityTags["BLOCKED"]) == True
+
+
+def test_operation_name():
+    config = {
+        'block': False,
+        "blacklist": [
+            {
+                "className": "HTTP",
+                "operationName": "www.google.com/test",
+                "tags": {
+                    "http.host": ["www.google.com"],
+                    "operation.type": [
+                        "GET",
+                        "POST",
+                        "PUT",
+                    ]
+                }
+            }
+        ]
+    }
+
+    sasl = SecurityAwareSpanListener.from_config(config)
+    error_thrown = None
+
+    tracer = ThundraTracer.get_instance()
+    span = tracer.create_span(operation_name='test')
+    span.set_tag("http.host", "www.google.com")
+    span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+    span.set_tag(constants.SpanTags['OPERATION_TYPE'], "GET")
+    span.class_name = "HTTP"
+    span.operation_name = "www.google.com/test"
+
+    try:
+        sasl.on_span_started(span)
+    except Exception as e:
+        error_thrown = e
+
+    assert error_thrown == None
+    assert span.get_tag(constants.SecurityTags["VIOLATED"]) == True

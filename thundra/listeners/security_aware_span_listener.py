@@ -85,11 +85,15 @@ class SecurityError(Exception):
 
 class Operation:
     def __init__(self, config):
-        self.class_name = config.get('className', '')
+        self.class_name = config.get('className')
+        self.operation_name = config.get('operationName')
         self.tags = config.get('tags')
     
     def matches(self, span):
         matched = self.class_name == span.class_name or self.class_name == '*'
+
+        if matched and self.operation_name:
+            matched = self.operation_name == span.operation_name or self.operation_name == '*'
 
         if matched and self.tags:
             for k, v in self.tags.items():
