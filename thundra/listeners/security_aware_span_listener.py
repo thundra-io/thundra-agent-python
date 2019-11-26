@@ -92,8 +92,8 @@ class Operation:
     def matches(self, span):
         matched = self.class_name == span.class_name or self.class_name == '*'
 
-        if matched and self.operation_name:
-            matched = self.operation_name == span.operation_name or self.operation_name == '*'
+        if matched and isinstance(self.operation_name, list):
+            matched = span.operation_name in self.operation_name or '*' in self.operation_name
 
         if matched and self.tags:
             for k, v in self.tags.items():

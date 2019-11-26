@@ -45,6 +45,7 @@ class ElasticsearchIntegration(BaseIntegration):
         scope.span.class_name = constants.ClassNames['ELASTICSEARCH']
         scope.span.domain_name = constants.DomainNames['DB']
 
+        operation_name = self.get_operation_name(wrapped, instance, args, kwargs)
         hosts = self.get_hosts(instance)
         
         http_method, es_path = args
@@ -54,6 +55,7 @@ class ElasticsearchIntegration(BaseIntegration):
         tags = {
             constants.ESTags['ES_HOSTS']: hosts,
             constants.ESTags['ES_URI']: es_path,
+            constants.ESTags['ES_NORMALIZED_URI']: operation_name,
             constants.ESTags['ES_METHOD']: http_method,
             constants.ESTags['ES_PARAMS']: es_params,
             constants.DBTags['DB_TYPE']: 'elasticsearch',
