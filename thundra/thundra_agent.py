@@ -1,4 +1,5 @@
 import signal
+import subprocess
 import threading
 import time
 import logging
@@ -50,6 +51,7 @@ class Thundra:
 
         self.timeout_margin = config.timeout_margin()
         self.reporter = Reporter(self.api_key)
+        self.debugger_process = None
 
         if not config.trace_instrument_disabled():
             if not PY2:
@@ -101,6 +103,8 @@ class Thundra:
             # Invoke user handler
             if before_done:
                 try:
+                    if config.debugger_enabled():
+                        self.start_debugger_tracing()
                     response = original_func(event, context)
                     self.plugin_context['response'] = response
                 except Exception as e:
@@ -116,6 +120,8 @@ class Thundra:
                     raise e
                 finally:
                     self.stop_timer()
+                    if config.debugger_enabled():
+                        self.stop_debugger_tracing()
             else:
                 self.stop_timer()
                 self.reporter.reports = []
@@ -135,6 +141,30 @@ class Thundra:
         return wrapper
 
     call = __call__
+
+    def start_debugger_tracing(self):
+        try:
+            import ptvsd
+            ptvsd.enable_attach(address=("localhost", config.debugger_broker_port()), redirect_output=True)
+            self.debugger_process = subprocess.Popen([
+                "/opt/socat",
+                "TCP:localhost:{}".format(config.debugger_broker_port()),
+                "TCP:{}:{}".format(config.debugger_broker_host(), config.debugger_broker_port())]
+              )
+            ptvsd.wait_for_attach(config.debugger_max_wait_time())
+            ptvsd.tracing(True)
+        except Exception as e:
+            logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
+
+    def stop_debugger_tracing(self):
+        try:
+            import ptvsd
+            if self.debugger_process:
+                self.debugger_process.kill()
+                self.debugger_process = None
+            ptvsd.tracing(False)
+        except Exception as e:
+            logger.error("error while setting tracing false to debugger using ptvsd: {}".format(e))
 
     def execute_hook(self, name, data):
         if name == 'after:invocation':

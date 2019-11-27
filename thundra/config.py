@@ -205,8 +205,26 @@ def http_body_masked():
 def http_integration_url_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, default=1)
 
+
 def elasticsearch_integration_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, default=1)
 
+
 def http_error_status_code_min():
     return int_from_env(constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, 400)
+
+
+def debugger_enabled():
+    return bool_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE)
+
+
+def debugger_broker_port():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=6666)
+
+
+def debugger_broker_host():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST, default="debug.thundra.io")
+
+
+def debugger_max_wait_time():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX, default=60*1000)
