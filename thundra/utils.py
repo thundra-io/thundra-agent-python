@@ -1,5 +1,6 @@
 import os
 import logging
+import re
 
 from thundra.compat import urlparse
 from thundra.plugins.invocation import invocation_support
@@ -252,6 +253,11 @@ def get_nearest_collector():
 
     return "api.thundra.io"
 
+def get_compiled_operation_type_patterns():
+    compiled = []
+    for pattern in constants.OperationTypeMappings["patterns"]:
+        compiled.append(re.compile(pattern))
+    return compiled
 
 # Excluded url's 
 EXCLUDED_URLS = {

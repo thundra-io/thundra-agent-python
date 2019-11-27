@@ -18,19 +18,34 @@ class SpanFilter(ABC):
         the filter.
         '''
 
-class ThundraSpanFilterer(SpanFilterer):
+class StandardSpanFilterer(SpanFilterer):
     
-    def __init__(self, span_filters=[]):
+    def __init__(self, span_filters=[], all_mandatory=False):
         self.span_filters = span_filters
+        self.all_mandatory = all_mandatory
 
     def accept(self, span):
-        for sf in self.span_filters:
-            if hasattr(sf, 'accept'):
-                if sf.accept(span):
-                    return True
-            else:
-                raise TypeError("{} doesn't have accept method".format(type(sf)))
-        return False
+        if (not self.span_filters) or len(self.span_filters) == 0:
+            return True
+        
+        if self.all_mandatory:
+            for sf in self.span_filters:
+                if hasattr(sf, 'accept'):
+                    if not sf.accept(span):
+                        return False
+                else:
+                    raise TypeError("{} doesn't have accept method".format(type(sf)))
+            return True
+
+        else:
+            for sf in self.span_filters:
+                if hasattr(sf, 'accept'):
+                    if sf.accept(span):
+                        return True
+                else:
+                    raise TypeError("{} doesn't have accept method".format(type(sf)))
+            return False
+        
     
     def add_filter(self, filter):
         self.span_filters.append(filter)
@@ -38,17 +53,18 @@ class ThundraSpanFilterer(SpanFilterer):
     def clear_filters(self):
         self.span_filters = []
 
-class ThundraSpanFilter(SpanFilter):
+class SimpleSpanFilter(SpanFilter):
     
     def __init__(self,
                 domain_name=None,
                 class_name=None,
                 operation_name=None,
-                tags=None):
+                tags=None, reverse=False):
         self.domain_name = domain_name
         self.class_name = class_name
         self.operation_name = operation_name
         self.tags = tags
+        self.reverse = reverse
     
     def accept(self, span):
         accepted = True
@@ -63,28 +79,30 @@ class ThundraSpanFilter(SpanFilter):
         
         if accepted and self.tags is not None:
             for k, v in self.tags.items():
-                if span.get_tag(k) != v:
+                if isinstance(v, list):
+                    if not(span.get_tag(k) in v):
+                        accepted = False
+                        break
+                elif span.get_tag(k) != v:
                     accepted = False
                     break
-        
+        if self.reverse:
+            accepted = not accepted
+
         return accepted
 
     def __repr__(self):
-        return ("ThundraSpanFilter with class_name={}, domain_name={},",
-            "operation_name={}, tags={}").format(self.class_name, self.domain_name, self.operation_name, self.tags)
+        return ("SpanFilter with class_name={}, domain_name={},",
+            "operation_name={}, tags={}, reverse={}").format(self.class_name, self.domain_name, self.operation_name, self.tags, self.reverse)
 
     @staticmethod
     def from_config(config):
         kwargs = {}
-        tags = {}
+        tags = config.get('tags')
         domain_name = config.get('domainName')
         class_name = config.get('className')
         operation_name = config.get('operationName')
-
-        tag_prefix = 'tag.'
-        for k, v in config.items():
-            if k.startswith(tag_prefix):
-                tags[k[len(tag_prefix):]] = utils.str_to_proper_type(v)
+        reverse = config.get('reverse')
 
         if domain_name is not None:
             kwargs['domain_name'] = str(domain_name)
@@ -92,8 +110,10 @@ class ThundraSpanFilter(SpanFilter):
             kwargs['class_name'] = str(class_name)
         if operation_name is not None:
             kwargs['operation_name'] = str(operation_name)
+        if reverse is not None:
+            kwargs['reverse'] = reverse
         if len(tags) > 0:
             kwargs['tags'] = tags
         
 
-        return ThundraSpanFilter(**kwargs)
+        return SimpleSpanFilter(**kwargs)
