@@ -151,20 +151,23 @@ class Thundra:
                 "TCP:localhost:{}".format(config.debugger_broker_port()),
                 "TCP:{}:{}".format(config.debugger_broker_host(), config.debugger_broker_port())]
               )
-            ptvsd.wait_for_attach(config.debugger_max_wait_time())
-            ptvsd.tracing(True)
+            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
+            ptvsd.break_into_debugger()
         except Exception as e:
             logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
 
     def stop_debugger_tracing(self):
         try:
             import ptvsd
-            if self.debugger_process:
-                self.debugger_process.kill()
-                self.debugger_process = None
             ptvsd.tracing(False)
         except Exception as e:
             logger.error("error while setting tracing false to debugger using ptvsd: {}".format(e))
+        try:
+            if self.debugger_process:
+                self.debugger_process.kill()
+                self.debugger_process = None
+        except Exception as e:
+            logger.error("error while killing proxy process for debug: {}".format(e))
 
     def execute_hook(self, name, data):
         if name == 'after:invocation':
