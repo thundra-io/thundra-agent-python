@@ -219,7 +219,7 @@ def debugger_enabled():
 
 
 def debugger_broker_port():
-    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=6666)
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=1111)
 
 
 def debugger_broker_host():
