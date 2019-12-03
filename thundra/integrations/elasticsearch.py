@@ -1,7 +1,7 @@
-import traceback
-from thundra import config, constants
-from thundra.plugins.invocation import invocation_support
+from thundra import constants
 from thundra.integrations.base_integration import BaseIntegration
+
+from thundra.config import utils as config_utils
 
 
 class ElasticsearchIntegration(BaseIntegration):
@@ -18,7 +18,7 @@ class ElasticsearchIntegration(BaseIntegration):
             return []
 
     def get_normalized_path(self, es_uri):
-        path_depth = config.elasticsearch_integration_path_depth()
+        path_depth = config_utils.get_int_property(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, default=1)
 
         path_seperator_count = 0
         normalized_path = ''
@@ -63,7 +63,7 @@ class ElasticsearchIntegration(BaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not config.elasticsearch_body_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_ES_BODY):
             tags[constants.ESTags['ES_BODY']] = es_body
 
         scope.span.tags.update(tags)

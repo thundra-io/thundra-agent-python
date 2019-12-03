@@ -1,11 +1,8 @@
-import traceback
-
 from thundra.compat import urlparse
 
-from thundra import config
 import thundra.constants as constants
-from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
+from thundra.config import utils as config_utils
 
 
 class RequestsIntegration(BaseIntegration):
@@ -41,7 +38,7 @@ class RequestsIntegration(BaseIntegration):
         return url_dict
 
     def get_normalized_path(self, url_path):
-        path_depth = config.http_integration_url_path_depth()
+        path_depth = config_utils.get_int_property(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, default=1)
 
         path_seperator_count = 0
         normalized_path = ''
@@ -79,7 +76,7 @@ class RequestsIntegration(BaseIntegration):
 
         span.tags.update(tags)
 
-        if not config.http_body_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_HTTP_BODY):
             body = prepared_request.body if prepared_request.body else ""
             scope.span.set_tag(constants.HttpTags["BODY"], body)
 
@@ -101,11 +98,13 @@ class RequestsIntegration(BaseIntegration):
                 resource_name = response.headers.get("x-thundra-resource-name")
                 scope.span.operation_name = resource_name
 
-            if (response.status_code and config.http_error_status_code_min() <= response.status_code):
+            if (response.status_code and config_utils.get_int_property(
+                    constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN,
+                    default=400) <= response.status_code):
                 scope.span.set_tag('error.kind', "HttpError")
                 scope.span.set_tag('error', True)
                 scope.span.set_tag('error.message', response.reason)
 
     def set_response(self, response, span):
-        statusCode = response.status_code
-        span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
+        status_code = response.status_code
+        span.set_tag(constants.HttpTags['HTTP_STATUS'], status_code)

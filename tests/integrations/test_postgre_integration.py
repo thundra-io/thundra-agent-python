@@ -3,6 +3,8 @@ import psycopg2
 from psycopg2 import Error as PostgreError
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
 
 def test_postgre_integration():
     query = "select 1 + 1 AS solution"
@@ -38,7 +40,7 @@ def test_postgre_integration():
         connection.close()
 
 def test_postgre_integration_mask_statement(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_RDB_STATEMENT, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_RDB_STATEMENT, 'true')
     query = "select 1 + 1 AS solution"
 
     connection =  psycopg2.connect(

@@ -3,6 +3,9 @@ from thundra import constants
 from thundra.plugins.trace import trace_support
 from thundra.listeners import *
 from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
+
 
 def test_create_empty_span_listener(monkeypatch):
     sl_env_var = '{"type":"FilteringSpanListener", "config": {"listener": {"type": "ErrorInjectorSpanListener"}}}'
@@ -126,7 +129,7 @@ def test_get_sl_class():
         assert sl_class == case['class_type']
 
 def test_xray_sl_added(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
 
     trace_support.parse_span_listeners()
     span_listeners = trace_support.get_span_listeners()
@@ -136,21 +139,21 @@ def test_xray_sl_added(monkeypatch):
     assert type(xray_listener) == AWSXRayListener
 
 def test_xray_sl_not_added(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'false')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'false')
 
     trace_support.parse_span_listeners()
     span_listeners = trace_support.get_span_listeners()
 
     assert len(span_listeners) == 0
     
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'foo')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'foo')
 
     trace_support.parse_span_listeners()
     span_listeners = trace_support.get_span_listeners()
 
     assert len(span_listeners) == 0
     
-    monkeypatch.delitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
+    monkeypatch.delitem(property_accessor.props, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
 
     trace_support.parse_span_listeners()
     span_listeners = trace_support.get_span_listeners()

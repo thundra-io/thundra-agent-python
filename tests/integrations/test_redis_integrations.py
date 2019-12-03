@@ -2,6 +2,9 @@ import os
 import redis
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
+
 
 def test_set():
     try:
@@ -26,7 +29,7 @@ def test_set():
 
 
 def test_set_mask_command(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
 
     try:
         r = redis.Redis(host="test", port="12345", password="pass")
@@ -74,7 +77,7 @@ def test_get():
 
 
 def test_get_mask_command(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
 
     try:
         r = redis.Redis(host="test", port="12345", password="pass")

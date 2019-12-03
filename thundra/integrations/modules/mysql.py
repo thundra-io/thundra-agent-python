@@ -1,8 +1,10 @@
 import wrapt
-from thundra import config
 from thundra.integrations.mysql import MysqlIntegration
+from thundra.config import utils as config_utils
+from thundra import constants
 
 mysql_integration = MysqlIntegration()
+
 
 class MysqlCursorWrapper(wrapt.ObjectProxy):
 
@@ -20,13 +22,15 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
 
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
-        self.__wrapped__.__enter__ 
+        self.__wrapped__.__enter__
         return self
+
 
 class MysqlConnectionWrapper(wrapt.ObjectProxy):
     def cursor(self, *args, **kwargs):
         cursor = self.__wrapped__.cursor(*args, **kwargs)
         return MysqlCursorWrapper(cursor, self)
+
 
 def _wrapper(wrapped, instance, args, kwargs):
     connection = wrapped(*args, **kwargs)
@@ -34,7 +38,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not config.rdb_integration_disabled():
+    if not config_utils.get_bool_property(constants.THUNDRA_DISABLE_RDB_INTEGRATION):
         wrapt.wrap_function_wrapper(
             'mysql.connector',
             'connect',

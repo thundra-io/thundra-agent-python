@@ -2,8 +2,9 @@ import logging
 
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import utils, constants, lambda_event_utils, config
+from thundra import utils, constants, lambda_event_utils
 from thundra.plugins.trace.base_trace_plugin import BaseTracePlugin
+from thundra.config import utils as config_utils
 
 logger = logging.getLogger(__name__)
 
@@ -41,20 +42,20 @@ class LambdaTracePlugin(BaseTracePlugin):
         enable_request_data = True
         if (
                 trigger_class_name == constants.ClassNames['CLOUDWATCHLOG'] and
-                not config.enable_trace_cloudwatchlog_request()) or (
+                not config_utils.get_bool_property(constants.THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE)) or (
 
                 trigger_class_name == constants.ClassNames['FIREHOSE'] and
-                not config.enable_trace_firehose_request()) or (
+                not config_utils.get_bool_property(constants.THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE)) or (
 
                 trigger_class_name == constants.ClassNames['KINESIS'] and
-                not config.enable_trace_kinesis_request()
+                not config_utils.get_bool_property(constants.THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE)
         ):
             enable_request_data = False
 
         # ADDING TAGS #
-        if (not config.skip_trace_request()) and enable_request_data:
+        if (not config_utils.get_bool_property(constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)) and enable_request_data:
             self.root_span.set_tag('aws.lambda.invocation.request', plugin_context.get('request', None))
-        if not config.skip_trace_response():
+        if not config_utils.get_bool_property(constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP):
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
         if trigger_class_name == constants.ClassNames['APIGATEWAY']:

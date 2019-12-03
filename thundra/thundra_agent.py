@@ -9,11 +9,12 @@ from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.lambda_trace_plugin import LambdaTracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
-from thundra import constants, application_support, config
+from thundra import constants, application_support
 from thundra.plugins.invocation.lambda_invocation_plugin import LambdaInvocationPlugin
 from thundra.integrations import handler_wrappers
 
 from thundra.compat import PY2, TimeoutError
+from thundra.config import utils as config_utils
 
 logger = logging.getLogger(__name__)
 
@@ -32,26 +33,29 @@ class Thundra:
         constants.REQUEST_COUNT = 0
         self.plugins = []
 
-        self.api_key = config.api_key(api_key)
+        self.api_key = config_utils.get_string_property(constants.THUNDRA_APIKEY, api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
-        if not config.trace_disabled(disable_trace):
+        if not config_utils.get_bool_property(constants.THUNDRA_DISABLE_TRACE, default=disable_trace):
             self.plugins.append(LambdaTracePlugin())
 
         self.plugins.append(LambdaInvocationPlugin())
         self.plugin_context = {}
 
-        if not config.metric_disabled(disable_metric):
+        if not config_utils.get_bool_property(constants.THUNDRA_DISABLE_METRIC, default=disable_metric):
             self.plugins.append(MetricPlugin())
 
-        if not config.log_disabled(disable_log):
+        if not config_utils.get_bool_property(constants.THUNDRA_DISABLE_LOG, default=disable_log):
             self.plugins.append(LogPlugin())
 
-        self.timeout_margin = config.timeout_margin()
+        self.timeout_margin = config_utils.get_int_property(constants.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
+        if self.timeout_margin <= 0:
+            self.timeout_margin = constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+
         self.reporter = Reporter(self.api_key)
 
-        if not config.trace_instrument_disabled():
+        if not config_utils.get_bool_property(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_DISABLE):
             if not PY2:
                 self.import_patcher = ImportPatcher()
 
@@ -59,7 +63,7 @@ class Thundra:
             handler_wrappers.patch_modules(self)
 
     def __call__(self, original_func):
-        if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
+        if hasattr(original_func, "thundra_wrapper") or config_utils.get_bool_property(constants.THUNDRA_DISABLE):
             return original_func
 
         @wraps(original_func)
@@ -74,7 +78,7 @@ class Thundra:
 
             # Before running user's handler
             try:
-                if config.warmup_aware() and self.check_and_handle_warmup_request(event):
+                if config_utils.get_bool_property(constants.THUNDRA_LAMBDA_WARMUP_AWARE) and self.check_and_handle_warmup_request(event):
                     return None
 
                 constants.REQUEST_COUNT += 1

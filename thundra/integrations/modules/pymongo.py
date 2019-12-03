@@ -1,7 +1,8 @@
 import wrapt
 
-from thundra import constants, config
 from thundra.integrations.mongodb import CommandTracer
+from thundra.config import utils as config_utils
+from thundra import constants
 
 
 def _wrapper(wrapped, instance, args, kwargs):
@@ -12,7 +13,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not config.mongo_integration_disabled():
+    if not config_utils.get_bool_property(constants.THUNDRA_DISABLE_MONGO_INTEGRATION):
         try:
             import pymongo.monitoring
             from bson.json_util import dumps

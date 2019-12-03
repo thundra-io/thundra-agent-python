@@ -10,6 +10,7 @@ from thundra.plugins.trace import trace_support
 from thundra import application_support
 import thundra.constants as constants
 
+
 class ThundraTracer(opentracing.Tracer):
     __instance = None
 
@@ -68,36 +69,36 @@ class ThundraTracer(opentracing.Tracer):
                    ignore_active_span=False):
         # Create a new span
         _span = self.create_span(operation_name=operation_name,
-                                child_of=child_of,
-                                references=references,
-                                trace_id=trace_id,
-                                transaction_id=transaction_id,
-                                span_id=span_id,
-                                parent_span_id=parent_span_id,
-                                tags=tags,
-                                start_time=start_time,
-                                span_order=span_order,
-                                ignore_active_span=ignore_active_span)
+                                 child_of=child_of,
+                                 references=references,
+                                 trace_id=trace_id,
+                                 transaction_id=transaction_id,
+                                 span_id=span_id,
+                                 parent_span_id=parent_span_id,
+                                 tags=tags,
+                                 start_time=start_time,
+                                 span_order=span_order,
+                                 ignore_active_span=ignore_active_span)
         # Record the new span
         self.recorder.record(_span)
         # Call listener's on_span_started method with the new span
         return _span
 
     def create_span(self,
-                   operation_name=None,
-                   class_name=None,
-                   domain_name=None,
-                   child_of=None,
-                   references=None,
-                   trace_id=None,
-                   transaction_id=None,
-                   span_id=None,
-                   parent_span_id=None,
-                   tags=None,
-                   start_time=None,
-                   span_order=-1,
-                   ignore_active_span=False):
-        
+                    operation_name=None,
+                    class_name=None,
+                    domain_name=None,
+                    child_of=None,
+                    references=None,
+                    trace_id=None,
+                    transaction_id=None,
+                    span_id=None,
+                    parent_span_id=None,
+                    tags=None,
+                    start_time=None,
+                    span_order=-1,
+                    ignore_active_span=False):
+
         with self.lock:
             self.global_span_order += 1
 
@@ -150,7 +151,7 @@ class ThundraTracer(opentracing.Tracer):
         scope = self.scope_manager.active
         if scope is not None:
             return scope.span
-        
+
         return None
 
     def get_span_listeners(self):

@@ -7,8 +7,12 @@ from botocore.errorfactory import ClientError
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
+
 from thundra import constants
 from thundra.integrations.botocore import *
+
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
@@ -103,7 +107,7 @@ def test_dynamodb():
 
 
 def test_dynamodb_put_item(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.ENABLE_DYNAMODB_TRACE_INJECTION, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.ENABLE_DYNAMODB_TRACE_INJECTION, "true")
 
     try:
         item = {
@@ -137,7 +141,7 @@ def test_dynamodb_put_item(monkeypatch):
 
 
 def test_dynamodb_put_item_resource(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.ENABLE_DYNAMODB_TRACE_INJECTION, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.ENABLE_DYNAMODB_TRACE_INJECTION, "true")
 
     try:
         item = {
@@ -172,7 +176,7 @@ def test_dynamodb_put_item_resource(monkeypatch):
 
 
 def test_dynamodb_statement_mask(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_DYNAMODB_STATEMENT, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_DYNAMODB_STATEMENT, "true")
     try:
         # Make a request over the table
         dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
@@ -347,7 +351,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
 def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event,
                                mock_context, monkeypatch):
     mock_actual_call.return_value = mock_lambda_response
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_LAMBDA_PAYLOAD, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_LAMBDA_PAYLOAD, "true")
 
     def handler(event, context):
         lambdaFunc = boto3.client('lambda', region_name='us-west-2')
@@ -407,7 +411,7 @@ def test_sqs(mock_actual_call, mock_sqs_response):
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_sqs_message_masked(mock_actual_call, mock_sqs_response, monkeypatch):
     mock_actual_call.return_value = mock_sqs_response
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_SQS_MESSAGE, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_SQS_MESSAGE, "true")
     try:
         sqs = boto3.client('sqs', region_name='us-west-2')
         sqs.send_message(
@@ -458,8 +462,7 @@ def test_sns(mock_actual_call, mock_sns_response):
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_sns_message_masked(mock_actual_call, mock_sns_response, monkeypatch):
     mock_actual_call.return_value = mock_sns_response
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_SNS_MESSAGE, 'true')
-
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_SNS_MESSAGE, "true")
     try:
         sns = boto3.client('sns', region_name='us-west-2')
         sns.publish(
@@ -683,7 +686,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
 
 
 def test_athena_statement_masked(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_ATHENA_STATEMENT, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_ATHENA_STATEMENT, "true")
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
@@ -901,33 +904,6 @@ def test_athena_get_query_execution():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryExecution'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [
-            '98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
-
-
-def test_athena_get_query_results():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-    try:
-        client = boto3.client('athena', region_name='us-west-2')
-        response = client.get_query_results(
-            QueryExecutionId='98765432-1111-1111-1111-12345678910'
-        )
-    except Exception as e:
-        print(e)
-    finally:
-        span = tracer.get_spans()[0]
-        assert span.class_name == 'AWS-Athena'
-        assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
-        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryResults'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [

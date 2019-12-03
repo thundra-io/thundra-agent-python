@@ -5,11 +5,12 @@ import sys
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
-from thundra import utils, constants, config, application_support
+from thundra import constants, application_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.plugins.log.thundra_logger import StreamToLogger
 from thundra.plugins.log import log_support
 from thundra.compat import PY37
+from thundra.config import utils as config_utils
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,8 @@ class LogPlugin:
         self.log_data = {}
         self.tracer = ThundraTracer.get_instance()
         self.old_stdout = sys.stdout
-        if not config.disable_stdout_logs():
+        self.stdout_logs_disabled = config_utils.get_bool_property(constants.THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE)
+        if not self.stdout_logs_disabled:
             self.logger = logging.getLogger('STDOUT')
             self.handler = ThundraLogHandler()
             self.logger.addHandler(self.handler)
@@ -48,9 +50,8 @@ class LogPlugin:
     def before_invocation(self, plugin_context):
         del logs[:]
         self.old_stdout = sys.stdout
-        if (not config.disable_stdout_logs()) and (not PY37):
+        if (not self.stdout_logs_disabled) and (not PY37):
             sys.stdout = StreamToLogger(self.logger, self.old_stdout)
-        context = plugin_context['context']
         plugin_context['transaction_id'] = plugin_context.get('transaction_id', str(uuid.uuid4()))
         self.log_data = {
             'type': "Log",
@@ -64,9 +65,8 @@ class LogPlugin:
         self.log_data.update(application_info)
 
     def after_invocation(self, plugin_context):
-        if (not config.disable_stdout_logs()) and (not PY37):
+        if (not self.stdout_logs_disabled) and (not PY37):
             sys.stdout = self.old_stdout
-        context = plugin_context['context']
 
         reporter = plugin_context['reporter']
         for log in logs:

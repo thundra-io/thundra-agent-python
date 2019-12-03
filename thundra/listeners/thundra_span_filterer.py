@@ -3,6 +3,7 @@ import thundra.utils as utils
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 
+
 class SpanFilterer(ABC):
     @abc.abstractmethod
     def accept(self, span):
@@ -10,6 +11,8 @@ class SpanFilterer(ABC):
         Returns whether or not given span is able to pass through
         the filterer.
         '''
+
+
 class SpanFilter(ABC):
     @abc.abstractmethod
     def accept(self, span):
@@ -49,7 +52,7 @@ class StandardSpanFilterer(SpanFilterer):
     
     def add_filter(self, filter):
         self.span_filters.append(filter)
-    
+
     def clear_filters(self):
         self.span_filters = []
 
@@ -70,13 +73,13 @@ class SimpleSpanFilter(SpanFilter):
         accepted = True
         if self.domain_name is not None:
             accepted = self.domain_name == span.domain_name
-        
+
         if accepted and self.class_name is not None:
             accepted = self.class_name == span.class_name
-        
+
         if accepted and self.operation_name is not None:
             accepted = self.operation_name == span.operation_name
-        
+
         if accepted and self.tags is not None:
             for k, v in self.tags.items():
                 if isinstance(v, list):
@@ -114,6 +117,5 @@ class SimpleSpanFilter(SpanFilter):
             kwargs['reverse'] = reverse
         if len(tags) > 0:
             kwargs['tags'] = tags
-        
 
         return SimpleSpanFilter(**kwargs)

@@ -1,12 +1,15 @@
 from __future__ import division
 import logging
 
-from thundra import config, constants
+from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config import utils as config_utils
 
 _incoming_trace_links = []
 
 logger = logging.getLogger(__name__)
+
+
 class Resource:
 
     def __init__(self, span):
@@ -20,18 +23,18 @@ class Resource:
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
-    
+
     def accept(self, span):
         return (
-            self.type.upper() == span.class_name.upper() and
-            self.name == span.operation_name and
-            self.operation == str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
+                self.type.upper() == span.class_name.upper() and
+                self.name == span.operation_name and
+                self.operation == str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
         )
-    
+
     def merge(self, span):
         if not self.accept(span):
             logger.error(("can not merge resource with id %s:"
-                " ids not match with target resource"), resource_id(span))
+                          " ids not match with target resource"), resource_id(span))
             return
         self.count += 1
         self.duration += span.get_duration()
@@ -73,6 +76,7 @@ def resource_id(span):
         str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
     ))
 
+
 def get_resources(plugin_context):
     try:
         resources = {}
@@ -80,7 +84,7 @@ def get_resources(plugin_context):
         spans = ThundraTracer.get_instance().recorder.get_spans()
         for span in spans:
             if (not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
-                or span.span_id == root_span_id):
+                    or span.span_id == root_span_id):
                 continue
             rid = resource_id(span)
             if not rid in resources:
@@ -94,17 +98,18 @@ def get_resources(plugin_context):
         logger.error("error while creating the resources data for invocation: %s", e)
         return {}
 
+
 def get_incoming_trace_links():
-    if config.thundra_disabled():
+    if config_utils.get_bool_property(constants.THUNDRA_DISABLE):
         return []
-    
+
     return {"incomingTraceLinks": list(set(_incoming_trace_links))}
-    
+
 
 def get_outgoing_trace_links():
-    if config.thundra_disabled():
+    if config_utils.get_bool_property(constants.THUNDRA_DISABLE):
         return []
-    
+
     spans = ThundraTracer.get_instance().recorder.get_spans()
 
     outgoing_trace_links = []
@@ -112,11 +117,13 @@ def get_outgoing_trace_links():
         links = get_outgoing_trace_link(span)
         if links:
             outgoing_trace_links += links
-    
+
     return {"outgoingTraceLinks": list(set(outgoing_trace_links))}
+
 
 def get_outgoing_trace_link(span):
     return span.get_tag(constants.SpanTags["TRACE_LINKS"])
+
 
 def add_incoming_trace_links(trace_links):
     _incoming_trace_links.extend(trace_links)

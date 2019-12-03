@@ -1,4 +1,3 @@
-import traceback
 import hashlib
 import base64
 import simplejson as json
@@ -8,9 +7,9 @@ import re
 from dateutil.parser import parse
 from datetime import datetime
 
-from thundra import config
+from thundra.config import utils as config_utils
+
 import thundra.constants as constants
-from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.application_support import get_application_info
 import thundra.utils as utils
@@ -78,12 +77,12 @@ class AWSDynamoDBIntegration(BaseIntegration):
             self.escape_byte_fields(self.request_data['Item'])
 
         # DB statement tags should not be set on span if masked
-        if not config.dynamodb_statement_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_DYNAMODB_STATEMENT):
             self.OPERATION.get(operation_name, dummy_func)(scope)
 
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if config.dynamodb_trace_enabled():
+        if config_utils.get_bool_property(constants.ENABLE_DYNAMODB_TRACE_INJECTION):
             if operation_name == 'PutItem':
                 self.inject_trace_link_on_put(scope.span, request_data, instance)
 
@@ -116,7 +115,8 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
             if 'dynamodb-attr-value-input' in id_handlers:
                 id_handlers['dynamodb-attr-value-input']['handler'](params=params,
-                                                                    model=instance._service_model.operation_model(operation_name))
+                                                                    model=instance._service_model.operation_model(
+                                                                        operation_name))
 
             region = instance.meta.region_name
 
@@ -129,7 +129,8 @@ class AWSDynamoDBIntegration(BaseIntegration):
                                                         params['Key'])
 
             elif operation_name == 'DeleteItem':
-                if config.dynamodb_trace_enabled() and 'Attributes' in response:
+                if config_utils.get_bool_property(
+                        constants.ENABLE_DYNAMODB_TRACE_INJECTION) and 'Attributes' in response:
                     span_id = response['Attributes'].get("x-thundra-span-id")
                     if span_id and span_id.get('S'):
                         trace_links = ['DELETE:' + span_id.get('S')]
@@ -299,7 +300,7 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if not config.sqs_message_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_SQS_MESSAGE):
             if operation_name == "SendMessage":
                 message = request_data.get("MessageBody", "")
                 scope.span.set_tag(constants.AwsSQSTags['MESSAGE'], message)
@@ -376,7 +377,7 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if not config.sns_message_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_SNS_MESSAGE):
             scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -602,7 +603,8 @@ class AWSLambdaIntegration(BaseIntegration):
             constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
 
-        if not config.lambda_payload_masked() and 'Payload' in request_data:
+        if not config_utils.get_bool_property(
+                constants.THUNDRA_MASK_LAMBDA_PAYLOAD) and 'Payload' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
                 request_data['Payload']) is not str else request_data['Payload']
@@ -616,7 +618,8 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.tags.update(tags)
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if not config.lambda_trace_disabled() and 'invoke' in operation_name.lower():
+        if not config_utils.get_bool_property(
+                constants.DISABLE_LAMBDA_TRACE_INJECTION) and 'invoke' in operation_name.lower():
             self.inject_span_context_into_client_context(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -732,7 +735,7 @@ class AWSAthenaIntegration(BaseIntegration):
         if output_location:
             scope.span.set_tag(constants.AthenaTags['S3_OUTPUT_LOCATION'], output_location)
 
-        if not config.athena_statement_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_ATHENA_STATEMENT):
             scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.get_query(args))
 
         if query_execution_ids:

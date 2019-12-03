@@ -2,6 +2,7 @@ import abc
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 
+
 class ThundraSpanListener(ABC):
     @abc.abstractmethod
     def on_span_started(self, operation_name):
@@ -10,7 +11,7 @@ class ThundraSpanListener(ABC):
     @abc.abstractmethod
     def on_span_finished(self, span):
         raise Exception("should be implemented")
-    
+
     @staticmethod
     @abc.abstractmethod
     def from_config(config):

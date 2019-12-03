@@ -1,11 +1,9 @@
 import traceback
-import json
 import time
 import logging
-from thundra import config, constants
-from thundra.plugins.invocation import invocation_support
-from thundra.integrations.base_integration import BaseIntegration
+from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config import utils as config_utils
 
 try:
     from pymongo.monitoring import CommandListener
@@ -28,7 +26,6 @@ class CommandTracer(CommandListener):
         scope = tracer.start_active_span(operation_name=event.database_name, finish_on_close=False)
 
         self._scopes[event.request_id] = scope
-        span = scope.span
 
         # Inject before span tags
         try:
@@ -59,7 +56,7 @@ class CommandTracer(CommandListener):
                 constants.SpanTags['TOPOLOGY_VERTEX']: True,
             }
 
-            if not config.mongodb_command_masked():
+            if not config_utils.get_bool_property(constants.THUNDRA_MASK_MONGODB_COMMAND):
                 try:
                     tags[constants.MongoDBTags['MONGODB_COMMAND']] = dumps(event.command)[
                                                                    :constants.DEFAULT_MONGO_COMMAND_SIZE_LIMIT]
@@ -87,7 +84,6 @@ class CommandTracer(CommandListener):
         scope = self._scopes.pop(event.request_id, None)
         if scope is None:
             return
-        span = scope.span
         try:
             scope.span.finish()
         except Exception as e:

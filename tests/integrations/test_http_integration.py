@@ -6,6 +6,8 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.compat import urlparse
 
 from thundra import constants
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
 
 
 def test_successful_http_call():
@@ -68,7 +70,7 @@ def test_http_put():
 
 def test_http_put_body_masked(monkeypatch):
     try:
-        monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_HTTP_BODY, 'true')
+        monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_HTTP_BODY, 'true')
         url = 'https://jsonplaceholder.typicode.com/users/3'
         parsed_url = urlparse(url)
         path = parsed_url.path
@@ -186,7 +188,7 @@ def test_errorneous_http_call():
 
 
 def test_http_path_depth(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, "2")
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, "2")
     try:
         url = 'https://jsonplaceholder.typicode.com/asd/qwe/xyz'
         parsed_url = urlparse(url)
@@ -283,7 +285,7 @@ def test_http_4xx_error(mock_actual_call):
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
 def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, "500")
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, "500")
     mock_actual_call.return_value = requests.Response()
     mock_actual_call.return_value.status_code = 404
     mock_actual_call.return_value.reason = "Not Found"

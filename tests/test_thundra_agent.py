@@ -6,9 +6,11 @@ from thundra import constants
 from thundra.plugins.trace.lambda_trace_plugin import LambdaTracePlugin
 from thundra.thundra_agent import Thundra
 
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
 
 def test_if_api_key_is_retrieved_from_env_var(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APIKEY, 'api key')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_APIKEY, 'api key')
     thundra = Thundra()
     assert thundra.api_key == 'api key'
 
@@ -43,7 +45,7 @@ def test_if_disable_trace_is_not_set():
 
 
 def test_disable_trace_plugin_from_environment_variable(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_DISABLE_TRACE, 'true')
     thundra = Thundra('api key')
 
     trace_exist = False
@@ -55,7 +57,7 @@ def test_disable_trace_plugin_from_environment_variable(monkeypatch):
 
 
 def test_enable_trace_plugin_from_environment_variable(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'false')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_DISABLE_TRACE, 'false')
     thundra = Thundra('api key')
 
     trace_exist = False
@@ -67,7 +69,7 @@ def test_enable_trace_plugin_from_environment_variable(monkeypatch):
 
 
 def test_if_disable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_DISABLE_TRACE, 'true')
     thundra = Thundra('api key', disable_trace=False)
 
     trace_exist = False
@@ -79,7 +81,7 @@ def test_if_disable_trace_plugin_from_environment_variable_is_prior(monkeypatch)
 
 
 def test_if_enable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE_TRACE, 'false')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_DISABLE_TRACE, 'false')
     thundra = Thundra('api key', disable_trace=True)
 
     trace_exist = False
@@ -92,7 +94,7 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior(monkeypatch):
 
 @mock.patch('thundra.reporter.Reporter')
 def test_if_thundra_is_disabled(mock_reporter, monkeypatch, handler, mock_event, mock_context):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_DISABLE, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_DISABLE, 'true')
 
     thundra, handler = handler
 

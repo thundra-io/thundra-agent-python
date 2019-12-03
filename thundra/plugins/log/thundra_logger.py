@@ -1,8 +1,9 @@
 import logging
-from thundra import config
-
+from thundra.config import utils as config_utils
+from thundra import constants
 
 loggers = {}
+
 
 class StreamToLogger(object):
     def __init__(self, logger, old_stdout):
@@ -35,14 +36,14 @@ def get_logger(name):
         return logger
 
 
-def log_to_console(message,  handler):
+def log_to_console(message, handler):
     logger = get_logger(handler)
     logging.getLogger().handlers = []
     logger.debug(message)
 
 
 def debug_logger(msg, handler=None):
-    if config.debug_enabled():
+    if config_utils.get_bool_property(constants.THUNDRA_LAMBDA_DEBUG_ENABLE):
         if hasattr(msg, '__dict__'):
             log_to_console(msg, handler)
             display = vars(msg)
@@ -57,6 +58,6 @@ def debug_logger_helper(msg, handler):
     if hasattr(msg, '__dict__'):
         log_to_console(msg, handler)
         display = vars(msg)
-        log_to_console(display,  handler)
+        log_to_console(display, handler)
         for key, value in display.items():
             debug_logger_helper(getattr(msg, key), handler)

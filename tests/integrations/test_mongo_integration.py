@@ -3,6 +3,8 @@ from bson.json_util import loads
 from pymongo import MongoClient
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
 
 from thundra.compat import PY2
 
@@ -113,7 +115,7 @@ if not PY2:
 
 
     def test_mongo_command_masked(monkeypatch):
-        monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_MONGODB_COMMAND, 'true')
+        monkeypatch.setitem(property_accessor.props, constants.THUNDRA_MASK_MONGODB_COMMAND, 'true')
         client = MongoClient('localhost', 27017)
         db = client.test
         db.list_collection_names()

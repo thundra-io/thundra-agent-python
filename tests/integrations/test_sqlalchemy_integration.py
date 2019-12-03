@@ -38,7 +38,7 @@ def set_up_engine_and_table(url):
     return engine
 
 
-def test_sqlalchemy_session_pqsql(monkeypatch):
+def test_sqlalchemy_session_pqsql():
     engine = set_up_engine_and_table('postgresql://user:userpass@localhost:5432/db')
 
     # create a configured "Session" class
@@ -73,7 +73,7 @@ def test_sqlalchemy_session_pqsql(monkeypatch):
 
     tracer.clear()
 
-def test_sqlalchemy_connection_execute_pqsql(monkeypatch):
+def test_sqlalchemy_connection_execute_pqsql():
     engine = set_up_engine_and_table('postgresql://user:userpass@localhost:5432/db')
 
     query = "SELECT title FROM movies"
@@ -97,7 +97,7 @@ def test_sqlalchemy_connection_execute_pqsql(monkeypatch):
 
     tracer.clear()
 
-def test_sqlalchemy_connection_execute_mysql(monkeypatch):
+def test_sqlalchemy_connection_execute_mysql():
     engine = set_up_engine_and_table('mysql+mysqlconnector://user:userpass@localhost:3306/db')
 
     query = "SELECT title FROM movies"
@@ -121,7 +121,7 @@ def test_sqlalchemy_connection_execute_mysql(monkeypatch):
 
     tracer.clear()
 
-def test_sqlalchemy_connection_execute_mysql_error(monkeypatch):
+def test_sqlalchemy_connection_execute_mysql_error():
     engine = set_up_engine_and_table('mysql+mysqlconnector://user:userpass@localhost:3306/db')
 
     query = "SELECT title FROM test"

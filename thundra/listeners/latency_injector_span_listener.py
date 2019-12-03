@@ -6,12 +6,13 @@ from thundra.listeners.thundra_span_listener import ThundraSpanListener
 
 logger = logging.getLogger(__name__)
 
+
 class LatencyInjectorSpanListener(ThundraSpanListener):
     available_distributions = ["normal", "uniform"]
 
-    def __init__(self, delay=0, variation=0, 
-                 sigma=0, distribution="uniform", 
-                add_info_tags=True):
+    def __init__(self, delay=0, variation=0,
+                 sigma=0, distribution="uniform",
+                 add_info_tags=True):
         self.delay = max(0, delay)
         self.sigma = max(0, sigma)
         self.variation = max(0, variation)
@@ -20,7 +21,7 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             self.distribution = distribution
         else:
             self.distribution = "uniform"
-        
+
     def on_span_started(self, span):
         self._inject_delay(span)
 
@@ -33,16 +34,16 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             if self.add_info_tags:
                 self._add_info_tags(span, delay)
             time.sleep(delay / 1000.0)
-    
+
     def _calculate_delay(self):
         delay = self.delay
         if self.distribution == "uniform" and self.variation != 0:
-            delay = random.randint(self.delay-self.variation, self.delay+self.variation)
+            delay = random.randint(self.delay - self.variation, self.delay + self.variation)
         elif self.distribution == "normal" and self.sigma != 0:
             delay = round(random.gauss(self.delay, self.sigma))
-        
+
         return max(0, delay)
-    
+
     def _add_info_tags(self, span, injected_delay):
         try:
             info_dict = {
@@ -85,22 +86,20 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
             try:
                 kwargs['distribution'] = str(distribution)
             except ValueError:
-               LatencyInjectorSpanListener._log_value_parse_err(distribution, 'distribution')
+                LatencyInjectorSpanListener._log_value_parse_err(distribution, 'distribution')
         if add_info_tags is not None:
             try:
                 kwargs['add_info_tags'] = add_info_tags
             except ValueError:
                 LatencyInjectorSpanListener._log_value_parse_err(add_info_tags, 'add_info_tags')
-    
+
         return LatencyInjectorSpanListener(**kwargs)
-    
+
     @staticmethod
     def _log_value_parse_err(param, param_name):
         logger.error(("couldn't parse %s parameter (%s) of "
-            "LatencyInjectorSpanListener, using the default value"), param_name, param)
+                      "LatencyInjectorSpanListener, using the default value"), param_name, param)
 
-            
     @staticmethod
     def should_raise_exceptions():
         return False
-        

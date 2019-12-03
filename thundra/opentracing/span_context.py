@@ -1,6 +1,7 @@
 import opentracing
 import copy
 
+
 class ThundraSpanContext(opentracing.SpanContext):
 
     def __init__(self,

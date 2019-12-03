@@ -3,6 +3,8 @@ import os
 import mock
 from thundra import constants
 from thundra.samplers import TimeAwareSampler
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
 
 
 def test_default_time_freq():
@@ -13,7 +15,7 @@ def test_default_time_freq():
 
 def test_freq_from_env(monkeypatch):
     time_freq = 37
-    monkeypatch.setitem(os.environ,
+    monkeypatch.setitem(property_accessor.props,
                         constants.THUNDRA_AGENT_METRIC_TIME_AWARE_SAMPLER_TIME_FREQ, '{}'.format(time_freq))
 
     tams = TimeAwareSampler()

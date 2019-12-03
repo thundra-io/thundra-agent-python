@@ -2,7 +2,9 @@ import simplejson as json
 import logging
 import concurrent.futures as futures
 
-from thundra import constants, config, composite, utils
+from thundra import constants, composite, utils
+
+from thundra.config import utils as config_utils
 
 try:
     import requests
@@ -43,15 +45,16 @@ class Reporter():
             'Authorization': 'ApiKey ' + self.api_key
         }
 
-        path = constants.COMPOSITE_DATA_PATH if config.rest_composite_data_enabled() else constants.PATH
+        path = constants.COMPOSITE_DATA_PATH if config_utils.get_bool_property(
+            constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, default=True) else constants.PATH
 
         request_url = "https://" + utils.get_nearest_collector() + "/v1" + path
-        base_url = config.report_base_url()
+        base_url = config_utils.get_string_property(constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL)
         if base_url is not None:
             request_url = base_url + path
 
-        if config.report_cw_enabled():
-            if config.cw_composite_data_enabled():
+        if config_utils.get_bool_property(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE):
+            if config_utils.get_bool_property(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_ENABLED, default=True):
                 reports_json = self.prepare_composite_report_json()
                 for report in reports_json:
                     print(report)
@@ -65,7 +68,7 @@ class Reporter():
 
             return []
 
-        if config.rest_composite_data_enabled():
+        if config_utils.get_bool_property(constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, default=True):
             reports_json = self.prepare_composite_report_json()
         else:
             reports_json = self.prepare_report_json()
@@ -83,9 +86,11 @@ class Reporter():
         return self.session.post(url, data=data, headers=headers)
 
     def get_report_batches(self):
-        batch_size = config.rest_composite_batchsize()
-        if config.report_cw_enabled():
-            batch_size = config.cloudwatch_composite_batchsize()
+        batch_size = config_utils.get_int_property(constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE,
+                                                   constants.DEFAULT_REPORT_REST_COMPOSITE_BATCH_SIZE)
+        if config_utils.get_bool_property(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE):
+            batch_size = config_utils.get_int_property(constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE,
+                                                       constants.DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
 
         batches = [self.reports[i:i + batch_size] for i in range(0, len(self.reports), batch_size)]
         return batches

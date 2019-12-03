@@ -5,9 +5,13 @@ import os
 from thundra import constants
 from thundra.reporter import Reporter
 
+from thundra.config import utils
+property_accessor = utils.get_property_accessor()
+
+
 @mock.patch('thundra.reporter.requests')
 def test_add_report(mock_requests, mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'false')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'false')
     reporter = Reporter('api key', mock_requests.Session())
     reporter.add_report(mock_report)
 
@@ -26,8 +30,8 @@ def test_add_report_sync_if_env_var_is_not_set(mock_requests, mock_report):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url(mock_requests, mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, 'false')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, 'false')
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
     reporter.add_report(mock_report)
@@ -47,9 +51,9 @@ def test_send_report_to_url(mock_requests, mock_report, monkeypatch):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url_composite(mock_requests, mock_report, mock_invocation_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, 'true')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
 
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
@@ -74,8 +78,8 @@ def test_send_report_to_url_composite(mock_requests, mock_report, mock_invocatio
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url_async(mock_requests, mock_report, mock_invocation_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'true')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'true')
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
 
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
@@ -94,7 +98,7 @@ def test_send_report_to_url_async(mock_requests, mock_report, mock_invocation_re
 
 
 @mock.patch('thundra.reporter.requests')
-def test_send_report(mock_requests, mock_report, mock_invocation_report, monkeypatch):
+def test_send_report(mock_requests, mock_report, mock_invocation_report):
     test_session = mock_requests.Session()
     reporter = Reporter('unauthorized api key', session=test_session)
     reporter.add_report(mock_invocation_report)
@@ -112,7 +116,7 @@ def test_send_report(mock_requests, mock_report, mock_invocation_report, monkeyp
 
 
 def test_get_report_batches(mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "2")
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "2")
 
     reporter = Reporter('api key')
     reporter.add_report(mock_report)
@@ -139,7 +143,7 @@ def test_prepare_report_json(mock_report, mock_report_with_byte_field):
     assert reports[1].get('type') == 'bytes'
 
 def test_prepare_report_json_batch(mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")
     reporter = Reporter('api key')
     reporter.add_report(mock_report)
     reporter.add_report(mock_report)
@@ -151,7 +155,7 @@ def test_prepare_report_json_batch(mock_report, monkeypatch):
     assert len(reports) == 1
 
 def test_prepare_composite_report_json(mock_report, mock_invocation_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "2")
+    monkeypatch.setitem(property_accessor.props, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "2")
     reporter = Reporter('api key')
     reporter.add_report(mock_invocation_report)
     reporter.add_report(mock_report)

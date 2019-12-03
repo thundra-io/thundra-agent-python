@@ -1,13 +1,13 @@
-import traceback
-from thundra import config, constants
-from thundra.plugins.invocation import invocation_support
+from thundra import constants
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.integrations.base_integration import BaseIntegration
+
+from thundra.config import utils as config_utils
 
 
 class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
     CLASS_TYPE = 'mysql'
-    
+
     def __init__(self):
         pass
 
@@ -37,8 +37,7 @@ class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True
         }
 
-        if not config.rdb_statement_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_RDB_STATEMENT):
             tags[constants.DBTags['DB_STATEMENT']] = query
 
         span.tags.update(tags)
-

@@ -6,8 +6,9 @@ from thundra.listeners.composite_span_filter import CompositeSpanFilter
 
 logger = logging.getLogger(__name__)
 
+
 class FilteringSpanListener(ThundraSpanListener):
-    
+
     def __init__(self, listener=None, filterer=None):
         self.listener = listener
         self.filterer = filterer
@@ -17,13 +18,13 @@ class FilteringSpanListener(ThundraSpanListener):
             return
         if self.filterer is None or self.filterer.accept(span):
             self.listener.on_span_started(span)
-    
+
     def on_span_finished(self, span):
         if self.listener is None:
             return
         if self.filterer is None or self.filterer.accept(span):
             self.listener.on_span_finished(span)
-    
+
     @staticmethod
     def should_raise_exceptions():
         return True
@@ -83,7 +84,7 @@ class FilteringSpanListener(ThundraSpanListener):
     @staticmethod
     def _get_span_listener_from_config(config):
         SPAN_LISTENERS = {
-            sl_class.__name__: sl_class 
+            sl_class.__name__: sl_class
             for sl_class in ThundraSpanListener.__subclasses__()
         }
 

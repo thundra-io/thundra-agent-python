@@ -3,8 +3,8 @@ import opentracing
 import logging
 from threading import Lock
 
-
 logger = logging.getLogger(__name__)
+
 
 class ThundraSpan(opentracing.Span):
 
@@ -67,7 +67,7 @@ class ThundraSpan(opentracing.Span):
         with self._lock:
             self.finish_time = int(time.time() * 1000) if f_time is None else f_time
         self.on_finished()
-        
+
     def on_finished(self):
         span_listeners = self._tracer.get_span_listeners()
         for sl in span_listeners:
@@ -76,10 +76,10 @@ class ThundraSpan(opentracing.Span):
             except Exception as e:
                 if not sl.should_raise_exceptions():
                     logger.error(("error while calling"
-                        " on_finished of %s: %s"), type(sl), e)
+                                  " on_finished of %s: %s"), type(sl), e)
                 else:
                     raise e
-    
+
     def on_started(self):
         span_listeners = self._tracer.get_span_listeners()
         for sl in span_listeners:
@@ -88,7 +88,7 @@ class ThundraSpan(opentracing.Span):
             except Exception as e:
                 if not sl.should_raise_exceptions():
                     logger.error(("error while calling"
-                        " on_started of %s: %s"), type(sl), e)
+                                  " on_started of %s: %s"), type(sl), e)
                 else:
                     raise e
 
@@ -120,6 +120,6 @@ class ThundraSpan(opentracing.Span):
             return int(time.time() * 1000) - self.start_time
         else:
             return self.finish_time - self.start_time
-    
+
     def errorneous(self):
         return self.tags is not None and 'error' in self.tags

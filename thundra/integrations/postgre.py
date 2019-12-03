@@ -1,8 +1,7 @@
-import traceback
-from thundra import config, constants
-from thundra.plugins.invocation import invocation_support
+from thundra import constants
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.integrations.base_integration import BaseIntegration
+from thundra.config import utils as config_utils
 
 try:
     from psycopg2.extensions import parse_dsn
@@ -16,7 +15,7 @@ except ImportError:
 
 class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
     CLASS_TYPE = 'postgresql'
-    
+
     def __init__(self):
         pass
 
@@ -29,7 +28,7 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
         span.class_name = constants.ClassNames['POSTGRESQL']
 
         dsn = parse_dsn(connection.dsn)
-        
+
         query = ''
         operation = ''
         try:
@@ -48,8 +47,7 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True
         }
 
-        if not config.rdb_statement_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_RDB_STATEMENT):
             tags[constants.DBTags['DB_STATEMENT']] = query
 
         span.tags.update(tags)
-

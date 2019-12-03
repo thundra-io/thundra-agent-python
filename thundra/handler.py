@@ -18,6 +18,7 @@ else:
     user_module = import_module(module_name)
     user_handler = getattr(user_module, handler_name)
 
+
 def wrapper(event, context):
     global user_handler
     if handler_found and user_handler:

@@ -1,7 +1,9 @@
 import traceback
-from thundra import config, constants
+from thundra import constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
+from thundra.config import utils as config_utils
+
 
 class RedisIntegration(BaseIntegration):
     CLASS_TYPE = 'redis'
@@ -34,7 +36,7 @@ class RedisIntegration(BaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not config.redis_command_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_REDIS_COMMAND):
             tags[constants.DBTags['DB_STATEMENT']] = command
             tags[constants.RedisTags['REDIS_COMMAND']] = command
 

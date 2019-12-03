@@ -1,10 +1,11 @@
 import traceback
 import time
 import logging
-from thundra import config, constants
-from thundra.plugins.invocation import invocation_support
+from thundra import constants
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.opentracing.tracer import ThundraTracer
+
+from thundra.config import utils as config_utils
 
 try:
     from sqlalchemy.event import listen
@@ -76,7 +77,7 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True
         }
 
-        if not config.rdb_statement_masked():
+        if not config_utils.get_bool_property(constants.THUNDRA_MASK_RDB_STATEMENT):
             tags[constants.DBTags['DB_STATEMENT']] = statement
 
         scope.span.tags.update(tags)
