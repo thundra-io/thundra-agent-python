@@ -15,7 +15,6 @@ INTEGRATIONS = {
 def _wrapper(wrapped, instance, args, kwargs):
     integration_name = instance.__class__.__name__.lower()
 
-    print(INTEGRATIONS)
     if integration_name in INTEGRATIONS:
         return INTEGRATIONS[integration_name].run_and_trace(
             wrapped,

@@ -1,11 +1,21 @@
+import os
+
 from thundra.config import utils
 
-import os
+lambda_context = None
+
+def set_current_context(context):
+    global lambda_context
+    lambda_context = context
+
+
+def get_current_context():
+    return lambda_context
+
 
 def initialize_properties():
     property_accessor = utils.get_property_accessor()
     initialize_properties_from_environment_variables(property_accessor)
-    print(property_accessor.get_properties())
 
 
 def initialize_properties_from_environment_variables(property_accessor):

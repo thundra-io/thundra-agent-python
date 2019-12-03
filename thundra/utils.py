@@ -49,26 +49,6 @@ def str_from_env(key, default=None):
     return get_configuration(key, default=default)
 
 
-def get_application_instance_id(context):
-    aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, '')
-    try:
-        return aws_lambda_log_stream_name.split(']')[1]
-    except:
-        return ''
-
-
-def get_application_id(context):
-    arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, '')
-
-    region = get_aws_region_from_arn(arn)
-    account_no = 'sam_local' if sam_local_debugging() else get_aws_account_no(arn)
-    function_name = get_aws_funtion_name(arn)
-
-    application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
-
-    return application_id_template.format(region=region, account_no=account_no, function_name=function_name)
-
-
 def get_aws_funtion_name(arn):
     return get_arn_part(arn, 6)
 

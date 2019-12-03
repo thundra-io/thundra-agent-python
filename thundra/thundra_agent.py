@@ -9,7 +9,8 @@ from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.lambda_trace_plugin import LambdaTracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
-from thundra import constants, application_support
+from thundra import constants, application_support, lambda_support
+from thundra.lambda_application_info_provider import LambdaApplicationInfoProvider
 from thundra.plugins.invocation.lambda_invocation_plugin import LambdaInvocationPlugin
 from thundra.integrations import handler_wrappers
 
@@ -62,6 +63,8 @@ class Thundra:
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
 
+        application_support.set_application_info_provider(LambdaApplicationInfoProvider())
+
     def __call__(self, original_func):
         if hasattr(original_func, "thundra_wrapper") or config_utils.get_bool_property(constants.THUNDRA_DISABLE):
             return original_func
@@ -73,7 +76,8 @@ class Thundra:
 
             # Clear plugin context for each invocation
             self.plugin_context = {'reporter': self.reporter}
-            application_support.parse_application_info(context)
+            lambda_support.set_current_context(context)
+            application_support.parse_application_info()
             invocation_support.parse_invocation_info(context)
 
             # Before running user's handler
