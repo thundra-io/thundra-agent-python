@@ -62,11 +62,11 @@ class BaseTracePlugin:
 
     @abc.abstractmethod
     def before_trace_hook(self, plugin_context):
-        raise Exception("should be implemented")
+        pass
 
     @abc.abstractmethod
     def after_trace_hook(self, plugin_context):
-        raise Exception("should be implemented")
+        pass
 
     def set_start_time(self, plugin_context):
         if 'start_time' in plugin_context:

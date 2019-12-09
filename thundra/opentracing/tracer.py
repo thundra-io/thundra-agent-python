@@ -141,9 +141,9 @@ class ThundraTracer(opentracing.Tracer):
                             span_order=_span_order)
 
         application_info = application_support.get_application_info()
-        _span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [application_info['applicationName']])
-        _span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], application_info['applicationClassName'])
-        _span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], application_info['applicationDomainName'])
+        _span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [application_info.get('applicationName')])
+        _span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], application_info.get('applicationClassName'))
+        _span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], application_info.get('applicationDomainName'))
 
         return _span
 

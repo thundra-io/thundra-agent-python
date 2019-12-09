@@ -127,8 +127,8 @@ class BaseInvocationPlugin:
 
     @abc.abstractmethod
     def before_invocation_hook(self, plugin_context):
-        raise Exception("should be implemented")
+        pass
 
     @abc.abstractmethod
     def after_invocation_hook(self, plugin_context):
-        raise Exception("should be implemented")
+        pass

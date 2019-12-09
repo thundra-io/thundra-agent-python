@@ -15,7 +15,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         application_class_name = utils.get_configuration(constants.APPLICATION_CLASS_NAME_PROP_NAME)
         application_name = utils.get_configuration(constants.APPLICATION_NAME_PROP_NAME)
         application_version = utils.get_configuration(constants.APPLICATION_VERSION_PROP_NAME)
-        application_id = utils.get_configuration(constants.APPLICATION_TAG_PROP_NAME_PREFIX)
+        application_id = utils.get_configuration(constants.APPLICATION_ID_PROP_NAME)
         application_stage = utils.get_configuration(constants.APPLICATION_STAGE_PROP_NAME)
 
 

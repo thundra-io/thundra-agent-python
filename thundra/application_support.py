@@ -1,7 +1,7 @@
 from thundra.application_info_provider import ApplicationInfoProvider
 
 _application_info_provider = None
-_application_info = None
+_application_info = {}
 
 def set_application_info_provider(application_info_provider):
     global _application_info_provider
@@ -13,7 +13,7 @@ def get_application_info():
     if isinstance(_application_info_provider, ApplicationInfoProvider):
         return _application_info_provider.get_application_info()
     
-    return None
+    return {}
 
 
 def parse_application_info():

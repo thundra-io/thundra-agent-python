@@ -583,9 +583,9 @@ class AWSLambdaIntegration(BaseIntegration):
 
         application_info = get_application_info()
 
-        custom[constants.TRIGGER_DOMAIN_NAME_TAG] = application_info['applicationDomainName']
-        custom[constants.TRIGGER_CLASS_NAME_TAG] = application_info['applicationClassName']
-        custom[constants.TRIGGER_OPERATION_NAME_TAG] = application_info['applicationName']
+        custom[constants.TRIGGER_DOMAIN_NAME_TAG] = application_info.get('applicationDomainName')
+        custom[constants.TRIGGER_CLASS_NAME_TAG] = application_info.get('applicationClassName')
+        custom[constants.TRIGGER_OPERATION_NAME_TAG] = application_info.get('applicationName')
 
         client_context['custom'] = custom
         encoded_client_context = base64.b64encode(json.dumps(client_context).encode()).decode()
