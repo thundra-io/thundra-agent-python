@@ -156,7 +156,6 @@ class Thundra:
             self.wait_for_debugger()
             ptvsd.tracing(True)
             ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
-            ptvsd.break_into_debugger()
 
         except Exception as e:
             logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
