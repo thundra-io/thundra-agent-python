@@ -153,9 +153,9 @@ class Thundra:
                 "TCP:{}:{}".format(config.debugger_broker_host(), config.debugger_broker_port())]
               )
 
+            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
             self.wait_for_debugger()
             ptvsd.tracing(True)
-            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
 
         except Exception as e:
             logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
