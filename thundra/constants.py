@@ -123,6 +123,12 @@ DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_lambda_trace_integrations_aws_la
 THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH = "thundra_agent_lambda_trace_integrations_http_url_depth"
 THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH = "thundra_agent_lambda_trace_integrations_elasticsearch_path_depth"
 
+THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE = 'thundra_agent_lambda_debugger_enable'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT = 'thundra_agent_lambda_debugger_port'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX = 'thundra_agent_lambda_debugger_wait_max'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT = 'thundra_agent_lambda_debugger_broker_port'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST = 'thundra_agent_lambda_debugger_broker_host'
+
 #### INTEGRATIONS ####
 
 DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
