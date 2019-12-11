@@ -80,7 +80,7 @@ class Reporter():
 
     def send_batch(self, args):
         url, headers, data = args
-        return self.session.post(url, data=data, headers=headers)
+        return self.session.post(url, data=data, headers=headers, timeout=constants.DEFAULT_REPORT_TIMEOUT)
 
     def get_report_batches(self):
         batch_size = config.rest_composite_batchsize()
