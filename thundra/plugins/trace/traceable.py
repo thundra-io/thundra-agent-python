@@ -1,12 +1,15 @@
 import simplejson as json
 import sys
-import linecache
+import inspect
 import copy
 from functools import wraps
 from threading import Lock
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.serializable import Serializable
+from thundra.plugins.log.thundra_logger import debug_logger
+from opentracing import Scope
+
 
 def __get_traceable_from_back_frame(frame):
     _back_frame = frame.f_back
@@ -15,6 +18,16 @@ def __get_traceable_from_back_frame(frame):
         if isinstance(_self, Traceable):
             return _self
     return None
+
+
+def __get_scope_from_back_frame(frame):
+    _back_frame = frame.f_back
+    if _back_frame and 'scope' in _back_frame.f_locals:
+        _scope = _back_frame.f_locals['scope']
+        if isinstance(_scope, Scope):
+            return _scope
+    return None
+
 
 def trace_lines(frame, event, arg):
     if event != 'line':
@@ -28,43 +41,40 @@ def trace_lines(frame, event, arg):
     _trace_local_variables_ = False
     _trace_lines_with_source = False
     _traceable = __get_traceable_from_back_frame(frame)
+    _scope = __get_scope_from_back_frame(frame)
     if _traceable:
         _trace_local_variables_ = _traceable._trace_local_variables
         _trace_lines_with_source = _traceable._trace_lines_with_source
 
-    _tracer = ThundraTracer.get_instance()
+    if not _scope or not _scope.span:
+        return
 
-    _active_scope = _tracer.scope_manager.active
-    _active_span = _active_scope.span if _active_scope is not None else None
-
-    if _active_span is not None and _active_span.class_name == 'Line':
-        _active_scope.close()
-
-    _scope = _tracer.start_active_span('@' + str(_line_no), finish_on_close=True)
-    _scope.span.class_name = 'Line'
-    _scope.span.on_started()
-
-    _line_source = ''
-    if _trace_lines_with_source:
-        _line_source = linecache.getline(_filename, _line_no).strip()
     _local_vars = []
     if _trace_local_variables_:
         for l in frame.f_locals:
             _local_var_value = frame.f_locals[l]
+            _local_var_type = type(_local_var_value).__name__
+            try:
+                json.dumps(_local_var_value)
+            except:
+                _local_var_value = '<not-json-serializable-object>'
             _local_var = {
                 'name': l,
                 'value': copy.deepcopy(_local_var_value),
-                'type': type(_local_var_value).__name__
+                'type': _local_var_type
             }
             _local_vars.append(_local_var)
 
     method_line = {
         'line': _line_no,
-        'source': _line_source,
         'localVars': _local_vars
     }
-    method_lines_list = [method_line]
+    method_lines_list = _scope.span.get_tag('method.lines')
+    if not method_lines_list:
+        method_lines_list = []
+    method_lines_list.append(method_line)
     _scope.span.set_tag('method.lines', method_lines_list)
+
 
 def trace_calls(frame, event, arg):
     if event != 'call':
@@ -142,16 +152,6 @@ class Traceable:
             except TypeError:
                 return 'Unable to serialize the object'
 
-    def __close_line_span_if_there_is(self, traced_err):
-        _line_scope = self.tracer.scope_manager.active
-        _line_span = _line_scope.span if _line_scope is not None else None
-        if _line_span and _line_span.class_name == 'Line':
-            try:
-                if traced_err is not None:
-                    _line_span.set_error_to_tag(traced_err)
-                _line_span.finish()
-            finally:
-                _line_scope.close()
 
     def __call__(self, original_func):
         @wraps(original_func)
@@ -191,6 +191,12 @@ class Traceable:
                 self._tracing = True
                 # Check if line-by-line tracing enabled
                 if self.trace_line_by_line:
+                    try:
+                        source_lines, start_line = inspect.getsourcelines(original_func)
+                        scope.span.set_tag('method.source', ''.join(source_lines))
+                        scope.span.set_tag('method.startLine', start_line)
+                    except Exception as e:
+                        debug_logger("Cannot get source code in traceable: " + str(e))
                     global _line_traced_count
                     with _lock:
                         if _line_traced_count == 0:
@@ -219,13 +225,6 @@ class Traceable:
                         _line_traced_count -= 1
                         if _line_traced_count == 0:
                             sys.settrace(None)
-
-                    # If line by line tracing is active, first close last opened line span
-                    try:
-                        self.__close_line_span_if_there_is(traced_err)
-                    except Exception as injected_err:
-                        if traced_err is None:
-                            traced_err = injected_err
 
                 try:
                     # Since span's finish method calls listeners, it can raise an error
