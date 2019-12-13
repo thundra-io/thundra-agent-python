@@ -41,21 +41,19 @@ def trace_lines(frame, event, arg):
     if event != 'line':
         return
 
-    _co = frame.f_code
-    _func_name = _co.co_name
     _line_no = frame.f_lineno
-    _filename = _co.co_filename
 
     _trace_local_variables_ = False
     _trace_lines_with_source = False
     _traceable = __get_traceable_from_back_frame(frame)
     _scope = __get_scope_from_back_frame(frame)
-    if _traceable:
-        _trace_local_variables_ = _traceable._trace_local_variables
-        _trace_lines_with_source = _traceable._trace_lines_with_source
 
     if not _scope or not _scope.span:
         return
+
+    if _traceable:
+        _trace_local_variables_ = _traceable._trace_local_variables
+        _trace_lines_with_source = _traceable._trace_lines_with_source
 
     _local_vars = []
     if _trace_local_variables_:
