@@ -20,6 +20,14 @@ def __get_traceable_from_back_frame(frame):
     return None
 
 
+def __get_funcname_from_back_frame(frame):
+    _back_frame = frame.f_back
+    if _back_frame and 'original_func' in _back_frame.f_locals:
+        _func = _back_frame.f_locals['original_func']
+        return _func.__name__
+    return None
+
+
 def __get_scope_from_back_frame(frame):
     _back_frame = frame.f_back
     if _back_frame and 'scope' in _back_frame.f_locals:
@@ -86,7 +94,8 @@ def trace_calls(frame, event, arg):
         return
 
     _traceable = __get_traceable_from_back_frame(frame)
-    if _traceable and _traceable.trace_line_by_line and _traceable._tracing:
+    orig_func_name = __get_funcname_from_back_frame(frame)
+    if _traceable and _traceable.trace_line_by_line and _traceable._tracing and _func_name == orig_func_name:
         return trace_lines
 
 
