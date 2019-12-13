@@ -244,6 +244,8 @@ def get_nearest_collector():
 
     if region.startswith("us-west-"):
         return "api.thundra.io"
+    elif region == "eu-west-1":
+        return "api-eu-west-1.thundra.io"
     elif region.startswith("us-east-") or region.startswith("sa-") or region.startswith("ca-"):
         return "api-us-east-1.thundra.io"
     elif region.startswith("eu-"):
