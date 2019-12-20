@@ -42,6 +42,10 @@ def test_get_nearest_collector(monkeypatch):
 
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'eu-west-1')
     collector = utils.get_nearest_collector()
+    assert collector == "api-eu-west-1.thundra.io"
+
+    monkeypatch.setitem(os.environ, constants.AWS_REGION, 'eu-west-2')
+    collector = utils.get_nearest_collector()
     assert collector == "api-eu-west-2.thundra.io"
 
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'ap-')
