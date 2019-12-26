@@ -219,11 +219,15 @@ def debugger_enabled():
 
 
 def debugger_broker_port():
-    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=1111)
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=-1)
 
 
 def debugger_broker_host():
     return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST, default="debug.thundra.io")
+
+
+def debugger_port():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT, default=1111)
 
 
 def debugger_max_wait_time():

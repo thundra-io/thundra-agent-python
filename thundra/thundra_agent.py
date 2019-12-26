@@ -60,6 +60,8 @@ class Thundra:
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
 
+        self.initialize_debugger()
+
     def __call__(self, original_func):
         if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
             return original_func
@@ -142,69 +144,49 @@ class Thundra:
 
     call = __call__
 
-    def start_debugger_tracing(self):
+    def initialize_debugger(self):
         try:
             import ptvsd
-            ptvsd.enable_attach(address=("localhost", config.debugger_broker_port()))
-
-            self.debugger_process = subprocess.Popen([
-                "/opt/socat",
-                "TCP:localhost:{}".format(config.debugger_broker_port()),
-                "TCP:{}:{}".format(config.debugger_broker_host(), config.debugger_broker_port())]
-              )
-
-            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
-            self.wait_for_debugger()
-            ptvsd.tracing(True)
-
+            ptvsd.enable_attach(address=("localhost", config.debugger_port()))
         except Exception as e:
             logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
 
 
-    def wait_for_debugger(self):
-        start = time.time()
-        prev_rchar = 0
-        prev_wchar = 0
-        while time.time() - start < config.debugger_max_wait_time()/1000:
-            try:
-                io_metrics = self.get_debugger_proxy_io_metrics()
-                if not io_metrics:
-                    time.sleep(1)
-                    break
-                if prev_rchar != 0 and prev_wchar != 0 and ( io_metrics[0] == prev_rchar and io_metrics[1] == prev_wchar):
-                    break
-                prev_rchar = io_metrics[0]
-                prev_wchar = io_metrics[1]
-                time.sleep(1)
+    def start_debugger_tracing(self):
+        try:
+            import ptvsd
+            ptvsd.tracing(True)
 
-            except Exception as e:
-                logger.error("error while waiting for proxy process: {}".format(e))
+            ptvsd.enable_attach(address=("localhost", config.debugger_port()))
+            if not self.debugger_process:
+                self.debugger_process = subprocess.Popen(["python", "/var/task/thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+
+            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
+
+            if not ptvsd.is_attached():
+                ptvsd.tracing(False)
+            else:
+                ptvsd.tracing(True)
+
+        except Exception as e:
+            logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
+            print("error while setting tracing true to debugger using ptvsd: {}".format(e))
 
     def stop_debugger_tracing(self):
         try:
             import ptvsd
             ptvsd.tracing(False)
-            self.wait_for_debugger()
+            from ptvsd.attach_server import debugger_attached
+            debugger_attached.clear()
         except Exception as e:
             logger.error("error while setting tracing false to debugger using ptvsd: {}".format(e))
 
         try:
             if self.debugger_process:
-                self.debugger_process.kill()
-                self.debugger_process.wait()
+                self.debugger_process.communicate(b"fin\n")
                 self.debugger_process = None
         except Exception as e:
             logger.error("error while killing proxy process for debug: {}".format(e))
-
-    def get_debugger_proxy_io_metrics(self):
-        rchar, wchar = None, None
-        try:
-            with open("/proc/{}/io".format(self.debugger_process.pid)) as f:
-                lines = f.read().splitlines()
-                rchar, wchar = lines[:2]
-                return (rchar, wchar)
-        except:
-            return None
 
     def execute_hook(self, name, data):
         if name == 'after:invocation':
