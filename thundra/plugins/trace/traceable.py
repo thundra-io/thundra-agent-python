@@ -8,6 +8,7 @@ from threading import Lock
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.serializable import Serializable
 from thundra.plugins.log.thundra_logger import debug_logger
+from thundra import constants
 from opentracing import Scope
 
 
@@ -75,11 +76,11 @@ def trace_lines(frame, event, arg):
         'line': _line_no,
         'localVars': _local_vars
     }
-    method_lines_list = _scope.span.get_tag('method.lines')
+    method_lines_list = _scope.span.get_tag(constants.LineByLineTracingTags['lines'])
     if not method_lines_list:
         method_lines_list = []
     method_lines_list.append(method_line)
-    _scope.span.set_tag('method.lines', method_lines_list)
+    _scope.span.set_tag(constants.LineByLineTracingTags['lines'], method_lines_list)
 
 
 def trace_calls(frame, event, arg):
@@ -91,7 +92,11 @@ def trace_calls(frame, event, arg):
         # Ignore write() calls from print statements
         return
 
-    _traceable = __get_traceable_from_back_frame(frame)
+    _traceable = None
+    try:
+        _traceable = __get_traceable_from_back_frame(frame)
+    except ValueError:
+        pass
     orig_func_name = __get_funcname_from_back_frame(frame)
     if _traceable and _traceable.trace_line_by_line and _traceable._tracing and _func_name == orig_func_name:
         return trace_lines
@@ -192,7 +197,7 @@ class Traceable:
                                 'value': self.__serialize_value__(value)
                             }
                             function_args_list.append(function_args_dict)
-                    scope.span.set_tag('method.args', function_args_list)
+                    scope.span.set_tag(constants.LineByLineTracingTags['args'], function_args_list)
                 # Inform that span is initalized
                 scope.span.on_started()
                 self._tracing = True
@@ -200,8 +205,8 @@ class Traceable:
                 if self.trace_line_by_line:
                     try:
                         source_lines, start_line = inspect.getsourcelines(original_func)
-                        scope.span.set_tag('method.source', ''.join(source_lines))
-                        scope.span.set_tag('method.startLine', start_line)
+                        scope.span.set_tag(constants.LineByLineTracingTags['source'], ''.join(source_lines))
+                        scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
                         debug_logger("Cannot get source code in traceable: " + str(e))
                     global _line_traced_count

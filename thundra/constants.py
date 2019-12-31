@@ -132,9 +132,18 @@ THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST = 'thundra_agent_lambda_debugger_broke
 #### INTEGRATIONS ####
 
 DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
-DEFAULT_REPORT_TIMEOUT = 3
+DEFAULT_REPORT_TIMEOUT = 15
 
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'
+
+
+LineByLineTracingTags = {
+    'lines': 'method.lines',
+    'next_span_ids': 'nextSpanIds',
+    'source': 'method.source',
+    'start_line': 'method.startLine',
+    'args': 'method.args'
+}
 
 DomainNames = {
     'AWS': 'AWS',

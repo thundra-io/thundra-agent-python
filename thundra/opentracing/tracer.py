@@ -7,6 +7,7 @@ from thundra.opentracing.recorder import ThundraRecorder
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
+from thundra import constants
 
 class ThundraTracer(opentracing.Tracer):
     __instance = None
@@ -78,6 +79,10 @@ class ThundraTracer(opentracing.Tracer):
                                 ignore_active_span=ignore_active_span)
         # Record the new span
         self.recorder.record(_span)
+
+        # Update parent span tag for line by line tracing
+        self.inject_line_by_line_tags(_span)
+
         # Call listener's on_span_started method with the new span
         return _span
 
@@ -163,3 +168,21 @@ class ThundraTracer(opentracing.Tracer):
 
     def add_span_listener(self, listener):
         trace_support.register_span_listener(listener)
+
+    def inject_line_by_line_tags(self, span):
+        parent_span = self.get_active_span()
+
+        try:
+            if parent_span and parent_span.get_tag(constants.LineByLineTracingTags['lines']):
+                lines = parent_span.get_tag(constants.LineByLineTracingTags['lines'])
+                last_line = lines[-1]
+                next_span_ids = last_line.get(constants.LineByLineTracingTags['next_span_ids'])
+                if not next_span_ids:
+                    next_span_ids = []
+
+                next_span_ids.append(span.span_id)
+                last_line[constants.LineByLineTracingTags['next_span_ids']] = next_span_ids
+                parent_span.set_tag(constants.LineByLineTracingTags['lines'], lines)
+        except Exception:
+            pass
+
