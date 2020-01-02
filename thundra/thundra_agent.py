@@ -3,6 +3,7 @@ import subprocess
 import threading
 import time
 import logging
+import os
 from functools import wraps
 
 from thundra.reporter import Reporter
@@ -159,7 +160,11 @@ class Thundra:
 
             ptvsd.enable_attach(address=("localhost", config.debugger_port()))
             if not self.debugger_process:
-                self.debugger_process = subprocess.Popen(["python", "/var/task/thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+                env = os.environ.copy()
+                env['BROKER_HOST'] = str(config.debugger_broker_host())
+                env['BROKER_PORT'] = str(config.debugger_broker_port())
+                env['DEBUGGER_PORT'] = str(config.debugger_port())
+                self.debugger_process = subprocess.Popen(["python", "thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
 
             ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
 

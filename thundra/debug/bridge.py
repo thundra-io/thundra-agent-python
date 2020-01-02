@@ -1,11 +1,9 @@
+import os
 import socket
 import select
 import sys
 import threading
 
-sys.path.append("/var/task")
-
-from thundra import config
 
 broker_socket = None
 debugger_socket = None
@@ -13,8 +11,8 @@ try:
     broker_socket = socket.socket()
     debugger_socket = socket.socket()
 
-    broker_socket.connect((config.debugger_broker_host(), config.debugger_broker_port()))
-    debugger_socket.connect(("localhost", config.debugger_port()))
+    broker_socket.connect((os.environ.get('BROKER_HOST'), int(os.environ.get('BROKER_PORT'))))
+    debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
 
     running = True
     while running:
