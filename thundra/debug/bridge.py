@@ -3,6 +3,8 @@ import socket
 import select
 import sys
 import threading
+import time
+import json
 
 
 broker_socket = None
@@ -13,6 +15,16 @@ try:
 
     broker_socket.connect((os.environ.get('BROKER_HOST'), int(os.environ.get('BROKER_PORT'))))
     debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
+
+    auth_request = {
+        "authToken": os.environ.get('AUTH_TOKEN'),
+        "sessionName": os.environ.get('SESSION_NAME'),
+        "protocolVersion": "1.0",
+        "runtime": "python"
+    }
+
+    broker_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+    broker_socket.sendall((json.dumps(auth_request) + "\n").encode("utf-8"))
 
     running = True
     while running:

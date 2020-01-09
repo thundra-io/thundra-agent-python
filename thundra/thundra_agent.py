@@ -164,9 +164,17 @@ class Thundra:
                 env['BROKER_HOST'] = str(config.debugger_broker_host())
                 env['BROKER_PORT'] = str(config.debugger_broker_port())
                 env['DEBUGGER_PORT'] = str(config.debugger_port())
+                env['AUTH_TOKEN'] = str(config.debugger_auth_token())
+                env['SESSION_NAME'] = str(config.debugger_session_name())
                 self.debugger_process = subprocess.Popen(["python", "thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
 
-            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
+            start_time = time.time()
+
+            while time.time() < (start_time + config.debugger_max_wait_time()/1000) and not ptvsd.is_attached():
+                if self.debugger_process.poll() is None:
+                    ptvsd.wait_for_attach(1)
+                else:
+                    break
 
             if not ptvsd.is_attached():
                 ptvsd.tracing(False)
@@ -175,7 +183,6 @@ class Thundra:
 
         except Exception as e:
             logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
-            print("error while setting tracing true to debugger using ptvsd: {}".format(e))
 
     def stop_debugger_tracing(self):
         try:
@@ -188,9 +195,10 @@ class Thundra:
 
         try:
             if self.debugger_process:
-                self.debugger_process.communicate(b"fin\n")
+                _, e = self.debugger_process.communicate(b"fin\n")
                 self.debugger_process = None
         except Exception as e:
+            self.debugger_process = None
             logger.error("error while killing proxy process for debug: {}".format(e))
 
     def execute_hook(self, name, data):

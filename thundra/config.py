@@ -232,3 +232,11 @@ def debugger_port():
 
 def debugger_max_wait_time():
     return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX, default=60*1000)
+
+
+def debugger_auth_token():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_AUTH_TOKEN, default='')
+
+
+def debugger_session_name():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_SESSION_NAME, default='test')
