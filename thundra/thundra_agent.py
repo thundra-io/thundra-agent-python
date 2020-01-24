@@ -195,7 +195,8 @@ class Thundra:
 
         try:
             if self.debugger_process:
-                _, e = self.debugger_process.communicate(b"fin\n")
+                o, e = self.debugger_process.communicate(b"fin\n")
+                print("Debugger bridge process output: {}, error: {}".format(o, e))
                 self.debugger_process = None
         except Exception as e:
             self.debugger_process = None

@@ -5,55 +5,78 @@ import sys
 import threading
 import time
 import json
+import sys
 
+sys.path.append("/opt")
+sys.path.append("/var/task")
 
-broker_socket = None
-debugger_socket = None
+import websocket
+
 try:
-    broker_socket = socket.socket()
-    debugger_socket = socket.socket()
+    import thread
+except ImportError:
+    import _thread as thread
 
-    broker_socket.connect((os.environ.get('BROKER_HOST'), int(os.environ.get('BROKER_PORT'))))
-    debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
+ws = None
+debugger_socket = None
 
-    auth_request = {
-        "authToken": os.environ.get('AUTH_TOKEN'),
-        "sessionName": os.environ.get('SESSION_NAME'),
-        "protocolVersion": "1.0",
-        "runtime": "python"
-    }
+def on_open(ws):
+    def run():
+        try:
+            debugger_socket = socket.socket()
+            debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
+            ws.debugger_socket = debugger_socket
+            ws.running = True
+            while ws.running:
+                rlist = select.select([debugger_socket, sys.stdin], [], [])[0]
 
-    broker_socket.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-    broker_socket.sendall((json.dumps(auth_request) + "\n").encode("utf-8"))
+                if sys.stdin in rlist:
+                    line = sys.stdin.readline()
+                    if line.strip() == "fin":
+                        ws.running = False
 
-    running = True
-    while running:
-        rlist = select.select([broker_socket, debugger_socket, sys.stdin], [], [])[0]
+                if debugger_socket in rlist:
+                    buf = debugger_socket.recv(4096)
+                    if len(buf) == 0:
+                        ws.running = False
+                    ws.send(buf)
+            
+        except Exception as e:
+            print("Exception while listening from debugger socket and stdin: {}".format(e))
+        ws.close()
+    thread.start_new_thread(run, ())
 
-        if sys.stdin in rlist:
-            line = sys.stdin.readline()
-            if line.strip() == "fin":
-                running = False
+def on_message(ws, message):
+    ws.debugger_socket.send(message.encode())
 
-        if broker_socket in rlist:
-            buf = broker_socket.recv(4096)
-            if len(buf) == 0:
-                running = False
-            debugger_socket.send(buf)
+def on_error(ws, error):
+    print("Broker connection got error: {}".format(error))
+    ws.running = False
 
-        if debugger_socket in rlist:
-            buf = debugger_socket.recv(4096)
-            if len(buf) == 0:
-                running = False
-            broker_socket.send(buf)
+def on_close(ws, code, message):
+    print("Broker closed with code:{}, message:{}".format(code, message))
+    ws.running = False
 
-    broker_socket.close()
-    debugger_socket.close()
+
+try:
+    ws = websocket.WebSocketApp("ws://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
+        header=[
+            "x-thundra-auth-token: {}".format("thundra"),
+            "x-thundra-session-name: {}".format("test"),
+            "x-thundra-protocol-version: 1.0"
+            ],
+        on_message=on_message,
+        on_close=on_close,
+        on_error=on_error
+    )
+    ws.on_open = on_open
+    ws.run_forever(sockopt=((socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),))
+
 except Exception as e:
     print(e)
 
 try:
-    broker_socket.close()
+    ws.close()
 except: pass
 
 try:
