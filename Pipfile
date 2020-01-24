@@ -10,6 +10,7 @@ wrapt = "*"
 simplejson = "*"
 enum-compat = "*"
 jsonpickle = "*"
+websocket-client = "*"
 
 [dev-packages]
 mock = "*"
