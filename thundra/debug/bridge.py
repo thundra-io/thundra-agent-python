@@ -23,9 +23,6 @@ debugger_socket = None
 def on_open(ws):
     def run():
         try:
-            debugger_socket = socket.socket()
-            debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
-            ws.debugger_socket = debugger_socket
             ws.running = True
             while ws.running:
                 rlist = select.select([debugger_socket, sys.stdin], [], [])[0]
@@ -47,7 +44,10 @@ def on_open(ws):
     thread.start_new_thread(run, ())
 
 def on_message(ws, message):
-    ws.debugger_socket.send(message.encode())
+    try:
+        ws.debugger_socket.send(message.encode())
+    except Exception as e:
+        print("Error on on_message: {}".format(e))
 
 def on_error(ws, error):
     print("Broker connection got error: {}".format(error))
@@ -59,6 +59,8 @@ def on_close(ws, code, message):
 
 
 try:
+    debugger_socket = socket.socket()
+    debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
     ws = websocket.WebSocketApp("ws://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
         header=[
             "x-thundra-auth-token: {}".format("thundra"),
@@ -69,6 +71,7 @@ try:
         on_close=on_close,
         on_error=on_error
     )
+    ws.debugger_socket = debugger_socket
     ws.on_open = on_open
     ws.run_forever(sockopt=((socket.IPPROTO_TCP, socket.TCP_NODELAY, 1),))
 
