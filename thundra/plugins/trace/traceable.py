@@ -110,7 +110,7 @@ class Traceable:
 
     def __init__(self,
                  trace_args=False, trace_return_value=False, trace_error=True,
-                 trace_line_by_line=False, trace_lines_with_source=False, trace_local_variables=False):
+                 trace_line_by_line=False, trace_lines_with_source=True, trace_local_variables=True):
         self._trace_args = trace_args
         self._trace_return_value = trace_return_value
         self._trace_error = trace_error
@@ -204,9 +204,10 @@ class Traceable:
                 # Check if line-by-line tracing enabled
                 if self.trace_line_by_line:
                     try:
-                        source_lines, start_line = inspect.getsourcelines(original_func)
-                        scope.span.set_tag(constants.LineByLineTracingTags['source'], ''.join(source_lines))
-                        scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
+                        if self.trace_lines_with_source:
+                            source_lines, start_line = inspect.getsourcelines(original_func)
+                            scope.span.set_tag(constants.LineByLineTracingTags['source'], ''.join(source_lines))
+                            scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
                         debug_logger("Cannot get source code in traceable: " + str(e))
                     global _line_traced_count
