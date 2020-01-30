@@ -136,6 +136,15 @@ DEFAULT_REPORT_TIMEOUT = 3
 
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'
 
+
+LineByLineTracingTags = {
+    'lines': 'method.lines',
+    'next_span_ids': 'nextSpanIds',
+    'source': 'method.source',
+    'start_line': 'method.startLine',
+    'args': 'method.args'
+}
+
 DomainNames = {
     'AWS': 'AWS',
     'DB': 'DB',

@@ -9,6 +9,7 @@ requests = "*"
 wrapt = "*"
 simplejson = "*"
 enum-compat = "*"
+jsonpickle = "*"
 
 [dev-packages]
 mock = "*"
