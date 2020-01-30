@@ -111,14 +111,33 @@ _line_traced_count = 0
 class Traceable:
 
     def __init__(self,
-                 trace_args=False, trace_return_value=False, trace_error=True,
-                 trace_line_by_line=False, trace_lines_with_source=True, trace_local_variables=True):
+                 trace_args=False, trace_return_value=None, trace_error=True,
+                 trace_line_by_line=False, trace_lines_with_source=None, trace_local_variables=None):
         self._trace_args = trace_args
+
         self._trace_return_value = trace_return_value
+        if trace_return_value is None:
+            self._trace_return_value = False
+
+        self._trace_lines_with_source = trace_lines_with_source
+        if trace_lines_with_source is None:
+            self._trace_lines_with_source = False
+
+        self._trace_local_variables = trace_local_variables
+        if trace_local_variables is None:
+            self._trace_local_variables = False
+
         self._trace_error = trace_error
         self._trace_line_by_line = trace_line_by_line
-        self._trace_lines_with_source = trace_lines_with_source
-        self._trace_local_variables = trace_local_variables
+
+        if trace_line_by_line:
+            if trace_lines_with_source is None:
+                self._trace_lines_with_source = True
+            if trace_return_value is None:
+                self._trace_return_value = True
+            if trace_local_variables is None:
+                self._trace_local_variables = True
+
         self._tracing = False
         self._tracer = ThundraTracer.get_instance()
 
