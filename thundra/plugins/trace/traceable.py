@@ -59,11 +59,11 @@ def trace_lines(frame, event, arg):
 
     _local_vars = []
     if _trace_local_variables_:
+        pickler = jsonpickle.pickler.Pickler(max_depth=3)
         for l in frame.f_locals:
             _local_var_value = frame.f_locals[l]
             _local_var_type = type(_local_var_value).__name__
             try:
-                pickler = jsonpickle.pickler.Pickler(max_depth=3)
                 _local_var_value = pickler.flatten(_local_var_value, reset=True)
             except Exception as e:
                 _local_var_value = '<not-json-serializable-object>'
@@ -111,9 +111,11 @@ _line_traced_count = 0
 class Traceable:
 
     def __init__(self,
-                 trace_args=False, trace_return_value=None, trace_error=True,
+                 trace_args=None, trace_return_value=None, trace_error=True,
                  trace_line_by_line=False, trace_lines_with_source=None, trace_local_variables=None):
         self._trace_args = trace_args
+        if trace_args is None:
+            self._trace_args = False
 
         self._trace_return_value = trace_return_value
         if trace_return_value is None:
@@ -137,6 +139,8 @@ class Traceable:
                 self._trace_return_value = True
             if trace_local_variables is None:
                 self._trace_local_variables = True
+            if trace_args is None:
+                self._trace_args = True
 
         self._tracing = False
         self._tracer = ThundraTracer.get_instance()
@@ -177,13 +181,12 @@ class Traceable:
             return value
         elif isinstance(value, Serializable):
             return value.serialize()
-        else:
-            try:
-                # Check whether object is serializable
-                json.dumps(value)
-                return value
-            except TypeError:
-                return 'Unable to serialize the object'
+        try:
+            pickler = jsonpickle.pickler.Pickler(max_depth=3)
+            value_dict = pickler.flatten(value, reset=True)
+            return value_dict
+        except:
+            return '<not-json-serializable-object>'
 
 
     def __call__(self, original_func):
