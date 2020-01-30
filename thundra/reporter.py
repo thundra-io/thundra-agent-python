@@ -12,22 +12,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class ThundraJSONWrapper():
-    def __init__(self, content):
-        self.content = content
-
-
-class CustomEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, ThundraJSONWrapper):
-            try:
-                content = json.loads(obj.content)
-            except:
-                content = '<not-json-serializable-object>'
-            return content
-        return json.JSONEncoder.default(self, obj)
-
-
 class Reporter():
 
     def __init__(self, api_key, session=None):
@@ -74,7 +58,7 @@ class Reporter():
             else:
                 for report in self.reports:
                     try:
-                        print(json.dumps(report, separators=(',', ':'), cls=CustomEncoder))
+                        print(json.dumps(report, separators=(',', ':')))
                     except TypeError:
                         logger.error(("Couldn't dump report with type {} to json string, "
                                       "probably it contains a byte array").format(report.get('type')))
@@ -113,7 +97,7 @@ class Reporter():
             report_jsons = []
             for report in batch:
                 try:
-                    report_jsons.append(json.dumps(report, separators=(',', ':'), cls=CustomEncoder))
+                    report_jsons.append(json.dumps(report, separators=(',', ':')))
                 except TypeError:
                     logger.error(("Couldn't dump report with type {} to json string, "
                                   "probably it contains a byte array").format(report.get('type')))
@@ -139,7 +123,7 @@ class Reporter():
             all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in batch]
             composite_data = composite.get_composite_data(all_monitoring_data, self.api_key)
             try:
-                batched_reports.append(json.dumps(composite_data, separators=(',', ':'), cls=CustomEncoder))
+                batched_reports.append(json.dumps(composite_data, separators=(',', ':')))
 
             except TypeError:
                 logger.error("Couldn't dump report with type Composite to json string, "

@@ -11,7 +11,6 @@ from thundra.serializable import Serializable
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import constants
 from opentracing import Scope
-from thundra.reporter import ThundraJSONWrapper
 
 
 def __get_traceable_from_back_frame(frame):
@@ -64,7 +63,8 @@ def trace_lines(frame, event, arg):
             _local_var_value = frame.f_locals[l]
             _local_var_type = type(_local_var_value).__name__
             try:
-                _local_var_value = ThundraJSONWrapper(jsonpickle.encode(_local_var_value, max_depth=3))
+                pickler = jsonpickle.pickler.Pickler(max_depth=3)
+                _local_var_value = pickler.flatten(_local_var_value, reset=True)
             except Exception as e:
                 _local_var_value = '<not-json-serializable-object>'
             _local_var = {
