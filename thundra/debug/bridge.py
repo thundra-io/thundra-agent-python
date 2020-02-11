@@ -12,10 +12,13 @@ sys.path.append("/var/task")
 
 import websocket
 
+
 try:
     import thread
 except ImportError:
     import _thread as thread
+
+OPCODE_BINARY = 0x2
 
 ws = None
 debugger_socket = None
@@ -36,7 +39,7 @@ def on_open(ws):
                     buf = debugger_socket.recv(4096)
                     if len(buf) == 0:
                         ws.running = False
-                    ws.send(buf)
+                    ws.send(buf, opcode=OPCODE_BINARY)
             
         except Exception as e:
             print("Exception while listening from debugger socket and stdin: {}".format(e))
@@ -45,7 +48,10 @@ def on_open(ws):
 
 def on_message(ws, message):
     try:
-        ws.debugger_socket.send(message.encode())
+        if isinstance(message, bytes):
+            ws.debugger_socket.send(message)
+        else:
+            ws.debugger_socket.send(message.encode())
     except Exception as e:
         print("Error on on_message: {}".format(e))
 
@@ -63,9 +69,10 @@ try:
     debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
     ws = websocket.WebSocketApp("ws://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
         header=[
-            "x-thundra-auth-token: {}".format("thundra"),
-            "x-thundra-session-name: {}".format("test"),
-            "x-thundra-protocol-version: 1.0"
+            "x-thundra-auth-token: {}".format(os.environ.get("AUTH_TOKEN")),
+            "x-thundra-session-name: {}".format(os.environ.get("SESSION_NAME")),
+            "x-thundra-protocol-version: 1.0",
+            "x-thundra-runtime: python"
             ],
         on_message=on_message,
         on_close=on_close,
