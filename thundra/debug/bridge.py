@@ -67,12 +67,13 @@ def on_close(ws, code, message):
 try:
     debugger_socket = socket.socket()
     debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
-    ws = websocket.WebSocketApp("ws://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
+    ws = websocket.WebSocketApp("wss://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
         header=[
             "x-thundra-auth-token: {}".format(os.environ.get("AUTH_TOKEN")),
             "x-thundra-session-name: {}".format(os.environ.get("SESSION_NAME")),
             "x-thundra-protocol-version: 1.0",
-            "x-thundra-runtime: python"
+            "x-thundra-runtime: python",
+            'x-thundra-session-timeout: {}'.format(os.environ.get("SESSION_TIMEOUT"))
             ],
         on_message=on_message,
         on_close=on_close,

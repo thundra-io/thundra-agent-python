@@ -166,6 +166,9 @@ class Thundra:
                 env['DEBUGGER_PORT'] = str(config.debugger_port())
                 env['AUTH_TOKEN'] = str(config.debugger_auth_token())
                 env['SESSION_NAME'] = str(config.debugger_session_name())
+                context = self.plugin_context["context"]
+                if hasattr(context, 'get_remaining_time_in_millis'):
+                    env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time()*1000.0))
                 self.debugger_process = subprocess.Popen(["python", "thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
 
             start_time = time.time()
