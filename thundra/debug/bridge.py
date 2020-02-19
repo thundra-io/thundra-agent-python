@@ -19,9 +19,38 @@ except ImportError:
     import _thread as thread
 
 OPCODE_BINARY = 0x2
+PROTOCOL_VER = 1.0
+BROKER_HANDSHAKE_HEADERS = {
+    "AUTH_TOKEN": "x-thundra-auth-token",
+    "SESSION_NAME": "x-thundra-session-name",
+    "PROTOCOL_VER": "x-thundra-protocol-version",
+    "RUNTIME": "x-thundra-runtime",
+    "SESSION_TIMEOUT": "x-thundra-session-timeout"
+}
+
+BROKER_WS_HTTP_ERR_CODE_TO_MSG = {
+    429: "Reached the concurrent session limit, couldn't start Thundra debugger.",
+    401: "Authentication is failed, check your Thundra debugger authentication token.",
+    409: "Another session with the same session name exists, connection closed.",
+}
+
 
 ws = None
 debugger_socket = None
+
+def handle_error_message(error):
+    if hasattr(error, 'status_code'):
+        print(BROKER_WS_HTTP_ERR_CODE_TO_MSG.get(error.status_code, "Broker connection got error: {}".format(error)))
+    else:
+        print("Broker connection got error: {}".format(error))
+
+def handle_close_message(code, message):
+    if code is None and message is None:
+        print("Thundra debug broker connection is closed")
+    elif code:
+        print("Thundra debug broker closed with code:{}".format(code))
+    else:
+        print("Thundra debug broker closed with code:{}, message:{}".format(code, message))
 
 def on_open(ws):
     def run():
@@ -49,18 +78,18 @@ def on_open(ws):
 def on_message(ws, message):
     try:
         if isinstance(message, bytes):
-            ws.debugger_socket.send(message)
+            print(message)
         else:
-            ws.debugger_socket.send(message.encode())
+            print(message.encode())
     except Exception as e:
         print("Error on on_message: {}".format(e))
 
 def on_error(ws, error):
-    print("Broker connection got error: {}".format(error))
+    handle_error_message(error)
     ws.running = False
 
 def on_close(ws, code, message):
-    print("Broker closed with code:{}, message:{}".format(code, message))
+    handle_close_message(code, message)
     ws.running = False
 
 
@@ -69,11 +98,11 @@ try:
     debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
     ws = websocket.WebSocketApp("wss://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
         header=[
-            "x-thundra-auth-token: {}".format(os.environ.get("AUTH_TOKEN")),
-            "x-thundra-session-name: {}".format(os.environ.get("SESSION_NAME")),
-            "x-thundra-protocol-version: 1.0",
-            "x-thundra-runtime: python",
-            'x-thundra-session-timeout: {}'.format(os.environ.get("SESSION_TIMEOUT"))
+            "{auth_token_header}: {value}".format(auth_token_header=BROKER_HANDSHAKE_HEADERS.get("AUTH_TOKEN"), value=os.environ.get("AUTH_TOKEN")),
+            "{session_name_header}: {value}".format(session_name_header=BROKER_HANDSHAKE_HEADERS.get("SESSION_NAME"), value=os.environ.get("SESSION_NAME")),
+            "{protocol_ver_header}: {value}".format(protocol_ver_header=BROKER_HANDSHAKE_HEADERS.get("PROTOCOL_VER"), value=PROTOCOL_VER),
+            "{runtime_header}: {value}".format(runtime_header=BROKER_HANDSHAKE_HEADERS.get("RUNTIME"), value="python"),
+            '{session_timeout_header}: {value}'.format(session_timeout_header=BROKER_HANDSHAKE_HEADERS.get("SESSION_TIMEOUT"), value=os.environ.get("SESSION_TIMEOUT"))
             ],
         on_message=on_message,
         on_close=on_close,

@@ -175,7 +175,7 @@ class Thundra:
 
             while time.time() < (start_time + config.debugger_max_wait_time()/1000) and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
-                    ptvsd.wait_for_attach(1)
+                    ptvsd.wait_for_attach(0.01)
                 else:
                     break
 
@@ -198,8 +198,8 @@ class Thundra:
 
         try:
             if self.debugger_process:
-                o, e = self.debugger_process.communicate(b"fin\n")
-                print("Debugger bridge process output: {}, error: {}".format(o, e))
+                o, _ = self.debugger_process.communicate(b"fin\n")
+                print("Thundra debugger process output: {}".format(o.decode("utf-8")))
                 self.debugger_process = None
         except Exception as e:
             self.debugger_process = None
