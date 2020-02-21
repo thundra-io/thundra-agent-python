@@ -78,9 +78,9 @@ def on_open(ws):
 def on_message(ws, message):
     try:
         if isinstance(message, bytes):
-            print(message)
+            ws.debugger_socket.send(message)
         else:
-            print(message.encode())
+            ws.debugger_socket.send(message.encode())
     except Exception as e:
         print("Error on on_message: {}".format(e))
 
