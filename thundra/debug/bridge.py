@@ -40,9 +40,9 @@ debugger_socket = None
 
 def handle_error_message(error):
     if hasattr(error, 'status_code'):
-        print(BROKER_WS_HTTP_ERR_CODE_TO_MSG.get(error.status_code, "Broker connection got error: {}".format(error)))
+        print(BROKER_WS_HTTP_ERR_CODE_TO_MSG.get(error.status_code, "Broker connection got error: {}".format(error)), file=sys.stderr)
     else:
-        print("Broker connection got error: {}".format(error))
+        print("Broker connection got error: {}".format(error), file=sys.stderr)
 
 def handle_close_message(code, message):
     if code is None and message is None:

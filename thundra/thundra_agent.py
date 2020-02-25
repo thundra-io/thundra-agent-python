@@ -14,6 +14,7 @@ from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
+from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import utils
 from thundra.compat import PY2, TimeoutError
 
@@ -60,7 +61,7 @@ class Thundra:
 
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
-
+        self.ptvsd_imported = False
         if config.debugger_enabled():
             self.initialize_debugger()
 
@@ -107,7 +108,7 @@ class Thundra:
             # Invoke user handler
             if before_done:
                 try:
-                    if config.debugger_enabled():
+                    if config.debugger_enabled() and self.ptvsd_imported:
                         self.start_debugger_tracing()
                     response = original_func(event, context)
                     self.plugin_context['response'] = response
@@ -124,7 +125,7 @@ class Thundra:
                     raise e
                 finally:
                     self.stop_timer()
-                    if config.debugger_enabled():
+                    if config.debugger_enabled() and self.ptvsd_imported:
                         self.stop_debugger_tracing()
             else:
                 self.stop_timer()
@@ -149,9 +150,9 @@ class Thundra:
     def initialize_debugger(self):
         try:
             import ptvsd
-            ptvsd.enable_attach(address=("localhost", config.debugger_port()))
+            self.ptvsd_imported = True
         except Exception as e:
-            logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
+            logger.error("Could not import ptvsd. Thundra ptvsd layer must be added")
 
 
     def start_debugger_tracing(self):
@@ -199,8 +200,8 @@ class Thundra:
 
         try:
             if self.debugger_process:
-                o, _ = self.debugger_process.communicate(b"fin\n")
-                print("Thundra debugger process output: {}".format(o.decode("utf-8")))
+                o, e = self.debugger_process.communicate(b"fin\n")
+                debug_logger("Thundra debugger process output: {}".format(o.decode("utf-8")))
                 self.debugger_process = None
         except Exception as e:
             self.debugger_process = None
