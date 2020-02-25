@@ -61,7 +61,8 @@ class Thundra:
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
 
-        self.initialize_debugger()
+        if config.debugger_enabled():
+            self.initialize_debugger()
 
     def __call__(self, original_func):
         if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
