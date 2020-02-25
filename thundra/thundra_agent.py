@@ -174,14 +174,17 @@ class Thundra:
                 self.debugger_process = subprocess.Popen(["python", "thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
 
             start_time = time.time()
-
+            debug_process_running = True
             while time.time() < (start_time + config.debugger_max_wait_time()/1000) and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
                     ptvsd.wait_for_attach(0.01)
                 else:
+                    debug_process_running = False
                     break
 
             if not ptvsd.is_attached():
+                if debug_process_running:
+                    logger.error('Couldn\'t complete debugger handshake in {} milliseconds.'.format(config.debugger_max_wait_time()))
                 ptvsd.tracing(False)
             else:
                 ptvsd.tracing(True)
