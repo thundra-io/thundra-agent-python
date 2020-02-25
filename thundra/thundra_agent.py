@@ -148,6 +148,9 @@ class Thundra:
     call = __call__
 
     def initialize_debugger(self):
+        if PY2:
+            logger.error("Online debugging not supported in python2.7. Supported versions: 3.6, 3.7, 3.8")
+            return
         try:
             import ptvsd
             self.ptvsd_imported = True
