@@ -4,7 +4,6 @@ import base64
 import gzip
 import simplejson as json
 import hashlib
-from enum import Enum
 from thundra import constants
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 
@@ -15,7 +14,7 @@ except ImportError:
 from gzip import GzipFile
 
 
-class LambdaEventType(Enum):
+class LambdaEventType:
     Kinesis = 'kinesis',
     Firehose = 'firehose',
     DynamoDB = 'dynamodb',

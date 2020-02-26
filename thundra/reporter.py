@@ -2,6 +2,7 @@ import simplejson as json
 import logging
 import concurrent.futures as futures
 
+from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import constants, config, composite, utils
 
 try:
@@ -38,6 +39,10 @@ class Reporter():
             self.reports.append(report)
 
     def send_report(self):
+        if not self.api_key:
+            debug_logger("API key not set, not sending report to Thundra.")
+            return []
+
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
@@ -75,6 +80,8 @@ class Reporter():
             _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
             responses = [future.result() for future in futures.as_completed(_futures)]
 
+        if config.debug_enabled():
+            debug_logger("Thundra API responses: " + str(responses))
         self.clear()
         return responses
 

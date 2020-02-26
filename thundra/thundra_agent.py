@@ -3,6 +3,7 @@ import subprocess
 import threading
 import time
 import logging
+import os
 from functools import wraps
 
 from thundra.reporter import Reporter
@@ -13,6 +14,7 @@ from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
+from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import utils
 from thundra.compat import PY2, TimeoutError
 
@@ -59,6 +61,9 @@ class Thundra:
 
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
+        self.ptvsd_imported = False
+        if config.debugger_enabled():
+            self.initialize_debugger()
 
     def __call__(self, original_func):
         if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
@@ -103,7 +108,7 @@ class Thundra:
             # Invoke user handler
             if before_done:
                 try:
-                    if config.debugger_enabled():
+                    if config.debugger_enabled() and self.ptvsd_imported:
                         self.start_debugger_tracing()
                     response = original_func(event, context)
                     self.plugin_context['response'] = response
@@ -120,7 +125,7 @@ class Thundra:
                     raise e
                 finally:
                     self.stop_timer()
-                    if config.debugger_enabled():
+                    if config.debugger_enabled() and self.ptvsd_imported:
                         self.stop_debugger_tracing()
             else:
                 self.stop_timer()
@@ -142,69 +147,71 @@ class Thundra:
 
     call = __call__
 
+    def initialize_debugger(self):
+        if PY2:
+            logger.error("Online debugging not supported in python2.7. Supported versions: 3.6, 3.7, 3.8")
+            return
+        try:
+            import ptvsd
+            self.ptvsd_imported = True
+        except Exception as e:
+            logger.error("Could not import ptvsd. Thundra ptvsd layer must be added")
+
+
     def start_debugger_tracing(self):
         try:
             import ptvsd
-            ptvsd.enable_attach(address=("localhost", config.debugger_broker_port()))
-
-            self.debugger_process = subprocess.Popen([
-                "/opt/socat",
-                "TCP:localhost:{}".format(config.debugger_broker_port()),
-                "TCP:{}:{}".format(config.debugger_broker_host(), config.debugger_broker_port())]
-              )
-
-            ptvsd.wait_for_attach(config.debugger_max_wait_time()/1000)
-            self.wait_for_debugger()
             ptvsd.tracing(True)
+
+            ptvsd.enable_attach(address=("localhost", config.debugger_port()))
+            if not self.debugger_process:
+                env = os.environ.copy()
+                env['BROKER_HOST'] = str(config.debugger_broker_host())
+                env['BROKER_PORT'] = str(config.debugger_broker_port())
+                env['DEBUGGER_PORT'] = str(config.debugger_port())
+                env['AUTH_TOKEN'] = str(config.debugger_auth_token())
+                env['SESSION_NAME'] = str(config.debugger_session_name())
+                context = self.plugin_context["context"]
+                if hasattr(context, 'get_remaining_time_in_millis'):
+                    env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time()*1000.0))
+                self.debugger_process = subprocess.Popen(["python", "thundra/debug/bridge.py"], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
+
+            start_time = time.time()
+            debug_process_running = True
+            while time.time() < (start_time + config.debugger_max_wait_time()/1000) and not ptvsd.is_attached():
+                if self.debugger_process.poll() is None:
+                    ptvsd.wait_for_attach(0.01)
+                else:
+                    debug_process_running = False
+                    break
+
+            if not ptvsd.is_attached():
+                if debug_process_running:
+                    logger.error('Couldn\'t complete debugger handshake in {} milliseconds.'.format(config.debugger_max_wait_time()))
+                ptvsd.tracing(False)
+            else:
+                ptvsd.tracing(True)
 
         except Exception as e:
             logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
-
-
-    def wait_for_debugger(self):
-        start = time.time()
-        prev_rchar = 0
-        prev_wchar = 0
-        while time.time() - start < config.debugger_max_wait_time()/1000:
-            try:
-                io_metrics = self.get_debugger_proxy_io_metrics()
-                if not io_metrics:
-                    time.sleep(1)
-                    break
-                if prev_rchar != 0 and prev_wchar != 0 and ( io_metrics[0] == prev_rchar and io_metrics[1] == prev_wchar):
-                    break
-                prev_rchar = io_metrics[0]
-                prev_wchar = io_metrics[1]
-                time.sleep(1)
-
-            except Exception as e:
-                logger.error("error while waiting for proxy process: {}".format(e))
 
     def stop_debugger_tracing(self):
         try:
             import ptvsd
             ptvsd.tracing(False)
-            self.wait_for_debugger()
+            from ptvsd.attach_server import debugger_attached
+            debugger_attached.clear()
         except Exception as e:
             logger.error("error while setting tracing false to debugger using ptvsd: {}".format(e))
 
         try:
             if self.debugger_process:
-                self.debugger_process.kill()
-                self.debugger_process.wait()
+                o, e = self.debugger_process.communicate(b"fin\n")
+                debug_logger("Thundra debugger process output: {}".format(o.decode("utf-8")))
                 self.debugger_process = None
         except Exception as e:
+            self.debugger_process = None
             logger.error("error while killing proxy process for debug: {}".format(e))
-
-    def get_debugger_proxy_io_metrics(self):
-        rchar, wchar = None, None
-        try:
-            with open("/proc/{}/io".format(self.debugger_process.pid)) as f:
-                lines = f.read().splitlines()
-                rchar, wchar = lines[:2]
-                return (rchar, wchar)
-        except:
-            return None
 
     def execute_hook(self, name, data):
         if name == 'after:invocation':

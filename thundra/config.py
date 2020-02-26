@@ -215,16 +215,32 @@ def http_error_status_code_min():
 
 
 def debugger_enabled():
-    return bool_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE)
+    enable_debug = bool_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE, default=None)
+    if enable_debug == None:
+        return debugger_auth_token() != ''
+
+    return enable_debug
 
 
 def debugger_broker_port():
-    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=1111)
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=444)
 
 
 def debugger_broker_host():
     return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST, default="debug.thundra.io")
 
 
+def debugger_port():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT, default=1111)
+
+
 def debugger_max_wait_time():
     return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX, default=60*1000)
+
+
+def debugger_auth_token():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_AUTH_TOKEN, default='')
+
+
+def debugger_session_name():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_SESSION_NAME, default='default')

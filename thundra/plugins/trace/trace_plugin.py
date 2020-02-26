@@ -7,7 +7,6 @@ from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.plugins.trace import trace_support
 from thundra import utils, constants, application_support, lambda_event_utils, config
-from thundra.plugins.trace import trace_support
 
 logger = logging.getLogger(__name__)
 
