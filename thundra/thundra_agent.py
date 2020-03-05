@@ -1,6 +1,4 @@
-import signal
 import subprocess
-import threading
 import time
 import logging
 import os
@@ -15,8 +13,9 @@ from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
 from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import utils
 from thundra.compat import PY2, TimeoutError
+from thundra.timeout import Timeout
+
 
 logger = logging.getLogger(__name__)
 
@@ -89,17 +88,8 @@ class Thundra:
                 self.plugin_context['request'] = event
                 self.plugin_context['context'] = context
                 self.execute_hook('before:invocation', self.plugin_context)
-                if threading.current_thread().__class__.__name__ == '_MainThread':
-                    signal.signal(signal.SIGALRM, self.timeout_handler)
-                    if hasattr(context, 'get_remaining_time_in_millis'):
-                        timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
-                        if timeout_duration <= 0:
-                            timeout_duration = context.get_remaining_time_in_millis() - \
-                                               constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
-                            logger.warning('Given timeout margin is bigger than lambda timeout duration and '
-                                           'since the difference is negative, it is set to default value (' +
-                                           str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
-                        signal.setitimer(signal.ITIMER_REAL, timeout_duration / 1000.0)
+
+                timeout_duration = self.get_timeout_duration(context)
                 before_done = True
             except Exception as e:
                 logger.error("Error during the before part of Thundra: {}".format(e))
@@ -108,10 +98,13 @@ class Thundra:
             # Invoke user handler
             if before_done:
                 try:
-                    if config.debugger_enabled() and self.ptvsd_imported:
-                        self.start_debugger_tracing()
-                    response = original_func(event, context)
-                    self.plugin_context['response'] = response
+                    response = None
+                    with Timeout(timeout_duration, self.timeout_handler):
+                        if config.debugger_enabled() and self.ptvsd_imported:
+                            self.start_debugger_tracing()
+
+                        response = original_func(event, context)
+                        self.plugin_context['response'] = response
                 except Exception as e:
                     try:
                         self.plugin_context['error'] = e
@@ -124,11 +117,9 @@ class Thundra:
                         pass
                     raise e
                 finally:
-                    self.stop_timer()
                     if config.debugger_enabled() and self.ptvsd_imported:
                         self.stop_debugger_tracing()
             else:
-                self.stop_timer()
                 self.reporter.reports = []
                 return original_func(event, context)
 
@@ -253,16 +244,23 @@ class Thundra:
                     return True
             return False
 
-    def timeout_handler(self, signum, frame):
-        current_thread = threading.current_thread().__class__.__name__
-        if current_thread == '_MainThread' and signum == signal.SIGALRM:
+    def get_timeout_duration(self, context):
+        timeout_duration = 0
+        if hasattr(context, 'get_remaining_time_in_millis'):
+            timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
+            if timeout_duration <= 0:
+                timeout_duration = context.get_remaining_time_in_millis() - \
+                                    constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                logger.warning('Given timeout margin is bigger than lambda timeout duration and '
+                                'since the difference is negative, it is set to default value (' +
+                                str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+
+        return timeout_duration/1000.0
+
+    def timeout_handler(self):
             self.plugin_context['timeout'] = True
             self.plugin_context['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
-
-    def stop_timer(self):
-        if threading.current_thread().__class__.__name__ == '_MainThread':
-            signal.setitimer(signal.ITIMER_REAL, 0)
 
     def prepare_and_send_reports(self):
         self.execute_hook('after:invocation', self.plugin_context)
