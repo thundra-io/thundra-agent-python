@@ -178,10 +178,11 @@ class TracePlugin:
     def process_api_gw_response(self, plugin_context):
         try:
             if plugin_context.get('response'):
-                if not plugin_context.get('response', {}).get('headers'):
-                    plugin_context['response']['headers'] = {}
+                response = plugin_context.get('response')
+                if not response.get('headers'):
+                    response['headers'] = {}
 
-                plugin_context['response']['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = plugin_context['request']['resource']
+                response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = plugin_context['request']['resource']
         except:
             pass
 
