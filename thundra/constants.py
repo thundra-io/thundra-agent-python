@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from thundra import __version__
+from thundra._version import __version__
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 
