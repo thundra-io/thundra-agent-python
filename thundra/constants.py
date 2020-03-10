@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from thundra import __version__
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 
@@ -14,7 +15,7 @@ THUNDRA_APPLICATION_DOMAIN_NAME = 'thundra_agent_lambda_application_domainName'
 THUNDRA_APPLICATION_CLASS_NAME = 'thundra_agent_lambda_application_className'
 THUNDRA_APPLICATION_STAGE = 'thundra_agent_lambda_application_stage'
 THUNDRA_APPLICATION_VERSION = 'thundra_agent_lambda_application_version'
-THUNDRA_AGENT_VERSION = '2.4.7'
+THUNDRA_AGENT_VERSION = __version__
 
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
