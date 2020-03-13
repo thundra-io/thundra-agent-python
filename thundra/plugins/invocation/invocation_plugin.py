@@ -71,6 +71,13 @@ class InvocationPlugin:
         if hasattr(error, 'code'):
             self.invocation_data['errorCode'] = error.code
 
+    def get_response_status(self, plugin_context):
+        try:
+            status_code = plugin_context['response']['statusCode']
+        except:
+            return None
+        return status_code
+
     def after_invocation(self, plugin_context):
         self.set_end_time(plugin_context)
 
@@ -83,6 +90,11 @@ class InvocationPlugin:
 
         # Add agent tags
         self.invocation_data['tags'] = invocation_support.get_agent_tags()
+
+        response_status_code = self.get_response_status(plugin_context)
+
+        if response_status_code and not self.invocation_data['userTags'].get('http.status_code'):
+            self.invocation_data['userTags']['http.status_code'] = response_status_code
 
         # Get resources
         resources = invocation_trace_support.get_resources(plugin_context)
