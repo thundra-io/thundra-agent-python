@@ -1,7 +1,8 @@
 from setuptools import setup, find_packages
+from thundra import __version__
 
 setup(name='thundra',
-      version='2.4.7',
+      version=__version__,
       description='Thundra Python agent',
       url='https://github.com/thundra-io/thundra-lambda-agent-python',
       author='Thundra',
