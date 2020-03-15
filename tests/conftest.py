@@ -296,6 +296,17 @@ def mock_athena_create_named_query_response():
         "NamedQueryId": "98765432-1111-1111-1111-12345678910"
     }
 
+@pytest.fixture()
+def mock_eventbridge_put_events_response():
+    return {
+        'FailedEntryCount': 0,
+        'Entries': [
+            {
+                'EventId': 'test-event-id'
+            }
+        ]
+    }
+
 
 @pytest.fixture
 def mock_dynamodb_event():
@@ -835,5 +846,31 @@ def mock_s3_event():
                 }
             }
         ]
+    }
+    return event
+
+
+@pytest.fixture
+def mock_eventbridge_event():
+    event = {
+        "version": "0",
+        "id": "51c0891d-0e34-45b1-83d6-95db273d1602",
+        "detail-type": "EC2 Command Status-change Notification",
+        "source": "aws.ssm",
+        "account": "123456789012",
+        "time": "2020-03-10T21:51:32Z",
+        "region": "eu-west-2",
+        "resources": ["arn:aws:ec2:us-east-1:123456789012:instance/i-abcd1111"],
+        "detail": {
+            "command-id": "e8d3c0e4-71f7-4491-898f-c9b35bee5f3b",
+            "document-name": "AWS-RunPowerShellScript",
+            "expire-after": "2020-03-14T22:01:30.049Z",
+            "parameters": {
+                "executionTimeout": ["3600"],
+                "commands": ["date"]
+            },
+            "requested-date-time": "2020-03-10T21:51:30.049Z",
+            "status": "Success"
+        }
     }
     return event

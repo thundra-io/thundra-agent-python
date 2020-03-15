@@ -256,6 +256,8 @@ class TracePlugin:
                 lambda_event_utils.inject_trigger_tags_for_api_gateway(span, original_event)
             elif lambda_event_type == lambda_event_utils.LambdaEventType.Lambda:
                 lambda_event_utils.inject_trigger_tags_for_lambda(span, original_context)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.EventBridge:
+                lambda_event_utils.inject_trigger_tags_for_eventbridge(span, original_event)
         except Exception as e:
             debug_logger("Cannot inject trigger tags. " + str(e))
 

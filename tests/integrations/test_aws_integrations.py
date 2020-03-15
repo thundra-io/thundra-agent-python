@@ -939,30 +939,39 @@ def test_athena_get_query_results():
         tracer.clear()
 
 
-def test_athena_get_query_results():
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_response):
+    mock_actual_call.return_value = mock_eventbridge_put_events_response
     tracer = ThundraTracer.get_instance()
     tracer.clear()
     try:
-        client = boto3.client('athena', region_name='us-west-2')
-        response = client.get_query_results(
-            QueryExecutionId='98765432-1111-1111-1111-12345678910'
+        client = boto3.client('events', region_name='us-west-2')
+        client.put_events(
+            Entries=[
+                {
+                    'Time': datetime(2020, 1, 1),
+                    'Source': 'test.aws.lambda',
+                    'Resources': [
+                        'test',
+                    ],
+                    'DetailType': 'mydetail',
+                    'Detail': '{}',
+                    'EventBusName': 'default'
+                },
+            ]
         )
     except Exception as e:
         print(e)
     finally:
         span = tracer.get_spans()[0]
-        assert span.class_name == 'AWS-Athena'
-        assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
-        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryResults'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [
-            '98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.class_name == constants.ClassNames['EVENTBRIDGE']
+        assert span.domain_name == constants.DomainNames['MESSAGING']
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'PutEvents'
+        assert span.get_tag(constants.AwsEventBridgeTags['EVENT_BUS_NAME']) == 'default'
+        assert span.get_tag(constants.SpanTags['RESOURCE_NAMES']) == ['mydetail']
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-event-id']
+
         tracer.clear()
 
 
