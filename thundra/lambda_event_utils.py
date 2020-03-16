@@ -27,6 +27,7 @@ class LambdaEventType:
     APIGatewayProxy = 'apiGatewayProxy',
     APIGateway = 'apiGateway'
     Lambda = 'lambda'
+    EventBridge = 'eventBridge'
 
 
 def get_lambda_event_type(original_event, original_context):
@@ -48,7 +49,7 @@ def get_lambda_event_type(original_event, original_context):
                     return LambdaEventType.CloudFront
 
     elif 'detail-type' in original_event and original_event['detail-type'] == 'Scheduled Event' and \
-            isinstance(original_event['resources'], list):
+            isinstance(original_event.get('resources'), list):
         return LambdaEventType.CloudWatchSchedule
 
     elif 'awslogs' in original_event and 'data' in original_event['awslogs']:
@@ -62,6 +63,10 @@ def get_lambda_event_type(original_event, original_context):
 
     elif 'context' in original_event and 'params' in original_event and 'header' in original_event['params']:
         return LambdaEventType.APIGateway
+
+    elif 'detail-type' in original_event and 'detail' in original_event and \
+        isinstance(original_event.get('resources'), list):
+        return LambdaEventType.EventBridge
 
     elif 'client_context' in vars(original_context):
         return LambdaEventType.Lambda
@@ -327,6 +332,16 @@ def inject_trigger_tags_for_lambda(span, original_context):
             invocation_trace_support.add_incoming_trace_links([original_context.aws_request_id])
     except Exception as e:
         pass
+
+def inject_trigger_tags_for_eventbridge(span, original_event):
+    domain_name = constants.DomainNames['MESSAGING']
+    class_name = constants.ClassNames['EVENTBRIDGE']
+    operation_names = [original_event['detail-type']]
+
+    invocation_trace_support.add_incoming_trace_links([original_event['id']])
+
+    inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
+    inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 
 def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names):

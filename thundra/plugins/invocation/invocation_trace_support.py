@@ -66,12 +66,19 @@ class Resource:
         }
 
 
-def resource_id(span):
+def resource_id(span, resource_name=None):
+    if resource_name:
+        return  ('{}${}${}'.format(
+            span.class_name.upper(),
+            resource_name,
+            str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
+        ))
     return ('{}${}${}'.format(
         span.class_name.upper(),
         span.operation_name,
         str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
     ))
+
 
 def get_resources(plugin_context):
     try:
@@ -82,11 +89,25 @@ def get_resources(plugin_context):
             if (not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
                 or span.span_id == root_span_id):
                 continue
-            rid = resource_id(span)
-            if not rid in resources:
-                resources[rid] = Resource(span)
+
+            resource_names = span.get_tag(constants.SpanTags['RESOURCE_NAMES'])
+            if resource_names:
+                for resource_name in resource_names:
+                    rid = resource_id(span, resource_name)
+                    if rid:
+                        if not rid in resources:
+                            resources[rid] = Resource(span)
+                            resources[rid].name = resource_name
+                        else:
+                            resources[rid].merge(span)
             else:
-                resources[rid].merge(span)
+                rid = resource_id(span)
+                if rid:
+                    if not rid in resources:
+                        resources[rid] = Resource(span)
+                    else:
+                        resources[rid].merge(span)
+
         return {
             'resources': [r.to_dict() for r in resources.values()]
         }

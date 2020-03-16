@@ -783,3 +783,61 @@ class AWSAthenaIntegration(BaseIntegration):
                 scope.span.set_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS'], [response.get("NamedQueryId")])
             elif "NamedQueryIds" in response:
                 scope.span.set_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS'], response.get("NamedQueryIds"))
+
+
+class AWSEventBridgeIntegration(BaseIntegration):
+    CLASS_TYPE = 'eventbridge'
+
+    def __init__(self):
+        pass
+
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        operation_name = constants.AwsEventBridgeTags['SERVICE_REQUEST']
+        entries = request_data.get('Entries', [])
+
+        if len(entries) == 1:
+            operation_name = entries[0]['EventBusName']
+
+        return operation_name
+
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        operation_name, request_data = args
+        scope.span.domain_name = constants.DomainNames['MESSAGING']
+        scope.span.class_name = constants.ClassNames['EVENTBRIDGE']
+
+        entries = request_data['Entries']
+        span_name = self.get_operation_name(wrapped, instance, args, kwargs)
+
+        tags = {
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
+            constants.AwsEventBridgeTags['EVENT_BUS_NAME']: span_name,
+            constants.SpanTags['RESOURCE_NAMES']: list(map(lambda x: x.get('DetailType'), entries))
+        }
+
+        scope.span.tags = tags
+
+        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super(AWSEventBridgeIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
+
+        trace_links = self.get_trace_links(response)
+        if trace_links:
+            scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
+
+    def get_trace_links(self, response):
+        try:
+            entries = response['Entries']
+            event_ids = []
+            for entry in entries:
+                if entry.get('EventId'):
+                    event_ids.append(entry.get('EventId'))
+            return event_ids
+        except Exception:
+            return None

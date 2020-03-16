@@ -139,7 +139,6 @@ DEFAULT_REPORT_TIMEOUT = 3
 
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'
 
-
 LineByLineTracingTags = {
     'lines': 'method.lines',
     'next_span_ids': 'nextSpanIds',
@@ -184,6 +183,7 @@ ClassNames = {
     'SQLALCHEMY': 'SQLALCHEMY',
     'SQLITE': 'SQLITE',
     'ATHENA': 'AWS-Athena',
+    'EVENTBRIDGE': 'AWS-EventBridge'
 }
 
 DBTags = {
@@ -218,7 +218,8 @@ SpanTags = {
     'TOPOLOGY_VERTEX': 'topology.vertex',
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type',
-    'TRACE_LINKS': 'trace.links'
+    'TRACE_LINKS': 'trace.links',
+    'RESOURCE_NAMES': 'resource.names'
 }
 
 SecurityTags = {
@@ -246,7 +247,6 @@ AwsSQSTags = {
     'MESSAGES': 'aws.sqs.messages',
 }
 
-
 AwsSNSTags = {
     'TOPIC_NAME': 'aws.sns.topic.name',
     'MESSAGE': 'aws.sns.message',
@@ -255,7 +255,6 @@ AwsSNSTags = {
 AwsKinesisTags = {
     'STREAM_NAME': 'aws.kinesis.stream.name',
 }
-
 
 AwsFirehoseTags = {
     'STREAM_NAME': 'aws.firehose.stream.name',
@@ -610,127 +609,146 @@ MongoDBCommandTypes = {
 }
 
 OperationTypeMappings = {
-    "exclusions": {
-      "AWS-Lambda": {
-        "ListTags": "READ",
-        "TagResource": "WRITE",
-        "UntagResource": "WRITE",
-        "EnableReplication": "PERMISSION"
-      },
-      "AWS-S3": {
-        "HeadBucket": "LIST",
-        "ListBucketByTags": "READ",
-        "ListBucketMultipartUploads": "READ",
-        "ListBucketVersions": "READ",
-        "ListJobs": "READ",
-        "ListMultipartUploadParts": "READ",
-        "GetBucketTagging": "READ",
-        "GetObjectVersionTagging": "READ",
-        "GetObjectTagging": "READ",
-        "GetBucketObjectLockConfiguration": "WRITE",
-        "GetObjectLegalHold": "WRITE",
-        "GetObjectRetention": "WRITE",
-        "DeleteObjectTagging": "TAGGING",
-        "DeleteObjectVersionTagging": "TAGGING",
-        "PutBucketTagging": "TAGGING",
-        "PutObjectTagging": "TAGGING",
-        "PutObjectVersionTagging": "TAGGING",
-        "AbortMultipartUpload": "WRITE",
-        "ReplicateDelete": "WRITE",
-        "ReplicateObject": "WRITE",
-        "RestoreObject": "WRITE",
-        "DeleteBucketPolicy": "PERMISSION",
-        "ObjectOwnerOverrideToBucketOwner": "PERMISSION",
-        "PutAccountPublicAccessBlock": "PERMISSION",
-        "PutBucketAcl": "PERMISSION",
-        "PutBucketPolicy": "PERMISSION",
-        "PutBucketPublicAccessBlock": "PERMISSION",
-        "PutObjectAcl": "PERMISSION",
-        "PutObjectVersionAcl": "PERMISSION"
-      },
-      "AWS-SNS": {
-        "ListPhoneNumbersOptedOut": "READ",
-        "ListTagsForResource": "READ",
-        "CheckIfPhoneNumberIsOptedOut": "READ",
-        "UntagResource": "TAGGING",
-        "ConfirmSubscription": "WRITE",
-        "OptInPhoneNumber": "WRITE",
-        "Subscribe": "WRITE",
-        "Unsubscribe": "WRITE"
-      },
-      "AWS-Athena": {
-        "BatchGetNamedQuery": "READ",
-        "BatchGetQueryExecution": "READ",
-        "ListTagsForResource": "LIST",
-        "CreateWorkGroup": "WRITE",
-        "UntagResource": "TAGGING",
-        "TagResource": "TAGGING",
-        "CancelQueryExecution": "WRITE",
-        "RunQuery": "WRITE",
-        "StartQueryExecution": "WRITE",
-        "StopQueryExecution": "WRITE"
-      },
-      "AWS-Kinesis": {
-        "ListTagsForStream": "READ",
-        "SubscribeToShard": "READ",
-        "AddTagsToStream": "TAGGING",
-        "RemoveTagsFromStream": "TAGGING",
-        "DecreaseStreamRetentionPeriod": "WRTITE",
-        "DeregisterStreamConsumer": "WRITE",
-        "DisableEnhancedMonitoring": "WRITE",
-        "EnableEnhancedMonitoring": "WRITE",
-        "IncreaseStreamRetentionPeriod": "WRITE",
-        "MergeShards": "WRITE",
-        "RegisterStreamConsumer": "WRITE",
-        "SplitShard": "WRITE",
-        "UpdateShardCount": "WRITE"
-      },
-      "AWS-Firehose": {
-        "DescribeDeliveryStream": "LIST",
-        "StartDeliveryStreamEncryption": "WRITE",
-        "StopDeliveryStreamEncryption": "WRITE",
-        "TagDeliveryStream": "WRITE",
-        "UntagDeliveryStream": "WRITE"
-      },
-      "AWS-SQS": {
-        "ListDeadLetterSourceQueues": "READ",
-        "ListQueueTags": "READ",
-        "ReceiveMessage": "READ",
-        "TagQueue": "TAGGING",
-        "UntagQueue": "TAGGING",
-        "PurgeQueue": "WRITE",
-        "SetQueueAttributes": "WRITE"
-      },
-      "AWS-DynamoDB": {
-        "BatchGetItem": "READ",
-        "ConditionCheckItem": "READ",
-        "ListStreams": "READ",
-        "ListTagsOfResource": "READ",
-        "Query": "READ",
-        "Scan": "READ",
-        "TagResource": "TAGGING",
-        "UntagResource": "TAGGING",
-        "BatchWriteItem": "WRITE",
-        "PurchaseReservedCapacityOfferings": "WRITE",
-        "RestoreTableFromBackup": "WRITE",
-        "RestoreTableToPointInTime": "WRITE"
-      }
+    'exclusions': {
+        'AWS-Lambda': {
+            'ListTags': 'READ',
+            'TagResource': 'WRITE',
+            'UntagResource': 'WRITE',
+            'EnableReplication': 'PERMISSION'
+        },
+        'AWS-S3': {
+            'HeadBucket': 'LIST',
+            'ListBucketByTags': 'READ',
+            'ListBucketMultipartUploads': 'READ',
+            'ListBucketVersions': 'READ',
+            'ListJobs': 'READ',
+            'ListMultipartUploadParts': 'READ',
+            'GetBucketTagging': 'READ',
+            'GetObjectVersionTagging': 'READ',
+            'GetObjectTagging': 'READ',
+            'GetBucketObjectLockConfiguration': 'WRITE',
+            'GetObjectLegalHold': 'WRITE',
+            'GetObjectRetention': 'WRITE',
+            'DeleteObjectTagging': 'TAGGING',
+            'DeleteObjectVersionTagging': 'TAGGING',
+            'PutBucketTagging': 'TAGGING',
+            'PutObjectTagging': 'TAGGING',
+            'PutObjectVersionTagging': 'TAGGING',
+            'AbortMultipartUpload': 'WRITE',
+            'ReplicateDelete': 'WRITE',
+            'ReplicateObject': 'WRITE',
+            'RestoreObject': 'WRITE',
+            'DeleteBucketPolicy': 'PERMISSION',
+            'ObjectOwnerOverrideToBucketOwner': 'PERMISSION',
+            'PutAccountPublicAccessBlock': 'PERMISSION',
+            'PutBucketAcl': 'PERMISSION',
+            'PutBucketPolicy': 'PERMISSION',
+            'PutBucketPublicAccessBlock': 'PERMISSION',
+            'PutObjectAcl': 'PERMISSION',
+            'PutObjectVersionAcl': 'PERMISSION'
+        },
+        'AWS-SNS': {
+            'ListPhoneNumbersOptedOut': 'READ',
+            'ListTagsForResource': 'READ',
+            'CheckIfPhoneNumberIsOptedOut': 'READ',
+            'UntagResource': 'TAGGING',
+            'ConfirmSubscription': 'WRITE',
+            'OptInPhoneNumber': 'WRITE',
+            'Subscribe': 'WRITE',
+            'Unsubscribe': 'WRITE'
+        },
+        'AWS-Athena': {
+            'BatchGetNamedQuery': 'READ',
+            'BatchGetQueryExecution': 'READ',
+            'ListTagsForResource': 'LIST',
+            'CreateWorkGroup': 'WRITE',
+            'UntagResource': 'TAGGING',
+            'TagResource': 'TAGGING',
+            'CancelQueryExecution': 'WRITE',
+            'RunQuery': 'WRITE',
+            'StartQueryExecution': 'WRITE',
+            'StopQueryExecution': 'WRITE'
+        },
+        'AWS-Kinesis': {
+            'ListTagsForStream': 'READ',
+            'SubscribeToShard': 'READ',
+            'AddTagsToStream': 'TAGGING',
+            'RemoveTagsFromStream': 'TAGGING',
+            'DecreaseStreamRetentionPeriod': 'WRTITE',
+            'DeregisterStreamConsumer': 'WRITE',
+            'DisableEnhancedMonitoring': 'WRITE',
+            'EnableEnhancedMonitoring': 'WRITE',
+            'IncreaseStreamRetentionPeriod': 'WRITE',
+            'MergeShards': 'WRITE',
+            'RegisterStreamConsumer': 'WRITE',
+            'SplitShard': 'WRITE',
+            'UpdateShardCount': 'WRITE'
+        },
+        'AWS-Firehose': {
+            'DescribeDeliveryStream': 'LIST',
+            'StartDeliveryStreamEncryption': 'WRITE',
+            'StopDeliveryStreamEncryption': 'WRITE',
+            'TagDeliveryStream': 'WRITE',
+            'UntagDeliveryStream': 'WRITE'
+        },
+        'AWS-SQS': {
+            'ListDeadLetterSourceQueues': 'READ',
+            'ListQueueTags': 'READ',
+            'ReceiveMessage': 'READ',
+            'TagQueue': 'TAGGING',
+            'UntagQueue': 'TAGGING',
+            'PurgeQueue': 'WRITE',
+            'SetQueueAttributes': 'WRITE'
+        },
+        'AWS-DynamoDB': {
+            'BatchGetItem': 'READ',
+            'ConditionCheckItem': 'READ',
+            'ListStreams': 'READ',
+            'ListTagsOfResource': 'READ',
+            'Query': 'READ',
+            'Scan': 'READ',
+            'TagResource': 'TAGGING',
+            'UntagResource': 'TAGGING',
+            'BatchWriteItem': 'WRITE',
+            'PurchaseReservedCapacityOfferings': 'WRITE',
+            'RestoreTableFromBackup': 'WRITE',
+            'RestoreTableToPointInTime': 'WRITE'
+        },
+        'AWS-EventBridge': {
+            'TestEventPattern': 'READ',
+            'PutRule': 'TAGGING',
+            'ActivateEventSource': 'WRITE',
+            'DeactivateEventSource': 'WRITE',
+            'DisableRule': 'WRITE',
+            'EnableRule': 'WRITE',
+            'PutEvents': 'WRITE',
+            'PutPartnerEvents': 'WRITE',
+            'PutPermission': 'WRITE',
+            'PutTargets': 'WRITE',
+            'RemovePermission': 'WRITE',
+            'RemoveTargets': 'WRITE',
+        }
     },
-    "patterns": OrderedDict([
-        ("^List.*$", "LIST"),
-        ("^Get.*$", "READ"),
-        ("^Create.*$", "WRITE"),
-        ("^Delete.*$", "WRITE"),
-        ("^Invoke.*$", "WRITE"),
-        ("^Publish.*$", "WRITE"),
-        ("^Put.*$", "WRITE"),
-        ("^Update.*$", "WRITE"),
-        ("^Describe.*$", "READ"),
-        ("^Change.*$", "WRITE"),
-        ("^Send.*$", "WRITE"),
-        ("^.*Permission$", "PERMISSION"),
-        ("^.*Tagging$", "TAGGING"),
-        ("^.*Tags$", "TAGGING"),
-        ("^Set.*$", "WRITE")
+    'patterns': OrderedDict([
+        ('^List.*$', 'LIST'),
+        ('^Get.*$', 'READ'),
+        ('^Create.*$', 'WRITE'),
+        ('^Delete.*$', 'WRITE'),
+        ('^Invoke.*$', 'WRITE'),
+        ('^Publish.*$', 'WRITE'),
+        ('^Put.*$', 'WRITE'),
+        ('^Update.*$', 'WRITE'),
+        ('^Describe.*$', 'READ'),
+        ('^Change.*$', 'WRITE'),
+        ('^Send.*$', 'WRITE'),
+        ('^.*Permission$', 'PERMISSION'),
+        ('^.*Tagging$', 'TAGGING'),
+        ('^.*Tags$', 'TAGGING'),
+        ('^Set.*$', 'WRITE')
     ])
+}
+
+AwsEventBridgeTags = {
+    'SERVICE_REQUEST': 'AWSEventBridgeRequest',
+    'EVENT_BUS_NAME': 'aws.eventbridge.eventbus.name'
 }
