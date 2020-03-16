@@ -97,9 +97,9 @@ def get_resources(plugin_context):
                     if rid:
                         if not rid in resources:
                             resources[rid] = Resource(span)
+                            resources[rid].name = resource_name
                         else:
                             resources[rid].merge(span)
-                        resources[rid].name = resource_name
             else:
                 rid = resource_id(span)
                 if rid:
