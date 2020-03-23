@@ -92,11 +92,15 @@ def on_close(ws, code, message):
     handle_close_message(code, message)
     ws.running = False
 
+def normalize_broker_host(host):
+    if host.startswith("wss://") or host.startswith("ws://"):
+        return host
+    return "wss://" + host
 
 try:
     debugger_socket = socket.socket()
     debugger_socket.connect(("localhost", int(os.environ.get('DEBUGGER_PORT'))))
-    ws = websocket.WebSocketApp("wss://{}:{}".format(os.environ.get('BROKER_HOST'), os.environ.get('BROKER_PORT')),
+    ws = websocket.WebSocketApp("{}:{}".format(normalize_broker_host(os.environ.get('BROKER_HOST')), os.environ.get('BROKER_PORT')),
         header=[
             "{auth_token_header}: {value}".format(auth_token_header=BROKER_HANDSHAKE_HEADERS.get("AUTH_TOKEN"), value=os.environ.get("AUTH_TOKEN")),
             "{session_name_header}: {value}".format(session_name_header=BROKER_HANDSHAKE_HEADERS.get("SESSION_NAME"), value=os.environ.get("SESSION_NAME")),
