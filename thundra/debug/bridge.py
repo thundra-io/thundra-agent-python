@@ -7,7 +7,7 @@ import time
 import json
 import sys
 
-sys.path.append("/opt")
+sys.path.append("/opt/python")
 sys.path.append("/var/task")
 
 import websocket
