@@ -261,6 +261,21 @@ def get_compiled_operation_type_patterns():
         compiled.append(re.compile(pattern))
     return compiled
 
+def extract_api_gw_resource_name(event):
+    try:
+        resource_path = None
+        if 'resource' in  event:
+            resource_path = event['resource']
+        else:
+            resource_path = event['requestContext']['http']['path']
+            stage_prefix = '/' + event['requestContext']['stage']
+            if resource_path.startswith(stage_prefix):
+                resource_path = resource_path[len(stage_prefix):]
+
+        return resource_path
+    except:
+        return None
+
 # Excluded url's 
 EXCLUDED_URLS = {
     str.endswith: [

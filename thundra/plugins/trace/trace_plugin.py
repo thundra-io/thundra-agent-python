@@ -181,16 +181,7 @@ class TracePlugin:
                 response = plugin_context.get('response')
                 if not response.get('headers'):
                     response['headers'] = {}
-
-                resource_path = None
-                if 'resource' in  plugin_context['request']:
-                    resource_path = plugin_context['request']['resource']
-                else:
-                    resource_path = plugin_context['request']['requestContext']['http']['path']
-                    stage_prefix = '/' + plugin_context['request']['requestContext']['stage']
-                    if resource_path.startswith(stage_prefix):
-                        resource_path = resource_path[len(stage_prefix):]
-
+                resource_path = utils.extract_api_gw_resource_name(plugin_context['request'])
                 if resource_path:
                     response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = resource_path
         except:
