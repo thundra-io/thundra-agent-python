@@ -296,7 +296,19 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     domain_name = constants.DomainNames['API']
     class_name = constants.ClassNames['APIGATEWAY']
 
-    operation_names = [original_event['resource']]
+    operation_names = []
+
+    try:
+        if 'resource' in original_event:
+            operation_names.append(original_event['resource'])
+        else:
+            path = original_event['requestContext']['http']['path']
+            stage_prefix = '/' + original_event['requestContext']['stage']
+            if path.startswith(stage_prefix):
+                path = path[len(stage_prefix):]
+            operation_names.append(path)
+    except:
+        pass
 
     if original_event.get('headers') and 'x-thundra-span-id' in original_event['headers']:
         invocation_trace_support.add_incoming_trace_links([original_event['headers']['x-thundra-span-id']])

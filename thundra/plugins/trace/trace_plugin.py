@@ -182,7 +182,17 @@ class TracePlugin:
                 if not response.get('headers'):
                     response['headers'] = {}
 
-                response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = plugin_context['request']['resource']
+                resource_path = None
+                if 'resource' in  plugin_context['request']:
+                    resource_path = plugin_context['request']['resource']
+                else:
+                    resource_path = plugin_context['request']['requestContext']['http']['path']
+                    stage_prefix = '/' + plugin_context['request']['requestContext']['stage']
+                    if resource_path.startswith(stage_prefix):
+                        resource_path = resource_path[len(stage_prefix):]
+
+                if resource_path:
+                    response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = resource_path
         except:
             pass
 
