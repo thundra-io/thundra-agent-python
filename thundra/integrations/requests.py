@@ -97,7 +97,7 @@ class RequestsIntegration(BaseIntegration):
 
         if response is not None:
             self.set_response(response, scope.span)
-            if response.headers and response.headers.get("x-amz-apigw-id"):
+            if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
                 scope.span.class_name = constants.ClassNames['APIGATEWAY']
 
             if response.headers and response.headers.get("x-thundra-resource-name"):

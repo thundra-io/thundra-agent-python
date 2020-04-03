@@ -4,7 +4,7 @@ import base64
 import gzip
 import simplejson as json
 import hashlib
-from thundra import constants
+from thundra import constants, utils
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 
 try:
@@ -296,7 +296,10 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     domain_name = constants.DomainNames['API']
     class_name = constants.ClassNames['APIGATEWAY']
 
-    operation_names = [original_event['resource']]
+    operation_names = []
+    resource = utils.extract_api_gw_resource_name(original_event)
+    if resource:
+        operation_names.append(resource)
 
     if original_event.get('headers') and 'x-thundra-span-id' in original_event['headers']:
         invocation_trace_support.add_incoming_trace_links([original_event['headers']['x-thundra-span-id']])
