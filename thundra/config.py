@@ -202,6 +202,10 @@ def http_body_masked():
     return bool_from_env(constants.THUNDRA_MASK_HTTP_BODY)
 
 
+def eventbridge_detail_masked():
+    return bool_from_env(constants.THUNDRA_MASK_EVENTBRIDE_DETAIL)
+
+
 def http_integration_url_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, default=1)
 

@@ -966,9 +966,19 @@ def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_re
         span = tracer.get_spans()[0]
         assert span.class_name == constants.ClassNames['EVENTBRIDGE']
         assert span.domain_name == constants.DomainNames['MESSAGING']
+        assert span.operation_name == 'default'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsEventBridgeTags['ENTRIES']) == [{
+                    'Time': datetime.timestamp(datetime(2020, 1, 1)),
+                    'Source': 'test.aws.lambda',
+                    'Resources': [
+                        'test',
+                    ],
+                    'DetailType': 'mydetail',
+                    'Detail': '{}',
+                    'EventBusName': 'default'
+                }]
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'PutEvents'
-        assert span.get_tag(constants.AwsEventBridgeTags['EVENT_BUS_NAME']) == 'default'
         assert span.get_tag(constants.SpanTags['RESOURCE_NAMES']) == ['mydetail']
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-event-id']
 
