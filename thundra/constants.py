@@ -70,6 +70,7 @@ THUNDRA_MASK_MONGODB_COMMAND = 'thundra_agent_lambda_trace_integrations_mongodb_
 THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_message_mask'
 THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_message_mask'
 THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
+THUNDRA_MASK_EVENTBRIDE_DETAIL = 'thundra_agent_lambda_trace_integrations_aws_eventbridge_detail_mask'
 THUNDRA_MASK_HTTP_BODY = 'thundra_agent_lambda_trace_integrations_aws_http_body_mask'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
@@ -750,5 +751,5 @@ OperationTypeMappings = {
 
 AwsEventBridgeTags = {
     'SERVICE_REQUEST': 'AWSEventBridgeRequest',
-    'EVENT_BUS_NAME': 'aws.eventbridge.eventbus.name'
+    'ENTRIES': 'aws.eventbridge.entries'
 }

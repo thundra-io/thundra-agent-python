@@ -796,8 +796,9 @@ class AWSEventBridgeIntegration(BaseIntegration):
         operation_name = constants.AwsEventBridgeTags['SERVICE_REQUEST']
         entries = request_data.get('Entries', [])
 
-        if len(entries) == 1:
-            operation_name = entries[0]['EventBusName']
+        eventbus_map = {entry['EventBusName'] for entry in entries}
+        if len(eventbus_map) == 1:
+            operation_name = eventbus_map.pop()
 
         return operation_name
 
@@ -806,15 +807,29 @@ class AWSEventBridgeIntegration(BaseIntegration):
         scope.span.domain_name = constants.DomainNames['MESSAGING']
         scope.span.class_name = constants.ClassNames['EVENTBRIDGE']
 
-        entries = request_data['Entries']
-        span_name = self.get_operation_name(wrapped, instance, args, kwargs)
-
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
-            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
-            constants.AwsEventBridgeTags['EVENT_BUS_NAME']: span_name,
-            constants.SpanTags['RESOURCE_NAMES']: list(map(lambda x: x.get('DetailType'), entries))
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name)
         }
+
+        entries = []
+        for entry in request_data.get('Entries', []):
+            new_entry = {
+                'Detail': None if config.eventbridge_detail_masked() else entry.get('Detail'),
+                'DetailType': entry.get('DetailType'),
+                'EventBusName': entry.get('EventBusName'),
+                'Resources': entry.get('Resources'),
+                'Source': entry.get('Source')
+                }
+            if isinstance(entry.get('Time'), datetime):
+                new_entry['Time'] = datetime.timestamp(entry.get('Time'))
+            elif isinstance(entry.get('Time'), int):
+                new_entry['Time'] = entry.get('Time')
+            entries.append(new_entry)
+
+        if entries:
+            tags[constants.AwsEventBridgeTags['ENTRIES']] = entries
+            tags[constants.SpanTags['RESOURCE_NAMES']] = list(map(lambda x: x.get('DetailType'), entries))
 
         scope.span.tags = tags
 
