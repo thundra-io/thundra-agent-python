@@ -97,8 +97,6 @@ async def on_request_exception(session, trace_config_ctx, params):
 
 def ThundraTraceConfig():
     """
-    :param name: name used to identify the subsegment, with None internally the URL will
-                 be used as identifier.
     :returns: TraceConfig.
     """
 
