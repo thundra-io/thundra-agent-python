@@ -16,7 +16,7 @@ def parse_application_tags():
     prefix_length = len(constants.APPLICATION_TAG_PROP_NAME_PREFIX)    
     for env_key in utils.get_all_env_variables():
         if env_key.startswith(constants.APPLICATION_TAG_PROP_NAME_PREFIX):
-            app_tag_key = env_key[prefix_length:]
+            app_tag_key = env_key[prefix_length:].replace('_', '.')
             env_val = utils.get_configuration(env_key)
             _application_tags[app_tag_key] = utils.str_to_proper_type(env_val)
 
