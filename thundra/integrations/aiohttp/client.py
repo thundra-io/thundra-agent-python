@@ -49,7 +49,7 @@ async def on_request_chunk_sent(session, trace_config_ctx, params):
     if not hasattr(trace_config_ctx, "scope"):
         return
     scope = trace_config_ctx.scope
-    if not config.http_body_masked():
+    if not config.http_body_masked() and (scope.span.get_tag(constants.HttpTags["BODY"]) is None):
         body = params.chunk if params.chunk else ""
         scope.span.set_tag(constants.HttpTags["BODY"], body)
 
