@@ -40,13 +40,11 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
     thundra, handler = handler
     tracer, invocation_support = tracer_and_invocation_support
     try:
-        response = handler(mock_dynamodb_event, mock_context)
+        handler(mock_dynamodb_event, mock_context)
     except:
         print("Error running handler!")
         raise
     span = tracer.recorder.get_spans()[0]
-    invocation_tags = invocation_support.get_agent_tags()
-
     invocation_plugin = None
     for plugin in thundra.plugins:
         if isinstance(plugin, InvocationPlugin):
@@ -71,9 +69,6 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
     timestamp = 1480642019
 
     links = [
-        region + ':' + table_name + ':' + str(timestamp) + ':' + 'DELETE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'DELETE' + ':' + md5_key,
-        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'DELETE' + ':' + md5_key,
         region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_key,
         region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_key,
         region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_key,
@@ -83,6 +78,45 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
         region + ':' + table_name + ':' + str(timestamp) + ':' + 'SAVE' + ':' + md5_image_2,
         region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'SAVE' + ':' + md5_image_2,
         region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'SAVE' + ':' + md5_image_2
+    ]
+    assert sorted(invocation_plugin.invocation_data['incomingTraceLinks']) == sorted(links)
+
+
+def test_dynamodb_trigger_delete_event(tracer_and_invocation_support, handler, mock_dynamodb_delete_event, mock_context):
+    thundra, handler = handler
+    tracer, invocation_support = tracer_and_invocation_support
+    try:
+        handler(mock_dynamodb_delete_event, mock_context)
+    except:
+        print("Error running handler!")
+        raise
+    span = tracer.recorder.get_spans()[0]
+
+    invocation_plugin = None
+    for plugin in thundra.plugins:
+        if isinstance(plugin, InvocationPlugin):
+            invocation_plugin = plugin
+
+    assert lambda_event_utils.get_lambda_event_type(mock_dynamodb_delete_event,
+                                                    mock_context) == lambda_event_utils.LambdaEventType.DynamoDB
+
+    assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
+    assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
+    assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
+
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
+
+    md5_key = hashlib.md5("Id={N: 101}".encode()).hexdigest()
+    region = 'eu-west-2'
+    table_name = 'ExampleTableWithStream'
+    timestamp = 1480642019
+
+    links = [
+        region + ':' + table_name + ':' + str(timestamp) + ':' + 'DELETE' + ':' + md5_key,
+        region + ':' + table_name + ':' + str(timestamp + 1) + ':' + 'DELETE' + ':' + md5_key,
+        region + ':' + table_name + ':' + str(timestamp + 2) + ':' + 'DELETE' + ':' + md5_key
     ]
     assert sorted(invocation_plugin.invocation_data['incomingTraceLinks']) == sorted(links)
 
