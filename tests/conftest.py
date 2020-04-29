@@ -296,6 +296,7 @@ def mock_athena_create_named_query_response():
         "NamedQueryId": "98765432-1111-1111-1111-12345678910"
     }
 
+
 @pytest.fixture()
 def mock_eventbridge_put_events_response():
     return {
@@ -374,9 +375,18 @@ def mock_dynamodb_event():
                 "eventName": "MODIFY",
                 "eventSourceARN": "arn:aws:dynamodb:eu-west-2:account-id:table/ExampleTableWithStream/stream/2015-06-27T00:48:05.899",
                 "eventSource": "aws:dynamodb"
-            },
+            }
+        ]
+    }
+    return event
+
+
+@pytest.fixture
+def mock_dynamodb_delete_event():
+    event = {
+        "Records": [
             {
-                "eventID": "3",
+                "eventID": "1",
                 "eventVersion": "1.0",
                 "dynamodb": {
                     "Keys": {

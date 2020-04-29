@@ -117,14 +117,14 @@ def get_resources(plugin_context):
 
 def get_incoming_trace_links():
     if config.thundra_disabled():
-        return []
-    
-    return {"incomingTraceLinks": list(set(_incoming_trace_links))}
+        return {}
+    incoming_trace_links = list(set(_incoming_trace_links))[:constants.MAX_INCOMING_TRACE_LINKS]
+    return {"incomingTraceLinks": incoming_trace_links}
     
 
 def get_outgoing_trace_links():
     if config.thundra_disabled():
-        return []
+        return {}
     
     spans = ThundraTracer.get_instance().recorder.get_spans()
 
@@ -134,7 +134,8 @@ def get_outgoing_trace_links():
         if links:
             outgoing_trace_links += links
     
-    return {"outgoingTraceLinks": list(set(outgoing_trace_links))}
+    outgoing_trace_links = list(set(outgoing_trace_links))[:constants.MAX_OUTGOING_TRACE_LINKS]
+    return {"outgoingTraceLinks": outgoing_trace_links}
 
 def get_outgoing_trace_link(span):
     return span.get_tag(constants.SpanTags["TRACE_LINKS"])
