@@ -864,15 +864,8 @@ class AWSSESIntegration(BaseIntegration):
         pass
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
-        _, request_data = args
-        if (request_data.get('Template') or request_data.get('TemplateName')):
-            return 'sendTemplatedEmail'
-        elif (request_data.get('RawMessage')):
-            return 'sendRawEmail'
-        elif (request_data.get('Message') and request_data.get('Source')):
-            return 'sendEmail'
-        else:
-            return constants.AWS_SERVICE_REQUEST
+        operation_name, request_data = args
+        return operation_name if operation_name else constants.AWS_SERVICE_REQUEST
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
