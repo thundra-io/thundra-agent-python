@@ -1015,6 +1015,129 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
         tracer.clear()
 
+def test_ses_send_email():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    sender = 'testsender'
+    recipient = 'testrecipient'
+    subject = 'testsubject'
+    text = 'testbody'
+    try:
+        # Test with a non traced service client
+        client = boto3.client('ses', region_name='us-west-2')
+        response = client.send_email(
+            Source=sender,
+            Destination={
+                'ToAddresses': [
+                    recipient
+                ]
+            },
+            Message={
+                'Subject': {
+                    'Data': subject,
+                    'Charset': 'UTF-8'
+                },
+                'Body': {
+                    'Text': {
+                        'Data': text,
+                        'Charset': 'UTF-8'
+                    }
+                }
+            }
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-SES'
+        assert span.domain_name == 'Messaging'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendEmail'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsSESTags['SOURCE']) == sender
+        assert span.get_tag(constants.AwsSESTags['DESTINATION']).index(recipient) == 0
+        assert span.get_tag(constants.AwsSESTags['SUBJECT']) is None
+        assert span.get_tag(constants.AwsSESTags['BODY']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_ARN']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_DATA']) is None
+        tracer.clear()
+
+def test_ses_send_raw_email():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    sender = 'testsender'
+    recipient = 'testrecipient'
+    text = 'testbody'
+    try:
+        # Test with a non traced service client
+        client = boto3.client('ses', region_name='us-west-2')
+        response = client.send_raw_email(
+            Source=sender,
+            Destinations=[
+                recipient
+            ],
+            RawMessage={
+                'Text': {
+                    'Data': text,
+                    'Charset': 'UTF-8'
+                }
+            }
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-SES'
+        assert span.domain_name == 'Messaging'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendRawEmail'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsSESTags['SOURCE']) == sender
+        assert span.get_tag(constants.AwsSESTags['DESTINATION']).index(recipient) == 0
+        assert span.get_tag(constants.AwsSESTags['SUBJECT']) is None
+        assert span.get_tag(constants.AwsSESTags['BODY']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_ARN']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_DATA']) is None
+        tracer.clear()
+
+def test_ses_send_templated_email():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+    sender = 'testsender'
+    recipient = 'testrecipient'
+    template_name='testname'
+    template_data='{"test": "test"}'
+    template_arn='testarn'
+    try:
+        # Test with a non traced service client
+        client = boto3.client('ses', region_name='us-west-2')
+        response = client.send_templated_email(
+            Source=sender,
+            Destination={
+                'ToAddresses': [
+                    recipient
+                ]
+            },
+            Template=template_name,
+            TemplateData=template_data,
+            TemplateArn=template_arn
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-SES'
+        assert span.domain_name == 'Messaging'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendTemplatedEmail'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsSESTags['SOURCE']) == sender
+        assert span.get_tag(constants.AwsSESTags['DESTINATION']).index(recipient) == 0
+        assert span.get_tag(constants.AwsSESTags['SUBJECT']) is None
+        assert span.get_tag(constants.AwsSESTags['BODY']) is None
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) == template_name
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_ARN']) == template_arn
+        assert span.get_tag(constants.AwsSESTags['TEMPLATE_DATA']) is None
+        tracer.clear()
 
 def test_default_aws_service():
     tracer = ThundraTracer.get_instance()
