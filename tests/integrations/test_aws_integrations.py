@@ -1020,6 +1020,7 @@ def test_ses_send_email():
     tracer.clear()
     sender = 'testsender'
     recipient = 'testrecipient'
+    cc = 'testcc'
     subject = 'testsubject'
     text = 'testbody'
     try:
@@ -1030,6 +1031,9 @@ def test_ses_send_email():
             Destination={
                 'ToAddresses': [
                     recipient
+                ],
+                'CcAddresses': [
+                    cc
                 ]
             },
             Message={
@@ -1054,7 +1058,8 @@ def test_ses_send_email():
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendEmail'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSESTags['SOURCE']) == sender
-        assert span.get_tag(constants.AwsSESTags['DESTINATION']).index(recipient) == 0
+        assert span.get_tag(constants.AwsSESTags['DESTINATION']).get('ToAddresses', []).index(recipient) == 0
+        assert span.get_tag(constants.AwsSESTags['DESTINATION']).get('CcAddresses', []).index(cc) == 0
         assert span.get_tag(constants.AwsSESTags['SUBJECT']) is None
         assert span.get_tag(constants.AwsSESTags['BODY']) is None
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) is None
@@ -1131,7 +1136,7 @@ def test_ses_send_templated_email():
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendTemplatedEmail'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSESTags['SOURCE']) == sender
-        assert span.get_tag(constants.AwsSESTags['DESTINATION']).index(recipient) == 0
+        assert span.get_tag(constants.AwsSESTags['DESTINATION']).get('ToAddresses', []).index(recipient) == 0
         assert span.get_tag(constants.AwsSESTags['SUBJECT']) is None
         assert span.get_tag(constants.AwsSESTags['BODY']) is None
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) == template_name

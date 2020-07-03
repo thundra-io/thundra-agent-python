@@ -876,7 +876,7 @@ class AWSSESIntegration(BaseIntegration):
         mask_destination = config.ses_mail_destination_masked()
 
         source = request_data.get('Source', '')
-        destination = request_data.get('Destinations', request_data.get('Destination', {}).get('ToAddresses', []))
+        destination = request_data.get('Destinations', request_data.get('Destination', []))
         subject = request_data.get('Message', {}).get('Subject')
         body = request_data.get('Message', {}).get('Body')
         template_name = request_data.get('Template')
