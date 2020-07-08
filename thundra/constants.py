@@ -71,6 +71,8 @@ THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_mess
 THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_message_mask'
 THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
 THUNDRA_MASK_EVENTBRIDE_DETAIL = 'thundra_agent_lambda_trace_integrations_aws_eventbridge_detail_mask'
+THUNDRA_MASK_SES_MAIL = 'thundra_agent_lambda_trace_integrations_aws_ses_mail_mask'
+THUNDRA_MASK_SES_MAIL_DESTINATION = 'thundra_agent_lambda_trace_integrations_aws_ses_mail_destination_mask'
 THUNDRA_MASK_HTTP_BODY = 'thundra_agent_lambda_trace_integrations_aws_http_body_mask'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
@@ -187,7 +189,8 @@ ClassNames = {
     'SQLALCHEMY': 'SQLALCHEMY',
     'SQLITE': 'SQLITE',
     'ATHENA': 'AWS-Athena',
-    'EVENTBRIDGE': 'AWS-EventBridge'
+    'EVENTBRIDGE': 'AWS-EventBridge',
+    'SES': 'AWS-SES'
 }
 
 DBTags = {
@@ -267,6 +270,17 @@ AwsFirehoseTags = {
 AwsS3Tags = {
     'BUCKET_NAME': 'aws.s3.bucket.name',
     'OBJECT_NAME': 'aws.s3.object.name',
+}
+
+AwsSESTags = {
+    'SERVICE_REQUEST': 'AWSSESRequest',
+    'SUBJECT': 'aws.ses.mail.subject',
+    'BODY': 'aws.ses.mail.body',
+    'TEMPLATE_NAME': 'aws.ses.mail.template.name',
+    'TEMPLATE_ARN': 'aws.ses.mail.template.arn',
+    'TEMPLATE_DATA': 'aws.ses.mail.template.data',
+    'SOURCE': 'aws.ses.mail.source',
+    'DESTINATION': 'aws.ses.mail.destination',
 }
 
 AwsLambdaTags = {
@@ -731,6 +745,15 @@ OperationTypeMappings = {
             'PutTargets': 'WRITE',
             'RemovePermission': 'WRITE',
             'RemoveTargets': 'WRITE',
+        },
+        'AWS-SES': {
+            'VerifyDomainDkim': 'READ',
+            'VerifyDomainIdentity': 'READ',
+            'VerifyEmailAddress': 'READ',
+            'VerifyEmailIdentity': 'READ',
+            'CloneReceiptRuleSet': 'WRITE',
+            'ReorderReceiptRuleSet': 'WRITE',
+            'TestRenderTemplate': 'WRITE',
         }
     },
     'patterns': OrderedDict([
