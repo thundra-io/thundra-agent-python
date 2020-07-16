@@ -7,7 +7,6 @@ from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.plugins.trace import trace_support
 from thundra import utils, constants, application_support, lambda_event_utils, config
-from thundra.plugins.trace import trace_support
 
 logger = logging.getLogger(__name__)
 
@@ -179,10 +178,12 @@ class TracePlugin:
     def process_api_gw_response(self, plugin_context):
         try:
             if plugin_context.get('response'):
-                if not plugin_context.get('response', {}).get('headers'):
-                    plugin_context['response']['headers'] = {}
-
-                plugin_context['response']['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = plugin_context['request']['resource']
+                response = plugin_context.get('response')
+                if not response.get('headers'):
+                    response['headers'] = {}
+                resource_path = utils.extract_api_gw_resource_name(plugin_context['request'])
+                if resource_path:
+                    response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = resource_path
         except:
             pass
 
@@ -230,8 +231,7 @@ class TracePlugin:
 
     def _inject_trigger_tags(self, span, original_event, original_context):
         try:
-            lambda_event_utils.handle_stepfunctions(span, original_event)
-
+            lambda_event_utils.handle_response_trace_link(span, original_event)
             lambda_event_type = lambda_event_utils.get_lambda_event_type(original_event, original_context)
 
             if lambda_event_type == lambda_event_utils.LambdaEventType.Kinesis:
@@ -258,6 +258,8 @@ class TracePlugin:
                 lambda_event_utils.inject_trigger_tags_for_api_gateway(span, original_event)
             elif lambda_event_type == lambda_event_utils.LambdaEventType.Lambda:
                 lambda_event_utils.inject_trigger_tags_for_lambda(span, original_context)
+            elif lambda_event_type == lambda_event_utils.LambdaEventType.EventBridge:
+                lambda_event_utils.inject_trigger_tags_for_eventbridge(span, original_event)
         except Exception as e:
             debug_logger("Cannot inject trigger tags. " + str(e))
 

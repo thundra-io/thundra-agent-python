@@ -4,8 +4,7 @@ import base64
 import gzip
 import simplejson as json
 import hashlib
-from enum import Enum
-from thundra import constants
+from thundra import constants, utils
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 
 try:
@@ -15,7 +14,7 @@ except ImportError:
 from gzip import GzipFile
 
 
-class LambdaEventType(Enum):
+class LambdaEventType:
     Kinesis = 'kinesis',
     Firehose = 'firehose',
     DynamoDB = 'dynamodb',
@@ -28,6 +27,7 @@ class LambdaEventType(Enum):
     APIGatewayProxy = 'apiGatewayProxy',
     APIGateway = 'apiGateway',
     Lambda = 'lambda'
+    EventBridge = 'eventBridge'
 
 
 def get_lambda_event_type(original_event, original_context):
@@ -49,7 +49,7 @@ def get_lambda_event_type(original_event, original_context):
                     return LambdaEventType.CloudFront
 
     elif 'detail-type' in original_event and original_event['detail-type'] == 'Scheduled Event' and \
-            isinstance(original_event['resources'], list):
+            isinstance(original_event.get('resources'), list):
         return LambdaEventType.CloudWatchSchedule
 
     elif 'awslogs' in original_event and 'data' in original_event['awslogs']:
@@ -63,6 +63,10 @@ def get_lambda_event_type(original_event, original_context):
 
     elif 'context' in original_event and 'params' in original_event and 'header' in original_event['params']:
         return LambdaEventType.APIGateway
+
+    elif 'detail-type' in original_event and 'detail' in original_event and \
+        isinstance(original_event.get('resources'), list):
+        return LambdaEventType.EventBridge
 
     elif 'client_context' in vars(original_context):
         return LambdaEventType.Lambda
@@ -292,7 +296,10 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
     domain_name = constants.DomainNames['API']
     class_name = constants.ClassNames['APIGATEWAY']
 
-    operation_names = [original_event['resource']]
+    operation_names = []
+    resource = utils.extract_api_gw_resource_name(original_event)
+    if resource:
+        operation_names.append(resource)
 
     if original_event.get('headers') and 'x-thundra-span-id' in original_event['headers']:
         invocation_trace_support.add_incoming_trace_links([original_event['headers']['x-thundra-span-id']])
@@ -329,11 +336,21 @@ def inject_trigger_tags_for_lambda(span, original_context):
     except Exception as e:
         pass
 
+def inject_trigger_tags_for_eventbridge(span, original_event):
+    domain_name = constants.DomainNames['MESSAGING']
+    class_name = constants.ClassNames['EVENTBRIDGE']
+    operation_names = [original_event['detail-type']]
 
-def handle_stepfunctions(span, original_event):
+    invocation_trace_support.add_incoming_trace_links([original_event['id']])
+
+    inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
+    inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
+
+
+def handle_response_trace_link(span, original_event):
     try:
-        if 'thundra_step_info' in original_event:
-            invocation_trace_support.add_incoming_trace_links([original_event['thundra_step_info']['trace_link']])
+        if '_thundra' in original_event:
+            invocation_trace_support.add_incoming_trace_links([original_event['_thundra']['trace_link']])
     except Exception as e:
         pass
 

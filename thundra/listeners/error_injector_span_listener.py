@@ -99,7 +99,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
                     logger.error("couldn't import %s", error_type)
         if inject_on_finish is not None:
             try:
-                kwargs['inject_on_finish'] = utils.str2bool(inject_on_finish)
+                kwargs['inject_on_finish'] = inject_on_finish
             except ValueError:
                 ErrorInjectorSpanListener._log_value_parse_err(inject_on_finish, 'inject_on_finish')
         if inject_count_freq is not None:
@@ -109,7 +109,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
                 ErrorInjectorSpanListener._log_value_parse_err(inject_count_freq, 'inject_count_freq')
         if add_info_tags is not None:
             try:
-                kwargs['add_info_tags'] = utils.str2bool(add_info_tags)
+                kwargs['add_info_tags'] = add_info_tags
             except ValueError:
                 ErrorInjectorSpanListener._log_value_parse_err(add_info_tags, 'add_info_tags')
 

@@ -1,6 +1,13 @@
 import os
 import re
 import logging
+import base64
+import json
+from gzip import GzipFile
+try:
+    from BytesIO import BytesIO
+except ImportError:
+    from io import BytesIO
 from thundra import constants
 from thundra import config as thundra_config
 from thundra.listeners import ThundraSpanListener, AWSXRayListener
@@ -37,17 +44,6 @@ def clear_span_listeners():
     _active_span_listeners = []
 
 
-def _parse_config(config_str):
-    config = {}
-    if config_str is not None:
-        kv_pairs = p2.findall(config_str)
-        for kv in kv_pairs:
-            [k, v] = kv.split('=')
-            config[k] = v
-
-    return config
-
-
 def _get_sl_class(sl_class_name):
     sl_class = None
     if sl_class_name is not None:
@@ -58,20 +54,6 @@ def _get_sl_class(sl_class_name):
     return sl_class
 
 
-def _get_class_and_config_parts(env_v):
-    m = p1.match(env_v)
-    if m is not None:
-        try:
-            sl_class_name = m.group(1)
-            config_str = m.group(2)
-            return (sl_class_name, config_str)
-        except IndexError as e:
-            logger.error(("couldn't parse thundra span "
-                          "listener environment variable: %s"), e)
-
-    return (None, None)
-
-
 def parse_span_listeners():
     # Clear before parsing to prevent appending duplicate span listeners
     clear_span_listeners()
@@ -79,15 +61,26 @@ def parse_span_listeners():
     for env_k, env_v in os.environ.items():
         if env_k.startswith(constants.THUNDRA_LAMBDA_SPAN_LISTENER):
             try:
-                sl_class_name, config_str = _get_class_and_config_parts(env_v)
+                # Not in JSON format. Should be zipped + encoded. Decode + unzip it
+                if not env_v.startswith('{'):
+                    compressed_env = base64.b64decode(env_v)
+                    env_v = str(GzipFile(fileobj=BytesIO(compressed_env)).read(), 'utf-8')
+                span_listener_config_json = json.loads(env_v)
 
-                config = _parse_config(config_str)
-                sl_class = _get_sl_class(sl_class_name)
+                listener_type = span_listener_config_json.get("type")
+                if not listener_type:
+                    raise Exception("type property is mandatory in " + env_k + " configuration")
+            
+                listener_config = span_listener_config_json.get("config")
+                if not listener_config:
+                    raise Exception("config property is mandatory in " + env_k + " configuration")
 
-                if sl_class is not None:
-                    sl = sl_class.from_config(config)
-                    # Register parsed span listener
-                    register_span_listener(sl)
+                span_listener_class = _get_sl_class(listener_type)
+
+                if span_listener_class is not None:
+                    span_listener = span_listener_class.from_config(listener_config)
+                    register_span_listener(span_listener)
+
             except Exception as e:
                 logger.error(("couldn't parse environment variable %s "
                               "to create a span listener"), env_k)

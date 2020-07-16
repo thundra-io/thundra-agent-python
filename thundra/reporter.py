@@ -1,8 +1,9 @@
 import simplejson as json
 import logging
+import concurrent.futures as futures
 
+from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import constants, config, composite, utils
-from multiprocessing.dummy import Pool as ThreadPool
 
 try:
     import requests
@@ -26,8 +27,9 @@ class Reporter():
             session = requests.Session()
             adapter = requests.adapters.HTTPAdapter(pool_maxsize=20)
             session.mount("https://", adapter)
+
         self.session = session
-        self.pool = ThreadPool(20)
+        self.pool = futures.ThreadPoolExecutor(max_workers=20)
 
     def add_report(self, report):
         if isinstance(report, list):
@@ -37,6 +39,10 @@ class Reporter():
             self.reports.append(report)
 
     def send_report(self):
+        if not self.api_key:
+            debug_logger("API key not set, not sending report to Thundra.")
+            return []
+
         headers = {
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
@@ -71,14 +77,17 @@ class Reporter():
 
         responses = []
         if len(reports_json) > 0:
-            responses = self.pool.map(self.send_batch, [(request_url, headers, data) for data in reports_json])
+            _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
+            responses = [future.result() for future in futures.as_completed(_futures)]
 
+        if config.debug_enabled():
+            debug_logger("Thundra API responses: " + str(responses))
         self.clear()
         return responses
 
     def send_batch(self, args):
         url, headers, data = args
-        return self.session.post(url, data=data, headers=headers)
+        return self.session.post(url, data=data, headers=headers, timeout=constants.DEFAULT_REPORT_TIMEOUT)
 
     def get_report_batches(self):
         batch_size = config.rest_composite_batchsize()

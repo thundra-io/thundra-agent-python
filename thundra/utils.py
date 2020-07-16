@@ -1,8 +1,8 @@
 import os
 import logging
+import re
 
 from thundra.compat import urlparse
-from thundra.plugins.invocation import invocation_support
 from thundra import constants
 
 logger = logging.getLogger(__name__)
@@ -243,6 +243,8 @@ def get_nearest_collector():
 
     if region.startswith("us-west-"):
         return "api.thundra.io"
+    elif region == "eu-west-1":
+        return "api-eu-west-1.thundra.io"
     elif region.startswith("us-east-") or region.startswith("sa-") or region.startswith("ca-"):
         return "api-us-east-1.thundra.io"
     elif region.startswith("eu-"):
@@ -252,6 +254,62 @@ def get_nearest_collector():
 
     return "api.thundra.io"
 
+def get_compiled_operation_type_patterns():
+    compiled = []
+    for pattern in constants.OperationTypeMappings["patterns"]:
+        compiled.append(re.compile(pattern))
+    return compiled
+
+def extract_api_gw_resource_name(event):
+    try:
+        resource_path = None
+        if 'resource' in  event:
+            resource_path = event['resource']
+        else:
+            resource_path = event['requestContext']['http']['path']
+            stage_prefix = '/' + event['requestContext']['stage']
+            if resource_path.startswith(stage_prefix):
+                resource_path = resource_path[len(stage_prefix):]
+
+        return resource_path
+    except:
+        return None
+
+def get_normalized_path(url_path, path_depth):
+    path_seperator_count = 0
+    normalized_path = ''
+    prev_c = ''
+    for c in url_path:
+        if c == '/' and prev_c != '/':
+            path_seperator_count += 1
+
+        if path_seperator_count > path_depth:
+            break
+
+        normalized_path += c
+        prev_c = c
+    return normalized_path
+
+def parse_http_url(url, url_path_depth):
+    url_dict = {
+        'path': '',
+        'query': '',
+        'host': '',
+        'url': url
+    }
+    try:
+        parsed_url = urlparse(url)
+        url_dict['path'] = parsed_url.path
+        url_dict['query'] = parsed_url.query
+        url_dict['host'] = parsed_url.netloc
+
+        normalized_path = get_normalized_path(parsed_url.path, url_path_depth)
+        url_dict['operation_name'] = parsed_url.hostname + normalized_path
+
+        url_dict['url'] = parsed_url.hostname + parsed_url.path
+    except Exception:
+        pass
+    return url_dict
 
 # Excluded url's 
 EXCLUDED_URLS = {

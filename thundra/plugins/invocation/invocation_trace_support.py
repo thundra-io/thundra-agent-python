@@ -15,6 +15,8 @@ class Resource:
         self.operation = str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
         self.count = 1
         self.error_count = 1 if span.errorneous() else 0
+        self.security_violated_count = 1 if span.get_tag(constants.SecurityTags['VIOLATED']) else 0
+        self.security_blocked_count = 1 if span.get_tag(constants.SecurityTags['BLOCKED']) else 0
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
@@ -34,6 +36,13 @@ class Resource:
         self.count += 1
         self.duration += span.get_duration()
         errorneous = span.errorneous()
+
+        if span.get_tag(constants.SecurityTags['VIOLATED']):
+            self.security_violated_count += 1
+
+        if span.get_tag(constants.SecurityTags['BLOCKED']):
+            self.security_blocked_count += 1
+
         if errorneous:
             self.error_count += 1
             self.error_types.add(span.get_tag('error.kind'))
@@ -48,6 +57,8 @@ class Resource:
             'resourceOperation': self.operation,
             'resourceCount': self.count,
             'resourceErrorCount': self.error_count,
+            'resourceViolatedCount': self.security_violated_count,
+            'resourceBlockedCount': self.security_blocked_count,            
             'resourceDuration': self.duration,
             'resourceErrors': list(self.error_types),
             'resourceMaxDuration': self.resource_max_duration,
@@ -55,12 +66,19 @@ class Resource:
         }
 
 
-def resource_id(span):
+def resource_id(span, resource_name=None):
+    if resource_name:
+        return  ('{}${}${}'.format(
+            span.class_name.upper(),
+            resource_name,
+            str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
+        ))
     return ('{}${}${}'.format(
         span.class_name.upper(),
         span.operation_name,
         str(span.get_tag(constants.SpanTags['OPERATION_TYPE']))
     ))
+
 
 def get_resources(plugin_context):
     try:
@@ -71,11 +89,25 @@ def get_resources(plugin_context):
             if (not span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
                 or span.span_id == root_span_id):
                 continue
-            rid = resource_id(span)
-            if not rid in resources:
-                resources[rid] = Resource(span)
+
+            resource_names = span.get_tag(constants.SpanTags['RESOURCE_NAMES'])
+            if resource_names:
+                for resource_name in resource_names:
+                    rid = resource_id(span, resource_name)
+                    if rid:
+                        if not rid in resources:
+                            resources[rid] = Resource(span)
+                            resources[rid].name = resource_name
+                        else:
+                            resources[rid].merge(span)
             else:
-                resources[rid].merge(span)
+                rid = resource_id(span)
+                if rid:
+                    if not rid in resources:
+                        resources[rid] = Resource(span)
+                    else:
+                        resources[rid].merge(span)
+
         return {
             'resources': [r.to_dict() for r in resources.values()]
         }
@@ -85,14 +117,14 @@ def get_resources(plugin_context):
 
 def get_incoming_trace_links():
     if config.thundra_disabled():
-        return []
-    
-    return {"incomingTraceLinks": list(set(_incoming_trace_links))}
+        return {}
+    incoming_trace_links = list(set(_incoming_trace_links))[:constants.MAX_INCOMING_TRACE_LINKS]
+    return {"incomingTraceLinks": incoming_trace_links}
     
 
 def get_outgoing_trace_links():
     if config.thundra_disabled():
-        return []
+        return {}
     
     spans = ThundraTracer.get_instance().recorder.get_spans()
 
@@ -102,7 +134,8 @@ def get_outgoing_trace_links():
         if links:
             outgoing_trace_links += links
     
-    return {"outgoingTraceLinks": list(set(outgoing_trace_links))}
+    outgoing_trace_links = list(set(outgoing_trace_links))[:constants.MAX_OUTGOING_TRACE_LINKS]
+    return {"outgoingTraceLinks": outgoing_trace_links}
 
 def get_outgoing_trace_link(span):
     return span.get_tag(constants.SpanTags["TRACE_LINKS"])

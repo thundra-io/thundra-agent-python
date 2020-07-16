@@ -1,3 +1,6 @@
+from collections import OrderedDict
+from thundra._version import __version__
+
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 
 HOST = "https://api.thundra.io/v1"
@@ -12,7 +15,7 @@ THUNDRA_APPLICATION_DOMAIN_NAME = 'thundra_agent_lambda_application_domainName'
 THUNDRA_APPLICATION_CLASS_NAME = 'thundra_agent_lambda_application_className'
 THUNDRA_APPLICATION_STAGE = 'thundra_agent_lambda_application_stage'
 THUNDRA_APPLICATION_VERSION = 'thundra_agent_lambda_application_version'
-THUNDRA_AGENT_VERSION = '2.3.7'
+THUNDRA_AGENT_VERSION = __version__
 
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
@@ -67,6 +70,7 @@ THUNDRA_MASK_MONGODB_COMMAND = 'thundra_agent_lambda_trace_integrations_mongodb_
 THUNDRA_MASK_SNS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sns_message_mask'
 THUNDRA_MASK_SQS_MESSAGE = 'thundra_agent_lambda_trace_integrations_aws_sqs_message_mask'
 THUNDRA_MASK_LAMBDA_PAYLOAD = 'thundra_agent_lambda_trace_integrations_aws_lambda_payload_mask'
+THUNDRA_MASK_EVENTBRIDE_DETAIL = 'thundra_agent_lambda_trace_integrations_aws_eventbridge_detail_mask'
 THUNDRA_MASK_HTTP_BODY = 'thundra_agent_lambda_trace_integrations_aws_http_body_mask'
 
 AWS_LAMBDA_APPLICATION_ID = 'AWS_LAMBDA_APPLICATION_ID'
@@ -99,6 +103,9 @@ TRACE_ARGS = 'trace_args'
 TRACE_RETURN_VALUE = 'trace_return_value'
 TRACE_ERROR = 'trace_error'
 
+MAX_INCOMING_TRACE_LINKS = 10
+MAX_OUTGOING_TRACE_LINKS = 20
+
 LIST_SEPARATOR = ','
 
 DEFAULT_LAMBDA_TIMEOUT_MARGIN = 200
@@ -106,7 +113,7 @@ DATA_FORMAT_VERSION = '2.0'
 
 THUNDRA_LAMBDA_DEBUG_ENABLE = 'thundra_agent_lambda_debug_enable'
 THUNDRA_LAMBDA_LOG_CONSOLE_PRINT_DISABLE = 'thundra_agent_lambda_log_console_disable'
-THUNDRA_LAMBDA_SPAN_LISTENER = 'thundra_agent_lambda_trace_span_listener'
+THUNDRA_LAMBDA_SPAN_LISTENER = 'thundra_agent_lambda_trace_span_listenerConfig'
 THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
 
 DEFAULT_REPORT_REST_COMPOSITE_BATCH_SIZE = 100
@@ -121,13 +128,30 @@ DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_lambda_trace_integrations_aws_la
 THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH = "thundra_agent_lambda_trace_integrations_http_url_depth"
 THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH = "thundra_agent_lambda_trace_integrations_elasticsearch_path_depth"
 
-THUNDRA_LAMBDA_IS_STEPFUNCTION = 'thundra_agent_lambda_is_stepfunction'
+THUNDRA_ENABLE_RESPONSE_TRACE_INJECTION = 'thundra_agent_lambda_response_trace_injection_enable'
+
+THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE = 'thundra_agent_lambda_debugger_enable'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT = 'thundra_agent_lambda_debugger_port'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX = 'thundra_agent_lambda_debugger_wait_max'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT = 'thundra_agent_lambda_debugger_broker_port'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST = 'thundra_agent_lambda_debugger_broker_host'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_AUTH_TOKEN = 'thundra_agent_lambda_debugger_auth_token'
+THUNDRA_AGENT_LAMBDA_DEBUGGER_SESSION_NAME = 'thundra_agent_lambda_debugger_session_name'
 
 #### INTEGRATIONS ####
 
 DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
+DEFAULT_REPORT_TIMEOUT = 3
 
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'
+
+LineByLineTracingTags = {
+    'lines': 'method.lines',
+    'next_span_ids': 'nextSpanIds',
+    'source': 'method.source',
+    'start_line': 'method.startLine',
+    'args': 'method.args'
+}
 
 DomainNames = {
     'AWS': 'AWS',
@@ -165,7 +189,8 @@ ClassNames = {
     'SQLALCHEMY': 'SQLALCHEMY',
     'SQLITE': 'SQLITE',
     'ATHENA': 'AWS-Athena',
-    'STEPFUNCTIONS': 'AWS-StepFunctions'
+    'STEPFUNCTIONS': 'AWS-StepFunctions',
+    'EVENTBRIDGE': 'AWS-EventBridge'
 }
 
 DBTags = {
@@ -200,7 +225,13 @@ SpanTags = {
     'TOPOLOGY_VERTEX': 'topology.vertex',
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type',
-    'TRACE_LINKS': 'trace.links'
+    'TRACE_LINKS': 'trace.links',
+    'RESOURCE_NAMES': 'resource.names'
+}
+
+SecurityTags = {
+    'BLOCKED': 'security.blocked',
+    'VIOLATED': 'security.violated'
 }
 
 AthenaTags = {
@@ -211,43 +242,16 @@ AthenaTags = {
     'RESPONSE_NAMED_QUERY_IDS': "aws.athena.response.namedQuery.ids",
 }
 
-DynamoDBRequestTypes = {
-    'BatchGetItem': 'READ',
-    'BatchWriteItem': 'WRITE',
-    'CreateTable': 'WRITE',
-    'CreateGlobalTable': 'WRITE',
-    'DeleteItem': 'DELETE',
-    'DeleteTable': 'DELETE',
-    'GetItem': 'READ',
-    'PutItem': 'WRITE',
-    'Query': 'READ',
-    'Scan': 'READ',
-    'UpdateItem': 'WRITE',
-
-}
-
 AwsSDKTags = {
     'SERVICE_NAME': 'aws.service.name',
     'REQUEST_NAME': 'aws.request.name',
     'HOST': 'host',
 }
 
-SQSRequestTypes = {
-    'ReceiveMessage': 'READ',
-    'SendMessage': 'WRITE',
-    'SendMessageBatch': 'WRITE',
-    'DeleteMessage': 'DELETE',
-    'DeleteMessageBatch': 'DELETE',
-}
-
 AwsSQSTags = {
     'QUEUE_NAME': 'aws.sqs.queue.name',
     'MESSAGE': 'aws.sqs.message',
     'MESSAGES': 'aws.sqs.messages',
-}
-
-SNSRequestTypes = {
-    'Publish': 'WRITE',
 }
 
 AwsSNSTags = {
@@ -259,32 +263,8 @@ AwsKinesisTags = {
     'STREAM_NAME': 'aws.kinesis.stream.name',
 }
 
-KinesisRequestTypes = {
-    'GetRecords': 'READ',
-    'PutRecords': 'WRITE',
-    'PutRecord': 'WRITE',
-}
-
 AwsFirehoseTags = {
     'STREAM_NAME': 'aws.firehose.stream.name',
-}
-
-FirehoseRequestTypes = {
-    'PutRecordBatch': 'WRITE',
-    'PutRecord': 'WRITE',
-}
-
-S3RequestTypes = {
-    'DeleteBucket': 'DELETE',
-    'CreateBucket': 'WRITE',
-    'copyObject': 'WRITE',
-    'DeleteObject': 'DELETE',
-    'deleteObjects': 'DELETE',
-    'GetObject': 'READ',
-    'GetObjectAcl': 'READ',
-    'ListBucket': 'READ',
-    'PutObject': 'WRITE',
-    'PutObjectAcl': 'WRITE',
 }
 
 AwsS3Tags = {
@@ -461,6 +441,7 @@ ESTags = {
     'ES_PARAMS': 'elasticsearch.params',
     'ES_BODY': 'elasticsearch.body',
     'ES_HOSTS': 'elasticsearch.hosts',
+    'ES_NORMALIZED_URI': 'elasticsearch.normalized_uri'
 }
 
 AwsXrayConstants = {
@@ -634,24 +615,147 @@ MongoDBCommandTypes = {
     'LOGAPPLICATIONMESSAGE': 'EXECUTE',
 }
 
-AthenaOperationTypes = {
-    'BatchGetNamedQuery': 'READ',
-    'BatchGetQueryExecution': 'READ',
-    'CreateNamedQuery': 'WRITE',
-    'CreateWorkGroup': 'WRITE',
-    'DeleteNamedQuery': 'DELETE',
-    'DeleteWorkGroup': 'DELETE',
-    'GetNamedQuery': 'READ',
-    'GetQueryExecution': 'READ',
-    'GetQueryResults': 'READ',
-    'GetWorkGroup': 'READ',
-    'ListNamedQueries': 'READ',
-    'ListQueryExecutions': 'READ',
-    'ListTagsForResource': 'READ',
-    'ListWorkGroups': 'READ',
-    'StartQueryExecution': 'EXECUTE',
-    'StopQueryExecution': 'EXECUTE',
-    'TagResource': 'WRITE',
-    'UntagResource': 'DELETE',
-    'UpdateWorkGroup': 'WRITE',
+OperationTypeMappings = {
+    'exclusions': {
+        'AWS-Lambda': {
+            'ListTags': 'READ',
+            'TagResource': 'WRITE',
+            'UntagResource': 'WRITE',
+            'EnableReplication': 'PERMISSION'
+        },
+        'AWS-S3': {
+            'HeadBucket': 'LIST',
+            'ListBucketByTags': 'READ',
+            'ListBucketMultipartUploads': 'READ',
+            'ListBucketVersions': 'READ',
+            'ListJobs': 'READ',
+            'ListMultipartUploadParts': 'READ',
+            'GetBucketTagging': 'READ',
+            'GetObjectVersionTagging': 'READ',
+            'GetObjectTagging': 'READ',
+            'GetBucketObjectLockConfiguration': 'WRITE',
+            'GetObjectLegalHold': 'WRITE',
+            'GetObjectRetention': 'WRITE',
+            'DeleteObjectTagging': 'TAGGING',
+            'DeleteObjectVersionTagging': 'TAGGING',
+            'PutBucketTagging': 'TAGGING',
+            'PutObjectTagging': 'TAGGING',
+            'PutObjectVersionTagging': 'TAGGING',
+            'AbortMultipartUpload': 'WRITE',
+            'ReplicateDelete': 'WRITE',
+            'ReplicateObject': 'WRITE',
+            'RestoreObject': 'WRITE',
+            'DeleteBucketPolicy': 'PERMISSION',
+            'ObjectOwnerOverrideToBucketOwner': 'PERMISSION',
+            'PutAccountPublicAccessBlock': 'PERMISSION',
+            'PutBucketAcl': 'PERMISSION',
+            'PutBucketPolicy': 'PERMISSION',
+            'PutBucketPublicAccessBlock': 'PERMISSION',
+            'PutObjectAcl': 'PERMISSION',
+            'PutObjectVersionAcl': 'PERMISSION'
+        },
+        'AWS-SNS': {
+            'ListPhoneNumbersOptedOut': 'READ',
+            'ListTagsForResource': 'READ',
+            'CheckIfPhoneNumberIsOptedOut': 'READ',
+            'UntagResource': 'TAGGING',
+            'ConfirmSubscription': 'WRITE',
+            'OptInPhoneNumber': 'WRITE',
+            'Subscribe': 'WRITE',
+            'Unsubscribe': 'WRITE'
+        },
+        'AWS-Athena': {
+            'BatchGetNamedQuery': 'READ',
+            'BatchGetQueryExecution': 'READ',
+            'ListTagsForResource': 'LIST',
+            'CreateWorkGroup': 'WRITE',
+            'UntagResource': 'TAGGING',
+            'TagResource': 'TAGGING',
+            'CancelQueryExecution': 'WRITE',
+            'RunQuery': 'WRITE',
+            'StartQueryExecution': 'WRITE',
+            'StopQueryExecution': 'WRITE'
+        },
+        'AWS-Kinesis': {
+            'ListTagsForStream': 'READ',
+            'SubscribeToShard': 'READ',
+            'AddTagsToStream': 'TAGGING',
+            'RemoveTagsFromStream': 'TAGGING',
+            'DecreaseStreamRetentionPeriod': 'WRTITE',
+            'DeregisterStreamConsumer': 'WRITE',
+            'DisableEnhancedMonitoring': 'WRITE',
+            'EnableEnhancedMonitoring': 'WRITE',
+            'IncreaseStreamRetentionPeriod': 'WRITE',
+            'MergeShards': 'WRITE',
+            'RegisterStreamConsumer': 'WRITE',
+            'SplitShard': 'WRITE',
+            'UpdateShardCount': 'WRITE'
+        },
+        'AWS-Firehose': {
+            'DescribeDeliveryStream': 'LIST',
+            'StartDeliveryStreamEncryption': 'WRITE',
+            'StopDeliveryStreamEncryption': 'WRITE',
+            'TagDeliveryStream': 'WRITE',
+            'UntagDeliveryStream': 'WRITE'
+        },
+        'AWS-SQS': {
+            'ListDeadLetterSourceQueues': 'READ',
+            'ListQueueTags': 'READ',
+            'ReceiveMessage': 'READ',
+            'TagQueue': 'TAGGING',
+            'UntagQueue': 'TAGGING',
+            'PurgeQueue': 'WRITE',
+            'SetQueueAttributes': 'WRITE'
+        },
+        'AWS-DynamoDB': {
+            'BatchGetItem': 'READ',
+            'ConditionCheckItem': 'READ',
+            'ListStreams': 'READ',
+            'ListTagsOfResource': 'READ',
+            'Query': 'READ',
+            'Scan': 'READ',
+            'TagResource': 'TAGGING',
+            'UntagResource': 'TAGGING',
+            'BatchWriteItem': 'WRITE',
+            'PurchaseReservedCapacityOfferings': 'WRITE',
+            'RestoreTableFromBackup': 'WRITE',
+            'RestoreTableToPointInTime': 'WRITE'
+        },
+        'AWS-EventBridge': {
+            'TestEventPattern': 'READ',
+            'PutRule': 'TAGGING',
+            'ActivateEventSource': 'WRITE',
+            'DeactivateEventSource': 'WRITE',
+            'DisableRule': 'WRITE',
+            'EnableRule': 'WRITE',
+            'PutEvents': 'WRITE',
+            'PutPartnerEvents': 'WRITE',
+            'PutPermission': 'WRITE',
+            'PutTargets': 'WRITE',
+            'RemovePermission': 'WRITE',
+            'RemoveTargets': 'WRITE',
+        }
+    },
+    'patterns': OrderedDict([
+        ('^List.*$', 'LIST'),
+        ('^Get.*$', 'READ'),
+        ('^Create.*$', 'WRITE'),
+        ('^Delete.*$', 'WRITE'),
+        ('^Invoke.*$', 'WRITE'),
+        ('^Publish.*$', 'WRITE'),
+        ('^Put.*$', 'WRITE'),
+        ('^Update.*$', 'WRITE'),
+        ('^Describe.*$', 'READ'),
+        ('^Change.*$', 'WRITE'),
+        ('^Send.*$', 'WRITE'),
+        ('^.*Permission$', 'PERMISSION'),
+        ('^.*Tagging$', 'TAGGING'),
+        ('^.*Tags$', 'TAGGING'),
+        ('^Set.*$', 'WRITE')
+    ])
+}
+
+AwsEventBridgeTags = {
+    'SERVICE_REQUEST': 'AWSEventBridgeRequest',
+    'ENTRIES': 'aws.eventbridge.entries'
 }

@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import os
-from importlib import import_module
+import imp
 from thundra.thundra_agent import Thundra
 
 thundra = Thundra()
@@ -15,8 +15,21 @@ if handler_path is None:
 else:
     handler_found = True
     (module_name, handler_name) = handler_path.rsplit('.', 1)
-    user_module = import_module(module_name)
-    user_handler = getattr(user_module, handler_name)
+    file_handle, pathname, desc = None, None, None
+    try:
+        for segment in module_name.split('.'):
+            if pathname is not None:
+                pathname = [pathname]
+            file_handle, pathname, desc = imp.find_module(segment, pathname)
+        user_module = imp.load_module(module_name, file_handle, pathname, desc)
+        if file_handle is None:
+            module_type = desc[2]
+            if module_type == imp.C_BUILTIN:
+                raise ImportError("Cannot use built-in module {} as a handler module".format(module_name))
+        user_handler = getattr(user_module, handler_name)
+    finally:
+        if file_handle:
+            file_handle.close()
 
 def wrapper(event, context):
     global user_handler

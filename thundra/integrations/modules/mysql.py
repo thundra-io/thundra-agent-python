@@ -18,6 +18,14 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
             kwargs,
         )
 
+    def callproc(self, *args, **kwargs):
+        return mysql_integration.run_and_trace(
+            self.__wrapped__.callproc,
+            self._self_connection,
+            args,
+            kwargs,
+        )
+
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
         self.__wrapped__.__enter__ 

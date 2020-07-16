@@ -292,7 +292,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
             assert report['className'] == 'AWS-Lambda'
             assert report['domainName'] == 'API'
             assert report['tags']['aws.request.name'] == 'Invoke'
-            assert report['tags']['operation.type'] == 'CALL'
+            assert report['tags']['operation.type'] == 'WRITE'
             assert report['tags']['aws.lambda.name'] == 'Test'
             assert type(report['tags']['aws.lambda.invocation.payload']) == str
             assert report['tags']['aws.lambda.invocation.payload'] == "{\"name\": \"thundra\"}"
@@ -336,7 +336,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
             assert report['className'] == 'AWS-Lambda'
             assert report['domainName'] == 'API'
             assert report['tags']['aws.request.name'] == 'ListFunctions'
-            assert report['tags']['operation.type'] == ''
+            assert report['tags']['operation.type'] == 'LIST'
             assert report['tags']['aws.lambda.name'] == ''
             assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
@@ -671,7 +671,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
         span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'EXECUTE'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartQueryExecution'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == database
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
@@ -709,7 +709,7 @@ def test_athena_statement_masked(monkeypatch):
         span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'EXECUTE'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartQueryExecution'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == database
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
@@ -734,7 +734,7 @@ def test_athena_stop_query_execution():
         span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'EXECUTE'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StopQueryExecution'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
@@ -846,7 +846,7 @@ def test_athena_delete_named_query():
         span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'DELETE'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'DeleteNamedQuery'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
@@ -939,30 +939,49 @@ def test_athena_get_query_results():
         tracer.clear()
 
 
-def test_athena_get_query_results():
+@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_response):
+    mock_actual_call.return_value = mock_eventbridge_put_events_response
     tracer = ThundraTracer.get_instance()
     tracer.clear()
     try:
-        client = boto3.client('athena', region_name='us-west-2')
-        response = client.get_query_results(
-            QueryExecutionId='98765432-1111-1111-1111-12345678910'
+        client = boto3.client('events', region_name='us-west-2')
+        client.put_events(
+            Entries=[
+                {
+                    'Time': datetime(2020, 1, 1),
+                    'Source': 'test.aws.lambda',
+                    'Resources': [
+                        'test',
+                    ],
+                    'DetailType': 'mydetail',
+                    'Detail': '{}',
+                    'EventBusName': 'default'
+                },
+            ]
         )
     except Exception as e:
         print(e)
     finally:
         span = tracer.get_spans()[0]
-        assert span.class_name == 'AWS-Athena'
-        assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
-        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryResults'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [
-            '98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.class_name == constants.ClassNames['EVENTBRIDGE']
+        assert span.domain_name == constants.DomainNames['MESSAGING']
+        assert span.operation_name == 'default'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
+        assert span.get_tag(constants.AwsEventBridgeTags['ENTRIES']) == [{
+                    'Time': datetime.timestamp(datetime(2020, 1, 1)),
+                    'Source': 'test.aws.lambda',
+                    'Resources': [
+                        'test',
+                    ],
+                    'DetailType': 'mydetail',
+                    'Detail': '{}',
+                    'EventBusName': 'default'
+                }]
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'PutEvents'
+        assert span.get_tag(constants.SpanTags['RESOURCE_NAMES']) == ['mydetail']
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-event-id']
+
         tracer.clear()
 
 
@@ -984,7 +1003,7 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
         span = tracer.get_spans()[0]
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
-        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'LIST'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'ListQueryExecutions'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
@@ -1015,6 +1034,7 @@ def test_default_aws_service():
         assert span.domain_name == 'AWS'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateContainer'
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'mediastore'
+        assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         tracer.clear()
 
 
@@ -1039,3 +1059,14 @@ def test_sfn():
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'sfn'
 
         tracer.clear()
+
+
+def test_get_operation_type():
+    class_name = "AWS-Lambda"
+    operation_name = "ListTags"
+
+    assert get_operation_type("AWS-Lambda", "ListTags") == "READ"
+    assert get_operation_type("AWS-S3", "PutAccountPublicAccessBlock") == "PERMISSION"
+    assert get_operation_type("AWSService", "CreateContainer") == "WRITE"
+    assert get_operation_type("InvalidService", "InvalidOperation") == ""
+    assert get_operation_type("AWS-SSM", "DescribeDocumentPermission") == "READ"

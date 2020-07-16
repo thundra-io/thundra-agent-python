@@ -1,12 +1,12 @@
 import mock
-from thundra.listeners.thundra_span_filterer import ThundraSpanFilterer, ThundraSpanFilter
+from thundra.listeners.thundra_span_filterer import StandardSpanFilterer, SimpleSpanFilter
 from thundra.listeners import FilteringSpanListener, ErrorInjectorSpanListener, LatencyInjectorSpanListener
 
 def test_creation():
-    f1 = ThundraSpanFilter()
-    f2 = ThundraSpanFilter()
+    f1 = SimpleSpanFilter()
+    f2 = SimpleSpanFilter()
 
-    filterer = ThundraSpanFilterer(span_filters=[f1, f2])
+    filterer = StandardSpanFilterer(span_filters=[f1, f2])
 
     delegated_listener = LatencyInjectorSpanListener(delay=370)
     
@@ -29,7 +29,7 @@ def test_filters_applied_properly(mocked_listener, mocked_span):
     mocked_f1 = mock.Mock(name='mocked_filter_f1')
     mocked_f2 = mock.Mock(name='mocked_filter_f2')
 
-    filterer = ThundraSpanFilterer(span_filters=[mocked_f1, mocked_f2])
+    filterer = StandardSpanFilterer(span_filters=[mocked_f1, mocked_f2])
 
     fsl = FilteringSpanListener(listener=mocked_listener, filterer=filterer)
 
@@ -54,15 +54,27 @@ def test_filters_applied_properly(mocked_listener, mocked_span):
 
 def test_create_from_config():
     config = {
-        'listener': 'ErrorInjectorSpanListener',
-        'config.errorType': 'NameError',
-        'config.errorMessage': '"You have a very funny name!"',
-        'config.injectOnFinish': 'true',
-        'config.injectCountFreq': '3',
-        'filter1.className': 'AWS-SQS',
-        'filter1.domainName': 'Messaging',
-        'filter2.className': 'HTTP',
-        'filter2.tag.http.host': 'foo.com'
+        'listener': {
+            "type": "ErrorInjectorSpanListener",
+			"config": {
+                "errorType": "NameError",
+                "errorMessage": "You have a very funny name!",
+                "injectOnFinish": True,
+                "injectCountFreq": 3
+			}
+        },
+        "filters": [
+                    {
+                        "className": "AWS-SQS",
+                        "domainName": "Messaging",
+                    },
+                    {
+                        "className": "HTTP",
+                        "tags": {
+                            "http.host": "foo.com"
+                        }
+                    }
+                ]
     }
 
     fsl = FilteringSpanListener.from_config(config)

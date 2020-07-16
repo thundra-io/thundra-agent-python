@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from importlib import import_module
 from thundra import config
 import thundra.integrations.modules as integrations
+from thundra import _version
+
+__version__ = _version.__version__
 
 def _import_exists(module_name):
     try:

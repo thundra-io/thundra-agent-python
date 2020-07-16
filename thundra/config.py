@@ -202,14 +202,51 @@ def http_body_masked():
     return bool_from_env(constants.THUNDRA_MASK_HTTP_BODY)
 
 
+def eventbridge_detail_masked():
+    return bool_from_env(constants.THUNDRA_MASK_EVENTBRIDE_DETAIL)
+
+
 def http_integration_url_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, default=1)
+
 
 def elasticsearch_integration_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, default=1)
 
+
 def http_error_status_code_min():
     return int_from_env(constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, 400)
 
-def is_lambda_step_function():
-    return bool_from_env(constants.THUNDRA_LAMBDA_IS_STEPFUNCTION, default=1)
+def is_response_trace_injection_enabled():
+    return bool_from_env(constants.THUNDRA_ENABLE_RESPONSE_TRACE_INJECTION)
+
+def debugger_enabled():
+    enable_debug = bool_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE, default=None)
+    if enable_debug == None:
+        return debugger_auth_token() != ''
+
+    return enable_debug
+
+
+def debugger_broker_port():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_PORT, default=444)
+
+
+def debugger_broker_host():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST, default="debug.thundra.io")
+
+
+def debugger_port():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT, default=1111)
+
+
+def debugger_max_wait_time():
+    return int_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX, default=60*1000)
+
+
+def debugger_auth_token():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_AUTH_TOKEN, default='')
+
+
+def debugger_session_name():
+    return str_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_SESSION_NAME, default='default')

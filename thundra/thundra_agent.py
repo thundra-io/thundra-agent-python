@@ -1,7 +1,7 @@
-import signal
-import threading
+import subprocess
 import time
 import logging
+import os
 from functools import wraps
 import uuid
 
@@ -13,8 +13,10 @@ from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants, application_support, config
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
-from thundra import utils
+from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.compat import PY2, TimeoutError
+from thundra.timeout import Timeout
+
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,7 @@ class Thundra:
 
         self.timeout_margin = config.timeout_margin()
         self.reporter = Reporter(self.api_key)
+        self.debugger_process = None
 
         if not config.trace_instrument_disabled():
             if not PY2:
@@ -58,6 +61,9 @@ class Thundra:
 
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
+        self.ptvsd_imported = False
+        if config.debugger_enabled():
+            self.initialize_debugger()
 
     def __call__(self, original_func):
         if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
@@ -83,17 +89,8 @@ class Thundra:
                 self.plugin_context['request'] = event
                 self.plugin_context['context'] = context
                 self.execute_hook('before:invocation', self.plugin_context)
-                if threading.current_thread().__class__.__name__ == '_MainThread':
-                    signal.signal(signal.SIGALRM, self.timeout_handler)
-                    if hasattr(context, 'get_remaining_time_in_millis'):
-                        timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
-                        if timeout_duration <= 0:
-                            timeout_duration = context.get_remaining_time_in_millis() - \
-                                               constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
-                            logger.warning('Given timeout margin is bigger than lambda timeout duration and '
-                                           'since the difference is negative, it is set to default value (' +
-                                           str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
-                        signal.setitimer(signal.ITIMER_REAL, timeout_duration / 1000.0)
+
+                timeout_duration = self.get_timeout_duration(context)
                 before_done = True
             except Exception as e:
                 logger.error("Error during the before part of Thundra: {}".format(e))
@@ -102,25 +99,23 @@ class Thundra:
             # Invoke user handler
             if before_done:
                 try:
-                    response = original_func(event, context)
-                    try:
-                        if config.is_lambda_step_function():
-                            if 'thundra_step_info' in event:
-                                step = event['thundra_step_info']['step']
-                            else:
-                                step = 0
+                    response = None
+                    with Timeout(timeout_duration, self.timeout_handler):
+                        if config.debugger_enabled() and self.ptvsd_imported:
+                            self.start_debugger_tracing()
 
-                            trace_link = str(uuid.uuid4())
-                            self.plugin_context['step_function_trace_link'] = trace_link
-                            if isinstance(response, dict):
-                                response['thundra_step_info'] = {
-                                    'trace_link': trace_link,
-                                    'step': step + 1
-                                }
-                    except Exception as e:
-                        print(e)
-                    self.plugin_context['response'] = response
-
+                        response = original_func(event, context)
+                        try:
+                            if config.is_response_trace_injection_enabled():
+                                trace_link = str(uuid.uuid4())
+                                self.plugin_context['response_trace_link'] = trace_link
+                                if isinstance(response, dict):
+                                    response['_thundra'] = {
+                                        'trace_link': trace_link
+                                    }
+                        except Exception as e:
+                            print(e)
+                        self.plugin_context['response'] = response
                 except Exception as e:
                     try:
                         self.plugin_context['error'] = e
@@ -133,9 +128,9 @@ class Thundra:
                         pass
                     raise e
                 finally:
-                    self.stop_timer()
+                    if config.debugger_enabled() and self.ptvsd_imported:
+                        self.stop_debugger_tracing()
             else:
-                self.stop_timer()
                 self.reporter.reports = []
                 return original_func(event, context)
 
@@ -153,6 +148,74 @@ class Thundra:
         return wrapper
 
     call = __call__
+
+    def initialize_debugger(self):
+        if PY2:
+            logger.error("Online debugging not supported in python2.7. Supported versions: 3.6, 3.7, 3.8")
+            return
+        try:
+            import ptvsd
+            self.ptvsd_imported = True
+        except Exception as e:
+            logger.error("Could not import ptvsd. Thundra ptvsd layer must be added")
+
+
+    def start_debugger_tracing(self):
+        try:
+            import ptvsd
+            ptvsd.tracing(True)
+
+            ptvsd.enable_attach(address=("localhost", config.debugger_port()))
+            if not self.debugger_process:
+                env = os.environ.copy()
+                env['BROKER_HOST'] = str(config.debugger_broker_host())
+                env['BROKER_PORT'] = str(config.debugger_broker_port())
+                env['DEBUGGER_PORT'] = str(config.debugger_port())
+                env['AUTH_TOKEN'] = str(config.debugger_auth_token())
+                env['SESSION_NAME'] = str(config.debugger_session_name())
+                context = self.plugin_context["context"]
+                if hasattr(context, 'get_remaining_time_in_millis'):
+                    env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time()*1000.0))
+
+                debug_bridge_file_path = os.path.join(os.path.dirname(__file__), 'debug/bridge.py')
+                self.debugger_process = subprocess.Popen(["python", debug_bridge_file_path], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
+
+            start_time = time.time()
+            debug_process_running = True
+            while time.time() < (start_time + config.debugger_max_wait_time()/1000) and not ptvsd.is_attached():
+                if self.debugger_process.poll() is None:
+                    ptvsd.wait_for_attach(0.01)
+                else:
+                    debug_process_running = False
+                    break
+
+            if not ptvsd.is_attached():
+                if debug_process_running:
+                    logger.error('Couldn\'t complete debugger handshake in {} milliseconds.'.format(config.debugger_max_wait_time()))
+                ptvsd.tracing(False)
+            else:
+                ptvsd.tracing(True)
+
+        except Exception as e:
+            logger.error("error while setting tracing true to debugger using ptvsd: {}".format(e))
+
+    def stop_debugger_tracing(self):
+        try:
+            import ptvsd
+            ptvsd.tracing(False)
+            from ptvsd.attach_server import debugger_attached
+            debugger_attached.clear()
+        except Exception as e:
+            logger.error("error while setting tracing false to debugger using ptvsd: {}".format(e))
+
+        try:
+            if self.debugger_process:
+                o, e = self.debugger_process.communicate(b"fin\n")
+                debug_logger("Thundra debugger process output: {}".format(o.decode("utf-8")))
+                self.debugger_process = None
+        except Exception as e:
+            self.debugger_process = None
+            logger.error("error while killing proxy process for debug: {}".format(e))
 
     def execute_hook(self, name, data):
         if name == 'after:invocation':
@@ -194,16 +257,23 @@ class Thundra:
                     return True
             return False
 
-    def timeout_handler(self, signum, frame):
-        current_thread = threading.current_thread().__class__.__name__
-        if current_thread == '_MainThread' and signum == signal.SIGALRM:
+    def get_timeout_duration(self, context):
+        timeout_duration = 0
+        if hasattr(context, 'get_remaining_time_in_millis'):
+            timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
+            if timeout_duration <= 0:
+                timeout_duration = context.get_remaining_time_in_millis() - \
+                                    constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                logger.warning('Given timeout margin is bigger than lambda timeout duration and '
+                                'since the difference is negative, it is set to default value (' +
+                                str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+
+        return timeout_duration/1000.0
+
+    def timeout_handler(self):
             self.plugin_context['timeout'] = True
             self.plugin_context['error'] = TimeoutError('Task timed out')
             self.prepare_and_send_reports()
-
-    def stop_timer(self):
-        if threading.current_thread().__class__.__name__ == '_MainThread':
-            signal.setitimer(signal.ITIMER_REAL, 0)
 
     def prepare_and_send_reports(self):
         self.execute_hook('after:invocation', self.plugin_context)
