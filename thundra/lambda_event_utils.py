@@ -25,7 +25,7 @@ class LambdaEventType:
     CloudWatchLogs = 'cloudWatchLogs',
     CloudFront = 'cloudFront',
     APIGatewayProxy = 'apiGatewayProxy',
-    APIGateway = 'apiGateway',
+    APIGateway = 'apiGateway'
     Lambda = 'lambda'
     EventBridge = 'eventBridge'
 
@@ -350,7 +350,7 @@ def inject_trigger_tags_for_eventbridge(span, original_event):
 def handle_response_trace_link(span, original_event):
     try:
         if '_thundra' in original_event:
-            invocation_trace_support.add_incoming_trace_links([original_event['_thundra']['trace_link']])
+            invocation_trace_support.add_incoming_trace_links([original_event['_thundra']['trace_link']])        
     except Exception as e:
         pass
 

@@ -706,7 +706,8 @@ class StepFunctionIntegration(BaseIntegration):
                 parsed_input = json.loads(orig_input)
                 trace_link = str(uuid.uuid4())
                 parsed_input['_thundra'] = {
-                    "trace_link": trace_link
+                    "trace_link": trace_link,
+                    "step": 0
                 }
                 args[1]['input'] = json.dumps(parsed_input)
                 scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [trace_link])
