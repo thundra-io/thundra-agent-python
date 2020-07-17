@@ -896,3 +896,50 @@ class AWSEventBridgeIntegration(BaseIntegration):
             return event_ids
         except Exception:
             return None
+
+class AWSSESIntegration(BaseIntegration):
+    CLASS_TYPE = 'ses'
+
+    def __init__(self):
+        pass
+
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        operation_name, request_data = args
+        return operation_name if operation_name else constants.AWS_SERVICE_REQUEST
+
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        operation_name, request_data = args
+        scope.span.domain_name = constants.DomainNames['MESSAGING']
+        scope.span.class_name = constants.ClassNames['SES']
+
+        mask_mail = config.ses_mail_masked()
+        mask_destination = config.ses_mail_destination_masked()
+
+        source = request_data.get('Source', '')
+        destination = request_data.get('Destinations', request_data.get('Destination', []))
+        subject = request_data.get('Message', {}).get('Subject')
+        body = request_data.get('Message', {}).get('Body')
+        template_name = request_data.get('Template')
+        template_arn = request_data.get('TemplateArn')
+        template_data = request_data.get('TemplateData')
+
+        scope.span.tags = {
+            constants.AwsSDKTags['REQUEST_NAME']: operation_name,
+            constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
+            constants.AwsSESTags['SOURCE']: source,
+            constants.AwsSESTags['DESTINATION']: None if mask_destination else destination,
+            constants.AwsSESTags['SUBJECT']: None if mask_mail else subject,
+            constants.AwsSESTags['BODY']: None if mask_mail else body,
+            constants.AwsSESTags['TEMPLATE_NAME']: template_name,
+            constants.AwsSESTags['TEMPLATE_ARN']: template_arn,
+            constants.AwsSESTags['TEMPLATE_DATA']: None if mask_mail else template_data
+        }
+
+        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super(AWSSESIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)

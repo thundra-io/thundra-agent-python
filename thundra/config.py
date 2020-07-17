@@ -205,6 +205,11 @@ def http_body_masked():
 def eventbridge_detail_masked():
     return bool_from_env(constants.THUNDRA_MASK_EVENTBRIDE_DETAIL)
 
+def ses_mail_masked():
+    return bool_from_env(constants.THUNDRA_MASK_SES_MAIL, default=True)
+
+def ses_mail_destination_masked():
+    return bool_from_env(constants.THUNDRA_MASK_SES_MAIL_DESTINATION)
 
 def http_integration_url_path_depth():
     return int_from_env(constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, default=1)
