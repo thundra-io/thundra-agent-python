@@ -20,6 +20,7 @@ class Resource:
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
+        self.trace_links = set(span.get_tag(constants.SpanTags['TRACE_LINKS'])) if span.get_tag(constants.SpanTags['TRACE_LINKS']) else set()
     
     def accept(self, span):
         return (
@@ -50,6 +51,9 @@ class Resource:
         if span.get_duration() > self.resource_max_duration:
             self.resource_max_duration = span.get_duration()
 
+        if self.trace_links and span.get_tag(constants.SpanTags['TRACE_LINKS']):
+            self.trace_links.update(span.get_tag(constants.SpanTags['TRACE_LINKS']))
+
     def to_dict(self):
         return {
             'resourceType': self.type,
@@ -62,7 +66,8 @@ class Resource:
             'resourceDuration': self.duration,
             'resourceErrors': list(self.error_types),
             'resourceMaxDuration': self.resource_max_duration,
-            'resourceAvgDuration': self.duration / self.count
+            'resourceAvgDuration': self.duration / self.count,
+            'resourceTraceLinks': list(self.trace_links)
         }
 
 

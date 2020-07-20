@@ -251,6 +251,10 @@ AwsSDKTags = {
     'HOST': 'host',
 }
 
+AwsStepFunctionsTags = {
+    'STATE_MACHINE_ARN': 'aws.sf.machine.arn'
+}
+
 AwsSQSTags = {
     'QUEUE_NAME': 'aws.sqs.queue.name',
     'MESSAGE': 'aws.sqs.message',

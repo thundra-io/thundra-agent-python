@@ -692,11 +692,17 @@ class StepFunctionIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data.get('stateMachineArn', constants.AWS_SERVICE_REQUEST)
+        state_machine_arn = request_data.get('stateMachineArn')
+        if state_machine_arn:
+            return state_machine_arn.split(':')[-1]
+        return constants.AWS_SERVICE_REQUEST
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         scope.span.domain_name = constants.DomainNames['AWS']
         scope.span.class_name = constants.ClassNames['STEPFUNCTIONS']
+
+        _, request_data = args
+        state_machine_arn = request_data.get('stateMachineArn', '')
 
         service_name = instance.__class__.__name__.lower()
 
@@ -718,7 +724,9 @@ class StepFunctionIntegration(BaseIntegration):
             scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
 
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
+        scope.span.set_tag(constants.AwsStepFunctionsTags['STATE_MACHINE_ARN'], state_machine_arn)
 
+        scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
