@@ -684,7 +684,7 @@ class AWSServiceIntegration(BaseIntegration):
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
 
 
-class StepFunctionIntegration(BaseIntegration):
+class AWSStepFunctionIntegration(BaseIntegration):
     CLASS_TYPE = 'sfn'
 
     def __init__(self):
@@ -703,11 +703,12 @@ class StepFunctionIntegration(BaseIntegration):
 
         _, request_data = args
         state_machine_arn = request_data.get('stateMachineArn', '')
+        execution_name = request_data.get('name', '')
 
         service_name = instance.__class__.__name__.lower()
 
         try:
-            orig_input = args[1].get('input', None)
+            orig_input = request_data.get('input', None)
             if orig_input != None:
                 parsed_input = json.loads(orig_input)
                 trace_link = str(uuid.uuid4())
@@ -715,8 +716,10 @@ class StepFunctionIntegration(BaseIntegration):
                     "trace_link": trace_link,
                     "step": 0
                 }
-                args[1]['input'] = json.dumps(parsed_input)
+                scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_INPUT'], orig_input)
+                request_data['input'] = json.dumps(parsed_input)
                 scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [trace_link])
+                scope.span.set_tag(constants.SpanTags['RESOURCE_TRACE_LINKS'], [trace_link])
         except:
             pass
 
@@ -725,12 +728,22 @@ class StepFunctionIntegration(BaseIntegration):
 
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
         scope.span.set_tag(constants.AwsStepFunctionsTags['STATE_MACHINE_ARN'], state_machine_arn)
+        scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_NAME'], execution_name)
 
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
         scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super(AWSStepFunctionIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_ARN'], response.get('executionArn', ''))
+        try:
+            if response.get('startDate'):
+                start_date_str = response.get('startDate').isoformat()
+                scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_START_DATE'], start_date_str)
+        except:
+            pass
 
 class AWSAthenaIntegration(BaseIntegration):
     CLASS_TYPE = 'athena'

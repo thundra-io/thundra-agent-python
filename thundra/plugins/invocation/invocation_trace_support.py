@@ -20,7 +20,9 @@ class Resource:
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
-        self.trace_links = set(span.get_tag(constants.SpanTags['TRACE_LINKS'])) if span.get_tag(constants.SpanTags['TRACE_LINKS']) else set()
+        self.resource_trace_links = set() 
+        if span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']):
+            self.resource_trace_links = set(span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']))
     
     def accept(self, span):
         return (
@@ -51,11 +53,11 @@ class Resource:
         if span.get_duration() > self.resource_max_duration:
             self.resource_max_duration = span.get_duration()
 
-        if self.trace_links and span.get_tag(constants.SpanTags['TRACE_LINKS']):
-            self.trace_links.update(span.get_tag(constants.SpanTags['TRACE_LINKS']))
+        if self.resource_trace_links and span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']):
+            self.resource_trace_links.update(span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']))
 
     def to_dict(self):
-        return {
+        resource = {
             'resourceType': self.type,
             'resourceName': self.name,
             'resourceOperation': self.operation,
@@ -66,9 +68,11 @@ class Resource:
             'resourceDuration': self.duration,
             'resourceErrors': list(self.error_types),
             'resourceMaxDuration': self.resource_max_duration,
-            'resourceAvgDuration': self.duration / self.count,
-            'resourceTraceLinks': list(self.trace_links)
+            'resourceAvgDuration': self.duration / self.count
         }
+        if self.resource_trace_links:
+            resource['resourceTraceLinks'] = list(self.resource_trace_links)
+        return resource
 
 
 def resource_id(span, resource_name=None):
@@ -112,6 +116,7 @@ def get_resources(plugin_context):
                         resources[rid] = Resource(span)
                     else:
                         resources[rid].merge(span)
+
 
         return {
             'resources': [r.to_dict() for r in resources.values()]

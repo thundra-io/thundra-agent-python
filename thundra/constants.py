@@ -229,7 +229,8 @@ SpanTags = {
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type',
     'TRACE_LINKS': 'trace.links',
-    'RESOURCE_NAMES': 'resource.names'
+    'RESOURCE_NAMES': 'resource.names',
+    'RESOURCE_TRACE_LINKS': 'resource.trace.links'
 }
 
 SecurityTags = {
@@ -252,7 +253,11 @@ AwsSDKTags = {
 }
 
 AwsStepFunctionsTags = {
-    'STATE_MACHINE_ARN': 'aws.sf.machine.arn'
+    'STATE_MACHINE_ARN': 'aws.sf.state_machine.arn',
+    'EXECUTION_NAME': 'aws.sf.execution.name',
+    'EXECUTION_INPUT': 'aws.sf.execution.input',
+    'EXECUTION_ARN': 'aws.sf.execution.arn',
+    'EXECUTION_START_DATE': 'aws.sf.execution.start_date'
 }
 
 AwsSQSTags = {
