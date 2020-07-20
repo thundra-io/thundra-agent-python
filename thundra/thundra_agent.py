@@ -9,13 +9,15 @@ from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
-from thundra import constants, application_support, config
+from thundra import constants, application_support
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.compat import PY2, TimeoutError
 from thundra.timeout import Timeout
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 logger = logging.getLogger(__name__)
 
@@ -34,38 +36,38 @@ class Thundra:
         constants.REQUEST_COUNT = 0
         self.plugins = []
 
-        self.api_key = config.api_key(api_key)
+        self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
-        if not config.trace_disabled(disable_trace):
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_DISABLE, disable_trace):
             self.plugins.append(TracePlugin())
 
         self.plugins.append(InvocationPlugin())
         self.plugin_context = {}
 
-        if not config.metric_disabled(disable_metric):
+        if not ConfigProvider.get(config_names.THUNDRA_METRIC_DISABLE, disable_metric):
             self.plugins.append(MetricPlugin())
 
-        if not config.log_disabled(disable_log):
+        if not ConfigProvider.get(config_names.THUNDRA_LOG_DISABLE, disable_log):
             self.plugins.append(LogPlugin())
 
-        self.timeout_margin = config.timeout_margin()
+        self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
         self.reporter = Reporter(self.api_key)
         self.debugger_process = None
 
-        if not config.trace_instrument_disabled():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
             if not PY2:
                 self.import_patcher = ImportPatcher()
 
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
         self.ptvsd_imported = False
-        if config.debugger_enabled():
+        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE):
             self.initialize_debugger()
 
     def __call__(self, original_func):
-        if hasattr(original_func, "thundra_wrapper") or config.thundra_disabled():
+        if hasattr(original_func, "thundra_wrapper") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
             return original_func
 
         @wraps(original_func)
@@ -80,7 +82,7 @@ class Thundra:
 
             # Before running user's handler
             try:
-                if config.warmup_aware() and self.check_and_handle_warmup_request(event):
+                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE, False) and self.check_and_handle_warmup_request(event):
                     return None
 
                 constants.REQUEST_COUNT += 1
@@ -100,7 +102,7 @@ class Thundra:
                 try:
                     response = None
                     with Timeout(timeout_duration, self.timeout_handler):
-                        if config.debugger_enabled() and self.ptvsd_imported:
+                        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
                             self.start_debugger_tracing()
 
                         response = original_func(event, context)
@@ -117,7 +119,7 @@ class Thundra:
                         pass
                     raise e
                 finally:
-                    if config.debugger_enabled() and self.ptvsd_imported:
+                    if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
                         self.stop_debugger_tracing()
             else:
                 self.reporter.reports = []
@@ -154,14 +156,14 @@ class Thundra:
             import ptvsd
             ptvsd.tracing(True)
 
-            ptvsd.enable_attach(address=("localhost", config.debugger_port()))
+            ptvsd.enable_attach(address=("localhost", ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT)))
             if not self.debugger_process:
                 env = os.environ.copy()
-                env['BROKER_HOST'] = str(config.debugger_broker_host())
-                env['BROKER_PORT'] = str(config.debugger_broker_port())
-                env['DEBUGGER_PORT'] = str(config.debugger_port())
-                env['AUTH_TOKEN'] = str(config.debugger_auth_token())
-                env['SESSION_NAME'] = str(config.debugger_session_name())
+                env['BROKER_HOST'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_BROKER_HOST))
+                env['BROKER_PORT'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_BROKER_PORT))
+                env['DEBUGGER_PORT'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT))
+                env['AUTH_TOKEN'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN))
+                env['SESSION_NAME'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME))
                 context = self.plugin_context["context"]
                 if hasattr(context, 'get_remaining_time_in_millis'):
                     env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time()*1000.0))
@@ -171,7 +173,8 @@ class Thundra:
 
             start_time = time.time()
             debug_process_running = True
-            while time.time() < (start_time + config.debugger_max_wait_time()/1000) and not ptvsd.is_attached():
+            while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT)/1000) \
+                and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
                     ptvsd.wait_for_attach(0.01)
                 else:
@@ -180,7 +183,8 @@ class Thundra:
 
             if not ptvsd.is_attached():
                 if debug_process_running:
-                    logger.error('Couldn\'t complete debugger handshake in {} milliseconds.'.format(config.debugger_max_wait_time()))
+                    logger.error('Couldn\'t complete debugger handshake in {} milliseconds.' \
+                    .format(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)))
                 ptvsd.tracing(False)
             else:
                 ptvsd.tracing(True)

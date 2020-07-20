@@ -1,6 +1,7 @@
 import logging
-from thundra import config
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 loggers = {}
 
@@ -42,12 +43,12 @@ def log_to_console(message,  handler):
 
 
 def debug_logger(msg, handler=None):
-    if config.debug_enabled():
+    if ConfigProvider.get(config_names.THUNDRA_DEBUG_ENABLE):
         if hasattr(msg, '__dict__'):
             log_to_console(msg, handler)
             display = vars(msg)
             log_to_console(display, handler)
-            for key, value in display.items():
+            for key, _ in display.items():
                 debug_logger_helper(getattr(msg, key), handler)
         else:
             log_to_console(msg, handler)
@@ -58,5 +59,5 @@ def debug_logger_helper(msg, handler):
         log_to_console(msg, handler)
         display = vars(msg)
         log_to_console(display,  handler)
-        for key, value in display.items():
+        for key, _ in display.items():
             debug_logger_helper(getattr(msg, key), handler)

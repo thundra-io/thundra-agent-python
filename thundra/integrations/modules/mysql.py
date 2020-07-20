@@ -1,6 +1,7 @@
 import wrapt
-from thundra import config
 from thundra.integrations.mysql import MysqlIntegration
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 mysql_integration = MysqlIntegration()
 
@@ -42,7 +43,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not config.rdb_integration_disabled():
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_DISABLE):
         wrapt.wrap_function_wrapper(
             'mysql.connector',
             'connect',

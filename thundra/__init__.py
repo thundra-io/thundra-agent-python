@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from importlib import import_module
-from thundra import config
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 import thundra.integrations.modules as integrations
 from thundra import _version
 
@@ -18,5 +19,6 @@ def patch_modules():
         if _import_exists(module_name):
             module.patch()
 
-if not config.thundra_disabled():
+ConfigProvider.__init__()
+if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     patch_modules()

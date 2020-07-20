@@ -3,7 +3,9 @@ import logging
 import concurrent.futures as futures
 
 from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import constants, config, composite, utils
+from thundra import constants, composite, utils
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 try:
     import requests
@@ -47,16 +49,16 @@ class Reporter():
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
         }
-
-        path = constants.COMPOSITE_DATA_PATH if config.rest_composite_data_enabled() else constants.PATH
+        rest_composite_data_enabled = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, True)
+        path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
 
         request_url = "https://" + utils.get_nearest_collector() + "/v1" + path
-        base_url = config.report_base_url()
+        base_url = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_BASEURL)
         if base_url is not None:
             request_url = base_url + path
 
-        if config.report_cw_enabled():
-            if config.cw_composite_data_enabled():
+        if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
+            if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE, True):
                 reports_json = self.prepare_composite_report_json()
                 for report in reports_json:
                     print(report)
@@ -70,7 +72,7 @@ class Reporter():
 
             return []
 
-        if config.rest_composite_data_enabled():
+        if rest_composite_data_enabled:
             reports_json = self.prepare_composite_report_json()
         else:
             reports_json = self.prepare_report_json()
@@ -80,7 +82,7 @@ class Reporter():
             _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
             responses = [future.result() for future in futures.as_completed(_futures)]
 
-        if config.debug_enabled():
+        if ConfigProvider.get(config_names.THUNDRA_DEBUG_ENABLE):
             debug_logger("Thundra API responses: " + str(responses))
         self.clear()
         return responses
@@ -90,9 +92,9 @@ class Reporter():
         return self.session.post(url, data=data, headers=headers, timeout=constants.DEFAULT_REPORT_TIMEOUT)
 
     def get_report_batches(self):
-        batch_size = config.rest_composite_batchsize()
-        if config.report_cw_enabled():
-            batch_size = config.cloudwatch_composite_batchsize()
+        batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE)
+        if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
+            batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
 
         batches = [self.reports[i:i + batch_size] for i in range(0, len(self.reports), batch_size)]
         return batches

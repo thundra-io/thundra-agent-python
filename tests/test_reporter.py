@@ -5,9 +5,13 @@ import os
 from thundra import constants
 from thundra.reporter import Reporter
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
+
+
 @mock.patch('thundra.reporter.requests')
 def test_add_report(mock_requests, mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'false')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE, 'false')
     reporter = Reporter('api key', mock_requests.Session())
     reporter.add_report(mock_report)
 
@@ -26,8 +30,8 @@ def test_add_report_sync_if_env_var_is_not_set(mock_requests, mock_report):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url(mock_requests, mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, 'false')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_BASEURL, 'different_url/api')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, 'false')
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
     reporter.add_report(mock_report)
@@ -47,9 +51,9 @@ def test_send_report_to_url(mock_requests, mock_report, monkeypatch):
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url_composite(mock_requests, mock_report, mock_invocation_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED, 'true')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_BASEURL, 'different_url/api')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, 'true')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE, '1')
 
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
@@ -57,13 +61,6 @@ def test_send_report_to_url_composite(mock_requests, mock_report, mock_invocatio
     reporter.add_report(mock_report)
 
     responses = reporter.send_report()
-
-    post_url = 'different_url/api/monitoring-data'
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'ApiKey api key'
-    }
-
     assert reporter.session.post.call_count == 2
 
     reporter.session.post.return_value.status_code = 200
@@ -73,9 +70,9 @@ def test_send_report_to_url_composite(mock_requests, mock_report, mock_invocatio
 
 
 @mock.patch('thundra.reporter.requests')
-def test_send_report_to_url_async(mock_requests, mock_report, mock_invocation_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_CLOUDWATCH_ENABLE, 'true')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_BASEURL, 'different_url/api')
+def test_send_report_to_url_async(mock_requests, mock_report):
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_BASEURL, 'different_url/api')
+    ConfigProvider.set(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE, 'true')
 
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
@@ -83,27 +80,16 @@ def test_send_report_to_url_async(mock_requests, mock_report, mock_invocation_re
 
     responses = reporter.send_report()
 
-    post_url = 'different_url/api/monitoring-data'
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'ApiKey api key'
-    }
-
     reporter.session.post.assert_not_called()
     assert responses == []
 
 
 @mock.patch('thundra.reporter.requests')
-def test_send_report(mock_requests, mock_report, mock_invocation_report, monkeypatch):
+def test_send_report(mock_requests, mock_invocation_report):
     test_session = mock_requests.Session()
     reporter = Reporter('unauthorized api key', session=test_session)
     reporter.add_report(mock_invocation_report)
     responses = reporter.send_report()
-    post_url = constants.HOST + constants.COMPOSITE_DATA_PATH
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'ApiKey unauthorized api key'
-    }
 
     assert reporter.session.post.call_count == 1
     test_session.post.return_value.status_code = 401
@@ -111,8 +97,8 @@ def test_send_report(mock_requests, mock_report, mock_invocation_report, monkeyp
         assert response.status_code == 401
 
 
-def test_get_report_batches(mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "2")
+def test_get_report_batches(mock_report):
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE, '2')
 
     reporter = Reporter('api key')
     reporter.add_report(mock_report)
@@ -138,8 +124,9 @@ def test_prepare_report_json(mock_report, mock_report_with_byte_field):
     assert reports[0].get('type') != 'bytes'
     assert reports[1].get('type') == 'bytes'
 
-def test_prepare_report_json_batch(mock_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "1")
+def test_prepare_report_json_batch(mock_report):
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE, '1')
+
     reporter = Reporter('api key')
     reporter.add_report(mock_report)
     reporter.add_report(mock_report)
@@ -151,7 +138,7 @@ def test_prepare_report_json_batch(mock_report, monkeypatch):
     assert len(reports) == 1
 
 def test_prepare_composite_report_json(mock_report, mock_invocation_report, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_BATCH_SIZE, "2")
+    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE, '2')
     reporter = Reporter('api key')
     reporter.add_report(mock_invocation_report)
     reporter.add_report(mock_report)

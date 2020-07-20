@@ -1,5 +1,4 @@
 import abc
-import thundra.utils as utils
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 

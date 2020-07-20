@@ -9,8 +9,7 @@ try:
 except ImportError:
     from io import BytesIO
 from thundra import constants
-from thundra import config as thundra_config
-from thundra.listeners import ThundraSpanListener, AWSXRayListener
+from thundra.listeners import ThundraSpanListener
 
 logger = logging.getLogger(__name__)
 
@@ -84,10 +83,6 @@ def parse_span_listeners():
             except Exception as e:
                 logger.error(("couldn't parse environment variable %s "
                               "to create a span listener"), env_k)
-    # Add AWSXRayListener if enabled
-    if thundra_config.xray_trace_enabled():
-        xray_listener = AWSXRayListener()
-        register_span_listener(xray_listener)
 
 
 # Parse span listeners from environment variables

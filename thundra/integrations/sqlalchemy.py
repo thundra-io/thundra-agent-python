@@ -1,10 +1,13 @@
 import traceback
 import time
 import logging
-from thundra import config, constants
+from thundra import constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
+
 
 try:
     from sqlalchemy.event import listen
@@ -81,7 +84,7 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
             constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
         }
 
-        if not config.rdb_statement_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK):
             tags[constants.DBTags['DB_STATEMENT']] = statement
 
         scope.span.tags = tags

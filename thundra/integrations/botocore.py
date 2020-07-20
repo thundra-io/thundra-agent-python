@@ -8,11 +8,13 @@ import re
 from dateutil.parser import parse
 from datetime import datetime
 
-from thundra import config
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 import thundra.constants as constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.application_support import get_application_info
+
 import thundra.utils as utils
 
 from thundra.compat import PY37
@@ -78,7 +80,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
             self.escape_byte_fields(self.request_data['Item'])
 
         # DB statement tags should not be set on span if masked
-        if not config.dynamodb_statement_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK):
             self.OPERATION.get(operation_name, dummy_func)(scope)
 
         scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
@@ -86,7 +88,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-        if config.dynamodb_trace_enabled():
+        if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE):
             if operation_name == 'PutItem':
                 self.inject_trace_link_on_put(scope.span, request_data, instance)
 
@@ -132,7 +134,8 @@ class AWSDynamoDBIntegration(BaseIntegration):
                                                         params['Key'])
 
             elif operation_name == 'DeleteItem':
-                if config.dynamodb_trace_enabled() and 'Attributes' in response:
+                if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE) and \
+                     'Attributes' in response:
                     span_id = response['Attributes'].get("x-thundra-span-id")
                     if span_id and span_id.get('S'):
                         trace_links = ['DELETE:' + span_id.get('S')]
@@ -141,7 +144,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
                     trace_links = self.generate_trace_links(region, response, params['TableName'], 'DELETE',
                                                             params['Key'])
 
-        except Exception as e:
+        except Exception:
             pass
 
         return trace_links
@@ -306,7 +309,7 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-        if not config.sqs_message_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK):
             if operation_name == "SendMessage":
                 message = request_data.get("MessageBody", "")
                 scope.span.set_tag(constants.AwsSQSTags['MESSAGE'], message)
@@ -387,7 +390,7 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-        if not config.sns_message_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK):
             scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -625,7 +628,8 @@ class AWSLambdaIntegration(BaseIntegration):
             constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
         }
 
-        if not config.lambda_payload_masked() and 'Payload' in request_data:
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK) and \
+             'Payload' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
                 request_data['Payload']) is not str else request_data['Payload']
@@ -643,7 +647,8 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
         scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
-        if not config.lambda_trace_disabled() and 'invoke' in operation_name.lower():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_TRACEINJECTION_DISABLE) \
+             and 'invoke' in operation_name.lower():
             self.inject_span_context_into_client_context(request_data)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -762,7 +767,7 @@ class AWSAthenaIntegration(BaseIntegration):
         if output_location:
             scope.span.set_tag(constants.AthenaTags['S3_OUTPUT_LOCATION'], output_location)
 
-        if not config.athena_statement_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK):
             scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.get_query(args))
 
         if query_execution_ids:
@@ -815,7 +820,7 @@ class AWSEventBridgeIntegration(BaseIntegration):
         entries = []
         for entry in request_data.get('Entries', []):
             new_entry = {
-                'Detail': None if config.eventbridge_detail_masked() else entry.get('Detail'),
+                'Detail': None if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK) else entry.get('Detail'),
                 'DetailType': entry.get('DetailType'),
                 'EventBusName': entry.get('EventBusName'),
                 'Resources': entry.get('Resources'),
@@ -872,8 +877,8 @@ class AWSSESIntegration(BaseIntegration):
         scope.span.domain_name = constants.DomainNames['MESSAGING']
         scope.span.class_name = constants.ClassNames['SES']
 
-        mask_mail = config.ses_mail_masked()
-        mask_destination = config.ses_mail_destination_masked()
+        mask_mail = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_MASK)
+        mask_destination = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_DESTINATION_MASK)
 
         source = request_data.get('Source', '')
         destination = request_data.get('Destinations', request_data.get('Destination', []))

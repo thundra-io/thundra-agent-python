@@ -4,7 +4,9 @@ import logging
 from types import SimpleNamespace
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
-from thundra import constants, config, utils
+from thundra import constants, utils
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ async def on_request_start(session, trace_config_ctx, params):
     if not tracer.get_active_span():
         return
 
-    url_dict = utils.parse_http_url(str(params.url), config.http_integration_url_path_depth())
+    url_dict = utils.parse_http_url(str(params.url), ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
     scope = tracer.start_active_span(operation_name=url_dict.get('operation_name'), finish_on_close=False)
     scope.span.class_name = constants.ClassNames['HTTP']
     scope.span.domain_name = constants.DomainNames['API']
@@ -49,7 +51,8 @@ async def on_request_chunk_sent(session, trace_config_ctx, params):
     if not hasattr(trace_config_ctx, "scope"):
         return
     scope = trace_config_ctx.scope
-    if not config.http_body_masked() and (scope.span.get_tag(constants.HttpTags["BODY"]) is None):
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK) and \
+         (scope.span.get_tag(constants.HttpTags["BODY"]) is None):
         body = params.chunk if params.chunk else ""
         scope.span.set_tag(constants.HttpTags["BODY"], body)
 
@@ -71,7 +74,7 @@ async def on_request_end(session, trace_config_ctx, params):
             resource_name = response.headers.get("x-thundra-resource-name")
             scope.span.operation_name = resource_name
 
-        if (statusCode and config.http_error_status_code_min() <= statusCode):
+        if (statusCode and ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= statusCode):
             scope.span.set_tag('error.kind', "HttpError")
             scope.span.set_tag('error', True)
             scope.span.set_tag('error.message', response.reason)

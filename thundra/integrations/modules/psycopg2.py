@@ -1,7 +1,8 @@
 import wrapt
 import copy
-from thundra import config
 from thundra.integrations.postgre import PostgreIntegration
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 
 postgre_integration = PostgreIntegration()
@@ -51,7 +52,7 @@ def _wrapper_register_type(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not config.rdb_integration_disabled():
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_DISABLE):
         
         wrapt.wrap_function_wrapper(
             'psycopg2.extensions',

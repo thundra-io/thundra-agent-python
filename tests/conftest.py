@@ -1,10 +1,9 @@
-import os
 import pytest
 import mock
 from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
 from thundra.plugins.invocation import invocation_support
-from thundra import constants
+from thundra.config.config_provider import ConfigProvider
 
 
 class MockContext:
@@ -50,6 +49,10 @@ class LambdaTriggeredMockContext:
 def clear_function_name():
     invocation_support.function_name = ""
 
+@pytest.fixture(autouse=True)
+def teardown():
+    yield
+    ConfigProvider.clear()
 
 @pytest.fixture(scope="module", autouse=True)
 def clear_invocation_tags():
