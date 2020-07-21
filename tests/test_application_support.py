@@ -1,40 +1,42 @@
-import os
-from thundra import constants, application_support
+from thundra import application_support
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
-def test_if_can_get_integer_tag(monkeypatch):
+
+def test_if_can_get_integer_tag():
     tag_name = 'integerField'
-    (env_key, env_val) = (constants.APPLICATION_TAG_PROP_NAME_PREFIX + tag_name, 3773)
-    monkeypatch.setitem(os.environ, env_key, str(env_val))
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 3773)
+    ConfigProvider.set(env_key, str(env_val))
     
     application_support.parse_application_tags()
     application_tags = application_support.get_application_tags()
 
     assert application_tags[tag_name] == env_val
 
-def test_if_can_get_float_tag(monkeypatch):
+def test_if_can_get_float_tag():
     tag_name = 'floatField'
-    (env_key, env_val) = (constants.APPLICATION_TAG_PROP_NAME_PREFIX + tag_name, 12.3221)
-    monkeypatch.setitem(os.environ, env_key, str(env_val))
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 12.3221)
+    ConfigProvider.set(env_key, str(env_val))
     
     application_support.parse_application_tags()
     application_tags = application_support.get_application_tags()
 
     assert application_tags[tag_name] == env_val
 
-def test_if_can_get_string_tag(monkeypatch):
+def test_if_can_get_string_tag():
     tag_name = 'stringField'
-    (env_key, env_val) = (constants.APPLICATION_TAG_PROP_NAME_PREFIX + tag_name, 'fooBar')
-    monkeypatch.setitem(os.environ, env_key, str(env_val))
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 'fooBar')
+    ConfigProvider.set(env_key, str(env_val))
     
     application_support.parse_application_tags()
     application_tags = application_support.get_application_tags()
 
     assert application_tags[tag_name] == env_val
 
-def test_if_can_get_bool_tag(monkeypatch):
+def test_if_can_get_bool_tag():
     tag_name = 'boolField'
-    (env_key, env_val) = (constants.APPLICATION_TAG_PROP_NAME_PREFIX + tag_name, True)
-    monkeypatch.setitem(os.environ, env_key, str(env_val))
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, True)
+    ConfigProvider.set(env_key, str(env_val))
     
     application_support.parse_application_tags()
     application_tags = application_support.get_application_tags()

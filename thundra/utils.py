@@ -10,20 +10,6 @@ logger = logging.getLogger(__name__)
 def get_configuration(key, default=None):
     return os.environ.get(key, default)
 
-def str_to_proper_type(val):
-    result = val
-    try:
-        result = str2bool(val)
-    except ValueError:
-        try:
-            result = int(val)
-        except ValueError:
-            try:
-                result = float(val)
-            except ValueError:
-                result = val.strip('"')
-    
-    return result
 
 def get_application_instance_id(context):
     aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, '')

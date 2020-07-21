@@ -1,10 +1,8 @@
 import simplejson as json
 import mock
-import os
 
 from thundra import constants
 from thundra.reporter import Reporter
-
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 

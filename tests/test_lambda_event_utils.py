@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 from thundra.compat import str
 import mock
 import base64
-import gzip
 import simplejson as json
 import pytest
 import hashlib

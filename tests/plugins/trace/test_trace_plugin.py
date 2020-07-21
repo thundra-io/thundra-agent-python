@@ -55,8 +55,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert trace_plugin.trace_data['applicationRuntime'] == 'python'
 
 
-def test_invocation_support_error_set_to_root_span(handler_with_user_error, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+def test_invocation_support_error_set_to_root_span(handler_with_user_error, mock_context, mock_event):
     thundra, handler = handler_with_user_error
 
     trace_plugin = None

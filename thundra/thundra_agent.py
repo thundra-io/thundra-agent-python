@@ -32,7 +32,6 @@ class Thundra:
                  disable_trace=False,
                  disable_metric=True,
                  disable_log=True):
-
         constants.REQUEST_COUNT = 0
         self.plugins = []
 

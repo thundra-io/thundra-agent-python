@@ -1,8 +1,5 @@
-import os
-
 import mock
 import pytest
-from thundra import constants
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.thundra_agent import Thundra
 

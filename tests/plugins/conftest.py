@@ -6,6 +6,8 @@ from thundra import constants
 from thundra.thundra_agent import Thundra
 from thundra.reporter import Reporter
 from thundra.plugins.trace.traceable import Traceable
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 
 @pytest.fixture
@@ -16,10 +18,11 @@ def reporter(mock_requests):
 
 @pytest.fixture
 def thundra_with_profile(reporter, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_APPLICATION_ID, '[]test')
-    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_ID, '[]test')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_VERSION, 'version')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+
     thundra = Thundra('api key', disable_metric=True)
     thundra.reporter = reporter
     return thundra
@@ -37,11 +40,12 @@ def handler_with_profile(thundra_with_profile):
 
 @pytest.fixture
 def thundra_with_request_response_skip(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_APPLICATION_ID, '[]test')
-    monkeypatch.setitem(os.environ, constants.AWS_LAMBDA_FUNCTION_VERSION, 'version')
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP, 'true')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP, 'true')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_ID, '[]test')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_VERSION, 'version')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP, 'true')
+    ConfigProvider.set(config_names.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP, 'true')
     thundra = Thundra('api key', disable_metric=True)
     return thundra
 

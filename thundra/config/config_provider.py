@@ -24,10 +24,12 @@ class ConfigProvider:
 
     @staticmethod
     def add_non_lambda_aliases():
+        alias_configs = {}
         for config_name in ConfigProvider.configs:
             if config_name.startswith('thundra.agent.lambda'):
                 value = ConfigProvider.configs[config_name]
-                ConfigProvider.configs[config_name.replace('thundra.agent.lambda', 'thundra.agent', 1)] = value
+                alias_configs[config_name.replace('thundra.agent.lambda', 'thundra.agent', 1)] = value
+        ConfigProvider.configs.update(alias_configs)
 
     @staticmethod
     def get(key, default_value=None):
@@ -49,8 +51,9 @@ class ConfigProvider:
             if config_name.startswith('thundra.agent.lambda.'):
                 config_name = config_name.replace('thundra.agent.lambda.', 'thundra.agent.', 1)
                 config_metadata = CONFIG_METADATA.get(config_name)
-                return config_metadata.get('type')
-        return 'string'
+                if config_metadata:
+                    return config_metadata.get('type')
+        return None
 
     @staticmethod
     def parse(value, var_type):
@@ -60,7 +63,23 @@ class ConfigProvider:
             return ConfigProvider.convert_to_int(value)
         if var_type == 'boolean':
             return ConfigProvider.convert_to_bool(value)
-        return value
+        return ConfigProvider.str_to_proper_type(value)
+
+    @staticmethod
+    def str_to_proper_type(val):
+        result = val
+        try:
+            result = str2bool(val)
+        except ValueError:
+            try:
+                result = int(val)
+            except ValueError:
+                try:
+                    result = float(val)
+                except ValueError:
+                    result = val.strip('"')
+
+        return result
 
     @staticmethod
     def convert_to_bool(value, default=False):
