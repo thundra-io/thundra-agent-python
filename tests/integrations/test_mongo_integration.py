@@ -1,9 +1,9 @@
-import os
 from bson.json_util import loads
 from pymongo import MongoClient
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
-
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 from thundra.compat import PY2
 
 if not PY2:
@@ -112,8 +112,8 @@ if not PY2:
         tracer.clear()
 
 
-    def test_mongo_command_masked(monkeypatch):
-        monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_MONGODB_COMMAND, 'true')
+    def test_mongo_command_masked():
+        ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK, 'true')
         client = MongoClient('localhost', 27017)
         db = client.test
         db.list_collection_names()

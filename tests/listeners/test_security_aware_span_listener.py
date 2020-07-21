@@ -1,5 +1,3 @@
-import time
-import mock
 from thundra.listeners import SecurityAwareSpanListener
 from thundra.opentracing.tracer import ThundraTracer
 from thundra import constants

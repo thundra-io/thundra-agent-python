@@ -1,5 +1,4 @@
 from datetime import date
-import os
 
 from sqlalchemy import Column, String, Integer, Date
 from sqlalchemy import create_engine
@@ -38,7 +37,7 @@ def set_up_engine_and_table(url):
     return engine
 
 
-def test_sqlalchemy_session_pqsql(monkeypatch):
+def test_sqlalchemy_session_pqsql():
     engine = set_up_engine_and_table('postgresql://user:userpass@localhost:5432/db')
 
     # create a configured "Session" class
@@ -73,12 +72,12 @@ def test_sqlalchemy_session_pqsql(monkeypatch):
 
     tracer.clear()
 
-def test_sqlalchemy_connection_execute_pqsql(monkeypatch):
+def test_sqlalchemy_connection_execute_pqsql():
     engine = set_up_engine_and_table('postgresql://user:userpass@localhost:5432/db')
 
     query = "SELECT title FROM movies"
     connection = engine.connect()
-    result = connection.execute(query)
+    connection.execute(query)
 
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
@@ -97,12 +96,12 @@ def test_sqlalchemy_connection_execute_pqsql(monkeypatch):
 
     tracer.clear()
 
-def test_sqlalchemy_connection_execute_mysql(monkeypatch):
+def test_sqlalchemy_connection_execute_mysql():
     engine = set_up_engine_and_table('mysql+mysqlconnector://user:userpass@localhost:3306/db')
 
     query = "SELECT title FROM movies"
     connection = engine.connect()
-    result = connection.execute(query)
+    connection.execute(query)
 
     tracer = ThundraTracer.get_instance()
     span = tracer.get_spans()[0]
@@ -121,13 +120,13 @@ def test_sqlalchemy_connection_execute_mysql(monkeypatch):
 
     tracer.clear()
 
-def test_sqlalchemy_connection_execute_mysql_error(monkeypatch):
+def test_sqlalchemy_connection_execute_mysql_error():
     engine = set_up_engine_and_table('mysql+mysqlconnector://user:userpass@localhost:3306/db')
 
     query = "SELECT title FROM test"
     connection = engine.connect()
     try:
-        result = connection.execute(query)
+        connection.execute(query)
     except:
         pass
     tracer = ThundraTracer.get_instance()
@@ -149,12 +148,12 @@ def test_sqlalchemy_connection_execute_mysql_error(monkeypatch):
     tracer.clear()
 
 if not PY2:
-    def test_sqlalchemy_connection_execute_sqlite(monkeypatch):
+    def test_sqlalchemy_connection_execute_sqlite():
         engine = set_up_engine_and_table('sqlite:///:memory:')
 
         query = "SELECT title FROM movies"
         connection = engine.connect()
-        result = connection.execute(query)
+        connection.execute(query)
 
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[0]

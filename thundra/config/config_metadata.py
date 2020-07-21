@@ -127,8 +127,7 @@ CONFIG_METADATA = {
         'defaultValue': 300000,
     },
     config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ: {
-        'type': 'int',
-        'defaultValue': 100,
+        'type': 'int'
     },
     config_names.THUNDRA_TRACE_INTEGRATIONS_DISABLE: {
         'type': 'string',

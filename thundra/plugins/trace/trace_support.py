@@ -11,6 +11,9 @@ except ImportError:
 from thundra import constants
 from thundra.listeners import ThundraSpanListener
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
+
 logger = logging.getLogger(__name__)
 
 _active_span_listeners = []
@@ -57,8 +60,9 @@ def parse_span_listeners():
     # Clear before parsing to prevent appending duplicate span listeners
     clear_span_listeners()
     # Add span listeners configured using environment variables
-    for env_k, env_v in os.environ.items():
-        if env_k.startswith(constants.THUNDRA_LAMBDA_SPAN_LISTENER):
+    for env_k in ConfigProvider.configs:
+        env_v = ConfigProvider.get(env_k)
+        if env_k.startswith(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG):
             try:
                 # Not in JSON format. Should be zipped + encoded. Decode + unzip it
                 if not env_v.startswith('{'):

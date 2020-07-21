@@ -1,9 +1,10 @@
-import os
 import mysql.connector
 from mysql.connector.errors import Error as MySQLError
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 def test_mysql_integration():
     query = "SELECT 1 + 1 AS solution"
@@ -37,8 +38,8 @@ def test_mysql_integration():
         tracer.clear()
         connection.close()
 
-def test_mysql_integration_mask_statement(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_RDB_STATEMENT, 'true')
+def test_mysql_integration_mask_statement():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK, 'true')
 
     query = "SELECT 1 + 1 AS solution"
     connection = mysql.connector.connect(

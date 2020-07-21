@@ -1,4 +1,3 @@
-import time
 import mock
 from thundra.listeners import LatencyInjectorSpanListener
 from thundra.opentracing.tracer import ThundraTracer

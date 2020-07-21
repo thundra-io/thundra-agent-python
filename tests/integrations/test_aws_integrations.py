@@ -1,13 +1,10 @@
-import os
 import mock
 import boto3
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import BotoCoreError
 from botocore.errorfactory import ClientError
 from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.invocation import invocation_support
 
-from thundra import constants
 from thundra.integrations.botocore import *
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
@@ -102,8 +99,8 @@ def test_dynamodb():
         tracer.clear()
 
 
-def test_dynamodb_put_item(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.ENABLE_DYNAMODB_TRACE_INJECTION, 'true')
+def test_dynamodb_put_item():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
 
     try:
         item = {
@@ -136,8 +133,8 @@ def test_dynamodb_put_item(monkeypatch):
         tracer.clear()
 
 
-def test_dynamodb_put_item_resource(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.ENABLE_DYNAMODB_TRACE_INJECTION, 'true')
+def test_dynamodb_put_item_resource():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
 
     try:
         item = {
@@ -171,8 +168,8 @@ def test_dynamodb_put_item_resource(monkeypatch):
         tracer.clear()
 
 
-def test_dynamodb_statement_mask(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_DYNAMODB_STATEMENT, 'true')
+def test_dynamodb_statement_mask():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK, 'true')
     try:
         # Make a request over the table
         dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
@@ -345,9 +342,9 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event,
-                               mock_context, monkeypatch):
+                               mock_context):
     mock_actual_call.return_value = mock_lambda_response
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_LAMBDA_PAYLOAD, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK, 'true')
 
     def handler(event, context):
         lambdaFunc = boto3.client('lambda', region_name='us-west-2')
@@ -405,9 +402,9 @@ def test_sqs(mock_actual_call, mock_sqs_response):
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_sqs_message_masked(mock_actual_call, mock_sqs_response, monkeypatch):
+def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
     mock_actual_call.return_value = mock_sqs_response
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_SQS_MESSAGE, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK, 'true')
     try:
         sqs = boto3.client('sqs', region_name='us-west-2')
         sqs.send_message(
@@ -456,9 +453,9 @@ def test_sns(mock_actual_call, mock_sns_response):
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_sns_message_masked(mock_actual_call, mock_sns_response, monkeypatch):
+def test_sns_message_masked(mock_actual_call, mock_sns_response):
     mock_actual_call.return_value = mock_sns_response
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_SNS_MESSAGE, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK, 'true')
 
     try:
         sns = boto3.client('sns', region_name='us-west-2')
@@ -656,7 +653,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
 
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.start_query_execution(
+        client.start_query_execution(
             QueryString=query,
             QueryExecutionContext={
                 'Database': database
@@ -682,8 +679,8 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
         tracer.clear()
 
 
-def test_athena_statement_masked(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_ATHENA_STATEMENT, 'true')
+def test_athena_statement_masked():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK, 'true')
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
@@ -694,7 +691,7 @@ def test_athena_statement_masked(monkeypatch):
 
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.start_query_execution(
+        client.start_query_execution(
             QueryString=query,
             QueryExecutionContext={
                 'Database': database
@@ -725,7 +722,7 @@ def test_athena_stop_query_execution():
     query_execution_id = "98765432-1111-1111-1111-12345678910"
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.stop_query_execution(
+        client.stop_query_execution(
             QueryExecutionId=query_execution_id
         )
     except Exception as e:
@@ -749,7 +746,7 @@ def test_athena_batch_get_named_query():
 
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.batch_get_named_query(
+        client.batch_get_named_query(
             NamedQueryIds=[
                 'test',
             ]
@@ -776,7 +773,7 @@ def test_athena_batch_get_query_execution():
 
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.batch_get_query_execution(
+        client.batch_get_query_execution(
             QueryExecutionIds=[
                 'test',
                 'test2'
@@ -808,7 +805,7 @@ def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_qu
 
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.create_named_query(
+        client.create_named_query(
             QueryString=query,
             Database="test",
             Name="test",
@@ -836,7 +833,7 @@ def test_athena_delete_named_query():
     tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.delete_named_query(
+        client.delete_named_query(
             NamedQueryId='98765432-1111-1111-1111-12345678910'
         )
 
@@ -863,7 +860,7 @@ def test_athena_get_named_query():
     tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.get_named_query(
+        client.get_named_query(
             NamedQueryId='98765432-1111-1111-1111-12345678910'
         )
 
@@ -890,7 +887,7 @@ def test_athena_get_query_execution():
     tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.get_query_execution(
+        client.get_query_execution(
             QueryExecutionId='98765432-1111-1111-1111-12345678910'
         )
     except Exception as e:
@@ -917,7 +914,7 @@ def test_athena_get_query_results():
     tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.get_query_results(
+        client.get_query_results(
             QueryExecutionId='98765432-1111-1111-1111-12345678910'
         )
     except Exception as e:
@@ -992,7 +989,7 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
     tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
-        response = client.list_query_executions(
+        client.list_query_executions(
             NextToken='string',
             MaxResults=123,
             WorkGroup='string'
@@ -1026,7 +1023,7 @@ def test_ses_send_email():
     try:
         # Test with a non traced service client
         client = boto3.client('ses', region_name='us-west-2')
-        response = client.send_email(
+        client.send_email(
             Source=sender,
             Destination={
                 'ToAddresses': [
@@ -1076,7 +1073,7 @@ def test_ses_send_raw_email():
     try:
         # Test with a non traced service client
         client = boto3.client('ses', region_name='us-west-2')
-        response = client.send_raw_email(
+        client.send_raw_email(
             Source=sender,
             Destinations=[
                 recipient
@@ -1116,7 +1113,7 @@ def test_ses_send_templated_email():
     try:
         # Test with a non traced service client
         client = boto3.client('ses', region_name='us-west-2')
-        response = client.send_templated_email(
+        client.send_templated_email(
             Source=sender,
             Destination={
                 'ToAddresses': [
@@ -1151,7 +1148,7 @@ def test_default_aws_service():
     try:
         # Test with a non traced service client
         client = boto3.client('mediastore', region_name='us-west-2')
-        response = client.create_container(
+        client.create_container(
             ContainerName='string'
         )
     except Exception as e:
@@ -1167,9 +1164,6 @@ def test_default_aws_service():
 
 
 def test_get_operation_type():
-    class_name = "AWS-Lambda"
-    operation_name = "ListTags"
-
     assert get_operation_type("AWS-Lambda" , "ListTags") == "READ"
     assert get_operation_type("AWS-S3" , "PutAccountPublicAccessBlock") == "PERMISSION"
     assert get_operation_type("AWSService" , "CreateContainer") == "WRITE"

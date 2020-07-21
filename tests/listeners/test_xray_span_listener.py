@@ -1,5 +1,4 @@
 import mock
-import pytest
 from thundra.listeners import AWSXRayListener
 
 

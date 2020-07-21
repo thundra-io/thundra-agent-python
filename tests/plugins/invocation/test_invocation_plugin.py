@@ -79,8 +79,8 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
             invocation_plugin = plugin
 
     try:
-        response = handler(mock_event, mock_context)
-    except Exception as e:
+        handler(mock_event, mock_context)
+    except Exception:
         pass
 
     assert invocation_plugin.invocation_data['tags']['aws.lambda.arn'] == 'arn:aws:lambda:us-west-2:123456789123:function:test'

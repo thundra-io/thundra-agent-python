@@ -1,13 +1,13 @@
 import os
-import pytest
 from elasticsearch import Elasticsearch, ElasticsearchException
 
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
-
-def test_create_index(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
+def test_create_index():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
         author1 = {"name": "Sidney Sheldon", "novels_count": 18}
@@ -36,8 +36,8 @@ def test_create_index(monkeypatch):
 
 
 
-def test_get_doc(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
+def test_get_doc():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
     try:
         es = Elasticsearch(['one_host', 'another_host'], max_retries=0)
         es.get(index='test-index', doc_type='tweet', id=1)
@@ -69,8 +69,8 @@ def test_get_doc(monkeypatch):
         assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
-def test_refresh(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '2')
+def test_refresh():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '2')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
         res = es.indices.refresh(index='test-index')
@@ -99,12 +99,12 @@ def test_refresh(monkeypatch):
 
 
 def test_mask_body(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_ES_BODY, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK, 'true')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
         author1 = {"name": "Sidney Sheldon", "novels_count": 18}
         es.index(index='authors', doc_type='authors', body=author1, id=1)
-    except ElasticsearchException as e:
+    except ElasticsearchException:
         pass
     finally:
         tracer = ThundraTracer.get_instance()
