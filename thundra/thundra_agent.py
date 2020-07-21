@@ -9,7 +9,7 @@ from thundra.plugins.log.log_plugin import LogPlugin
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.plugins.metric.metric_plugin import MetricPlugin
-from thundra import constants, application_support
+from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.integrations import handler_wrappers
 from thundra.plugins.log.thundra_logger import debug_logger
@@ -18,6 +18,11 @@ from thundra.timeout import Timeout
 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+
+from thundra.application.application_manager import ApplicationManager
+from thundra.aws_lambda.lambda_application_info_provider import LambdaApplicationInfoProvider
+from thundra.aws_lambda.lambda_context_provider import LambdaContextProvider
+
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +39,8 @@ class Thundra:
                  disable_log=True):
         constants.REQUEST_COUNT = 0
         self.plugins = []
-
+        ApplicationManager.set_application_info_provider(LambdaApplicationInfoProvider())
+        
         self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
@@ -51,7 +57,7 @@ class Thundra:
         if not ConfigProvider.get(config_names.THUNDRA_LOG_DISABLE, disable_log):
             self.plugins.append(LogPlugin())
 
-        self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN)
+        self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN, constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
         self.reporter = Reporter(self.api_key)
         self.debugger_process = None
 
@@ -76,7 +82,7 @@ class Thundra:
 
             # Clear plugin context for each invocation
             self.plugin_context = {'reporter': self.reporter}
-            application_support.parse_application_info(context)
+            LambdaContextProvider.set_context(context)
             invocation_support.parse_invocation_info(context)
 
             # Before running user's handler
@@ -172,7 +178,7 @@ class Thundra:
 
             start_time = time.time()
             debug_process_running = True
-            while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT)/1000) \
+            while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)/1000) \
                 and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
                     ptvsd.wait_for_attach(0.01)

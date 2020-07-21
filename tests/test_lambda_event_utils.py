@@ -10,7 +10,8 @@ try:
 except ImportError:
     from contextlib2 import ExitStack
 
-from thundra import lambda_event_utils, constants
+from thundra import constants
+from thundra.aws_lambda import lambda_event_utils
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins import invocation
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin

@@ -3,9 +3,9 @@ import time
 import uuid
 import simplejson as json
 from thundra import constants, utils
-from thundra import application_support
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.invocation import invocation_trace_support
+from thundra.application.application_manager import ApplicationManager
 
 
 class InvocationPlugin:
@@ -46,7 +46,7 @@ class InvocationPlugin:
         }
 
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         self.invocation_data.update(application_info)
 
     def set_start_time(self, plugin_context):

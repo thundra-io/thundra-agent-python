@@ -3,17 +3,15 @@ import hashlib
 import base64
 import simplejson as json
 import copy
-import re
 
 from dateutil.parser import parse
 from datetime import datetime
 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.application.application_manager import ApplicationManager
 import thundra.constants as constants
-from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
-from thundra.application_support import get_application_info
 
 import thundra.utils as utils
 
@@ -606,7 +604,7 @@ class AWSLambdaIntegration(BaseIntegration):
         if 'custom' in client_context:
             custom = client_context['custom']
 
-        application_info = get_application_info()
+        application_info = ApplicationManager.get_application_info()
 
         custom[constants.TRIGGER_DOMAIN_NAME_TAG] = application_info['applicationDomainName']
         custom[constants.TRIGGER_CLASS_NAME_TAG] = application_info['applicationClassName']

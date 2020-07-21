@@ -51,7 +51,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert trace_plugin.trace_data['applicationName'] == 'test_func'
     assert trace_plugin.trace_data['applicationId'] == 'aws:lambda:us-west-2:123456789123:test'
     assert trace_plugin.trace_data['applicationInstanceId'] == 'id'
-    assert trace_plugin.trace_data['applicationVersion'] == 'function_version'
+    assert trace_plugin.trace_data['applicationVersion'] == 'version'
     assert trace_plugin.trace_data['applicationRuntime'] == 'python'
 
 

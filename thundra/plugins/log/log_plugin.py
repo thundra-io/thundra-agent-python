@@ -5,13 +5,15 @@ import sys
 
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_log_handler import logs
-from thundra import constants, application_support
+from thundra import constants
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.plugins.log.thundra_logger import StreamToLogger
 from thundra.plugins.log import log_support
 from thundra.compat import PY37
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.application.application_manager import ApplicationManager
+
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ class LogPlugin:
             'transactionId': plugin_context.get('transaction_id'),
         }
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         self.log_data.update(application_info)
 
     def after_invocation(self, plugin_context):

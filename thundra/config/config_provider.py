@@ -1,7 +1,7 @@
 import os
- 
+
 from thundra.config.config_metadata import CONFIG_METADATA
-from thundra.utils import str2bool
+
 
 class ConfigProvider:
     configs = {}
@@ -66,10 +66,18 @@ class ConfigProvider:
         return ConfigProvider.str_to_proper_type(value)
 
     @staticmethod
+    def str2bool(val):
+        if val is not None:
+            if val.lower() in ("yes", "true", "t", "1"):
+                return True
+            elif val.lower() in ("no", "false", "f", "0"):
+                return False
+        raise ValueError
+
+    @staticmethod
     def str_to_proper_type(val):
-        result = val
         try:
-            result = str2bool(val)
+            result = ConfigProvider.str2bool(val)
         except ValueError:
             try:
                 result = int(val)
@@ -84,7 +92,7 @@ class ConfigProvider:
     @staticmethod
     def convert_to_bool(value, default=False):
         try:
-            return str2bool(value)
+            return ConfigProvider.str2bool(value)
         except ValueError:
             return default
 
@@ -106,7 +114,10 @@ class ConfigProvider:
     @staticmethod
     def clear():
         ConfigProvider.configs.clear()
-    
+
     @staticmethod
     def set(key, value):
         ConfigProvider.configs[key] = ConfigProvider.parse(value, ConfigProvider.get_config_type(key))
+
+
+ConfigProvider.__init__()

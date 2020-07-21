@@ -4,30 +4,13 @@ import re
 
 from thundra.compat import urlparse
 from thundra import constants
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 logger = logging.getLogger(__name__)
 
 def get_configuration(key, default=None):
     return os.environ.get(key, default)
-
-
-def get_application_instance_id(context):
-    aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, '')
-    try:
-        return aws_lambda_log_stream_name.split(']')[1]
-    except:
-        return ''
-
-def get_application_id(context):
-    arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, '')
-
-    region = get_aws_region_from_arn(arn)
-    account_no = 'sam_local' if sam_local_debugging() else get_aws_account_no(arn)
-    function_name = get_aws_funtion_name(arn)
-
-    application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
-    
-    return application_id_template.format(region=region, account_no=account_no, function_name=function_name)
 
 def get_aws_funtion_name(arn):
     return get_arn_part(arn, 6)
@@ -151,7 +134,7 @@ def str2bool(val):
     raise ValueError
 
 
-def process_trace_def_env_var(value):
+def process_trace_def_var(value):
     value = value.strip().split('[')
     path = value[0].split('.')
     trace_args = {}
@@ -296,6 +279,16 @@ def parse_http_url(url, url_path_depth):
     except Exception:
         pass
     return url_dict
+
+def parse_application_tags():
+    application_tags = {}
+    prefix_length = len(config_names.THUNDRA_APPLICATION_TAG_PREFIX)
+    for key in ConfigProvider.configs:
+        if key.startswith(config_names.THUNDRA_APPLICATION_TAG_PREFIX):
+            app_tag_key = key[prefix_length:]
+            val = ConfigProvider.get(key)
+            application_tags[app_tag_key] = val
+    return application_tags
 
 # Excluded url's 
 EXCLUDED_URLS = {

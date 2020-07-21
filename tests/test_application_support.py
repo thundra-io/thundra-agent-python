@@ -1,4 +1,4 @@
-from thundra import application_support
+from thundra import utils
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 
@@ -8,8 +8,7 @@ def test_if_can_get_integer_tag():
     (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 3773)
     ConfigProvider.set(env_key, str(env_val))
     
-    application_support.parse_application_tags()
-    application_tags = application_support.get_application_tags()
+    application_tags = utils.parse_application_tags()
 
     assert application_tags[tag_name] == env_val
 
@@ -18,8 +17,7 @@ def test_if_can_get_float_tag():
     (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 12.3221)
     ConfigProvider.set(env_key, str(env_val))
     
-    application_support.parse_application_tags()
-    application_tags = application_support.get_application_tags()
+    application_tags = utils.parse_application_tags()
 
     assert application_tags[tag_name] == env_val
 
@@ -28,8 +26,7 @@ def test_if_can_get_string_tag():
     (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 'fooBar')
     ConfigProvider.set(env_key, str(env_val))
     
-    application_support.parse_application_tags()
-    application_tags = application_support.get_application_tags()
+    application_tags = utils.parse_application_tags()
 
     assert application_tags[tag_name] == env_val
 
@@ -38,7 +35,6 @@ def test_if_can_get_bool_tag():
     (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, True)
     ConfigProvider.set(env_key, str(env_val))
     
-    application_support.parse_application_tags()
-    application_tags = application_support.get_application_tags()
+    application_tags = utils.parse_application_tags()
 
     assert application_tags[tag_name] == env_val

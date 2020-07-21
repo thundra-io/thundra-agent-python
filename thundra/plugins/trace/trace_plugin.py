@@ -6,7 +6,9 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.plugins.trace import trace_support
-from thundra import utils, constants, application_support, lambda_event_utils
+from thundra import utils, constants
+from thundra.aws_lambda import lambda_event_utils
+from thundra.application.application_manager import ApplicationManager
 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
@@ -50,7 +52,7 @@ class TracePlugin:
             'tags': {},
         }
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         self.trace_data.update(application_info)
         # Start root span
         self.scope = self.tracer.start_active_span(operation_name=invocation_support.function_name,
@@ -218,7 +220,7 @@ class TracePlugin:
         }
 
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         span_data.update(application_info)
 
         return span_data

@@ -19,6 +19,5 @@ def patch_modules():
         if _import_exists(module_name):
             module.patch()
 
-ConfigProvider.__init__()
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     patch_modules()
