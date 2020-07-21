@@ -239,7 +239,7 @@ def parse_x_ray_trace_info():
     return xray_info
 
 def get_nearest_collector():
-    region = get_configuration(constants.AWS_REGION, default="us-west-2")
+    region = get_configuration(constants.AWS_REGION)
 
     if region:
         return '{}.collector.thundra.io'.format(region)
