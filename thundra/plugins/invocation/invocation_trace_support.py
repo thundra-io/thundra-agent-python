@@ -20,9 +20,9 @@ class Resource:
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
-        self.resource_trace_links = set() 
-        if span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']):
-            self.resource_trace_links = set(span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']))
+        self.resource_trace_links = set()
+        if hasattr(span, 'resource_trace_links'):
+            self.resource_trace_links = set(span.resource_trace_links)       
     
     def accept(self, span):
         return (
@@ -53,8 +53,8 @@ class Resource:
         if span.get_duration() > self.resource_max_duration:
             self.resource_max_duration = span.get_duration()
 
-        if self.resource_trace_links and span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']):
-            self.resource_trace_links.update(span.get_tag(constants.SpanTags['RESOURCE_TRACE_LINKS']))
+        if self.resource_trace_links and hasattr(span, 'resource_trace_links'):
+            self.resource_trace_links.update(span.resource_trace_links)
 
     def to_dict(self):
         resource = {

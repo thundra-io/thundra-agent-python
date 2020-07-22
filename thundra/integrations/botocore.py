@@ -719,12 +719,13 @@ class AWSStepFunctionIntegration(BaseIntegration):
                 scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_INPUT'], orig_input)
                 request_data['input'] = json.dumps(parsed_input)
                 scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [trace_link])
-                scope.span.set_tag(constants.SpanTags['RESOURCE_TRACE_LINKS'], [trace_link])
+                scope.span.resource_trace_links = [trace_link]
         except:
             pass
 
         if len(args) > 0:
             scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
+            scope.span.set_tag(constants.SpanTags['OPERATION_TYPE'], get_operation_type(scope.span.class_name, args[0]))
 
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
         scope.span.set_tag(constants.AwsStepFunctionsTags['STATE_MACHINE_ARN'], state_machine_arn)

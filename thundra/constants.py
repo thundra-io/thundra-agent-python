@@ -130,7 +130,7 @@ DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_lambda_trace_integrations_aws_la
 THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH = "thundra_agent_lambda_trace_integrations_http_url_depth"
 THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH = "thundra_agent_lambda_trace_integrations_elasticsearch_path_depth"
 
-THUNDRA_ENABLE_RESPONSE_TRACE_INJECTION = 'thundra_agent_lambda_response_trace_injection_enable'
+THUNDRA_AGENT_LAMBDA_AWS_STEPFUNCTIONS = 'thundra_agent_lambda_aws_stepfunctions'
 
 THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE = 'thundra_agent_lambda_debugger_enable'
 THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT = 'thundra_agent_lambda_debugger_port'
@@ -766,6 +766,9 @@ OperationTypeMappings = {
             'CloneReceiptRuleSet': 'WRITE',
             'ReorderReceiptRuleSet': 'WRITE',
             'TestRenderTemplate': 'WRITE',
+        },
+        'AWS-StepFunctions': {
+            'StartExecution': 'EXECUTE'
         }
     },
     'patterns': OrderedDict([

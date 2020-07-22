@@ -105,21 +105,6 @@ class Thundra:
                             self.start_debugger_tracing()
 
                         response = original_func(event, context)
-                        try:
-                            if config.is_response_trace_injection_enabled():
-                                trace_link = str(uuid.uuid4())
-                                self.plugin_context['response_trace_link'] = trace_link
-                                step = 0
-                                if '_thundra' in event:
-                                    step = event['_thundra']['step']
-
-                                if isinstance(response, dict):
-                                    response['_thundra'] = {
-                                        'trace_link': trace_link,
-                                        'step': step + 1
-                                    }
-                        except Exception as e:
-                            print(e)
                         self.plugin_context['response'] = response
                 except Exception as e:
                     try:

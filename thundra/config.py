@@ -222,8 +222,8 @@ def elasticsearch_integration_path_depth():
 def http_error_status_code_min():
     return int_from_env(constants.THUNDRA_HTTP_ERROR_STATUS_CODE_MIN, 400)
 
-def is_response_trace_injection_enabled():
-    return bool_from_env(constants.THUNDRA_ENABLE_RESPONSE_TRACE_INJECTION)
+def is_step_function():
+    return bool_from_env(constants.THUNDRA_AGENT_LAMBDA_AWS_STEPFUNCTIONS)
 
 def debugger_enabled():
     enable_debug = bool_from_env(constants.THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE, default=None)
