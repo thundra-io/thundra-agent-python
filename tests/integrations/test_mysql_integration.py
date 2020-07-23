@@ -32,8 +32,6 @@ def test_mysql_integration():
         assert mysql_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -66,8 +64,6 @@ def test_mysql_integration_mask_statement():
         assert mysql_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == None
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -98,8 +94,6 @@ def test_mysql_integration_with_empty_query():
         assert mysql_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == ''
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == ''
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -129,8 +123,6 @@ def test_mysql_integration_callproc():
         assert mysql_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == 'multiply'
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'MULTIPLY'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert mysql_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()

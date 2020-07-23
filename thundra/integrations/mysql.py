@@ -36,12 +36,7 @@ class MysqlIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['DB_HOST']: connection._host,
             constants.SpanTags['DB_TYPE']: "mysql",
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: "AWS-Lambda",
-            constants.SpanTags['TRIGGER_CLASS_NAME']: "API",
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME
         }
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK):

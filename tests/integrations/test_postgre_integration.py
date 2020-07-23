@@ -33,8 +33,6 @@ def test_postgre_integration():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -67,8 +65,6 @@ def test_postgre_integration_mask_statement():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == None
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -99,8 +95,6 @@ def test_postgre_integration_with_empty_query():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == ''
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == ''
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -130,8 +124,6 @@ def test_postgre_integration_callproc():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == 'multiply'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'MULTIPLY'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()

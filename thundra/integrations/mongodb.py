@@ -58,9 +58,6 @@ class CommandTracer(CommandListener):
                 constants.SpanTags['DB_INSTANCE']: event.database_name,
                 constants.MongoDBTags['MONGODB_COMMAND_NAME']: command_name.upper(),
                 constants.MongoDBTags['MONGODB_COLLECTION']: collection_name,
-                constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-                constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-                constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
                 constants.SpanTags['TOPOLOGY_VERTEX']: True,
             }
 

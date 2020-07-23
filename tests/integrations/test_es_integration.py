@@ -28,10 +28,7 @@ def test_create_index():
         assert span.get_tag(constants.ESTags['ES_BODY']) == author1
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
-        
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
+
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
 
@@ -64,9 +61,6 @@ def test_get_doc():
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
         
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
 def test_refresh():
@@ -91,10 +85,7 @@ def test_refresh():
         assert span.get_tag(constants.ESTags['ES_BODY']) == {}
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
-        
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
+
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
 

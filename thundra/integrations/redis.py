@@ -33,9 +33,6 @@ class RedisIntegration(BaseIntegration):
             constants.RedisTags['REDIS_HOST']: host,
             constants.RedisTags['REDIS_PORT']: port,
             constants.RedisTags['REDIS_COMMAND_TYPE']: command_type,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 

@@ -67,8 +67,6 @@ def test_sqlalchemy_session_pqsql():
     assert span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == statement
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'INSERT'
-    assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-    assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
     tracer.clear()
 
@@ -91,8 +89,6 @@ def test_sqlalchemy_connection_execute_pqsql():
     assert span.get_tag(constants.SpanTags['DB_TYPE']) == "postgresql"
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-    assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-    assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
     tracer.clear()
 
@@ -115,8 +111,6 @@ def test_sqlalchemy_connection_execute_mysql():
     assert span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-    assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-    assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
     tracer.clear()
 
@@ -141,8 +135,6 @@ def test_sqlalchemy_connection_execute_mysql_error():
     assert span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-    assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-    assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
     assert span.get_tag("error") == True
 
     tracer.clear()
@@ -167,8 +159,6 @@ if not PY2:
         assert span.get_tag(constants.SpanTags['DB_HOST']) == ''
         assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
 

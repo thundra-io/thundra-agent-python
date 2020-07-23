@@ -28,9 +28,6 @@ async def on_request_start(session, trace_config_ctx, params):
             constants.HttpTags['HTTP_PATH']: url_dict.get('path'),
             constants.HttpTags['HTTP_HOST']: url_dict.get('host'),
             constants.HttpTags['QUERY_PARAMS']: url_dict.get('query'),
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 

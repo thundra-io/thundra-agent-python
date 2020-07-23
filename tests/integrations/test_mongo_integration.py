@@ -30,9 +30,6 @@ if not PY2:
         assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
         assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'INSERT'
 
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
         mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
@@ -67,9 +64,6 @@ if not PY2:
         assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
         assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'UPDATE'
 
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
         mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
@@ -102,9 +96,6 @@ if not PY2:
         assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
         assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'FIND'
 
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
         assert span.get_tag('error') == True
