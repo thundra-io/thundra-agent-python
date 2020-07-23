@@ -4,6 +4,7 @@ import logging
 from thundra import config, constants
 from thundra.opentracing.tracer import ThundraTracer
 
+
 _incoming_trace_links = []
 
 logger = logging.getLogger(__name__)
@@ -21,8 +22,8 @@ class Resource:
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
         self.resource_trace_links = set()
-        if hasattr(span, 'resource_trace_links'):
-            self.resource_trace_links = set(span.resource_trace_links)       
+        if hasattr(span, 'resource_trace_links') and hasattr(span.resource_trace_links, '__iter__'):
+            self.resource_trace_links = set(span.resource_trace_links)
     
     def accept(self, span):
         return (
@@ -53,7 +54,7 @@ class Resource:
         if span.get_duration() > self.resource_max_duration:
             self.resource_max_duration = span.get_duration()
 
-        if self.resource_trace_links and hasattr(span, 'resource_trace_links'):
+        if self.resource_trace_links and hasattr(span, 'resource_trace_links') and hasattr(span.resource_trace_links, '__iter__'):
             self.resource_trace_links.update(span.resource_trace_links)
 
     def to_dict(self):
