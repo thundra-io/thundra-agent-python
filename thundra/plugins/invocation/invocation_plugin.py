@@ -84,7 +84,6 @@ class InvocationPlugin:
             event = plugin_context['request']
             if config.is_step_function():
                 trace_link = str(uuid.uuid4())
-                plugin_context['response_trace_link'] = trace_link
                 step = 0
                 if '_thundra' in event:
                     step = event['_thundra']['step']
@@ -94,7 +93,7 @@ class InvocationPlugin:
                         'trace_link': trace_link,
                         'step': step + 1
                     }
-                outgoing_trace_links["outgoingTraceLinks"].append(plugin_context['response_trace_link'])
+                outgoing_trace_links["outgoingTraceLinks"].append(trace_link)
         except Exception as e:
             print(e)
 
