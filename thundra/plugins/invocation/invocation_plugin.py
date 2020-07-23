@@ -79,9 +79,9 @@ class InvocationPlugin:
         return status_code
 
     def inject_step_function_info(self, plugin_context, outgoing_trace_links):
-        response = plugin_context['response']
-        event = plugin_context['request']
         try:
+            response = plugin_context['response']
+            event = plugin_context['request']
             if config.is_step_function():
                 trace_link = str(uuid.uuid4())
                 plugin_context['response_trace_link'] = trace_link
