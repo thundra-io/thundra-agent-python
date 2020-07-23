@@ -4,6 +4,7 @@ import logging
 from thundra import config, constants
 from thundra.opentracing.tracer import ThundraTracer
 
+
 _incoming_trace_links = []
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,9 @@ class Resource:
         self.error_types = set([span.get_tag('error.kind')]) if span.errorneous() else set()
         self.duration = span.get_duration()
         self.resource_max_duration = self.duration
+        self.resource_trace_links = set()
+        if hasattr(span, 'resource_trace_links') and hasattr(span.resource_trace_links, '__iter__'):
+            self.resource_trace_links = set(span.resource_trace_links)
     
     def accept(self, span):
         return (
@@ -50,8 +54,11 @@ class Resource:
         if span.get_duration() > self.resource_max_duration:
             self.resource_max_duration = span.get_duration()
 
+        if self.resource_trace_links and hasattr(span, 'resource_trace_links') and hasattr(span.resource_trace_links, '__iter__'):
+            self.resource_trace_links.update(span.resource_trace_links)
+
     def to_dict(self):
-        return {
+        resource = {
             'resourceType': self.type,
             'resourceName': self.name,
             'resourceOperation': self.operation,
@@ -64,6 +71,9 @@ class Resource:
             'resourceMaxDuration': self.resource_max_duration,
             'resourceAvgDuration': self.duration / self.count
         }
+        if self.resource_trace_links:
+            resource['resourceTraceLinks'] = list(self.resource_trace_links)
+        return resource
 
 
 def resource_id(span, resource_name=None):
@@ -107,6 +117,7 @@ def get_resources(plugin_context):
                         resources[rid] = Resource(span)
                     else:
                         resources[rid].merge(span)
+
 
         return {
             'resources': [r.to_dict() for r in resources.values()]

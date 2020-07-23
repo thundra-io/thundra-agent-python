@@ -1166,12 +1166,35 @@ def test_default_aws_service():
         tracer.clear()
 
 
+def test_sfn():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        client = boto3.client('stepfunctions', region_name='us-west-2')
+        response = client.start_execution(
+            stateMachineArn='string',
+            name='string',
+            input='{}'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-StepFunctions'
+        assert span.domain_name == 'AWS'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartExecution'
+        assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'sfn'
+
+        tracer.clear()
+
+
 def test_get_operation_type():
     class_name = "AWS-Lambda"
     operation_name = "ListTags"
 
-    assert get_operation_type("AWS-Lambda" , "ListTags") == "READ"
-    assert get_operation_type("AWS-S3" , "PutAccountPublicAccessBlock") == "PERMISSION"
-    assert get_operation_type("AWSService" , "CreateContainer") == "WRITE"
-    assert get_operation_type("InvalidService" , "InvalidOperation") == ""
-    assert get_operation_type("AWS-SSM" , "DescribeDocumentPermission") == "READ"
+    assert get_operation_type("AWS-Lambda", "ListTags") == "READ"
+    assert get_operation_type("AWS-S3", "PutAccountPublicAccessBlock") == "PERMISSION"
+    assert get_operation_type("AWSService", "CreateContainer") == "WRITE"
+    assert get_operation_type("InvalidService", "InvalidOperation") == ""
+    assert get_operation_type("AWS-SSM", "DescribeDocumentPermission") == "READ"

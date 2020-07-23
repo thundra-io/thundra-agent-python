@@ -19,7 +19,7 @@ THUNDRA_AGENT_VERSION = __version__
 
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
-LAMBDA_APPLICATION_PLATFORM = 'AWS Lambda'
+LAMBDA_FUNCTION_PLATFORM = 'AWS Lambda'
 THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra_agent_lambda_timeout_margin'
 THUNDRA_LAMBDA_REPORT_REST_BASEURL = 'thundra_agent_lambda_report_rest_baseUrl'
 THUNDRA_LAMBDA_REPORT_REST_COMPOSITE_ENABLED = 'thundra_agent_lambda_report_rest_composite_enable'
@@ -130,6 +130,8 @@ DISABLE_LAMBDA_TRACE_INJECTION = 'thundra_agent_lambda_trace_integrations_aws_la
 THUNDRA_AGENT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH = "thundra_agent_lambda_trace_integrations_http_url_depth"
 THUNDRA_AGENT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH = "thundra_agent_lambda_trace_integrations_elasticsearch_path_depth"
 
+THUNDRA_AGENT_LAMBDA_AWS_STEPFUNCTIONS = 'thundra_agent_lambda_aws_stepfunctions'
+
 THUNDRA_AGENT_LAMBDA_DEBUGGER_ENABLE = 'thundra_agent_lambda_debugger_enable'
 THUNDRA_AGENT_LAMBDA_DEBUGGER_PORT = 'thundra_agent_lambda_debugger_port'
 THUNDRA_AGENT_LAMBDA_DEBUGGER_WAIT_MAX = 'thundra_agent_lambda_debugger_wait_max'
@@ -189,6 +191,7 @@ ClassNames = {
     'SQLALCHEMY': 'SQLALCHEMY',
     'SQLITE': 'SQLITE',
     'ATHENA': 'AWS-Athena',
+    'STEPFUNCTIONS': 'AWS-StepFunctions',
     'EVENTBRIDGE': 'AWS-EventBridge',
     'SES': 'AWS-SES'
 }
@@ -226,7 +229,8 @@ SpanTags = {
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type',
     'TRACE_LINKS': 'trace.links',
-    'RESOURCE_NAMES': 'resource.names'
+    'RESOURCE_NAMES': 'resource.names',
+    'RESOURCE_TRACE_LINKS': 'resource.trace.links'
 }
 
 SecurityTags = {
@@ -246,6 +250,14 @@ AwsSDKTags = {
     'SERVICE_NAME': 'aws.service.name',
     'REQUEST_NAME': 'aws.request.name',
     'HOST': 'host',
+}
+
+AwsStepFunctionsTags = {
+    'STATE_MACHINE_ARN': 'aws.sf.state_machine.arn',
+    'EXECUTION_NAME': 'aws.sf.execution.name',
+    'EXECUTION_INPUT': 'aws.sf.execution.input',
+    'EXECUTION_ARN': 'aws.sf.execution.arn',
+    'EXECUTION_START_DATE': 'aws.sf.execution.start_date'
 }
 
 AwsSQSTags = {
@@ -754,6 +766,9 @@ OperationTypeMappings = {
             'CloneReceiptRuleSet': 'WRITE',
             'ReorderReceiptRuleSet': 'WRITE',
             'TestRenderTemplate': 'WRITE',
+        },
+        'AWS-StepFunctions': {
+            'StartExecution': 'EXECUTE'
         }
     },
     'patterns': OrderedDict([

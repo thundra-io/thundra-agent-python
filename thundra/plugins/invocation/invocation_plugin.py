@@ -2,7 +2,7 @@ import math
 import time
 import uuid
 import simplejson as json
-from thundra import constants, utils
+from thundra import constants, utils, config
 from thundra import application_support
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.invocation import invocation_trace_support
@@ -78,6 +78,25 @@ class InvocationPlugin:
             return None
         return status_code
 
+    def inject_step_function_info(self, plugin_context, outgoing_trace_links):
+        try:
+            response = plugin_context['response']
+            event = plugin_context['request']
+            if config.is_step_function():
+                trace_link = str(uuid.uuid4())
+                step = 0
+                if '_thundra' in event:
+                    step = event['_thundra']['step']
+
+                if isinstance(response, dict):
+                    response['_thundra'] = {
+                        'trace_link': trace_link,
+                        'step': step + 1
+                    }
+                outgoing_trace_links["outgoingTraceLinks"].append(trace_link)
+        except Exception as e:
+            print(e)
+
     def after_invocation(self, plugin_context):
         self.set_end_time(plugin_context)
 
@@ -106,6 +125,10 @@ class InvocationPlugin:
 
         # Get outgoing trace links
         outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
+
+        # Inject trace link to response and add it to outgoing trace links
+        self.inject_step_function_info(plugin_context, outgoing_trace_links)
+
         self.invocation_data.update(outgoing_trace_links)
 
         # Check errors

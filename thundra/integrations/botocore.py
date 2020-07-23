@@ -3,6 +3,7 @@ import hashlib
 import base64
 import simplejson as json
 import copy
+import uuid
 import re
 
 from dateutil.parser import parse
@@ -682,6 +683,68 @@ class AWSServiceIntegration(BaseIntegration):
 
         scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
 
+
+class AWSStepFunctionIntegration(BaseIntegration):
+    CLASS_TYPE = 'sfn'
+
+    def __init__(self):
+        pass
+
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        state_machine_arn = request_data.get('stateMachineArn')
+        if state_machine_arn:
+            return state_machine_arn.split(':')[-1]
+        return constants.AWS_SERVICE_REQUEST
+
+    def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        scope.span.domain_name = constants.DomainNames['AWS']
+        scope.span.class_name = constants.ClassNames['STEPFUNCTIONS']
+
+        _, request_data = args
+        state_machine_arn = request_data.get('stateMachineArn', '')
+        execution_name = request_data.get('name', '')
+
+        service_name = instance.__class__.__name__.lower()
+
+        try:
+            orig_input = request_data.get('input', None)
+            if orig_input != None:
+                parsed_input = json.loads(orig_input)
+                trace_link = str(uuid.uuid4())
+                parsed_input['_thundra'] = {
+                    "trace_link": trace_link,
+                    "step": 0
+                }
+                scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_INPUT'], orig_input)
+                request_data['input'] = json.dumps(parsed_input)
+                scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [trace_link])
+                scope.span.resource_trace_links = [trace_link]
+        except:
+            pass
+
+        if len(args) > 0:
+            scope.span.set_tag(constants.AwsSDKTags['REQUEST_NAME'], args[0])
+            scope.span.set_tag(constants.SpanTags['OPERATION_TYPE'], get_operation_type(scope.span.class_name, args[0]))
+
+        scope.span.set_tag(constants.AwsSDKTags['SERVICE_NAME'], service_name)
+        scope.span.set_tag(constants.AwsStepFunctionsTags['STATE_MACHINE_ARN'], state_machine_arn)
+        scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_NAME'], execution_name)
+
+        scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
+        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
+        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
+
+    def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
+        super(AWSStepFunctionIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
+        scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_ARN'], response.get('executionArn', ''))
+        try:
+            if response.get('startDate'):
+                start_date_str = response.get('startDate').isoformat()
+                scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_START_DATE'], start_date_str)
+        except:
+            pass
 
 class AWSAthenaIntegration(BaseIntegration):
     CLASS_TYPE = 'athena'
