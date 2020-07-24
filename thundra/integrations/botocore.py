@@ -707,9 +707,6 @@ class AWSStepFunctionIntegration(BaseIntegration):
         scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_NAME'], execution_name)
 
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [invocation_support.function_name])
-        scope.span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], constants.LAMBDA_APPLICATION_DOMAIN_NAME)
-        scope.span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], constants.LAMBDA_APPLICATION_CLASS_NAME)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSStepFunctionIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)

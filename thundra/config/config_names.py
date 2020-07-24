@@ -22,7 +22,6 @@ THUNDRA_APPLICATION_TAG_PREFIX = 'thundra.agent.application.tag.'
 #############################################################################
 
 THUNDRA_REPORT_REST_BASEURL = 'thundra.agent.report.rest.baseurl'
-THUNDRA_REPORT_REST_TRUSTALLCERTIFICATES = 'thundra.agent.report.rest.trustallcertificates'
 THUNDRA_REPORT_CLOUDWATCH_ENABLE = 'thundra.agent.report.cloudwatch.enable'
 THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE = 'thundra.agent.report.rest.composite.batchsize'
 THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra.agent.report.cloudwatch.composite.batchsize'
@@ -51,7 +50,6 @@ THUNDRA_LAMBDA_AWS_STEPFUNCTIONS = 'thundra.agent.lambda.aws.stepfunctions'
 
 THUNDRA_TRACE_INSTRUMENT_DISABLE = 'thundra.agent.trace.instrument.disable'
 THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG = 'thundra.agent.trace.instrument.traceableconfig'
-THUNDRA_TRACE_INSTRUMENT_FILE_PREFIX = 'thundra.agent.trace.instrument.file.prefix'
 
 #############################################################################
 
@@ -63,10 +61,6 @@ THUNDRA_SAMPLER_TIMEAWARE_TIMEFREQ = 'thundra.agent.sampler.timeaware.timefreq'
 THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ = 'thundra.agent.sampler.countaware.countfreq'
 
 #############################################################################
-
-THUNDRA_TRACE_INTEGRATIONS_DISABLE = 'thundra.agent.trace.integrations.disable'
-
-THUNDRA_TRACE_INTEGRATIONS_AWS_INSTRUMENT_ON_LOAD = 'thundra.agent.trace.integrations.aws.instrument.onload'
 
 THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK = 'thundra.agent.trace.integrations.aws.sns.message.mask'
 THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_TRACEINJECTION_DISABLE = 'thundra.agent.trace.integrations.aws.sns.traceinjection.disable'
@@ -85,12 +79,9 @@ THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK = 'thundra.agent.trace.inte
 THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK = 'thundra.agent.trace.integrations.http.body.mask'
 THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH = 'thundra.agent.trace.integrations.http.url.depth'
 THUNDRA_TRACE_INTEGRATIONS_HTTP_TRACEINJECTION_DISABLE = 'thundra.agent.trace.integrations.http.traceinjection.disable'
-THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_ON_4XX_DISABLE = 'thundra.agent.trace.integrations.http.error.on4xx.disable'
-THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_ON_5XX_DISABLE = 'thundra.agent.trace.integrations.http.error.on5xx.disable'
 THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN = 'thundra.agent.trace.integrations.http.error.status.code.min'
 
 THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK = 'thundra.agent.trace.integrations.redis.command.mask'
-
 THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK = 'thundra.agent.trace.integrations.rdb.statement.mask'
 
 THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK = 'thundra.agent.trace.integrations.elasticsearch.body.mask'
@@ -101,7 +92,6 @@ THUNDRA_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK = 'thundra.agent.trace.integrati
 THUNDRA_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK = 'thundra.agent.trace.integrations.aws.eventbridge.detail.mask'
 
 THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_MASK = 'thundra.agent.trace.integrations.aws.ses.mail.mask'
-
 THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_DESTINATION_MASK = 'thundra.agent.trace.integrations.aws.ses.mail.destination.mask'
 
 THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE = 'thundra.agent.trace.integrations.http.disable'

@@ -51,10 +51,6 @@ CONFIG_METADATA = {
         'type': 'string',
         'defaultValue': 'https://api.thundra.io/v1',
     },
-    config_names.THUNDRA_REPORT_REST_TRUSTALLCERTIFICATES: {
-        'type': 'boolean',
-        'defaultValue': False,
-    },
     config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE: {
         'type': 'boolean',
         'defaultValue': False,
@@ -120,9 +116,6 @@ CONFIG_METADATA = {
     config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG: {
         'type': 'string',
     },
-    config_names.THUNDRA_TRACE_INSTRUMENT_FILE_PREFIX: {
-        'type': 'string',
-    },
     config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG: {
         'type': 'string',
     },
@@ -132,14 +125,6 @@ CONFIG_METADATA = {
     },
     config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ: {
         'type': 'int'
-    },
-    config_names.THUNDRA_TRACE_INTEGRATIONS_DISABLE: {
-        'type': 'string',
-        'defaultValue': False,
-    },
-    config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_INSTRUMENT_ON_LOAD: {
-        'type': 'boolean',
-        'defaultValue': False,
     },
     config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK: {
         'type': 'boolean',
@@ -186,14 +171,6 @@ CONFIG_METADATA = {
         'defaultValue': 1,
     },
     config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_TRACEINJECTION_DISABLE: {
-        'type': 'boolean',
-        'defaultValue': False,
-    },
-    config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_ON_4XX_DISABLE: {
-        'type': 'boolean',
-        'defaultValue': False,
-    },
-    config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_ON_5XX_DISABLE: {
         'type': 'boolean',
         'defaultValue': False,
     },

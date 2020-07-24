@@ -15,8 +15,6 @@ LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
 LAMBDA_APPLICATION_PLATFORM = 'AWS Lambda'
 
-THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG = 'thundra_agent_lambda_trace_instrument_traceableConfig'
-
 TRIGGER_OPERATION_NAME_TAG = 'x-thundra-trigger-operation-name'
 TRIGGER_CLASS_NAME_TAG = 'x-thundra-trigger-class-name'
 TRIGGER_DOMAIN_NAME_TAG = 'x-thundra-trigger-domain-name'
@@ -42,14 +40,6 @@ CONTEXT_INVOKED_FUNCTION_ARN = 'invoked_function_arn'
 CONTEXT_AWS_REQUEST_ID = 'aws_request_id'
 CONTEXT_LOG_GROUP_NAME = 'log_group_name'
 CONTEXT_LOG_STREAM_NAME = 'log_stream_name'
-
-APPLICATION_ID_PROP_NAME = 'thundra_agent_lambda_application_id'
-APPLICATION_DOMAIN_NAME_PROP_NAME = 'thundra_agent_lambda_application_domainName'
-APPLICATION_CLASS_NAME_PROP_NAME = 'thundra_agent_lambda_application_className'
-APPLICATION_NAME_PROP_NAME = 'thundra_agent_lambda_application_name'
-APPLICATION_VERSION_PROP_NAME = 'thundra_agent_lambda_application_version'
-APPLICATION_STAGE_PROP_NAME = 'thundra_agent_lambda_application_stage'
-APPLICATION_TAG_PROP_NAME_PREFIX = 'thundra_agent_lambda_application_tag_'
 
 TRACE_ARGS = 'trace_args'
 TRACE_RETURN_VALUE = 'trace_return_value'
