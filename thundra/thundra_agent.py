@@ -3,6 +3,7 @@ import time
 import logging
 import os
 from functools import wraps
+import uuid
 
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin

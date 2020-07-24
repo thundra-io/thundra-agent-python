@@ -109,6 +109,10 @@ CONFIG_METADATA = {
         'type': 'boolean',
         'defaultValue': False,
     },
+    config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS: {
+        'type': 'boolean',
+        'defaultValue': False,
+    },
     config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE: {
         'type': 'boolean',
         'defaultValue': False,

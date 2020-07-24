@@ -346,6 +346,14 @@ def inject_trigger_tags_for_eventbridge(span, original_event):
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
 
 
+def extract_trace_link_from_event(original_event):
+    try:
+        if '_thundra' in original_event:
+            invocation_trace_support.add_incoming_trace_links([original_event['_thundra']['trace_link']])        
+    except Exception:
+        pass
+
+
 def inject_trigger_tags_to_span(span, domain_name, class_name, operation_names):
     span.set_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], domain_name)
     span.set_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], class_name)

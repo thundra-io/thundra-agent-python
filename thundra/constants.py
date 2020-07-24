@@ -119,6 +119,7 @@ ClassNames = {
     'SQLALCHEMY': 'SQLALCHEMY',
     'SQLITE': 'SQLITE',
     'ATHENA': 'AWS-Athena',
+    'STEPFUNCTIONS': 'AWS-StepFunctions',
     'EVENTBRIDGE': 'AWS-EventBridge',
     'SES': 'AWS-SES'
 }
@@ -156,7 +157,8 @@ SpanTags = {
     'DB_STATEMENT': 'db.statement',
     'DB_STATEMENT_TYPE': 'db.statement.type',
     'TRACE_LINKS': 'trace.links',
-    'RESOURCE_NAMES': 'resource.names'
+    'RESOURCE_NAMES': 'resource.names',
+    'RESOURCE_TRACE_LINKS': 'resource.trace.links'
 }
 
 SecurityTags = {
@@ -176,6 +178,14 @@ AwsSDKTags = {
     'SERVICE_NAME': 'aws.service.name',
     'REQUEST_NAME': 'aws.request.name',
     'HOST': 'host',
+}
+
+AwsStepFunctionsTags = {
+    'STATE_MACHINE_ARN': 'aws.sf.state_machine.arn',
+    'EXECUTION_NAME': 'aws.sf.execution.name',
+    'EXECUTION_INPUT': 'aws.sf.execution.input',
+    'EXECUTION_ARN': 'aws.sf.execution.arn',
+    'EXECUTION_START_DATE': 'aws.sf.execution.start_date'
 }
 
 AwsSQSTags = {
@@ -684,6 +694,9 @@ OperationTypeMappings = {
             'CloneReceiptRuleSet': 'WRITE',
             'ReorderReceiptRuleSet': 'WRITE',
             'TestRenderTemplate': 'WRITE',
+        },
+        'AWS-StepFunctions': {
+            'StartExecution': 'EXECUTE'
         }
     },
     'patterns': OrderedDict([

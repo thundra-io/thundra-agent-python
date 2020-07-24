@@ -206,20 +206,12 @@ def parse_x_ray_trace_info():
     return xray_info
 
 def get_nearest_collector():
-    region = get_configuration(constants.AWS_REGION, default="us-west-2")
+    region = get_configuration(constants.AWS_REGION)
 
-    if region.startswith("us-west-"):
-        return "api.thundra.io"
-    elif region == "eu-west-1":
-        return "api-eu-west-1.thundra.io"
-    elif region.startswith("us-east-") or region.startswith("sa-") or region.startswith("ca-"):
-        return "api-us-east-1.thundra.io"
-    elif region.startswith("eu-"):
-        return "api-eu-west-2.thundra.io"
-    elif region.startswith("ap-"):
-        return "api-ap-northeast-1.thundra.io"
+    if region:
+        return '{}.collector.thundra.io'.format(region)
 
-    return "api.thundra.io"
+    return "collector.thundra.io"
 
 def get_compiled_operation_type_patterns():
     compiled = []

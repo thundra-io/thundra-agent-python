@@ -1163,6 +1163,29 @@ def test_default_aws_service():
         tracer.clear()
 
 
+def test_sfn():
+    tracer = ThundraTracer.get_instance()
+    tracer.clear()
+
+    try:
+        client = boto3.client('stepfunctions', region_name='us-west-2')
+        client.start_execution(
+            stateMachineArn='string',
+            name='string',
+            input='{}'
+        )
+    except Exception as e:
+        print(e)
+    finally:
+        span = tracer.get_spans()[0]
+        assert span.class_name == 'AWS-StepFunctions'
+        assert span.domain_name == 'AWS'
+        assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartExecution'
+        assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'sfn'
+
+        tracer.clear()
+
+
 def test_get_operation_type():
     assert get_operation_type("AWS-Lambda" , "ListTags") == "READ"
     assert get_operation_type("AWS-S3" , "PutAccountPublicAccessBlock") == "PERMISSION"

@@ -45,6 +45,8 @@ THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE = 'thundra.agent.lambda.trace.kinesi
 THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE = 'thundra.agent.lambda.trace.firehose.request.enable'
 THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE = 'thundra.agent.lambda.trace.cloudwatchlog.request.enable'
 
+THUNDRA_LAMBDA_AWS_STEPFUNCTIONS = 'thundra.agent.lambda.aws.stepfunctions'
+
 #############################################################################
 
 THUNDRA_TRACE_INSTRUMENT_DISABLE = 'thundra.agent.trace.instrument.disable'
