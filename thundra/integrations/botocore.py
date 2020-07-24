@@ -684,7 +684,7 @@ class AWSStepFunctionIntegration(BaseIntegration):
 
         try:
             orig_input = request_data.get('input', None)
-            if orig_input != None:
+            if orig_input != None and ConfigProvider.get(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS):
                 parsed_input = json.loads(orig_input)
                 trace_link = str(uuid.uuid4())
                 parsed_input['_thundra'] = {

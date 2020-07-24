@@ -1164,6 +1164,7 @@ def test_default_aws_service():
 
 
 def test_sfn():
+    ConfigProvider.set(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS, 'true')
     tracer = ThundraTracer.get_instance()
     tracer.clear()
 
