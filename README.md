@@ -30,7 +30,7 @@ You can configure Thundra using **environment variables** or **module initializa
 
 Environment variables have **higher precedence** over initialization parameters.
 
-Check out the [configuration part](https://docs.thundra.io/docs/python-configuration) of our docs for more detailed information.
+Check out the [configuration part](https://docs.thundra.io/python/configuration-options) of our docs for more detailed information.
 
 #### 1. Environment variables
 
@@ -63,7 +63,7 @@ Check out the [configuration part](https://docs.thundra.io/docs/python-configura
 ## Async Monitoring with Zero Overhead
 By default, Thundra agent reports by making an HTTPS request. This adds an overhead to your lambda function.
 
-Instead, you can [setup async monitoring](https://docs.thundra.io/docs/how-to-setup-async-monitoring) in **2 minutes** and monitor your lambda functions with **zero overhead**!
+Instead, you can [setup async monitoring](https://docs.thundra.io/performance/zero-overhead-with-asynchronous-monitoring) in **2 minutes** and monitor your lambda functions with **zero overhead**!
 
 ## Log Plugin
 Log plugin is added by default, but in order to enable it, you should add `ThundraLogHandler` to your logger.

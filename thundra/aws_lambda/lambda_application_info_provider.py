@@ -20,7 +20,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         self.application_info['applicationStage'] = ConfigProvider.get(config_names.THUNDRA_APPLICATION_STAGE, '')
         self.application_info['applicationRuntime'] = 'python'
         self.application_info['applicationRuntimeVersion'] = str(sys.version_info[0])
-        self.application_info['applicationTags'] = utils.parse_application_tags()
+        self.application_info['applicationTags'] = ApplicationInfoProvider.parse_application_tags()
 
     def get_application_info(self):
         context = LambdaContextProvider.get_context()
