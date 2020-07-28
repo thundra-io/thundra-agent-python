@@ -124,7 +124,8 @@ CONFIG_METADATA = {
         'defaultValue': 300000,
     },
     config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ: {
-        'type': 'int'
+        'type': 'int',
+        'defaultValue': 100
     },
     config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK: {
         'type': 'boolean',
