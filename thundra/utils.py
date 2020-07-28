@@ -10,39 +10,6 @@ logger = logging.getLogger(__name__)
 def get_configuration(key, default=None):
     return os.environ.get(key, default)
 
-def str_to_proper_type(val):
-    result = val
-    try:
-        result = str2bool(val)
-    except ValueError:
-        try:
-            result = int(val)
-        except ValueError:
-            try:
-                result = float(val)
-            except ValueError:
-                result = val.strip('"')
-    
-    return result
-
-def get_application_instance_id(context):
-    aws_lambda_log_stream_name = getattr(context, constants.CONTEXT_LOG_STREAM_NAME, '')
-    try:
-        return aws_lambda_log_stream_name.split(']')[1]
-    except:
-        return ''
-
-def get_application_id(context):
-    arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, '')
-
-    region = get_aws_region_from_arn(arn)
-    account_no = 'sam_local' if sam_local_debugging() else get_aws_account_no(arn)
-    function_name = get_aws_funtion_name(arn)
-
-    application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
-    
-    return application_id_template.format(region=region, account_no=account_no, function_name=function_name)
-
 def get_aws_funtion_name(arn):
     return get_arn_part(arn, 6)
 
@@ -165,7 +132,7 @@ def str2bool(val):
     raise ValueError
 
 
-def process_trace_def_env_var(value):
+def process_trace_def_var(value):
     value = value.strip().split('[')
     path = value[0].split('.')
     trace_args = {}

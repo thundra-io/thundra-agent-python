@@ -1,9 +1,9 @@
-import os
 from bson.json_util import loads
 from pymongo import MongoClient
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
-
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 from thundra.compat import PY2
 
 if not PY2:
@@ -30,9 +30,6 @@ if not PY2:
         assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
         assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'INSERT'
 
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
         mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
@@ -67,9 +64,6 @@ if not PY2:
         assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
         assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'UPDATE'
 
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
         mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
@@ -102,9 +96,6 @@ if not PY2:
         assert span.get_tag(constants.DBTags['DB_INSTANCE']) == 'test'
         assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND_NAME']) == 'FIND'
 
-        assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['']
-        assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.LAMBDA_APPLICATION_DOMAIN_NAME
-        assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.LAMBDA_APPLICATION_CLASS_NAME
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
         assert span.get_tag('error') == True
@@ -112,8 +103,8 @@ if not PY2:
         tracer.clear()
 
 
-    def test_mongo_command_masked(monkeypatch):
-        monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_MONGODB_COMMAND, 'true')
+    def test_mongo_command_masked():
+        ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK, 'true')
         client = MongoClient('localhost', 27017)
         db = client.test
         db.list_collection_names()

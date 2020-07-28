@@ -6,7 +6,13 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.plugins.trace import trace_support
-from thundra import utils, constants, application_support, lambda_event_utils, config
+from thundra import utils, constants
+from thundra.aws_lambda import lambda_event_utils
+from thundra.application.application_manager import ApplicationManager
+
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
+
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +52,7 @@ class TracePlugin:
             'tags': {},
         }
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         self.trace_data.update(application_info)
         # Start root span
         self.scope = self.tracer.start_active_span(operation_name=invocation_support.function_name,
@@ -95,7 +101,7 @@ class TracePlugin:
 
         try:
             self.root_span.finish(f_time=self.end_time)
-        except Exception as injected_err:
+        except Exception:
             # TODO: handle root span finish errors
             pass
         finally:
@@ -110,20 +116,20 @@ class TracePlugin:
         enable_request_data = True
         if (
                 trigger_class_name == constants.ClassNames['CLOUDWATCHLOG'] and
-                not config.enable_trace_cloudwatchlog_request()) or (
+                not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE)) or (
 
                 trigger_class_name == constants.ClassNames['FIREHOSE'] and
-                not config.enable_trace_firehose_request()) or (
+                not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE)) or (
 
                 trigger_class_name == constants.ClassNames['KINESIS'] and
-                not config.enable_trace_kinesis_request()
+                not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE)
         ):
             enable_request_data = False
 
         # ADDING TAGS #
-        if (not config.skip_trace_request()) and enable_request_data:
+        if (not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)) and enable_request_data:
             self.root_span.set_tag('aws.lambda.invocation.request', plugin_context.get('request', None))
-        if not config.skip_trace_response():
+        if not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP):
             self.root_span.set_tag('aws.lambda.invocation.response', plugin_context.get('response', None))
 
         if trigger_class_name == constants.ClassNames['APIGATEWAY']:
@@ -214,7 +220,7 @@ class TracePlugin:
         }
 
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         span_data.update(application_info)
 
         return span_data

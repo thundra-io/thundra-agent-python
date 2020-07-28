@@ -1,6 +1,7 @@
 import wrapt
 
-from thundra import config
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 
 def _wrapper(wrapped, instance, args, kwargs):
@@ -14,7 +15,7 @@ def _wrapper(wrapped, instance, args, kwargs):
     wrapped(*args, **kwargs)
 
 def patch():
-    if not config.http_integration_disabled():
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE):
         try:
             import aiohttp
             wrapt.wrap_function_wrapper(

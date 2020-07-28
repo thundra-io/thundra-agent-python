@@ -2,6 +2,8 @@ from __future__ import absolute_import, unicode_literals
 from thundra import constants
 import thundra.utils as utils
 from thundra.plugins.trace.traceable import Traceable
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 import sys
 from importlib.machinery import PathFinder, ModuleSpec, SourceFileLoader
@@ -18,10 +20,11 @@ class ImportPatcher(utils.Singleton):
     @staticmethod
     def __process_env_var_modules_to_instrument():
         modules = {}
-        for env_variable, value in utils.get_all_env_variables().items():
-            if env_variable.startswith(constants.THUNDRA_LAMBDA_TRACE_INSTRUMENT_CONFIG):
+        for variable in ConfigProvider.configs:
+            value = ConfigProvider.get(variable)
+            if variable.startswith(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG):
                 try:
-                    module_path, function_prefix, arguments = utils.process_trace_def_env_var(value)
+                    module_path, function_prefix, arguments = utils.process_trace_def_var(value)
                 except:
                     module_path = None
                 if module_path != None:

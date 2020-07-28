@@ -1,8 +1,8 @@
 import wrapt
 
-from thundra import constants, config
 from thundra.integrations.mongodb import CommandTracer
-
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 def _wrapper(wrapped, instance, args, kwargs):
     event_listeners = list(kwargs.pop('event_listeners', []))
@@ -12,7 +12,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not config.mongo_integration_disabled():
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_MONGO_DISABLE):
         try:
             import pymongo.monitoring
             from bson.json_util import dumps

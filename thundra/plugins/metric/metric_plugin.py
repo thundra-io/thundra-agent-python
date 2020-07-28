@@ -2,11 +2,11 @@ import uuid, threading
 import gc, time, logging
 
 from thundra import utils, constants
-from thundra import application_support
 from thundra.opentracing.tracer import ThundraTracer
-
+from thundra.application.application_manager import ApplicationManager
 from thundra.plugins.metric import metric_support
 from thundra.compat import PY2
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ class MetricPlugin:
             }
         }
         # Add application related data
-        application_info = application_support.get_application_info()
+        application_info = ApplicationManager.get_application_info()
         self.metric_data.update(application_info)
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()

@@ -2,7 +2,7 @@ from __future__ import absolute_import
 import logging
 from threading import Lock
 from importlib import import_module
-from thundra import constants, utils
+from thundra import constants
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 from thundra.plugins.invocation import invocation_support
 

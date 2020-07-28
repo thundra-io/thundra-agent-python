@@ -1,7 +1,7 @@
 import time
 import random
 import logging
-from thundra import constants, utils
+from thundra import constants
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 
 logger = logging.getLogger(__name__)

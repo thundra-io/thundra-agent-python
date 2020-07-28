@@ -1,12 +1,14 @@
 from threading import Lock
-from thundra import constants, config
+from thundra import constants
 from thundra.samplers.base_sampler import BaseSampler
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 class CountAwareSampler(BaseSampler):
 
     def __init__(self, count_freq=None):
-        freq_from_env = config.count_aware_metric_freq()
+        freq_from_env = ConfigProvider.get(config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ, -1)
         if freq_from_env > 0:
             self.count_freq = freq_from_env
         elif count_freq is not None:

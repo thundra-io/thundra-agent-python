@@ -1,8 +1,10 @@
-import os
 import psycopg2
 from psycopg2 import Error as PostgreError
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 def test_postgre_integration():
     query = "select 1 + 1 AS solution"
@@ -31,14 +33,12 @@ def test_postgre_integration():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
 
-def test_postgre_integration_mask_statement(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_RDB_STATEMENT, 'true')
+def test_postgre_integration_mask_statement():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK, 'true')
     query = "select 1 + 1 AS solution"
 
     connection =  psycopg2.connect(
@@ -65,8 +65,6 @@ def test_postgre_integration_mask_statement(monkeypatch):
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == None
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -97,8 +95,6 @@ def test_postgre_integration_with_empty_query():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == ''
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == ''
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()
@@ -128,8 +124,6 @@ def test_postgre_integration_callproc():
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == 'multiply'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'MULTIPLY'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-        assert postgre_span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-Lambda'
 
         tracer.clear()
         connection.close()

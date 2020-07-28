@@ -1,7 +1,8 @@
-import os
 import redis
 from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 def test_set():
     try:
@@ -25,8 +26,8 @@ def test_set():
         tracer.clear()
 
 
-def test_set_mask_command(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
+def test_set_mask_command():
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
 
     try:
         r = redis.Redis(host="test", port="12345", password="pass")
@@ -74,7 +75,7 @@ def test_get():
 
 
 def test_get_mask_command(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_MASK_REDIS_COMMAND, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
 
     try:
         r = redis.Redis(host="test", port="12345", password="pass")

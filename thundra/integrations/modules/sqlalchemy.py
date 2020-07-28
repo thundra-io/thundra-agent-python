@@ -1,7 +1,7 @@
 import wrapt
-from thundra import utils, config
 from thundra.integrations.sqlalchemy import SqlAlchemyIntegration
-
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 def _wrapper(wrapped, instance, args, kwargs):
     engine = wrapped(*args, **kwargs)
@@ -9,7 +9,7 @@ def _wrapper(wrapped, instance, args, kwargs):
     return engine
 
 def patch():
-    if not config.sqlalchemy_integration_disabled():
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_SQLALCHEMY_DISABLE):
         try:
             from sqlalchemy.event import listen
             from sqlalchemy.engine.interfaces import ExecutionContext

@@ -1,7 +1,7 @@
-import os
 from thundra import constants
 from thundra.samplers import CountAwareSampler
-
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 def test_default_count_freq():
     cams = CountAwareSampler()
@@ -9,10 +9,9 @@ def test_default_count_freq():
     assert cams.count_freq == constants.DEFAULT_METRIC_SAMPLING_COUNT_FREQ
 
 
-def test_freq_from_env(monkeypatch):
+def test_freq_from_env():
     count_freq = 37
-    monkeypatch.setitem(os.environ,
-                        constants.THUNDRA_AGENT_METRIC_COUNT_AWARE_SAMPLER_COUNT_FREQ, '{}'.format(count_freq))
+    ConfigProvider.set(config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ, '{}'.format(count_freq))
 
     cams = CountAwareSampler()
 

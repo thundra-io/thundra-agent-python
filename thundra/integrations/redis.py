@@ -1,7 +1,8 @@
-import traceback
-from thundra import config, constants
+from thundra import constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 class RedisIntegration(BaseIntegration):
     CLASS_TYPE = 'redis'
@@ -30,14 +31,12 @@ class RedisIntegration(BaseIntegration):
             constants.DBTags['DB_STATEMENT_TYPE']: operation_type,
             constants.DBTags['DB_TYPE']: 'redis',
             constants.RedisTags['REDIS_HOST']: host,
+            constants.RedisTags['REDIS_PORT']: port,
             constants.RedisTags['REDIS_COMMAND_TYPE']: command_type,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not config.redis_command_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK):
             tags[constants.DBTags['DB_STATEMENT']] = command
             tags[constants.RedisTags['REDIS_COMMAND']] = command
 

@@ -1,11 +1,13 @@
 import os
 
-from thundra import constants
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 
-def test_coldstarts(handler, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+def test_coldstarts(handler, mock_context, mock_event):
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+
     thundra, handler = handler
 
     invocation_plugin = None
@@ -22,8 +24,8 @@ def test_coldstarts(handler, mock_context, mock_event, monkeypatch):
     assert invocation_plugin.invocation_data['tags']['aws.lambda.invocation.coldstart'] is False
 
 
-def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event):
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_exception
 
     invocation_plugin = None
@@ -33,7 +35,7 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
 
     try:
         handler(mock_event, mock_context)
-    except Exception as e:
+    except Exception:
         pass
 
     assert invocation_plugin.invocation_data['erroneous'] is True
@@ -42,7 +44,6 @@ def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_
 
 
 def test_report(handler_with_profile, mock_context, mock_event):
-
     thundra, handler = handler_with_profile
 
     invocation_plugin = None
@@ -69,7 +70,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
     monkeypatch.setitem(os.environ, "_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")
     thundra, handler = handler_with_profile
 
@@ -79,8 +80,8 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
             invocation_plugin = plugin
 
     try:
-        response = handler(mock_event, mock_context)
-    except Exception as e:
+        handler(mock_event, mock_context)
+    except Exception:
         pass
 
     assert invocation_plugin.invocation_data['tags']['aws.lambda.arn'] == 'arn:aws:lambda:us-west-2:123456789123:function:test'
@@ -94,7 +95,6 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
 
 
 def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
-
     thundra, handler = handler_with_profile
 
     invocation_plugin = None
@@ -120,8 +120,8 @@ def test_when_app_stage_not_exists(handler, mock_context, mock_event):
     assert invocation_plugin.invocation_data['applicationStage'] is ''
 
 
-def test_invocation_support_error_set(handler_with_user_error, mock_context, mock_event, monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_APPLICATION_STAGE, 'dev')
+def test_invocation_support_error_set(handler_with_user_error, mock_context, mock_event):
+    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_user_error
 
     invocation_plugin = None

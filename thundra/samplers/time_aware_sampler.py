@@ -1,14 +1,17 @@
 import time
 from threading import Lock
 
-from thundra import constants, config
+from thundra import constants
 from thundra.samplers.base_sampler import BaseSampler
+
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 
 class TimeAwareSampler(BaseSampler):
 
     def __init__(self, time_freq=None):
-        freq_from_env = config.time_aware_metric_freq()
+        freq_from_env = ConfigProvider.get(config_names.THUNDRA_SAMPLER_TIMEAWARE_TIMEFREQ, -1)
         if freq_from_env > 0:
             self.time_freq = freq_from_env
         elif time_freq is not None:

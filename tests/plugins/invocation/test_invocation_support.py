@@ -1,4 +1,3 @@
-import pytest
 import thundra.plugins.invocation.invocation_support as invocation_support
 
 

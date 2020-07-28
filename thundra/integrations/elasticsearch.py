@@ -1,8 +1,10 @@
 import traceback
-from thundra import config, constants
+from thundra import constants
 from thundra.plugins.invocation import invocation_support
 from thundra.integrations.base_integration import BaseIntegration
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 class ElasticsearchIntegration(BaseIntegration):
     CLASS_TYPE = 'elasticsearch'
@@ -18,7 +20,7 @@ class ElasticsearchIntegration(BaseIntegration):
             return []
 
     def get_normalized_path(self, es_uri):
-        path_depth = config.elasticsearch_integration_path_depth()
+        path_depth = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH)
 
         path_seperator_count = 0
         normalized_path = ''
@@ -60,13 +62,10 @@ class ElasticsearchIntegration(BaseIntegration):
             constants.ESTags['ES_PARAMS']: es_params,
             constants.DBTags['DB_TYPE']: 'elasticsearch',
             constants.SpanTags['OPERATION_TYPE']: http_method,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name],
-            constants.SpanTags['TRIGGER_DOMAIN_NAME']: constants.LAMBDA_APPLICATION_DOMAIN_NAME,
-            constants.SpanTags['TRIGGER_CLASS_NAME']: constants.LAMBDA_APPLICATION_CLASS_NAME,
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not config.elasticsearch_body_masked():
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK):
             tags[constants.ESTags['ES_BODY']] = es_body
 
         scope.span.tags = tags

@@ -1,9 +1,11 @@
 from __future__ import division
 import logging
 
-from thundra import config, constants
+from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 
 _incoming_trace_links = []
 
@@ -127,14 +129,14 @@ def get_resources(plugin_context):
         return {}
 
 def get_incoming_trace_links():
-    if config.thundra_disabled():
+    if ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
         return {}
     incoming_trace_links = list(set(_incoming_trace_links))[:constants.MAX_INCOMING_TRACE_LINKS]
     return {"incomingTraceLinks": incoming_trace_links}
     
 
 def get_outgoing_trace_links():
-    if config.thundra_disabled():
+    if ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
         return {}
     
     spans = ThundraTracer.get_instance().recorder.get_spans()

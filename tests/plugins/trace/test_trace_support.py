@@ -4,9 +4,12 @@ from thundra.plugins.trace import trace_support
 from thundra.listeners import *
 from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
 
-def test_create_empty_span_listener(monkeypatch):
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
+
+def test_create_empty_span_listener():
     sl_env_var = '{"type":"FilteringSpanListener", "config": {"listener": {"type": "ErrorInjectorSpanListener"}}}'
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
+    ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support.parse_span_listeners()
 
@@ -16,9 +19,9 @@ def test_create_empty_span_listener(monkeypatch):
     assert type(sl.listener) is ErrorInjectorSpanListener
     assert type(sl.filterer) is StandardSpanFilterer
 
-def test_create_span_listener_with_only_listener(monkeypatch):
+def test_create_span_listener_with_only_listener():
     sl_env_var = '{"type": "FilteringSpanListener", "config": { "listener": {"type": "ErrorInjectorSpanListener", "config": {"errorType":"NameError","errorMessage":"foo"}}}}'
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
+    ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support.parse_span_listeners()
 
@@ -30,9 +33,9 @@ def test_create_span_listener_with_only_listener(monkeypatch):
     assert sl.listener.error_message == 'foo'
     assert type(sl.filterer) is StandardSpanFilterer
 
-def test_create_span_listener_with_only_filterer(monkeypatch):
+def test_create_span_listener_with_only_filterer():
     sl_env_var = '{"type": "FilteringSpanListener", "config": { "filters": [ { "className":"AWS-SQS","domainName":"Messaging","tags":{"foo": "bar"}}]}}'
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
+    ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support.parse_span_listeners()
 
@@ -45,11 +48,11 @@ def test_create_span_listener_with_only_filterer(monkeypatch):
     assert f.domain_name == 'Messaging'
     assert f.tags == {'foo': 'bar'}
 
-def test_create_span_listener_with_filterer_and_listener(monkeypatch):
+def test_create_span_listener_with_filterer_and_listener():
     sl_env_var = ('{"type": "FilteringSpanListener", "config": {"listener": {"type": "ErrorInjectorSpanListener", "config": {"errorType": "NameError",'
                     '"errorMessage":"foo", "injectOnFinish": true, "injectCountFreq":3}},'
                     '"filters": [{"className":"AWS-SQS", "domainName":"Messaging", "tags": {"foo":"bar"}}]}}')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
+    ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support.parse_span_listeners()
 
@@ -67,12 +70,12 @@ def test_create_span_listener_with_filterer_and_listener(monkeypatch):
     assert f.domain_name == 'Messaging'
     assert f.tags == {'foo': 'bar'}
 
-def test_create_span_listener_with_multiple_filter_and_listener(monkeypatch):
+def test_create_span_listener_with_multiple_filter_and_listener():
     sl_env_var = ('{"type": "FilteringSpanListener", "config": {"listener": {"type": "LatencyInjectorSpanListener","config": {"delay":370,'
                     '"distribution":"normal", "sigma": 73, "variation":37}},'
                     '"filters": [{"className":"AWS-SQS", "domainName": "Messaging", "tags": {"foo":"bar"}},'
                     '{"className":"HTTP", "operationName": "http_request", "tags": {"http.host": "foobar.com"}}]}}')
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
+    ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support.parse_span_listeners()
 
@@ -95,9 +98,9 @@ def test_create_span_listener_with_multiple_filter_and_listener(monkeypatch):
     assert f2.operation_name == 'http_request'
     assert f2.tags == {'http.host': 'foobar.com'}
 
-def test_with_non_existing_listener_type(monkeypatch):
+def test_with_non_existing_listener_type():
     sl_env_var = '{"type": "NonExistingSpanListener", "config": {"config": {}}}'
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_SPAN_LISTENER, sl_env_var)
+    ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support.parse_span_listeners()
 
@@ -116,7 +119,6 @@ def test_get_sl_class():
         ('ErrorInjectorSpanListener', ErrorInjectorSpanListener),
         ('LatencyInjectorSpanListener', LatencyInjectorSpanListener),
         ('FilteringSpanListener', FilteringSpanListener),
-        ('AWSXRayListener', AWSXRayListener),
         ('ThundraSpanListener', None),
         ('NonExistingListener', None),
     ] 
@@ -124,35 +126,3 @@ def test_get_sl_class():
     for case in map(prepare_case, cases):
         sl_class = trace_support._get_sl_class(case['class_name'])
         assert sl_class == case['class_type']
-
-def test_xray_sl_added(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'true')
-
-    trace_support.parse_span_listeners()
-    span_listeners = trace_support.get_span_listeners()
-    xray_listener = span_listeners[0]
-
-    assert len(span_listeners) == 1
-    assert type(xray_listener) == AWSXRayListener
-
-def test_xray_sl_not_added(monkeypatch):
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'false')
-
-    trace_support.parse_span_listeners()
-    span_listeners = trace_support.get_span_listeners()
-
-    assert len(span_listeners) == 0
-    
-    monkeypatch.setitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY, 'foo')
-
-    trace_support.parse_span_listeners()
-    span_listeners = trace_support.get_span_listeners()
-
-    assert len(span_listeners) == 0
-    
-    monkeypatch.delitem(os.environ, constants.THUNDRA_LAMBDA_TRACE_ENABLE_XRAY)
-
-    trace_support.parse_span_listeners()
-    span_listeners = trace_support.get_span_listeners()
-
-    assert len(span_listeners) == 0
