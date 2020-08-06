@@ -1,5 +1,7 @@
-import opentracing
 import copy
+
+import opentracing
+
 
 class ThundraSpanContext(opentracing.SpanContext):
 

@@ -7,8 +7,6 @@ HOST = "https://api.thundra.io/v1"
 PATH = "/monitoring-data"
 COMPOSITE_DATA_PATH = "/composite-monitoring-data"
 
-REQUEST_COUNT = 0
-
 THUNDRA_AGENT_VERSION = __version__
 
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'

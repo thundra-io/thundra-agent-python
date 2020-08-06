@@ -1,14 +1,13 @@
-import os
-import re
-import logging
 import base64
 import json
+import logging
+import re
 from gzip import GzipFile
+
 try:
     from BytesIO import BytesIO
 except ImportError:
     from io import BytesIO
-from thundra import constants
 from thundra.listeners import ThundraSpanListener
 
 from thundra.config.config_provider import ConfigProvider
@@ -73,7 +72,7 @@ def parse_span_listeners():
                 listener_type = span_listener_config_json.get("type")
                 if not listener_type:
                     raise Exception("type property is mandatory in " + env_k + " configuration")
-            
+
                 listener_config = span_listener_config_json.get("config")
                 if not listener_config:
                     raise Exception("config property is mandatory in " + env_k + " configuration")

@@ -1,59 +1,78 @@
-from thundra import constants
+from thundra.context.execution_context_manager import ExecutionContextManager
 
-_invocation_tags = {}
-_user_invocation_tags = {}
 _user_error = None
-function_name = ''
+
 
 def set_agent_tag(key, value):
-    _invocation_tags[key] = value
+    execution_context = ExecutionContextManager.get()
+    execution_context.tags[key] = value
+
 
 def set_many_agent(tags):
-    _invocation_tags.update(tags)
+    execution_context = ExecutionContextManager.get()
+    execution_context.tags.update(tags)
+
 
 def get_agent_tag(key):
-    if key in _invocation_tags:
-        return _invocation_tags[key]
+    execution_context = ExecutionContextManager.get()
+    if key in execution_context.tags:
+        return execution_context.tags[key]
     return None
+
 
 def get_agent_tags():
-    return _invocation_tags.copy()
+    execution_context = ExecutionContextManager.get()
+    return execution_context.tags.copy()
+
 
 def remove_agent_tag(key):
-    return _invocation_tags.pop(key, None)
+    execution_context = ExecutionContextManager.get()
+    return execution_context.tags.pop(key, None)
+
 
 def set_tag(key, value):
-    _user_invocation_tags[key] = value
+    execution_context = ExecutionContextManager.get()
+    execution_context.user_tags[key] = value
+
 
 def set_many(tags):
-    _user_invocation_tags.update(tags)
+    execution_context = ExecutionContextManager.get()
+    execution_context.user_tags.update(tags)
+
 
 def get_tag(key):
-    if key in _user_invocation_tags:
-        return _user_invocation_tags[key]
+    execution_context = ExecutionContextManager.get()
+    if key in execution_context.user_tags:
+        return execution_context.user_tags[key]
     return None
 
+
 def get_tags():
-    return _user_invocation_tags.copy()
+    execution_context = ExecutionContextManager.get()
+    return execution_context.user_tags.copy()
+
 
 def remove_tag(key):
-    return _user_invocation_tags.pop(key, None)
+    execution_context = ExecutionContextManager.get()
+    return execution_context.user_tags.pop(key, None)
+
 
 def clear():
-    _invocation_tags.clear()
-    _user_invocation_tags.clear()
+    execution_context = ExecutionContextManager.get()
+    execution_context.user_tags.clear()
+    execution_context.tags.clear()
+
 
 def clear_error():
-    global _user_error
-    _user_error = None
+    execution_context = ExecutionContextManager.get()
+    execution_context.user_error = None
+
 
 def set_error(err):
-    global _user_error
-    _user_error = err
+    execution_context = ExecutionContextManager.get()
+    execution_context.user_error = err
+
 
 def get_error():
-    return _user_error
-
-def parse_invocation_info(context):
-    global function_name
-    function_name = getattr(context, constants.CONTEXT_FUNCTION_NAME, '')
+    execution_context = ExecutionContextManager.get()
+    return execution_context.user_error

@@ -1,9 +1,12 @@
 from __future__ import unicode_literals
-from thundra.compat import str
+
 import base64
-import simplejson as json
 import hashlib
+
+import simplejson as json
+
 from thundra import constants, utils
+from thundra.compat import str
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 
 try:
@@ -64,7 +67,7 @@ def get_lambda_event_type(original_event, original_context):
         return LambdaEventType.APIGateway
 
     elif 'detail-type' in original_event and 'detail' in original_event and \
-        isinstance(original_event.get('resources'), list):
+            isinstance(original_event.get('resources'), list):
         return LambdaEventType.EventBridge
 
     elif 'client_context' in vars(original_context):
@@ -190,7 +193,7 @@ def attributes_to_str(attributes):
         try:
             key = list(attributes[attr].keys())[0]
             attributes_sorted.append(attr + '=' + '{' + key + ': ' + str(attributes[attr][key]) + '}')
-        except Exception as e:
+        except Exception:
             pass
     return ', '.join(attributes_sorted)
 
@@ -335,6 +338,7 @@ def inject_trigger_tags_for_lambda(span, original_context):
     except Exception as e:
         pass
 
+
 def inject_trigger_tags_for_eventbridge(span, original_event):
     domain_name = constants.DomainNames['MESSAGING']
     class_name = constants.ClassNames['EVENTBRIDGE']
@@ -349,7 +353,7 @@ def inject_trigger_tags_for_eventbridge(span, original_event):
 def extract_trace_link_from_event(original_event):
     try:
         if '_thundra' in original_event:
-            invocation_trace_support.add_incoming_trace_links([original_event['_thundra']['trace_link']])        
+            invocation_trace_support.add_incoming_trace_links([original_event['_thundra']['trace_link']])
     except Exception:
         pass
 

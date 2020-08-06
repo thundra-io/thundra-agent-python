@@ -1,16 +1,15 @@
-import simplejson as json
-import sys
 import inspect
-import copy
+import sys
 from functools import wraps
 from threading import Lock
-import jsonpickle
 
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.serializable import Serializable
-from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import constants
+import jsonpickle
 from opentracing import Scope
+
+from thundra import constants
+from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.serializable import Serializable
 
 
 def __get_traceable_from_back_frame(frame):
@@ -108,6 +107,7 @@ def trace_calls(frame, event, arg):
 _lock = Lock()
 _line_traced_count = 0
 
+
 class Traceable:
 
     def __init__(self,
@@ -187,7 +187,6 @@ class Traceable:
             return value_dict
         except:
             return '<not-json-serializable-object>'
-
 
     def __call__(self, original_func):
         @wraps(original_func)

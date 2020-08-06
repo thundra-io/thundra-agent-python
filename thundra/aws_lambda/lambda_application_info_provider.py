@@ -1,41 +1,11 @@
-import sys
-
-from thundra.application.application_info_provider import ApplicationInfoProvider
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 from thundra import constants, utils
-from thundra.aws_lambda.lambda_context_provider import LambdaContextProvider
+from thundra.application.application_info_provider import ApplicationInfoProvider
 
 
 class LambdaApplicationInfoProvider(ApplicationInfoProvider):
     application_info = {}
 
-    def __init__(self):
-        self.application_info['applicationId'] = ConfigProvider.get(config_names.THUNDRA_APPLICATION_TAG_PREFIX)
-        self.application_info['applicationDomainName'] = ConfigProvider.get(
-            config_names.THUNDRA_APPLICATION_DOMAIN_NAME)
-        self.application_info['applicationClassName'] = ConfigProvider.get(config_names.THUNDRA_APPLICATION_CLASS_NAME)
-        self.application_info['applicationName'] = ConfigProvider.get(config_names.THUNDRA_APPLICATION_NAME)
-        self.application_info['applicationVersion'] = ConfigProvider.get(config_names.THUNDRA_APPLICATION_VERSION)
-        self.application_info['applicationStage'] = ConfigProvider.get(config_names.THUNDRA_APPLICATION_STAGE, '')
-        self.application_info['applicationRuntime'] = 'python'
-        self.application_info['applicationRuntimeVersion'] = str(sys.version_info[0])
-        self.application_info['applicationTags'] = ApplicationInfoProvider.parse_application_tags()
-
     def get_application_info(self):
-        context = LambdaContextProvider.get_context()
-        self.application_info['applicationInstanceId'] = LambdaApplicationInfoProvider.get_application_instance_id(
-            context)
-
-        if self.application_info['applicationId'] is None:
-            self.application_info['applicationId'] = LambdaApplicationInfoProvider.get_application_id(context)
-
-        if self.application_info['applicationName'] is None:
-            self.application_info['applicationName'] = getattr(context, constants.CONTEXT_FUNCTION_NAME, '')
-
-        if self.application_info['applicationVersion'] is None:
-            self.application_info['applicationVersion'] = getattr(context, constants.CONTEXT_FUNCTION_VERSION, '')
-
         return self.application_info.copy()
 
     def get_application_tags(self):
@@ -58,3 +28,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
 
         return application_id_template.format(region=region, account_no=account_no, function_name=function_name)
+
+    def update(self, opts):
+        filtered_opts = {k: v for k, v in opts.items() if v is not None}
+        self.application_info.update(filtered_opts)

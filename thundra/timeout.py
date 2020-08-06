@@ -10,7 +10,7 @@ class ThreadTimeout(object):
         self.handler = handler
 
     def __enter__(self):
-        self.timer = threading.Timer(self.seconds, self.handler)
+        self.timer = threading.Timer(self.seconds, self.handler, [self.execution_context])
         if self.seconds > 0:
             self.timer.start()
         return self
@@ -22,9 +22,10 @@ class ThreadTimeout(object):
 
 
 class SignalTimeout(object):
-    def __init__(self, seconds, handler):
+    def __init__(self, seconds, handler, execution_context):
         self.seconds = seconds
         self.handler = handler
+        self.execution_context = execution_context
 
     def __enter__(self):
         if threading.current_thread().__class__.__name__ == '_MainThread':
@@ -41,7 +42,7 @@ class SignalTimeout(object):
     def _timeout(self, signum, frame):
         current_thread = threading.current_thread().__class__.__name__
         if current_thread == '_MainThread' and signum == signal.SIGALRM:
-            self.handler()
+            self.handler(self.execution_context)
 
 
 if sys.platform == "win32":

@@ -1,29 +1,31 @@
-import subprocess
-import time
 import logging
 import os
-from functools import wraps
+import subprocess
+import time
 import uuid
+from functools import wraps
 
-from thundra.reporter import Reporter
-from thundra.plugins.log.log_plugin import LogPlugin
-from thundra.plugins.invocation import invocation_support
-from thundra.plugins.trace.trace_plugin import TracePlugin
-from thundra.plugins.metric.metric_plugin import MetricPlugin
 from thundra import constants
-from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
-from thundra.integrations import handler_wrappers
-from thundra.plugins.log.thundra_logger import debug_logger
-from thundra.compat import PY2, TimeoutError
-from thundra.timeout import Timeout
-
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
-
 from thundra.application.application_manager import ApplicationManager
+from thundra.application.global_application_info_provider import GlobalApplicationInfoProvider
+from thundra.aws_lambda import lambda_executor
 from thundra.aws_lambda.lambda_application_info_provider import LambdaApplicationInfoProvider
 from thundra.aws_lambda.lambda_context_provider import LambdaContextProvider
-
+from thundra.compat import PY2, TimeoutError
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.context.execution_context import ExecutionContext
+from thundra.context.plugin_context import PluginContext
+from thundra.integrations import handler_wrappers
+from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
+from thundra.plugins.log.log_plugin import LogPlugin
+from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.plugins.metric.metric_plugin import MetricPlugin
+from thundra.plugins.trace.trace_plugin import TracePlugin
+from thundra.reporter import Reporter
+from thundra.timeout import Timeout
+from thundra.context.execution_context_manager import ExecutionContextManager
+from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
 
 logger = logging.getLogger(__name__)
 
@@ -38,36 +40,38 @@ class Thundra:
                  disable_trace=False,
                  disable_metric=True,
                  disable_log=True):
-        constants.REQUEST_COUNT = 0
-        self.plugins = []
-        ApplicationManager.set_application_info_provider(LambdaApplicationInfoProvider())
-        
         self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_DISABLE, disable_trace):
-            self.plugins.append(TracePlugin())
+        ApplicationManager.set_application_info_provider(GlobalApplicationInfoProvider(LambdaApplicationInfoProvider()))
+        self.plugin_context = PluginContext(application_info=ApplicationManager.get_application_info(), request_count=0,
+                                            executor=lambda_executor, api_key=self.api_key)
+        
+        ExecutionContextManager.set_provider(TracingExecutionContextProvider())
 
-        self.plugins.append(InvocationPlugin())
-        self.plugin_context = {}
+        self.plugins = []
+        if not ConfigProvider.get(config_names.THUNDRA_TRACE_DISABLE, disable_trace):
+            self.plugins.append(TracePlugin(plugin_context=self.plugin_context))
+        self.plugins.append(InvocationPlugin(plugin_context=self.plugin_context))
 
         if not ConfigProvider.get(config_names.THUNDRA_METRIC_DISABLE, disable_metric):
-            self.plugins.append(MetricPlugin())
+            self.plugins.append(MetricPlugin(plugin_context=self.plugin_context))
 
         if not ConfigProvider.get(config_names.THUNDRA_LOG_DISABLE, disable_log):
-            self.plugins.append(LogPlugin())
+            self.plugins.append(LogPlugin(plugin_context=self.plugin_context))
 
-        self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN, constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
+        self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN,
+                                                 constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
         self.reporter = Reporter(self.api_key)
         self.debugger_process = None
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
             if not PY2:
                 self.import_patcher = ImportPatcher()
-
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
+
         self.ptvsd_imported = False
         if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE):
             self.initialize_debugger()
@@ -81,21 +85,30 @@ class Thundra:
             before_done = False
             after_done = False
 
-            # Clear plugin context for each invocation
-            self.plugin_context = {'reporter': self.reporter}
             LambdaContextProvider.set_context(context)
-            invocation_support.parse_invocation_info(context)
+            ApplicationManager.get_application_info_provider().update({
+                'applicationId': LambdaApplicationInfoProvider.get_application_id(context),
+                'applicationName': getattr(context, constants.CONTEXT_FUNCTION_NAME, ''),
+                'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, ''),
+                'applicationInstanceId': LambdaApplicationInfoProvider.get_application_instance_id(context)
+            })
+
+            # Execution context initialization
+            trace_id = str(uuid.uuid4())
+            transaction_id = str(uuid.uuid4())
+            execution_context = ExecutionContext(trace_id=trace_id, transaction_id=transaction_id)
+            execution_context.start_timestamp = int(time.time() * 1000)
+            execution_context.platform_data['originalEvent'] = event
+            execution_context.platform_data['originalContext'] = context
 
             # Before running user's handler
             try:
-                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE, False) and self.check_and_handle_warmup_request(event):
+                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE,
+                                      False) and self.check_and_handle_warmup_request(event):
                     return None
 
-                constants.REQUEST_COUNT += 1
-
-                self.plugin_context['request'] = event
-                self.plugin_context['context'] = context
-                self.execute_hook('before:invocation', self.plugin_context)
+                self.plugin_context.request_count += 1
+                self.execute_hook('before:invocation', execution_context)
 
                 timeout_duration = self.get_timeout_duration(context)
                 before_done = True
@@ -107,16 +120,16 @@ class Thundra:
             if before_done:
                 try:
                     response = None
-                    with Timeout(timeout_duration, self.timeout_handler):
+                    with Timeout(timeout_duration, self.timeout_handler, execution_context):
                         if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
                             self.start_debugger_tracing()
 
                         response = original_func(event, context)
-                        self.plugin_context['response'] = response
+                        execution_context.response = response
                 except Exception as e:
                     try:
-                        self.plugin_context['error'] = e
-                        self.prepare_and_send_reports()
+                        execution_context.error = e
+                        self.prepare_and_send_reports(execution_context)
                         after_done = True
                     except Exception as e_in:
                         logger.error("Error during the after part of Thundra: {}".format(e_in))
@@ -134,7 +147,7 @@ class Thundra:
             # After having run the user's handler
             if before_done and not after_done:
                 try:
-                    self.prepare_and_send_reports()
+                    self.prepare_and_send_reports(execution_context)
                 except Exception as e:
                     logger.error("Error during the after part of Thundra: {}".format(e))
                     self.reporter.reports = []
@@ -156,7 +169,6 @@ class Thundra:
         except Exception as e:
             logger.error("Could not import ptvsd. Thundra ptvsd layer must be added")
 
-
     def start_debugger_tracing(self):
         try:
             import ptvsd
@@ -172,15 +184,16 @@ class Thundra:
                 env['SESSION_NAME'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME))
                 context = self.plugin_context["context"]
                 if hasattr(context, 'get_remaining_time_in_millis'):
-                    env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time()*1000.0))
+                    env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time() * 1000.0))
 
                 debug_bridge_file_path = os.path.join(os.path.dirname(__file__), 'debug/bridge.py')
-                self.debugger_process = subprocess.Popen(["python", debug_bridge_file_path], stdout=subprocess.PIPE, stdin=subprocess.PIPE, env=env)
+                self.debugger_process = subprocess.Popen(["python", debug_bridge_file_path], stdout=subprocess.PIPE,
+                                                         stdin=subprocess.PIPE, env=env)
 
             start_time = time.time()
             debug_process_running = True
-            while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)/1000) \
-                and not ptvsd.is_attached():
+            while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX) / 1000) \
+                    and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
                     ptvsd.wait_for_attach(0.01)
                 else:
@@ -190,7 +203,7 @@ class Thundra:
             if not ptvsd.is_attached():
                 if debug_process_running:
                     logger.error('Couldn\'t complete debugger handshake in {} milliseconds.' \
-                    .format(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)))
+                                 .format(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)))
                 ptvsd.tracing(False)
             else:
                 ptvsd.tracing(True)
@@ -262,18 +275,18 @@ class Thundra:
             timeout_duration = context.get_remaining_time_in_millis() - self.timeout_margin
             if timeout_duration <= 0:
                 timeout_duration = context.get_remaining_time_in_millis() - \
-                                    constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
+                                   constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN
                 logger.warning('Given timeout margin is bigger than lambda timeout duration and '
-                                'since the difference is negative, it is set to default value (' +
-                                str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
+                               'since the difference is negative, it is set to default value (' +
+                               str(constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN) + ')')
 
-        return timeout_duration/1000.0
+        return timeout_duration / 1000.0
 
-    def timeout_handler(self):
-            self.plugin_context['timeout'] = True
-            self.plugin_context['error'] = TimeoutError('Task timed out')
-            self.prepare_and_send_reports()
+    def timeout_handler(self, execution_context):
+        execution_context.timeout = True
+        execution_context.error = TimeoutError('Task timed out')
+        self.prepare_and_send_reports(execution_context)
 
-    def prepare_and_send_reports(self):
-        self.execute_hook('after:invocation', self.plugin_context)
-        self.reporter.send_report()
+    def prepare_and_send_reports(self, execution_context):
+        self.execute_hook('after:invocation', execution_context)
+        self.reporter.send_report(execution_context.reports)

@@ -25,7 +25,7 @@ def mocked_span():
             
         }
         span.get_duration.return_value = duration
-        span.errorneous.return_value = errorneous
+        span.erroneous.return_value = errorneous
         
         def get_tag(key):
             return span.tags.get(key)
@@ -111,7 +111,7 @@ def test_get_resources(mocked_get_spans, mocked_span):
     ]
     mocked_get_spans.return_value = spans
 
-    resources = invocation_trace_support.get_resources(plugin_context)['resources']
+    resources = invocation_trace_support.get_resources()['resources']
 
     if resources[0]['resourceCount'] == 2:
         r1, r2 = resources[0], resources[1]
