@@ -65,12 +65,16 @@ class InvocationPlugin:
             plugin_context['end_time'] = self.end_time
 
     def set_error(self, error):
-        error_type = type(error)
         self.invocation_data['erroneous'] = True
-        self.invocation_data['errorType'] = error_type.__name__
-        self.invocation_data['errorMessage'] = str(error)
-        if hasattr(error, 'code'):
-            self.invocation_data['errorCode'] = error.code
+        if isinstance(error, Exception):
+            error_type = type(error)
+            self.invocation_data['errorType'] = error_type.__name__
+            self.invocation_data['errorMessage'] = str(error)
+            if hasattr(error, 'code'):
+                self.invocation_data['errorCode'] = error.code
+        elif isinstance(error, dict):
+            self.invocation_data['errorType'] = error.get('type')
+            self.invocation_data['errorMessage'] = error.get('message')
 
     def get_response_status(self, plugin_context):
         try:
