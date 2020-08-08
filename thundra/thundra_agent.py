@@ -2,8 +2,8 @@ import subprocess
 import time
 import logging
 import os
+import traceback
 from functools import wraps
-import uuid
 
 from thundra.reporter import Reporter
 from thundra.plugins.log.log_plugin import LogPlugin
@@ -41,7 +41,7 @@ class Thundra:
         constants.REQUEST_COUNT = 0
         self.plugins = []
         ApplicationManager.set_application_info_provider(LambdaApplicationInfoProvider())
-        
+
         self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
@@ -115,7 +115,11 @@ class Thundra:
                         self.plugin_context['response'] = response
                 except Exception as e:
                     try:
-                        self.plugin_context['error'] = e
+                        self.plugin_context['error'] = {
+                            'type': type(e).__name__,
+                            'message': str(e),
+                            'traceback': traceback.format_exc()
+                        }
                         self.prepare_and_send_reports()
                         after_done = True
                     except Exception as e_in:

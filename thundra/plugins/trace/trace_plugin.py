@@ -1,18 +1,17 @@
-import time
-import uuid
 import logging
+import time
+import traceback
+import uuid
 
+from thundra import utils, constants
+from thundra.application.application_manager import ApplicationManager
+from thundra.aws_lambda import lambda_event_utils
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.plugins.trace import trace_support
-from thundra import utils, constants
-from thundra.aws_lambda import lambda_event_utils
-from thundra.application.application_manager import ApplicationManager
-
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
-
 
 logger = logging.getLogger(__name__)
 
@@ -168,18 +167,23 @@ class TracePlugin:
         self.flush_current_span_data()
 
     def set_error_to_root_span(self, error):
-        error_type = type(error)
-
         self.root_span.set_tag('error', True)
-        self.root_span.set_tag('error.kind', error_type.__name__)
-        self.root_span.set_tag('error.message', str(error))
+        if isinstance(error, Exception):
+            error_type = type(error)
+            self.root_span.set_tag('error.kind', error_type.__name__)
+            self.root_span.set_tag('error.message', str(error))
 
-        if hasattr(error, 'code'):
-            self.root_span.set_tag('error.code', error.code)
-        if hasattr(error, 'object'):
-            self.root_span.set_tag('error.object', error.object)
-        if hasattr(error, 'stack'):
-            self.root_span.set_tag('error.stack', error.stack)
+            if hasattr(error, 'code'):
+                self.root_span.set_tag('error.code', error.code)
+            if hasattr(error, '__traceback__'):
+                self.root_span.set_tag('error.stack', ''.join(
+                    traceback.format_exception(error_type, error, error.__traceback__)))
+
+        elif isinstance(error, dict):
+            self.root_span.set_tag('error.kind', error.get('type'))
+            self.root_span.set_tag('error.message', error.get('message'))
+            if error.get('traceback'):
+                self.root_span.set_tag('error.stack', error.get('traceback'))
 
     def process_api_gw_response(self, plugin_context):
         try:
@@ -278,4 +282,3 @@ class TracePlugin:
             except Exception as e:
                 logger.error("error while sampling spans: %s", e)
         return sampled
-
