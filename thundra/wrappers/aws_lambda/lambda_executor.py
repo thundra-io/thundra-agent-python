@@ -4,7 +4,7 @@ import uuid
 
 from thundra import utils, constants
 from thundra.application.application_manager import ApplicationManager
-from thundra.aws_lambda import lambda_event_utils
+from thundra.wrappers.aws_lambda import lambda_event_utils
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.invocation import invocation_trace_support

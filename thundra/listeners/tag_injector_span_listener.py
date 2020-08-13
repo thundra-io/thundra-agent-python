@@ -1,7 +1,7 @@
 from __future__ import absolute_import
+
 import logging
-from threading import Lock
-from importlib import import_module
+
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 
 logger = logging.getLogger(__name__)
@@ -35,9 +35,9 @@ class TagInjectorSpanListener(ThundraSpanListener):
         kwargs = {}
         inject_on_finish = config.get('injectOnFinish')
         tags_to_inject = config.get('tags')
-        if inject_on_finish != None:
+        if inject_on_finish is not None:
             kwargs['inject_on_finish'] = inject_on_finish
-        if tags_to_inject != None:
+        if tags_to_inject is not None:
             kwargs['tags_to_inject'] = tags_to_inject
 
         return TagInjectorSpanListener(**kwargs)

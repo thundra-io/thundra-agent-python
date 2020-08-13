@@ -1,7 +1,5 @@
 from __future__ import absolute_import
-import logging
-from threading import Lock
-from importlib import import_module
+
 from thundra import constants
 from thundra.listeners.thundra_span_listener import ThundraSpanListener
 from thundra.plugins.invocation import invocation_support
@@ -30,14 +28,13 @@ class SecurityAwareSpanListener(ThundraSpanListener):
                 if op.matches(span):
                     self.handle_security_issue(span)
                     return
-        
+
         if has_whitelist:
             for op in self.whitelist:
                 if op.matches(span):
                     return
 
             self.handle_security_issue(span)
-
 
     def on_span_finished(self, span):
         pass
@@ -76,7 +73,7 @@ class SecurityAwareSpanListener(ThundraSpanListener):
         else:
             span.set_tag(constants.SecurityTags['VIOLATED'], True)
             invocation_support.set_agent_tag(constants.SecurityTags['VIOLATED'], True)
-            
+
 
 class SecurityError(Exception):
     def __init__(self, msg='Operation was blocked due to security configuration'):
@@ -88,7 +85,7 @@ class Operation:
         self.class_name = config.get('className')
         self.operation_name = config.get('operationName')
         self.tags = config.get('tags')
-    
+
     def matches(self, span):
         matched = self.class_name == span.class_name or self.class_name == '*'
 
@@ -98,7 +95,7 @@ class Operation:
         if matched and self.tags:
             for k, v in self.tags.items():
                 if isinstance(v, list):
-                    if not(span.get_tag(k) in v or '*' in v):
+                    if not (span.get_tag(k) in v or '*' in v):
                         matched = False
                         break
                 elif span.get_tag(k) != v:

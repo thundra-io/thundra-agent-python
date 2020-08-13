@@ -53,7 +53,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         scope.span.domain_name = constants.DomainNames['DB']
         scope.span.class_name = constants.ClassNames['DYNAMODB']
-
         operation_name, request_data = args
         operation_type = get_operation_type(scope.span.class_name, operation_name)
 

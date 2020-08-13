@@ -1,11 +1,9 @@
-import traceback
-
-from thundra import utils
 import thundra.constants as constants
-from thundra.plugins.invocation import invocation_support
-from thundra.integrations.base_integration import BaseIntegration
-from thundra.config.config_provider import ConfigProvider
+from thundra import utils
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.integrations.base_integration import BaseIntegration
+
 
 class RequestsIntegration(BaseIntegration):
     CLASS_TYPE = 'http'
@@ -15,14 +13,16 @@ class RequestsIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         prepared_request = args[0]
-        url_dict = utils.parse_http_url(prepared_request.url, ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
+        url_dict = utils.parse_http_url(prepared_request.url,
+                                        ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
         return url_dict.get('operation_name')
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         prepared_request = args[0]
         method = prepared_request.method
 
-        url_dict = utils.parse_http_url(prepared_request.url, ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
+        url_dict = utils.parse_http_url(prepared_request.url,
+                                        ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
         span = scope.span
 
         span.domain_name = constants.DomainNames['API']
@@ -63,7 +63,8 @@ class RequestsIntegration(BaseIntegration):
                 scope.span.operation_name = resource_name
 
             if (response.status_code and \
-                ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= response.status_code):
+                    ConfigProvider.get(
+                        config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= response.status_code):
                 scope.span.set_tag('error.kind', "HttpError")
                 scope.span.set_tag('error', True)
                 scope.span.set_tag('error.message', response.reason)

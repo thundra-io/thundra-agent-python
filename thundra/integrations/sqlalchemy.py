@@ -1,13 +1,12 @@
-import traceback
-import time
 import logging
+import time
+import traceback
+
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.opentracing.tracer import ThundraTracer
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
-
 
 try:
     from sqlalchemy.event import listen
@@ -68,7 +67,6 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
             operation = statement.split()[0].strip("\"").lower()
         except:
             operation = ""
-
 
         tags = {
             constants.SpanTags['OPERATION_TYPE']: SqlAlchemyIntegration._OPERATION_TO_TYPE.get(operation, ''),

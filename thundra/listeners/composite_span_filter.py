@@ -3,7 +3,9 @@ from thundra.listeners.thundra_span_filterer import SpanFilter
 
 class CompositeSpanFilter(SpanFilter):
     
-    def __init__(self, is_all=False, filters=[]):
+    def __init__(self, is_all=False, filters=None):
+        if filters is None:
+            filters = []
         self.all = is_all
         self.filters = filters
 
