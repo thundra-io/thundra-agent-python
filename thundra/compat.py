@@ -18,7 +18,7 @@ PY36 = (PY3 and _ver[1] == 6)
 PY37 = (PY3 and _ver[1] == 7)
 
 # Python 3.8.x
-PY37 = (PY3 and _ver[1] == 8)
+PY38 = (PY3 and _ver[1] == 8)
 
 class TimeoutError(Exception):
     def __init__(self, msg="Task timed out"):

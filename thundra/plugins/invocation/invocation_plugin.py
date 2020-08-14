@@ -1,8 +1,6 @@
 import simplejson as json
 
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
-from thundra.context.execution_context_manager import ExecutionContextManager
 
 
 class InvocationPlugin:
@@ -30,4 +28,3 @@ class InvocationPlugin:
             'data': execution_context.invocation_data
         }
         execution_context.report(json.loads(json.dumps(report_data)))
-        invocation_support.clear()

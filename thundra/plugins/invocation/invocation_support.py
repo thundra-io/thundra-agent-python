@@ -1,7 +1,5 @@
 from thundra.context.execution_context_manager import ExecutionContextManager
 
-_user_error = None
-
 
 def set_agent_tag(key, value):
     execution_context = ExecutionContextManager.get()

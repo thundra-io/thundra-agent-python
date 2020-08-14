@@ -1,9 +1,10 @@
 import logging
 
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 
 loggers = {}
+
 
 class StreamToLogger(object):
     def __init__(self, logger, old_stdout):
@@ -21,7 +22,7 @@ def get_logger(name):
     if loggers.get(name):
         return loggers.get(name)
     else:
-        FORMAT = "%(asctime)s  - %(levelname)s - %(name)s - %(message)s"
+        format = "%(asctime)s  - %(levelname)s - %(name)s - %(message)s"
         if name is None:
             logger = logging.getLogger(__name__)
         else:
@@ -29,14 +30,14 @@ def get_logger(name):
         logger.setLevel(logging.DEBUG)
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.DEBUG)
-        ch_format = logging.Formatter(FORMAT)
+        ch_format = logging.Formatter(format)
         console_handler.setFormatter(ch_format)
         logger.addHandler(console_handler)
         loggers[name] = logger
         return logger
 
 
-def log_to_console(message,  handler):
+def log_to_console(message, handler):
     logger = get_logger(handler)
     logging.getLogger().handlers = []
     logger.debug(message)
@@ -58,6 +59,6 @@ def debug_logger_helper(msg, handler):
     if hasattr(msg, '__dict__'):
         log_to_console(msg, handler)
         display = vars(msg)
-        log_to_console(display,  handler)
+        log_to_console(display, handler)
         for key, _ in display.items():
             debug_logger_helper(getattr(msg, key), handler)

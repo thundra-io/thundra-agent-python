@@ -199,6 +199,7 @@ class Traceable:
             scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span, finish_on_close=False)
             scope.span.class_name = 'Method'
             traced_err = None
+            global _line_traced_count
             try:
                 # Add argument related tags to the span before calling original method
                 if self._trace_args is True:
@@ -233,7 +234,6 @@ class Traceable:
                             scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
                         debug_logger("Cannot get source code in traceable: " + str(e))
-                    global _line_traced_count
                     with _lock:
                         if _line_traced_count == 0:
                             sys.settrace(trace_calls)

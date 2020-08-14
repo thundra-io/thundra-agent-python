@@ -1,6 +1,6 @@
-import uuid
 import logging
-from thundra.opentracing.tracer import ThundraTracer
+import uuid
+
 from thundra.context.execution_context_manager import ExecutionContextManager
 
 
@@ -8,7 +8,6 @@ class ThundraLogHandler(logging.Handler):
 
     def __init__(self):
         logging.Handler.__init__(self)
-        self.tracer = ThundraTracer.get_instance()
 
     def emit(self, record):
         formatted_message = self.format(record)

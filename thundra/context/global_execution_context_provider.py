@@ -1,8 +1,12 @@
 from thundra.context.execution_context import ExecutionContext
 
-execution_context = ExecutionContext()
+_execution_context = ExecutionContext()
 
 
 class GlobalExecutionContextProvider:
     def get(self):
-        return execution_context
+        return _execution_context
+
+    def set(self, execution_context):
+        global _execution_context
+        _execution_context = execution_context

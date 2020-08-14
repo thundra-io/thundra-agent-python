@@ -1,5 +1,6 @@
-from threading import Lock
 import copy
+from threading import Lock
+
 
 class ThundraRecorder:
 
@@ -7,7 +8,7 @@ class ThundraRecorder:
         self._lock = Lock()
         self._spans = []
 
-    def record(self,span):
+    def record(self, span):
         with self._lock:
             self._spans.append(span)
 

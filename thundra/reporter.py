@@ -15,7 +15,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Reporter():
+class Reporter:
 
     def __init__(self, api_key, session=None):
         if api_key is not None:

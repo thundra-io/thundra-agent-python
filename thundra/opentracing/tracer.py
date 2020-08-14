@@ -5,7 +5,6 @@ import opentracing
 from opentracing.scope_managers import ThreadLocalScopeManager
 
 from thundra import constants
-from thundra.opentracing.recorder import ThundraRecorder
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
@@ -18,10 +17,9 @@ class ThundraTracer(opentracing.Tracer):
     def get_instance():
         return ThundraTracer() if ThundraTracer.__instance is None else ThundraTracer.__instance
 
-    def __init__(self, recorder=None, scope_manager=None):
+    def __init__(self, scope_manager=None):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
         super(ThundraTracer, self).__init__(scope_manager)
-        self.recorder = recorder or ThundraRecorder()
         self.lock = Lock()
         self.global_span_order = 0
         ThundraTracer.__instance = self
@@ -88,7 +86,6 @@ class ThundraTracer(opentracing.Tracer):
         if hasattr(_span, 'execution_context') and _span.execution_context:
             recorder = _span.execution_context.recorder
             recorder.record(_span)
-
         # Update parent span tag for line by line tracing
         self.inject_line_by_line_tags(_span)
 
@@ -121,13 +118,14 @@ class ThundraTracer(opentracing.Tracer):
         _parent_context = None
         if child_of is not None:
             _parent_context = child_of if isinstance(child_of, opentracing.SpanContext) else child_of.context
-            if isinstance(child_of, opentracing.Span) and hasattr(child_of, 'execution_context') and child_of.execution_context:
-                    execution_context = child_of.execution_context
+            if isinstance(child_of, opentracing.Span) and hasattr(child_of,
+                                                                  'execution_context') and child_of.execution_context:
+                execution_context = child_of.execution_context
         elif references is not None and len(references) > 0:
             _parent_context = references[0].referenced_context
 
         _scope = self.scope_manager.active
-        if _scope is not None and _scope.span is not None:
+        if _scope is not None and _scope.span is not None and execution_context is None:
             if hasattr(_scope.span, 'execution_context') and _scope.span.execution_context:
                 execution_context = _scope.span.execution_context
 
@@ -171,17 +169,11 @@ class ThundraTracer(opentracing.Tracer):
     def get_span_listeners(self):
         return trace_support.get_span_listeners()
 
-    def get_spans(self):
-        return self.recorder.get_spans()
-
     def inject(self, span_context, format, carrier):
         raise NotImplementedError('inject method not implemented yet')
 
     def extract(self, format, carrier):
         raise NotImplementedError('extract method not implemented yet')
-
-    def clear(self):
-        self.recorder.clear()
 
     def add_span_listener(self, listener):
         trace_support.register_span_listener(listener)

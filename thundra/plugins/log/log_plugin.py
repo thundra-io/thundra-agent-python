@@ -6,15 +6,30 @@ import wrapt
 
 from thundra import constants
 from thundra.application.application_manager import ApplicationManager
-from thundra.compat import PY37
+from thundra.compat import PY37, PY38
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.plugins.log import log_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.plugins.log.thundra_logger import StreamToLogger
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('STDOUT')
+
+
+def _wrapper(wrapped, instance, args, kwargs):
+    try:
+        wrapped(*args, **kwargs)
+        logger.info(str(args[0]))
+    except:
+        pass
+
+
+if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE) and (PY37 or PY38):
+    wrapt.wrap_function_wrapper(
+        'builtins',
+        'print',
+        _wrapper
+    )
 
 
 class LogPlugin:
@@ -27,35 +42,26 @@ class LogPlugin:
         self.old_stdout = sys.stdout
         self.plugin_context = plugin_context
         if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
-            self.logger = logging.getLogger('STDOUT')
-            self.handler = ThundraLogHandler()
-            self.logger.addHandler(self.handler)
-            self.logger.setLevel(logging.INFO)
-            self.handler.setLevel(logging.INFO)
-            self.logger.propagate = False
-            if PY37:
-                wrapt.wrap_function_wrapper(
-                    'builtins',
-                    'print',
-                    self._wrapper
-                )
-
-    def _wrapper(self, wrapped, instance, args, kwargs):
-        try:
-            wrapped(*args, **kwargs)
-            self.logger.info(str(args[0]))
-        except:
-            pass
+            handler = ThundraLogHandler()
+            has_thundra_log_handler = False
+            for log_handlers in logger.handlers:
+                if isinstance(log_handlers, ThundraLogHandler):
+                    has_thundra_log_handler = True
+            if not has_thundra_log_handler:
+                logger.addHandler(handler)
+            logger.setLevel(logging.INFO)
+            handler.setLevel(logging.INFO)
+            logger.propagate = False
 
     def before_invocation(self, execution_context):
         self.old_stdout = sys.stdout
-        if (not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)) and (not PY37):
-            sys.stdout = StreamToLogger(self.logger, self.old_stdout)
+        if (not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)) and (not (PY37 or PY38)):
+            sys.stdout = StreamToLogger(logger, self.old_stdout)
         if not execution_context.transaction_id:
             execution_context.transaction_id = str(uuid.uuid4())
 
     def after_invocation(self, execution_context):
-        if (not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)) and (not PY37):
+        if (not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)) and (not (PY37 or PY38)):
             sys.stdout = self.old_stdout
         log_data = {
             'type': "Log",
