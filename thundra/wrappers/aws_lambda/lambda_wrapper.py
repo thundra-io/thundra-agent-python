@@ -46,7 +46,7 @@ class LambdaWrapper:
                                             executor=lambda_executor, api_key=self.api_key)
 
         ExecutionContextManager.set_provider(GlobalExecutionContextProvider())
-        self.plugins = wrapper_utils.initialize_plugins(disable_trace, disable_metric, disable_log)
+        self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log)
 
         self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN,
                                                  constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
@@ -69,9 +69,6 @@ class LambdaWrapper:
 
         @wraps(original_func)
         def wrapper(event, context):
-            before_done = False
-            after_done = False
-
             LambdaContextProvider.set_context(context)
             ApplicationManager.get_application_info_provider().update({
                 'applicationId': LambdaApplicationInfoProvider.get_application_id(context),
@@ -99,43 +96,36 @@ class LambdaWrapper:
                 self.execute_hook('before:invocation', execution_context)
 
                 timeout_duration = self.get_timeout_duration(context)
-                before_done = True
             except Exception as e:
                 logger.error("Error during the before part of Thundra: {}".format(e))
-                before_done = False
-
-            # Invoke user handler
-            if before_done:
-                try:
-                    response = None
-                    with Timeout(timeout_duration, self.timeout_handler, execution_context):
-                        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
-                            self.start_debugger_tracing()
-
-                        response = original_func(event, context)
-                        execution_context.response = response
-                except Exception as e:
-                    try:
-                        execution_context.error = e
-                        self.prepare_and_send_reports(execution_context)
-                        after_done = True
-                    except Exception as e_in:
-                        logger.error("Error during the after part of Thundra: {}".format(e_in))
-                        after_done = False
-                        pass
-                    raise e
-                finally:
-                    if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
-                        self.stop_debugger_tracing()
-            else:
                 return original_func(event, context)
 
-            # After having run the user's handler
-            if before_done and not after_done:
+            # Invoke user handler
+            try:
+                response = None
+                with Timeout(timeout_duration, self.timeout_handler, execution_context):
+                    if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
+                        self.start_debugger_tracing()
+
+                    response = original_func(event, context)
+                    execution_context.response = response
+            except Exception as e:
                 try:
+                    execution_context.error = e
                     self.prepare_and_send_reports(execution_context)
-                except Exception as e:
-                    logger.error("Error during the after part of Thundra: {}".format(e))
+                except Exception as e_in:
+                    logger.error("Error during the after part of Thundra: {}".format(e_in))
+                    pass
+                raise e
+            finally:
+                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
+                    self.stop_debugger_tracing()
+
+            # After having run the user's handler
+            try:
+                self.prepare_and_send_reports(execution_context)
+            except Exception as e:
+                logger.error("Error during the after part of Thundra: {}".format(e))
 
             return response
 

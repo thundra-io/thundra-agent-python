@@ -2,6 +2,8 @@ from thundra.application.global_application_info_provider import GlobalApplicati
 
 
 class ApplicationManager:
+    application_info_provider = None
+
     @staticmethod
     def set_application_info_provider(application_info_provider):
         ApplicationManager.application_info_provider = GlobalApplicationInfoProvider(application_info_provider)

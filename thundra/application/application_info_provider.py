@@ -1,6 +1,7 @@
 import abc
-from thundra.config.config_provider import ConfigProvider
+
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 
