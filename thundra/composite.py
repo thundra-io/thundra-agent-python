@@ -1,7 +1,7 @@
 import uuid
+
 from thundra import constants
 
-_common_fields = {}
 _common_fields_list = [
     'agentVersion',
     'dataModelVersion',
@@ -18,12 +18,7 @@ _common_fields_list = [
 
 
 def init_composite_data_common_fields(data):
-    for field in _common_fields_list:
-        _common_fields[field] = data.get(field)
-
-
-def get_composite_common_fields():
-    return _common_fields.copy()
+    return {field: data.get(field) for field in _common_fields_list}
 
 
 def remove_common_fields(data):
@@ -36,17 +31,13 @@ def remove_common_fields(data):
     return without_common_fields
 
 
-def get_composite_data(all_monitoring_data, api_key):
+def get_composite_data(all_monitoring_data, api_key, data):
     composite_data = {
         "type": "Composite", "dataModelVersion": constants.DATA_FORMAT_VERSION,
         "apiKey": api_key,
-        'data': get_composite_common_fields()
+        'data': data
     }
     composite_data['data']['id'] = str(uuid.uuid4())
     composite_data['data']['type'] = "Composite"
     composite_data['data']['allMonitoringData'] = all_monitoring_data
     return composite_data
-
-
-def clear():
-    _common_fields.clear()

@@ -114,14 +114,14 @@ class Reporter:
         if not invocation_report:
             return []
 
-        composite.init_composite_data_common_fields(invocation_report["data"])
+        common_fields = composite.init_composite_data_common_fields(invocation_report["data"])
 
         batches = self.get_report_batches(reports)
         batched_reports = []
 
         for batch in batches:
             all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in batch]
-            composite_data = composite.get_composite_data(all_monitoring_data, self.api_key)
+            composite_data = composite.get_composite_data(all_monitoring_data, self.api_key, common_fields)
             try:
                 batched_reports.append(json.dumps(composite_data, separators=(',', ':')))
 
@@ -129,5 +129,4 @@ class Reporter:
                 logger.error("Couldn't dump report with type Composite to json string, "
                              "probably it contains a byte array")
 
-        composite.clear()
         return batched_reports
