@@ -1,21 +1,24 @@
 from __future__ import unicode_literals
-from thundra.compat import str
-import mock
+
 import base64
-import simplejson as json
-import pytest
 import hashlib
-from thundra.plugins.invocation import invocation_trace_support
+
+import mock
+import pytest
+import simplejson as json
+
+from thundra.compat import str
+from thundra.context.execution_context_manager import ExecutionContextManager
+
 try:
     from contextlib import ExitStack
 except ImportError:
     from contextlib2 import ExitStack
 
 from thundra import constants
-from thundra.aws_lambda import lambda_event_utils
+from thundra.wrappers.aws_lambda import lambda_event_utils
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins import invocation
-from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 
 try:
     from BytesIO import BytesIO
@@ -23,31 +26,25 @@ except ImportError:
     from io import BytesIO
 from gzip import GzipFile
 
+
 @pytest.fixture
 def tracer_and_invocation_support():
     with ExitStack() as stack:
         # Just a fancy way of using contexts to avoid an ugly multi-line with statement
         stack.enter_context(mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'))
-        stack.enter_context(mock.patch('thundra.plugins.invocation.invocation_support.clear'))
-        stack.enter_context(mock.patch('thundra.plugins.invocation.invocation_trace_support.clear'))
         tracer = ThundraTracer.get_instance()
         invocation_support = invocation.invocation_support
         invocation_trace_support = invocation.invocation_trace_support
         yield tracer, invocation_support, invocation_trace_support
 
-    tracer.clear()
-    invocation_support.clear()
-
 
 def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_event, mock_context):
     _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
-    try:
-        handler(mock_dynamodb_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_dynamodb_event, mock_context)
+
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
     assert lambda_event_utils.get_lambda_event_type(mock_dynamodb_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.DynamoDB
 
@@ -56,7 +53,8 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames[
+        'DYNAMODB']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     md5_key = hashlib.md5("Id={N: 101}".encode()).hexdigest()
@@ -81,15 +79,13 @@ def test_dynamodb_trigger(tracer_and_invocation_support, handler, mock_dynamodb_
     assert sorted(invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks')) == sorted(links)
 
 
-def test_dynamodb_trigger_delete_event(tracer_and_invocation_support, handler, mock_dynamodb_delete_event, mock_context):
+def test_dynamodb_trigger_delete_event(tracer_and_invocation_support, handler, mock_dynamodb_delete_event,
+                                       mock_context):
     _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
-    try:
-        handler(mock_dynamodb_delete_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_dynamodb_delete_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
     assert lambda_event_utils.get_lambda_event_type(mock_dynamodb_delete_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.DynamoDB
 
@@ -98,7 +94,8 @@ def test_dynamodb_trigger_delete_event(tracer_and_invocation_support, handler, m
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames[
+        'DYNAMODB']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     md5_key = hashlib.md5("Id={N: 101}".encode()).hexdigest()
@@ -118,12 +115,10 @@ def test_dynamodb_trigger_trace_injected(tracer_and_invocation_support, handler,
                                          mock_context):
     _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
-    try:
-        handler(mock_dynamodb_event_trace_injected, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_dynamodb_event_trace_injected, mock_context)
+
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_dynamodb_event_trace_injected,
                                                     mock_context) == lambda_event_utils.LambdaEventType.DynamoDB
@@ -133,7 +128,8 @@ def test_dynamodb_trigger_trace_injected(tracer_and_invocation_support, handler,
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['DB']
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['DYNAMODB']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames[
+        'DYNAMODB']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTableWithStream']
 
     assert sorted(invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks')) == sorted(
@@ -143,12 +139,10 @@ def test_dynamodb_trigger_trace_injected(tracer_and_invocation_support, handler,
 def test_sqs_trigger(tracer_and_invocation_support, handler, mock_sqs_event, mock_context):
     _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
-    try:
-        handler(mock_sqs_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+
+    handler(mock_sqs_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_sqs_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.SQS
@@ -157,22 +151,21 @@ def test_sqs_trigger(tracer_and_invocation_support, handler, mock_sqs_event, moc
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SQS']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['MyQueue']
 
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames[
+        'MESSAGING']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SQS']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['MyQueue']
 
-    assert invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks') == ["19dd0b57-b21e-4ac1-bd88-01bbb068cb78"]
+    assert invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks') == [
+        "19dd0b57-b21e-4ac1-bd88-01bbb068cb78"]
 
 
 def test_sns_trigger(tracer_and_invocation_support, handler, mock_sns_event, mock_context):
     _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
-    try:
-        handler(mock_sns_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_sns_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
     assert lambda_event_utils.get_lambda_event_type(mock_sns_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.SNS
 
@@ -180,22 +173,22 @@ def test_sns_trigger(tracer_and_invocation_support, handler, mock_sns_event, moc
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SNS']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTopic']
 
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames[
+        'MESSAGING']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['SNS']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['ExampleTopic']
 
-    assert invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks') == ["95df01b4-ee98-5cb9-9903-4c221d41eb5e"]
+    assert invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks') == [
+        "95df01b4-ee98-5cb9-9903-4c221d41eb5e"]
 
 
 def test_kinesis_trigger(tracer_and_invocation_support, handler, mock_kinesis_event, mock_context):
     _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
-    try:
-        handler(mock_kinesis_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+
+    handler(mock_kinesis_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_kinesis_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.Kinesis
@@ -204,7 +197,8 @@ def test_kinesis_trigger(tracer_and_invocation_support, handler, mock_kinesis_ev
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['KINESIS']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example_stream']
 
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames[
+        'STREAM']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['KINESIS']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example_stream']
 
@@ -216,15 +210,13 @@ def test_cloudwatch_schedule_trigger(tracer_and_invocation_support, handler, moc
                                      mock_context):
     _, handler = handler
     tracer, invocation_support, _ = tracer_and_invocation_support
-    try:
-        handler(mock_cloudwatch_schedule_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_cloudwatch_schedule_event, mock_context)
 
-    assert lambda_event_utils.get_lambda_event_type(mock_cloudwatch_schedule_event,
-                                                    mock_context) == lambda_event_utils.LambdaEventType.CloudWatchSchedule
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
+    event_type = lambda_event_utils.get_lambda_event_type(mock_cloudwatch_schedule_event,
+                                                          mock_context)
+    assert event_type == lambda_event_utils.LambdaEventType.CloudWatchSchedule
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Schedule'
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Schedule'
@@ -238,12 +230,9 @@ def test_cloudwatch_schedule_trigger(tracer_and_invocation_support, handler, moc
 def test_cloudwatch_logs_trigger(tracer_and_invocation_support, handler, mock_cloudwatch_logs_event, mock_context):
     _, handler = handler
     tracer, invocation_support, _ = tracer_and_invocation_support
-    try:
-        handler(mock_cloudwatch_logs_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_cloudwatch_logs_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_cloudwatch_logs_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.CloudWatchLogs
@@ -257,18 +246,16 @@ def test_cloudwatch_logs_trigger(tracer_and_invocation_support, handler, mock_cl
 
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'Log'
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'AWS-CloudWatch-Log'
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [decompressed_data['logGroup']]
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [
+        decompressed_data['logGroup']]
 
 
 def test_cloudfront_event_trigger(tracer_and_invocation_support, handler, mock_cloudfront_event, mock_context):
     _, handler = handler
     tracer, invocation_support, _ = tracer_and_invocation_support
-    try:
-        handler(mock_cloudfront_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_cloudfront_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_cloudfront_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.CloudFront
@@ -284,27 +271,21 @@ def test_cloudfront_event_trigger(tracer_and_invocation_support, handler, mock_c
 
 def test_firehose_trigger(tracer_and_invocation_support, handler, mock_firehose_event, mock_context):
     thundra, handler = handler
-    tracer, invocation_support, _ = tracer_and_invocation_support
+    tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
     assert lambda_event_utils.get_lambda_event_type(mock_firehose_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.Firehose
-    try:
-        handler(mock_firehose_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
-
-    invocation_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
-            invocation_plugin = plugin
+    handler(mock_firehose_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['FIREHOSE']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['exampleStream']
 
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STREAM']
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['FIREHOSE']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames[
+        'STREAM']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames[
+        'FIREHOSE']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['exampleStream']
 
     links = [
@@ -318,12 +299,9 @@ def test_firehose_trigger(tracer_and_invocation_support, handler, mock_firehose_
 def test_apigateway_proxy_trigger(tracer_and_invocation_support, handler, mock_apigateway_proxy_event, mock_context):
     _, handler = handler
     tracer, invocation_support, _ = tracer_and_invocation_support
-    try:
-        handler(mock_apigateway_proxy_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_apigateway_proxy_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_apigateway_proxy_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.APIGatewayProxy
@@ -340,12 +318,9 @@ def test_apigateway_proxy_trigger(tracer_and_invocation_support, handler, mock_a
 def test_apigateway_trigger(tracer_and_invocation_support, handler, mock_apigateway_event, mock_context):
     _, handler = handler
     tracer, invocation_support, _ = tracer_and_invocation_support
-    try:
-        handler(mock_apigateway_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_apigateway_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert lambda_event_utils.get_lambda_event_type(mock_apigateway_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.APIGateway
@@ -363,21 +338,19 @@ def test_apigateway_trigger(tracer_and_invocation_support, handler, mock_apigate
 
 def test_s3_trigger(tracer_and_invocation_support, handler, mock_s3_event, mock_context):
     _, handler = handler
-    tracer, invocation_support, _ = tracer_and_invocation_support
+    tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
     assert lambda_event_utils.get_lambda_event_type(mock_s3_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.S3
-    try:
-        handler(mock_s3_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_s3_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STORAGE']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['S3']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example-bucket']
 
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['STORAGE']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames[
+        'STORAGE']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['S3']
     assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['example-bucket']
 
@@ -389,17 +362,9 @@ def test_lambda_trigger(tracer_and_invocation_support, handler, mock_event, mock
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
     assert lambda_event_utils.get_lambda_event_type(mock_event,
                                                     mock_lambda_context) == lambda_event_utils.LambdaEventType.Lambda
-    try:
-        handler(mock_event, mock_lambda_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
-
-    invocation_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, InvocationPlugin):
-            invocation_plugin = plugin
+    handler(mock_event, mock_lambda_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['API']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['LAMBDA']
@@ -417,19 +382,20 @@ def test_eventbridge_trigger(tracer_and_invocation_support, handler, mock_eventb
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
     assert lambda_event_utils.get_lambda_event_type(mock_eventbridge_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.EventBridge
-    try:
-        handler(mock_eventbridge_event, mock_context)
-    except:
-        print("Error running handler!")
-        raise
-    span = tracer.recorder.get_spans()[0]
+    handler(mock_eventbridge_event, mock_context)
+    execution_context = ExecutionContextManager.get()
+    span = execution_context.recorder.get_spans()[0]
 
     assert span.get_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
     assert span.get_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['EVENTBRIDGE']
     assert span.get_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['EC2 Command Status-change Notification']
 
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames['MESSAGING']
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames['EVENTBRIDGE']
-    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['EC2 Command Status-change Notification']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == constants.DomainNames[
+        'MESSAGING']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME']) == constants.ClassNames[
+        'EVENTBRIDGE']
+    assert invocation_support.get_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == [
+        'EC2 Command Status-change Notification']
 
-    assert invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks') == ["51c0891d-0e34-45b1-83d6-95db273d1602"]
+    assert invocation_trace_support.get_incoming_trace_links().get('incomingTraceLinks') == [
+        "51c0891d-0e34-45b1-83d6-95db273d1602"]

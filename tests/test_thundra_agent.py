@@ -1,10 +1,11 @@
 import mock
 import pytest
+
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.plugins.trace.trace_plugin import TracePlugin
 from thundra.thundra_agent import Thundra
-
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 
 
 def test_if_api_key_is_retrieved_from_env_var():
@@ -103,10 +104,10 @@ def test_if_thundra_is_disabled(mock_reporter, handler, mock_event, mock_context
 
 def test_if_exception_is_handled(handler_with_exception, mock_context, mock_event):
     thundra, handler = handler_with_exception
-    with pytest.raises(Exception) as exinfo:
+    with pytest.raises(Exception):
         handler(mock_event, mock_context)
 
-    assert 'error' in thundra.plugin_context
+    assert ExecutionContextManager.get().error
 
 
 @mock.patch('thundra.thundra_agent.Thundra.check_and_handle_warmup_request')
@@ -118,8 +119,6 @@ def test_if_thundra_crashes_user_handler_before(mocked_func, handler, mock_event
     except Exception:
         pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
 
-    assert len(thundra.reporter.reports) == 0
-
 
 @mock.patch('thundra.reporter.Reporter.send_report')
 def test_if_thundra_crashes_user_handler_after(mocked_func, handler, mock_event, mock_context):
@@ -129,5 +128,3 @@ def test_if_thundra_crashes_user_handler_after(mocked_func, handler, mock_event,
         handler(mock_event, mock_context)
     except Exception:
         pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
-
-    assert len(thundra.reporter.reports) == 0

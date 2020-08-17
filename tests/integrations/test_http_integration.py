@@ -1,13 +1,12 @@
-import os
 import mock
 import requests
-from thundra.opentracing.tracer import ThundraTracer
-
-from thundra.compat import urlparse
 
 from thundra import constants
-from thundra.config.config_provider import ConfigProvider
+from thundra.compat import urlparse
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.opentracing.tracer import ThundraTracer
+
 
 def test_successful_http_call():
     try:
@@ -19,7 +18,7 @@ def test_successful_http_call():
 
         requests.get(url)
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -48,7 +47,7 @@ def test_http_put():
 
         requests.put(url, data={"message": "test"})
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -79,7 +78,7 @@ def test_http_put_body_masked():
 
         requests.put(url, data={"message": "test"})
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -109,7 +108,7 @@ def test_successful_http_call_with_query_params():
 
         requests.get(url)
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -123,8 +122,6 @@ def test_successful_http_call_with_query_params():
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
     except Exception:
         raise
-    finally:
-        tracer.clear()
 
 
 def test_http_call_with_session():
@@ -138,7 +135,7 @@ def test_http_call_with_session():
         s.get(url)
 
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.domain_name == constants.DomainNames['API']
         assert http_span.class_name == constants.ClassNames['HTTP']
@@ -149,8 +146,6 @@ def test_http_call_with_session():
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
     except Exception:
         raise
-    finally:
-        tracer.clear()
 
 
 def test_errorneous_http_call():
@@ -167,7 +162,7 @@ def test_errorneous_http_call():
             pass
 
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -198,7 +193,7 @@ def test_http_path_depth():
 
         requests.get(url)
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -212,8 +207,6 @@ def test_http_path_depth():
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
     except Exception:
         raise
-    finally:
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
@@ -230,7 +223,7 @@ def test_apigw_call(mock_actual_call):
 
         requests.get(url)
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
         assert http_span.domain_name == constants.DomainNames['API']
@@ -244,8 +237,7 @@ def test_apigw_call(mock_actual_call):
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
     except Exception:
         raise
-    finally:
-        tracer.clear()
+
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
 def test_apigw_call_v2(mock_actual_call):
@@ -260,7 +252,7 @@ def test_apigw_call_v2(mock_actual_call):
 
         requests.get(url)
         tracer = ThundraTracer.get_instance()
-        http_span = tracer.get_spans()[0]
+        http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == "test"
         assert http_span.domain_name == constants.DomainNames['API']
@@ -274,8 +266,6 @@ def test_apigw_call_v2(mock_actual_call):
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
     except Exception:
         raise
-    finally:
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
@@ -293,7 +283,7 @@ def test_http_4xx_error(mock_actual_call):
     requests.get(url)
 
     tracer = ThundraTracer.get_instance()
-    http_span = tracer.get_spans()[0]
+    http_span = tracer.get_spans()[1]
 
     assert http_span.operation_name == host + path
     assert http_span.domain_name == constants.DomainNames['API']
@@ -308,8 +298,6 @@ def test_http_4xx_error(mock_actual_call):
     assert http_span.get_tag('error') == True
     assert http_span.get_tag('error.kind') == 'HttpError'
     assert http_span.get_tag('error.message') == 'Not Found'
-
-    tracer.clear()
 
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
@@ -328,7 +316,7 @@ def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
     requests.get(url)
 
     tracer = ThundraTracer.get_instance()
-    http_span = tracer.get_spans()[0]
+    http_span = tracer.get_spans()[1]
 
     assert http_span.operation_name == host + path
     assert http_span.domain_name == constants.DomainNames['API']
@@ -343,8 +331,6 @@ def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
     assert http_span.get_tag('error') == None
     assert http_span.get_tag('error.kind') == None
     assert http_span.get_tag('error.message') == None
-
-    tracer.clear()
 
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
@@ -362,7 +348,7 @@ def test_http_5xx_error(mock_actual_call):
     requests.get(url)
 
     tracer = ThundraTracer.get_instance()
-    http_span = tracer.get_spans()[0]
+    http_span = tracer.get_spans()[1]
 
     assert http_span.operation_name == host + path
     assert http_span.domain_name == constants.DomainNames['API']
@@ -374,8 +360,6 @@ def test_http_5xx_error(mock_actual_call):
     assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
     assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
     assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
-    assert http_span.get_tag('error') == True
+    assert http_span.get_tag('error') is True
     assert http_span.get_tag('error.kind') == 'HttpError'
     assert http_span.get_tag('error.message') == 'Internal Server Error'
-
-    tracer.clear()

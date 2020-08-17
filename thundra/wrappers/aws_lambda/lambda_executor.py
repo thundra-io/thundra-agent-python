@@ -261,7 +261,7 @@ def finish_invocation(execution_context):
 
     duration = execution_context.finish_timestamp - execution_context.start_timestamp
     invocation_data['duration'] = int(duration)
-    invocation_data['finishTimestamp'] = int(execution_context.start_timestamp)
+    invocation_data['finishTimestamp'] = int(execution_context.finish_timestamp)
 
     arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
 

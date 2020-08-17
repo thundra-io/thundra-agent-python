@@ -19,3 +19,6 @@ class TracingExecutionContextProvider:
     def set(self, execution_context):
         self.execution_context = execution_context
 
+    def clear(self):
+        self.execution_context = None
+

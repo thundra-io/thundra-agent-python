@@ -1,10 +1,10 @@
-import os
 from elasticsearch import Elasticsearch, ElasticsearchException
 
 from thundra import constants
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.opentracing.tracer import ThundraTracer
+
 
 def test_create_index():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
@@ -16,13 +16,12 @@ def test_create_index():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
-        tracer.clear()
+        span = tracer.get_spans()[1]
 
         assert span.operation_name == '/authors/authors/1'
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
-        
+
         assert span.get_tag(constants.ESTags['ES_HOSTS']) == ['http://test:3737']
         assert span.get_tag(constants.ESTags['ES_URI']) == '/authors/authors/1'
         assert span.get_tag(constants.ESTags['ES_BODY']) == author1
@@ -30,7 +29,6 @@ def test_create_index():
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
 
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
-
 
 
 def test_get_doc():
@@ -42,15 +40,14 @@ def test_get_doc():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
-        tracer.clear()
+        span = tracer.get_spans()[1]
 
         hosts = span.get_tag(constants.ESTags['ES_HOSTS'])
 
         assert span.operation_name == '/test-index/tweet/1'
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
-        
+
         assert len(hosts) == 2
         assert 'http://one_host:9200' in hosts
         assert 'http://another_host:9200' in hosts
@@ -59,9 +56,10 @@ def test_get_doc():
         assert span.get_tag(constants.ESTags['ES_BODY']) == {}
 
         assert span.get_tag(constants.DBTags['DB_TYPE']) == 'elasticsearch'
-        
+
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'GET'
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
+
 
 def test_refresh():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '2')
@@ -73,13 +71,12 @@ def test_refresh():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
-        tracer.clear()
+        span = tracer.get_spans()[1]
 
         assert span.operation_name == '/test-index/_refresh'
         assert span.class_name == constants.ClassNames['ELASTICSEARCH']
         assert span.domain_name == constants.DomainNames['DB']
-        
+
         assert span.get_tag(constants.ESTags['ES_HOSTS']) == ['http://test:3737']
         assert span.get_tag(constants.ESTags['ES_URI']) == '/test-index/_refresh'
         assert span.get_tag(constants.ESTags['ES_BODY']) == {}
@@ -99,7 +96,6 @@ def test_mask_body(monkeypatch):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
-        tracer.clear()
+        span = tracer.get_spans()[1]
 
-        assert span.get_tag(constants.ESTags['ES_BODY']) == None
+        assert span.get_tag(constants.ESTags['ES_BODY']) is None

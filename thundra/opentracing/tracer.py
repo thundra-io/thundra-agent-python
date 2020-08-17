@@ -5,6 +5,7 @@ import opentracing
 from opentracing.scope_managers import ThreadLocalScopeManager
 
 from thundra import constants
+from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
@@ -168,6 +169,17 @@ class ThundraTracer(opentracing.Tracer):
 
     def get_span_listeners(self):
         return trace_support.get_span_listeners()
+
+    def get_spans(self):
+        execution_context = ExecutionContextManager.get()
+        if execution_context and execution_context.recorder:
+            return execution_context.recorder.get_spans()
+        return []
+
+    def clear(self):
+        execution_context = ExecutionContextManager.get()
+        if execution_context and execution_context.recorder:
+            execution_context.recorder.clear()
 
     def inject(self, span_context, format, carrier):
         raise NotImplementedError('inject method not implemented yet')

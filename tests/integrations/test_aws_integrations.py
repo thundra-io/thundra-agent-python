@@ -1,11 +1,12 @@
-import mock
 import boto3
+import mock
 from boto3.exceptions import Boto3Error
-from botocore.exceptions import BotoCoreError
 from botocore.errorfactory import ClientError
-from thundra.opentracing.tracer import ThundraTracer
+from botocore.exceptions import BotoCoreError
 
+from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.integrations.botocore import *
+from thundra.opentracing.tracer import ThundraTracer
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
@@ -53,7 +54,6 @@ def test_dynamodb():
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
         statements = [
             {
                 'username': 'janedoe',
@@ -84,7 +84,8 @@ def test_dynamodb():
                 }
             }
         ]
-        spans = tracer.get_spans()
+        tracer = ThundraTracer.get_instance()
+        spans = tracer.get_spans()[1:]
         for i in range(len(spans)):
             span = spans[i]
             assert span.class_name == 'AWS-DynamoDB'
@@ -96,12 +97,10 @@ def test_dynamodb():
             assert span.get_tag('db.statement.type') == 'READ'
             assert span.get_tag('db.type') == 'aws-dynamodb'
             assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
-        tracer.clear()
 
 
 def test_dynamodb_put_item():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
-
     try:
         item = {
             'id': {'S': "3"},
@@ -117,7 +116,7 @@ def test_dynamodb_put_item():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-DynamoDB'
         assert span.domain_name == 'DB'
@@ -130,7 +129,6 @@ def test_dynamodb_put_item():
         assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
 
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ["SAVE:" + span.span_id]
-        tracer.clear()
 
 
 def test_dynamodb_put_item_resource():
@@ -152,7 +150,7 @@ def test_dynamodb_put_item_resource():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-DynamoDB'
         assert span.domain_name == 'DB'
@@ -165,7 +163,6 @@ def test_dynamodb_put_item_resource():
         assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
 
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ["SAVE:" + span.span_id]
-        tracer.clear()
 
 
 def test_dynamodb_statement_mask():
@@ -213,7 +210,8 @@ def test_dynamodb_statement_mask():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        spans = tracer.get_spans()
+        spans = tracer.get_spans()[1:]
+
         for i in range(len(spans)):
             span = spans[i]
             assert span.class_name == 'AWS-DynamoDB'
@@ -221,11 +219,10 @@ def test_dynamodb_statement_mask():
             assert span.operation_name == 'test-table'
             assert span.get_tag("operation.type") == 'READ'
             assert span.get_tag("db.instance") == 'dynamodb.eu-west-2.amazonaws.com'
-            assert span.get_tag('db.statement') == None
+            assert span.get_tag('db.statement') is None
             assert span.get_tag('db.statement.type') == 'READ'
             assert span.get_tag('db.type') == 'aws-dynamodb'
             assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -241,7 +238,8 @@ def test_s3(mock_actual_call, mock_s3_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-S3'
         assert span.domain_name == 'Storage'
         assert span.get_tag('operation.type') == 'READ'
@@ -249,7 +247,6 @@ def test_s3(mock_actual_call, mock_s3_response):
         assert span.get_tag('aws.request.name') == 'GetObject'
         assert span.get_tag('aws.s3.object.name') == 'test.txt'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['C3D13FE58DE4C810']
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -257,46 +254,42 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
     mock_actual_call.return_value = mock_lambda_response
 
     def handler(event, context):
-        lambdaFunc = boto3.client('lambda', region_name='us-west-2')
-        lambdaFunc.invoke(
+        lambda_func = boto3.client('lambda', region_name='us-west-2')
+        lambda_func.invoke(
             FunctionName='Test',
             InvocationType='RequestResponse',
             Payload=b"{\"name\": \"thundra\"}"
         )
 
-    tracer = ThundraTracer.get_instance()
-
     with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
-        with mock.patch('thundra.reporter.Reporter.clear'):
-            thundra, wrapped_handler = wrap_handler_with_thundra(handler)
-            try:
-                wrapped_handler(mock_event, mock_context)
-            except:
-                pass
+        thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+        try:
+            wrapped_handler(mock_event, mock_context)
+        except:
+            pass
 
-            # Check span tags
-            span = tracer.get_spans()[1]
-            assert span.class_name == 'AWS-Lambda'
-            assert span.domain_name == 'API'
-            assert span.get_tag('aws.lambda.name') == 'Test'
-            assert span.get_tag('aws.lambda.qualifier') is None
-            assert span.get_tag('aws.lambda.invocation.payload') == "{\"name\": \"thundra\"}"
-            assert span.get_tag('aws.request.name') == 'Invoke'
-            assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
+        # Check span tags
+        execution_context = ExecutionContextManager.get()
+        span = execution_context.recorder.get_spans()[1]
+        assert span.class_name == 'AWS-Lambda'
+        assert span.domain_name == 'API'
+        assert span.get_tag('aws.lambda.name') == 'Test'
+        assert span.get_tag('aws.lambda.qualifier') is None
+        assert span.get_tag('aws.lambda.invocation.payload') == "{\"name\": \"thundra\"}"
+        assert span.get_tag('aws.request.name') == 'Invoke'
+        assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
-            # Check report
-            report = thundra.reporter.reports[2]['data']
-            assert report['className'] == 'AWS-Lambda'
-            assert report['domainName'] == 'API'
-            assert report['tags']['aws.request.name'] == 'Invoke'
-            assert report['tags']['operation.type'] == 'WRITE'
-            assert report['tags']['aws.lambda.name'] == 'Test'
-            assert type(report['tags']['aws.lambda.invocation.payload']) == str
-            assert report['tags']['aws.lambda.invocation.payload'] == "{\"name\": \"thundra\"}"
-            assert report['tags']['aws.lambda.invocation.type'] == 'RequestResponse'
-            assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
-
-    tracer.clear()
+        # Check report
+        report = execution_context.reports[2]['data']
+        assert report['className'] == 'AWS-Lambda'
+        assert report['domainName'] == 'API'
+        assert report['tags']['aws.request.name'] == 'Invoke'
+        assert report['tags']['operation.type'] == 'WRITE'
+        assert report['tags']['aws.lambda.name'] == 'Test'
+        assert type(report['tags']['aws.lambda.invocation.payload']) == str
+        assert report['tags']['aws.lambda.invocation.payload'] == "{\"name\": \"thundra\"}"
+        assert report['tags']['aws.lambda.invocation.type'] == 'RequestResponse'
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -311,33 +304,31 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
     tracer = ThundraTracer.get_instance()
 
     with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
-        with mock.patch('thundra.reporter.Reporter.clear'):
-            thundra, wrapped_handler = wrap_handler_with_thundra(handler)
-            try:
-                wrapped_handler(mock_event, mock_context)
-            except:
-                pass
+        thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+        try:
+            wrapped_handler(mock_event, mock_context)
+        except:
+            pass
 
-            # Check span tags
-            span = tracer.get_spans()[1]
-            assert span.class_name == 'AWS-Lambda'
-            assert span.domain_name == 'API'
-            assert span.get_tag('aws.lambda.name') == ''
-            assert span.get_tag('aws.lambda.qualifier') is None
-            assert span.get_tag('aws.lambda.invocation.payload') == None
-            assert span.get_tag('aws.request.name') == 'ListFunctions'
-            assert span.get_tag('aws.lambda.invocation.type') == None
+        # Check span tags
+        execution_context = ExecutionContextManager.get()
+        span = execution_context.recorder.get_spans()[1]
+        assert span.class_name == 'AWS-Lambda'
+        assert span.domain_name == 'API'
+        assert span.get_tag('aws.lambda.name') == ''
+        assert span.get_tag('aws.lambda.qualifier') is None
+        assert span.get_tag('aws.lambda.invocation.payload') is None
+        assert span.get_tag('aws.request.name') == 'ListFunctions'
+        assert span.get_tag('aws.lambda.invocation.type') is None
 
-            # Check report
-            report = thundra.reporter.reports[2]['data']
-            assert report['className'] == 'AWS-Lambda'
-            assert report['domainName'] == 'API'
-            assert report['tags']['aws.request.name'] == 'ListFunctions'
-            assert report['tags']['operation.type'] == 'LIST'
-            assert report['tags']['aws.lambda.name'] == ''
-            assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
-
-    tracer.clear()
+        # Check report
+        report = execution_context.reports[2]['data']
+        assert report['className'] == 'AWS-Lambda'
+        assert report['domainName'] == 'API'
+        assert report['tags']['aws.request.name'] == 'ListFunctions'
+        assert report['tags']['operation.type'] == 'LIST'
+        assert report['tags']['aws.lambda.name'] == ''
+        assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -347,33 +338,31 @@ def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_hand
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK, 'true')
 
     def handler(event, context):
-        lambdaFunc = boto3.client('lambda', region_name='us-west-2')
-        lambdaFunc.invoke(
+        lambda_func = boto3.client('lambda', region_name='us-west-2')
+        lambda_func.invoke(
             FunctionName='Test',
             InvocationType='RequestResponse',
             Payload=b"{\"name\": \"thundra\"}"
         )
 
-    tracer = ThundraTracer.get_instance()
-
     with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
-        with mock.patch('thundra.reporter.Reporter.clear'):
-            thundra, wrapped_handler = wrap_handler_with_thundra(handler)
-            try:
-                wrapped_handler(mock_event, mock_context)
-            except:
-                pass
+        thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+        try:
+            wrapped_handler(mock_event, mock_context)
+        except:
+            pass
 
-            # Check span tags
-            span = tracer.get_spans()[1]
-            assert span.class_name == 'AWS-Lambda'
-            assert span.domain_name == 'API'
-            assert span.get_tag('aws.lambda.name') == 'Test'
-            assert span.get_tag('aws.lambda.qualifier') is None
-            assert span.get_tag('aws.lambda.invocation.payload') == None
-            assert span.get_tag('aws.request.name') == 'Invoke'
-            assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
-    tracer.clear()
+        # Check span tags
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
+        assert span.class_name == 'AWS-Lambda'
+        assert span.domain_name == 'API'
+        assert span.get_tag('aws.lambda.name') == 'Test'
+        assert span.get_tag('aws.lambda.qualifier') is None
+        assert span.get_tag('aws.lambda.invocation.payload') is None
+        assert span.get_tag('aws.request.name') == 'Invoke'
+        assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -390,7 +379,8 @@ def test_sqs(mock_actual_call, mock_sqs_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SQS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -398,7 +388,6 @@ def test_sqs(mock_actual_call, mock_sqs_response):
         assert span.get_tag('aws.request.name') == 'SendMessage'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
         assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == 'Hello Thundra!'
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -416,7 +405,8 @@ def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SQS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -424,7 +414,6 @@ def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
         assert span.get_tag('aws.request.name') == 'SendMessage'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
         assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == None
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -441,7 +430,8 @@ def test_sns(mock_actual_call, mock_sns_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SNS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -449,7 +439,6 @@ def test_sns(mock_actual_call, mock_sns_response):
         assert span.get_tag('aws.request.name') == 'Publish'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
         assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == 'Hello Thundra!'
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -467,15 +456,15 @@ def test_sns_message_masked(mock_actual_call, mock_sns_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SNS'
         assert span.domain_name == 'Messaging'
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.sns.topic.name') == 'Test-topic'
         assert span.get_tag('aws.request.name') == 'Publish'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
-        assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == None
-        tracer.clear()
+        assert span.get_tag(constants.AwsSNSTags['MESSAGE']) is None
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -499,7 +488,8 @@ def test_kinesis(mock_actual_call, mock_kinesis_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Kinesis'
         assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
@@ -507,7 +497,6 @@ def test_kinesis(mock_actual_call, mock_kinesis_response):
         assert span.get_tag('aws.request.name') == 'PutRecord'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == [
             region + ':' + 'STRING_VALUE:' + shard_id + ':' + sequence_number]
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -533,14 +522,14 @@ def test_firehose(mock_actual_call, mock_firehose_response):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Firehose'
         assert span.domain_name == 'Stream'
         assert span.get_tag('operation.type') == 'WRITE'
         assert span.get_tag('aws.firehose.stream.name') == 'test-stream'
         assert span.get_tag('aws.request.name') == 'PutRecord'
         assert sorted(span.get_tag(constants.SpanTags['TRACE_LINKS'])) == sorted(links)
-        tracer.clear()
 
 
 def test_kms():
@@ -643,8 +632,6 @@ def test_firehose_get_trace_links_put_record_batch():
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_exec_response):
     mock_actual_call.return_value = mock_athena_start_query_exec_response
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
 
     database = "test"
     table = "persons"
@@ -665,7 +652,9 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
     except:
         pass
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
@@ -676,13 +665,10 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
         assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == [
             "98765432-1111-1111-1111-12345678910"]
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == query
-        tracer.clear()
 
 
 def test_athena_statement_masked():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK, 'true')
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
 
     database = "test"
     table = "persons"
@@ -703,7 +689,9 @@ def test_athena_statement_masked():
     except:
         pass
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
@@ -712,13 +700,9 @@ def test_athena_statement_masked():
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 def test_athena_stop_query_execution():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-
     query_execution_id = "98765432-1111-1111-1111-12345678910"
     try:
         client = boto3.client('athena', region_name='us-west-2')
@@ -728,7 +712,9 @@ def test_athena_stop_query_execution():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
@@ -737,13 +723,9 @@ def test_athena_stop_query_execution():
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [query_execution_id]
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 def test_athena_batch_get_named_query():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.batch_get_named_query(
@@ -754,7 +736,9 @@ def test_athena_batch_get_named_query():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
@@ -764,13 +748,9 @@ def test_athena_batch_get_named_query():
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ["test"]
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 def test_athena_batch_get_query_execution():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.batch_get_query_execution(
@@ -782,7 +762,9 @@ def test_athena_batch_get_query_execution():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
@@ -792,15 +774,11 @@ def test_athena_batch_get_query_execution():
         assert sorted(span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS'])) == ['test', 'test2']
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_query_response):
     mock_actual_call.return_value = mock_athena_create_named_query_response
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-
     query = "SELECT * FROM persons where age = 10;"
 
     try:
@@ -813,7 +791,9 @@ def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_qu
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
@@ -825,12 +805,9 @@ def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_qu
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == ["98765432-1111-1111-1111-12345678910"]
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == query
-        tracer.clear()
 
 
 def test_athena_delete_named_query():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.delete_named_query(
@@ -840,7 +817,9 @@ def test_athena_delete_named_query():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
@@ -852,12 +831,9 @@ def test_athena_delete_named_query():
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ['98765432-1111-1111-1111-12345678910']
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 def test_athena_get_named_query():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.get_named_query(
@@ -867,7 +843,9 @@ def test_athena_get_named_query():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
@@ -879,12 +857,9 @@ def test_athena_get_named_query():
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ['98765432-1111-1111-1111-12345678910']
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 def test_athena_get_query_execution():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.get_query_execution(
@@ -893,7 +868,9 @@ def test_athena_get_query_execution():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
@@ -906,12 +883,9 @@ def test_athena_get_query_execution():
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 def test_athena_get_query_results():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.get_query_results(
@@ -920,7 +894,9 @@ def test_athena_get_query_results():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
@@ -933,14 +909,12 @@ def test_athena_get_query_results():
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_response):
     mock_actual_call.return_value = mock_eventbridge_put_events_response
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
+
     try:
         client = boto3.client('events', region_name='us-west-2')
         client.put_events(
@@ -960,33 +934,31 @@ def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_re
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == constants.ClassNames['EVENTBRIDGE']
         assert span.domain_name == constants.DomainNames['MESSAGING']
         assert span.operation_name == 'default'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsEventBridgeTags['ENTRIES']) == [{
-                    'Time': datetime.timestamp(datetime(2020, 1, 1)),
-                    'Source': 'test.aws.lambda',
-                    'Resources': [
-                        'test',
-                    ],
-                    'DetailType': 'mydetail',
-                    'Detail': '{}',
-                    'EventBusName': 'default'
-                }]
+            'Time': datetime.timestamp(datetime(2020, 1, 1)),
+            'Source': 'test.aws.lambda',
+            'Resources': [
+                'test',
+            ],
+            'DetailType': 'mydetail',
+            'Detail': '{}',
+            'EventBusName': 'default'
+        }]
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'PutEvents'
         assert span.get_tag(constants.SpanTags['RESOURCE_NAMES']) == ['mydetail']
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-event-id']
-
-        tracer.clear()
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_executions_response):
     mock_actual_call.return_value = mock_athena_list_query_executions_response
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     try:
         client = boto3.client('athena', region_name='us-west-2')
         client.list_query_executions(
@@ -997,7 +969,9 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-Athena'
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'LIST'
@@ -1010,11 +984,9 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        tracer.clear()
+
 
 def test_ses_send_email():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     sender = 'testsender'
     recipient = 'testrecipient'
     cc = 'testcc'
@@ -1049,7 +1021,9 @@ def test_ses_send_email():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SES'
         assert span.domain_name == 'Messaging'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendEmail'
@@ -1062,11 +1036,9 @@ def test_ses_send_email():
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) is None
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_ARN']) is None
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_DATA']) is None
-        tracer.clear()
+
 
 def test_ses_send_raw_email():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     sender = 'testsender'
     recipient = 'testrecipient'
     text = 'testbody'
@@ -1088,7 +1060,9 @@ def test_ses_send_raw_email():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SES'
         assert span.domain_name == 'Messaging'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendRawEmail'
@@ -1100,16 +1074,14 @@ def test_ses_send_raw_email():
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) is None
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_ARN']) is None
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_DATA']) is None
-        tracer.clear()
+
 
 def test_ses_send_templated_email():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
     sender = 'testsender'
     recipient = 'testrecipient'
-    template_name='testname'
-    template_data='{"test": "test"}'
-    template_arn='testarn'
+    template_name = 'testname'
+    template_data = '{"test": "test"}'
+    template_arn = 'testarn'
     try:
         # Test with a non traced service client
         client = boto3.client('ses', region_name='us-west-2')
@@ -1127,7 +1099,9 @@ def test_ses_send_templated_email():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-SES'
         assert span.domain_name == 'Messaging'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'SendTemplatedEmail'
@@ -1139,12 +1113,9 @@ def test_ses_send_templated_email():
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_NAME']) == template_name
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_ARN']) == template_arn
         assert span.get_tag(constants.AwsSESTags['TEMPLATE_DATA']) is None
-        tracer.clear()
+
 
 def test_default_aws_service():
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-
     try:
         # Test with a non traced service client
         client = boto3.client('mediastore', region_name='us-west-2')
@@ -1154,20 +1125,18 @@ def test_default_aws_service():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWSService'
         assert span.domain_name == 'AWS'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateContainer'
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'mediastore'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
-        tracer.clear()
 
 
 def test_sfn():
     ConfigProvider.set(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS, 'true')
-    tracer = ThundraTracer.get_instance()
-    tracer.clear()
-
     try:
         client = boto3.client('stepfunctions', region_name='us-west-2')
         client.start_execution(
@@ -1178,18 +1147,18 @@ def test_sfn():
     except Exception as e:
         print(e)
     finally:
-        span = tracer.get_spans()[0]
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_spans()[1]
+
         assert span.class_name == 'AWS-StepFunctions'
         assert span.domain_name == 'AWS'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartExecution'
         assert span.get_tag(constants.AwsSDKTags['SERVICE_NAME']) == 'sfn'
 
-        tracer.clear()
-
 
 def test_get_operation_type():
-    assert get_operation_type("AWS-Lambda" , "ListTags") == "READ"
-    assert get_operation_type("AWS-S3" , "PutAccountPublicAccessBlock") == "PERMISSION"
-    assert get_operation_type("AWSService" , "CreateContainer") == "WRITE"
-    assert get_operation_type("InvalidService" , "InvalidOperation") == ""
-    assert get_operation_type("AWS-SSM" , "DescribeDocumentPermission") == "READ"
+    assert get_operation_type("AWS-Lambda", "ListTags") == "READ"
+    assert get_operation_type("AWS-S3", "PutAccountPublicAccessBlock") == "PERMISSION"
+    assert get_operation_type("AWSService", "CreateContainer") == "WRITE"
+    assert get_operation_type("InvalidService", "InvalidOperation") == ""
+    assert get_operation_type("AWS-SSM", "DescribeDocumentPermission") == "READ"

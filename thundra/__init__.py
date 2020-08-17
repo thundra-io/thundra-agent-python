@@ -11,7 +11,6 @@ from thundra.plugins.log import log_support
 from thundra.plugins.metric import metric_support
 from thundra.plugins.trace import trace_support
 from thundra.wrappers.aws_lambda.lambda_wrapper import LambdaWrapper
-from thundra.wrappers.django.django_wrapper import DjangoWrapper
 
 __version__ = _version.__version__
 

@@ -10,3 +10,7 @@ class GlobalExecutionContextProvider:
     def set(self, execution_context):
         global _execution_context
         _execution_context = execution_context
+
+    def clear(self):
+        global _execution_context
+        _execution_context = ExecutionContext()

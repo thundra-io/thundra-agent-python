@@ -127,6 +127,7 @@ class LambdaWrapper:
             except Exception as e:
                 logger.error("Error during the after part of Thundra: {}".format(e))
 
+            ExecutionContextManager.clear()
             return response
 
         setattr(wrapper, 'thundra_wrapper', True)

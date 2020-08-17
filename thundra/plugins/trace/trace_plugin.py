@@ -1,11 +1,11 @@
-import uuid
 import logging
+import uuid
 
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.trace import trace_support
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
 from thundra.application.application_manager import ApplicationManager
+from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.invocation import invocation_support
+from thundra.plugins.trace import trace_support
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,8 @@ class TracePlugin:
         span_data_list = []
         for span in span_stack:
             if sampled:
-                current_span_data = self.wrap_span(self.build_span(span, execution_context), self.plugin_context.api_key)
+                current_span_data = self.wrap_span(self.build_span(span, execution_context),
+                                                   self.plugin_context.api_key)
                 span_data_list.append(current_span_data)
 
         execution_context.recorder.clear()

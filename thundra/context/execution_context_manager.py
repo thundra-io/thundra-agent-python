@@ -13,6 +13,10 @@ class ExecutionContextManager:
         ExecutionContextManager.context_provider.set(context)
 
     @staticmethod
+    def clear():
+        ExecutionContextManager.context_provider.clear()
+
+    @staticmethod
     def get():
         execution_context = ExecutionContextManager.context_provider.get()
         if not execution_context:

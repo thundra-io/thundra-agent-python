@@ -18,7 +18,7 @@ if not PY2:
 
         db.posts.insert_one(post).inserted_id
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
 
         assert span.operation_name == 'test'
         assert span.class_name == constants.ClassNames['MONGODB']
@@ -35,8 +35,6 @@ if not PY2:
         mongo_command = loads(span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']))
         assert mongo_command.get('documents')[0].get('text') == "My first blog post!"
 
-        tracer.clear()
-
 
     def test_command_update():
         client = MongoClient('localhost', 27017)
@@ -46,7 +44,7 @@ if not PY2:
                 "text": "My first blog post!",
                 "tags": ["mongodb", "python", "pymongo"]}
 
-        db.posts.insert_one(post).inserted_id
+        db.posts.insert_one(post)
         tracer = ThundraTracer.get_instance()
         tracer.clear()
 
@@ -84,7 +82,7 @@ if not PY2:
             pass
 
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
 
         assert span.operation_name == 'test'
         assert span.class_name == constants.ClassNames['MONGODB']
@@ -98,7 +96,7 @@ if not PY2:
 
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
-        assert span.get_tag('error') == True
+        assert span.get_tag('error') is True
 
         tracer.clear()
 
@@ -110,6 +108,5 @@ if not PY2:
         db.list_collection_names()
 
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
-        assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']) == None
-        tracer.clear()
+        span = tracer.get_spans()[1]
+        assert span.get_tag(constants.MongoDBTags['MONGODB_COMMAND']) is None
