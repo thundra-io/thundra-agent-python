@@ -1,9 +1,11 @@
 import wrapt
-from thundra.integrations.mysql import MysqlIntegration
-from thundra.config.config_provider import ConfigProvider
+
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.integrations.mysql import MysqlIntegration
 
 mysql_integration = MysqlIntegration()
+
 
 class MysqlCursorWrapper(wrapt.ObjectProxy):
 
@@ -29,13 +31,15 @@ class MysqlCursorWrapper(wrapt.ObjectProxy):
 
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
-        self.__wrapped__.__enter__ 
+        self.__wrapped__.__enter__
         return self
+
 
 class MysqlConnectionWrapper(wrapt.ObjectProxy):
     def cursor(self, *args, **kwargs):
         cursor = self.__wrapped__.cursor(*args, **kwargs)
         return MysqlCursorWrapper(cursor, self)
+
 
 def _wrapper(wrapped, instance, args, kwargs):
     connection = wrapped(*args, **kwargs)

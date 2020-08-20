@@ -62,8 +62,8 @@ async def on_request_end(session, trace_config_ctx, params):
 
     response = params.response
     if response is not None:
-        statusCode = response.status
-        scope.span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
+        status_code = response.status
+        scope.span.set_tag(constants.HttpTags['HTTP_STATUS'], status_code)
 
         if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
             scope.span.class_name = constants.ClassNames['APIGATEWAY']
@@ -72,8 +72,8 @@ async def on_request_end(session, trace_config_ctx, params):
             resource_name = response.headers.get("x-thundra-resource-name")
             scope.span.operation_name = resource_name
 
-        if (statusCode and ConfigProvider.get(
-                config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= statusCode):
+        if (status_code and ConfigProvider.get(
+                config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= status_code):
             scope.span.set_tag('error.kind', "HttpError")
             scope.span.set_tag('error', True)
             scope.span.set_tag('error.message', response.reason)

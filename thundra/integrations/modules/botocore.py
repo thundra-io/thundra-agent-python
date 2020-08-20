@@ -1,9 +1,9 @@
 import wrapt
-import thundra.integrations.botocore
+
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.integrations.modules.requests import _wrapper as request_wrapper
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 
 INTEGRATIONS = {
     class_obj.CLASS_TYPE: class_obj()
@@ -20,14 +20,15 @@ def _wrapper(wrapped, instance, args, kwargs):
             instance,
             args,
             kwargs
-        )    
+        )
 
     return INTEGRATIONS['default'].run_and_trace(
-            wrapped,
-            instance,
-            args,
-            kwargs
-        )  
+        wrapped,
+        instance,
+        args,
+        kwargs
+    )
+
 
 def patch():
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DISABLE):
