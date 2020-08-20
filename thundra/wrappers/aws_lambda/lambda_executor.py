@@ -205,12 +205,16 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
 
 
 def set_error(invocation_data, error):
-    error_type = type(error)
     invocation_data['erroneous'] = True
-    invocation_data['errorType'] = error_type.__name__
-    invocation_data['errorMessage'] = str(error)
-    if hasattr(error, 'code'):
-        invocation_data['errorCode'] = error.code
+    if isinstance(error, Exception):
+        error_type = type(error)
+        invocation_data['errorType'] = error_type.__name__
+        invocation_data['errorMessage'] = str(error)
+        if hasattr(error, 'code'):
+            invocation_data['errorCode'] = error.code
+    elif isinstance(error, dict):
+        invocation_data['errorType'] = error.get('type')
+        invocation_data['errorMessage'] = error.get('message')
 
 
 def finish_invocation(execution_context):

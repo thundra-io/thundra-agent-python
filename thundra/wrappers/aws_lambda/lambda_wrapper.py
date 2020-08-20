@@ -1,5 +1,6 @@
 import logging
 import os
+import traceback
 import subprocess
 import time
 import uuid
@@ -119,7 +120,11 @@ class LambdaWrapper:
                     execution_context.response = response
             except Exception as e:
                 try:
-                    execution_context.error = e
+                    execution_context.error = {
+                        'type': type(e).__name__,
+                        'message': str(e),
+                        'traceback': traceback.format_exc()
+                    }
                     self.prepare_and_send_reports(execution_context)
                 except Exception as e_in:
                     logger.error("Error during the after part of Thundra: {}".format(e_in))

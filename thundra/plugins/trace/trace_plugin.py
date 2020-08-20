@@ -1,4 +1,5 @@
 import logging
+import traceback
 import uuid
 
 from thundra import constants
@@ -59,19 +60,25 @@ class TracePlugin:
 
         invocation_support.clear_error()
 
-    def set_error_to_root_span(self, root_span, error):
-        error_type = type(error)
-
+    @staticmethod
+    def set_error_to_root_span(root_span, error):
         root_span.set_tag('error', True)
-        root_span.set_tag('error.kind', error_type.__name__)
-        root_span.set_tag('error.message', str(error))
+        if isinstance(error, Exception):
+            error_type = type(error)
+            root_span.set_tag('error.kind', error_type.__name__)
+            root_span.set_tag('error.message', str(error))
 
-        if hasattr(error, 'code'):
-            root_span.set_tag('error.code', error.code)
-        if hasattr(error, 'object'):
-            root_span.set_tag('error.object', error.object)
-        if hasattr(error, 'stack'):
-            root_span.set_tag('error.stack', error.stack)
+            if hasattr(error, 'code'):
+                root_span.set_tag('error.code', error.code)
+            if hasattr(error, '__traceback__'):
+                root_span.set_tag('error.stack', ''.join(
+                    traceback.format_exception(error_type, error, error.__traceback__)))
+
+        elif isinstance(error, dict):
+            root_span.set_tag('error.kind', error.get('type'))
+            root_span.set_tag('error.message', error.get('message'))
+            if error.get('traceback'):
+                root_span.set_tag('error.stack', error.get('traceback'))
 
     def build_span(self, span, execution_context):
         if not execution_context.transaction_id:
