@@ -2,8 +2,8 @@ import logging
 import uuid
 
 from thundra import constants
-from thundra.application.application_manager import ApplicationManager
 from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.config.trace_config import TraceConfig
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace import trace_support
 
@@ -12,13 +12,17 @@ logger = logging.getLogger(__name__)
 
 class TracePlugin:
 
-    def __init__(self, plugin_context):
+    def __init__(self, plugin_context, config=None):
         self.hooks = {
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
         self.tracer = ThundraTracer.get_instance()
         self.plugin_context = plugin_context
+        if isinstance(config, TraceConfig):
+            self.config = config
+        else:
+            self.config = TraceConfig()
 
     def before_invocation(self, execution_context):
         executor = self.plugin_context.executor
@@ -69,8 +73,7 @@ class TracePlugin:
         if hasattr(error, 'stack'):
             root_span.set_tag('error.stack', error.stack)
 
-    @staticmethod
-    def build_span(span, execution_context):
+    def build_span(self, span, execution_context):
         if not execution_context.transaction_id:
             execution_context.transaction_id = str(uuid.uuid4())
 
@@ -95,7 +98,7 @@ class TracePlugin:
         }
 
         # Add application related data
-        application_info = ApplicationManager.get_application_info()
+        application_info = self.plugin_context.application_info
         span_data.update(application_info)
 
         return span_data
@@ -111,9 +114,11 @@ class TracePlugin:
 
         return report_data
 
-    @staticmethod
-    def check_sampled(span):
+    def check_sampled(self, span):
         sampler = trace_support.get_sampler()
+        if self.config.sampler:
+            sampler = self.config.sampler
+
         sampled = True
         if sampler is not None:
             try:

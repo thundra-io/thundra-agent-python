@@ -7,7 +7,12 @@ class ConfigProvider:
     configs = {}
 
     @staticmethod
-    def __init__():
+    def __init__(options=None):
+        ConfigProvider.clear()
+        if options is not None:
+            config_options = options.get('config', {})
+            for opt in config_options:
+                ConfigProvider.traverse_config_object(config_options.get(opt), opt)
         ConfigProvider.initialize_config_from_environment_variables()
         ConfigProvider.add_non_lambda_aliases()
 
@@ -23,6 +28,20 @@ class ConfigProvider:
                 ConfigProvider.configs[env_var_name] = ConfigProvider.parse(val, env_var_type)
 
     @staticmethod
+    def traverse_config_object(obj, path):
+        if not isinstance(obj, dict):
+            if not path.startswith('thundra.agent.'):
+                path = 'thundra.agent.' + path
+            path = path.lower()
+            prop_type = ConfigProvider.get_config_type(path)
+            ConfigProvider.configs[path] = ConfigProvider.parse(obj, prop_type)
+        else:
+            for prop_name in obj:
+                prop_val = obj.get(prop_name)
+                prop_path = path + '.' + prop_name
+                ConfigProvider.traverse_config_object(prop_val, prop_path)
+
+    @staticmethod
     def add_non_lambda_aliases():
         alias_configs = {}
         for config_name in ConfigProvider.configs:
@@ -34,9 +53,9 @@ class ConfigProvider:
     @staticmethod
     def get(key, default_value=None):
         value = ConfigProvider.configs.get(key)
-        if value != None:
+        if value is not None:
             return value
-        if default_value != None:
+        if default_value is not None:
             return default_value
         if CONFIG_METADATA.get(key):
             return CONFIG_METADATA[key].get('defaultValue')
@@ -67,7 +86,9 @@ class ConfigProvider:
 
     @staticmethod
     def str2bool(val):
-        if val is not None:
+        if type(val) == bool:
+            return val
+        if isinstance(val, str):
             if val.lower() in ("yes", "true", "t", "1"):
                 return True
             elif val.lower() in ("no", "false", "f", "0"):
@@ -91,6 +112,8 @@ class ConfigProvider:
 
     @staticmethod
     def convert_to_bool(value, default=False):
+        if type(value) == bool:
+            return value
         try:
             return ConfigProvider.str2bool(value)
         except ValueError:

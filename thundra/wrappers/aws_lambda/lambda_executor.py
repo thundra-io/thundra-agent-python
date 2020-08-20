@@ -3,12 +3,11 @@ import time
 import uuid
 
 from thundra import utils, constants
-from thundra.application.application_manager import ApplicationManager
-from thundra.wrappers.aws_lambda import lambda_event_utils
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.invocation import invocation_trace_support
 from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.wrappers.aws_lambda import lambda_event_utils
 
 
 def start_trace(plugin_context, execution_context, tracer):
@@ -171,7 +170,7 @@ def start_invocation(plugin_context, execution_context):
     }
 
     # Add application related data
-    application_info = ApplicationManager.get_application_info()
+    application_info = plugin_context.application_info
     invocation_data.update(application_info)
 
     execution_context.invocation_data = invocation_data

@@ -18,8 +18,9 @@ def test_log_plugin_with_initialization():
     log_handler = ThundraLogHandler()
     logger.addHandler(log_handler)
     logger.setLevel(logging.INFO)
-    logger.info("This is an info log")
     execution_context = ExecutionContextManager.get()
+    execution_context.capture_log = True
+    logger.info("This is an info log")
 
     assert len(execution_context.logs) == 1
     log = execution_context.logs[0]
@@ -32,13 +33,13 @@ def test_log_plugin_with_initialization():
 
 
 def test_log_plugin_with_config_file():
-
     # config file path. Make sure path is correct with respect to where test is invoked
     fileConfig('tests/plugins/log/test_log_config.ini')
     logger = logging.getLogger('test_config_handler')
+    execution_context = ExecutionContextManager.get()
+    execution_context.capture_log = True
     logger.debug("This is a debug log")
 
-    execution_context = ExecutionContextManager.get()
     assert len(execution_context.logs) == 1
     log = execution_context.logs[0]
 
@@ -46,8 +47,3 @@ def test_log_plugin_with_config_file():
     assert log['logContextName'] == 'test_config_handler'
     assert log['logLevel'] == "DEBUG"
     assert log['logLevelCode'] == 1
-
-
-
-
-

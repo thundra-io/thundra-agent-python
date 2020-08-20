@@ -29,6 +29,7 @@ class ExecutionContext:
         self.timeout = opts.get('timeout', False)
         self.logs = opts.get('logs', [])
         self.metrics = opts.get('metrics', {})
+        self.capture_log = False
 
     def report(self, data):
         """

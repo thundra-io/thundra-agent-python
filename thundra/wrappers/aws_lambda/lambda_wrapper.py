@@ -6,7 +6,6 @@ import uuid
 from functools import wraps
 
 from thundra import constants
-from thundra.application.application_manager import ApplicationManager
 from thundra.application.global_application_info_provider import GlobalApplicationInfoProvider
 from thundra.compat import PY2, TimeoutError
 from thundra.config import config_names
@@ -16,12 +15,12 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 from thundra.context.plugin_context import PluginContext
 from thundra.integrations import handler_wrappers
+from thundra.plugins.config.thundra_config import ThundraConfig
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.reporter import Reporter
 from thundra.timeout import Timeout
 from thundra.wrappers import wrapper_utils
 from thundra.wrappers.aws_lambda import LambdaApplicationInfoProvider
-from thundra.wrappers.aws_lambda import LambdaContextProvider
 from thundra.wrappers.aws_lambda import lambda_executor
 
 logger = logging.getLogger(__name__)
@@ -36,17 +35,27 @@ class LambdaWrapper:
                  api_key=None,
                  disable_trace=False,
                  disable_metric=True,
-                 disable_log=True):
+                 disable_log=True,
+                 opts=None):
+        config = ThundraConfig()
+        if opts is not None:
+            config = ThundraConfig(opts)
+
         self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
+        if not self.api_key:
+            self.api_key = config.api_key
         if self.api_key is None:
             logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
 
-        ApplicationManager.set_application_info_provider(GlobalApplicationInfoProvider(LambdaApplicationInfoProvider()))
-        self.plugin_context = PluginContext(application_info=ApplicationManager.get_application_info(), request_count=0,
-                                            executor=lambda_executor, api_key=self.api_key)
+        self.application_info_provider = GlobalApplicationInfoProvider(LambdaApplicationInfoProvider())
+        self.plugin_context = PluginContext(application_info=self.application_info_provider.get_application_info(),
+                                            request_count=0,
+                                            executor=lambda_executor,
+                                            api_key=self.api_key)
 
         ExecutionContextManager.set_provider(GlobalExecutionContextProvider())
-        self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log)
+        self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log,
+                                                        config)
 
         self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN,
                                                  constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
@@ -69,8 +78,7 @@ class LambdaWrapper:
 
         @wraps(original_func)
         def wrapper(event, context):
-            LambdaContextProvider.set_context(context)
-            ApplicationManager.get_application_info_provider().update({
+            self.application_info_provider.update({
                 'applicationId': LambdaApplicationInfoProvider.get_application_id(context),
                 'applicationName': getattr(context, constants.CONTEXT_FUNCTION_NAME, ''),
                 'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, ''),

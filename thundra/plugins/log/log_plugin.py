@@ -5,10 +5,10 @@ import uuid
 import wrapt
 
 from thundra import constants
-from thundra.application.application_manager import ApplicationManager
 from thundra.compat import PY37, PY38
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
+from thundra.plugins.config.log_config import LogConfig
 from thundra.plugins.log import log_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.plugins.log.thundra_logger import StreamToLogger
@@ -24,24 +24,31 @@ def _wrapper(wrapped, instance, args, kwargs):
         pass
 
 
-if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE) and (PY37 or PY38):
-    wrapt.wrap_function_wrapper(
-        'builtins',
-        'print',
-        _wrapper
-    )
+if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
+    if PY37 or PY38:
+        wrapt.wrap_function_wrapper(
+            'builtins',
+            'print',
+            _wrapper
+        )
+    else:
+        sys.stdout = StreamToLogger(logger, sys.stdout)
 
 
 class LogPlugin:
 
-    def __init__(self, plugin_context=None):
+    def __init__(self, plugin_context=None, config=None):
         self.hooks = {
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
-        self.old_stdout = sys.stdout
         self.plugin_context = plugin_context
-        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
+        if isinstance(config, LogConfig):
+            self.config = config
+        else:
+            self.config = LogConfig()
+
+        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE, self.config.enabled):
             handler = ThundraLogHandler()
             has_thundra_log_handler = False
             for log_handlers in logger.handlers:
@@ -54,15 +61,12 @@ class LogPlugin:
             logger.propagate = False
 
     def before_invocation(self, execution_context):
-        self.old_stdout = sys.stdout
-        if (not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)) and (not (PY37 or PY38)):
-            sys.stdout = StreamToLogger(logger, self.old_stdout)
+        execution_context.capture_log = True
         if not execution_context.transaction_id:
             execution_context.transaction_id = str(uuid.uuid4())
 
     def after_invocation(self, execution_context):
-        if (not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)) and (not (PY37 or PY38)):
-            sys.stdout = self.old_stdout
+        execution_context.capture_log = False
         log_data = {
             'type': "Log",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,
@@ -73,7 +77,7 @@ class LogPlugin:
 
         for log in execution_context.logs:
             # Add application related data
-            application_info = ApplicationManager.get_application_info()
+            application_info = self.plugin_context.application_info
             log_data.update(application_info)
             log.update(log_data)
             if self.check_sampled(log):
@@ -87,6 +91,8 @@ class LogPlugin:
 
     def check_sampled(self, log):
         sampler = log_support.get_sampler()
+        if self.config.sampler:
+            sampler = self.config.sampler
         sampled = True
         if sampler is not None:
             try:

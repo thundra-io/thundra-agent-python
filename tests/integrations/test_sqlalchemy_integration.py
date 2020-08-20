@@ -6,11 +6,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from thundra import constants
+from thundra.compat import PY2
 from thundra.opentracing.tracer import ThundraTracer
 
 Base = declarative_base()
-
-from thundra.compat import PY2
 
 
 class Movie(Base):
@@ -133,7 +132,6 @@ def test_sqlalchemy_connection_execute_mysql_error():
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
     assert span.get_tag("error") is True
-
 
 
 def test_sqlalchemy_connection_execute_sqlite():

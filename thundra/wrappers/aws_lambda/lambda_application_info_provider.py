@@ -6,7 +6,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
     application_info = {}
 
     def get_application_info(self):
-        return self.application_info.copy()
+        return self.application_info
 
     def get_application_tags(self):
         return self.application_info.get('applicationTags', {}).copy()

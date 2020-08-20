@@ -1,19 +1,21 @@
-import uuid, threading
-import gc, time, logging
+import gc
+import logging
+import threading
+import time
+import uuid
 
 from thundra import utils, constants
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.application.application_manager import ApplicationManager
-from thundra.plugins.metric import metric_support
 from thundra.compat import PY2
-
+from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.config.metric_config import MetricConfig
+from thundra.plugins.metric import metric_support
 
 logger = logging.getLogger(__name__)
 
 
 class MetricPlugin:
 
-    def __init__(self, plugin_context=None):
+    def __init__(self, plugin_context=None, config=None):
         self.metric_data = {}
         self.plugin_context = plugin_context
         self.tracer = ThundraTracer.get_instance()
@@ -27,6 +29,11 @@ class MetricPlugin:
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
+
+        if isinstance(config, MetricConfig):
+            self.config = config
+        else:
+            self.config = MetricConfig()
 
     def before_invocation(self, execution_context):
         metric_time = time.time() * 1000
@@ -46,7 +53,7 @@ class MetricPlugin:
             }
         }
         # Add application related data
-        application_info = ApplicationManager.get_application_info()
+        application_info = self.plugin_context.application_info
         self.metric_data.update(application_info)
         self.system_cpu_total_start, self.system_cpu_usage_start = utils.system_cpu_usage()
         self.process_cpu_usage_start = utils.process_cpu_usage()
@@ -62,6 +69,8 @@ class MetricPlugin:
 
     def check_sampled(self):
         sampler = metric_support.get_sampler()
+        if self.config.sampler:
+            sampler = self.config.sampler
         sampled = True
         if sampler is not None:
             try:

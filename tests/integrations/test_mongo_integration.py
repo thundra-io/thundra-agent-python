@@ -16,7 +16,7 @@ if not PY2:
                 "text": "My first blog post!",
                 "tags": ["mongodb", "python", "pymongo"]}
 
-        db.posts.insert_one(post).inserted_id
+        db.posts.insert_one(post)
         tracer = ThundraTracer.get_instance()
         span = tracer.get_spans()[1]
 

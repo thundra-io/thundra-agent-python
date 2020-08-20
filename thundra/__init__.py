@@ -10,9 +10,13 @@ from thundra.plugins.invocation import invocation_support
 from thundra.plugins.log import log_support
 from thundra.plugins.metric import metric_support
 from thundra.plugins.trace import trace_support
+from thundra.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
 from thundra.wrappers.aws_lambda.lambda_wrapper import LambdaWrapper
+from thundra.wrappers.wrapper_factory import WrapperFactory
 
 __version__ = _version.__version__
+
+initialized = False
 
 
 def _import_exists(module_name):
@@ -29,5 +33,32 @@ def patch_modules():
             module.patch()
 
 
+def configure(options):
+    global initialized
+
+    if not initialized:
+        ConfigProvider.__init__(options)
+
+    initialized = True
+
+
+def lambda_wrapper(func):
+    return WrapperFactory.get_or_create(LambdaWrapper)(func)
+
+
+def django_wrapper(func):
+    return WrapperFactory.get_or_create(DjangoWrapper)(func)
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     patch_modules()
+
+__all__ = [
+    'configure',
+    'TraceAwareWrapper',
+    'invocation_support',
+    'trace_support',
+    'log_support',
+    'metric_support',
+    'lambda_wrapper'
+]

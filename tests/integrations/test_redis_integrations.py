@@ -48,8 +48,8 @@ def test_set_mask_command():
         assert span.get_tag(constants.DBTags['DB_STATEMENT_TYPE']) == 'WRITE'
         assert span.get_tag(constants.RedisTags['REDIS_HOST']) == 'test'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND_TYPE']) == 'SET'
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
+        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) is None
 
 
 def test_get():
@@ -72,7 +72,7 @@ def test_get():
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == 'GET foo'
 
 
-def test_get_mask_command(monkeypatch):
+def test_get_mask_command():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
 
     try:
@@ -91,6 +91,6 @@ def test_get_mask_command(monkeypatch):
         assert span.get_tag(constants.DBTags['DB_STATEMENT_TYPE']) == 'READ'
         assert span.get_tag(constants.RedisTags['REDIS_HOST']) == 'test'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND_TYPE']) == 'GET'
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
+        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) is None
         tracer.clear()

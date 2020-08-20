@@ -8,9 +8,9 @@ from thundra.opentracing.tracer import ThundraTracer
 
 def test_create_index():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH, '3')
+    author1 = {"name": "Sidney Sheldon", "novels_count": 18}
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
-        author1 = {"name": "Sidney Sheldon", "novels_count": 18}
         es.index(index='authors', doc_type='authors', body=author1, id=1)
     except ElasticsearchException as e:
         pass
@@ -86,7 +86,7 @@ def test_refresh():
         assert span.get_tag(constants.SpanTags['TOPOLOGY_VERTEX'])
 
 
-def test_mask_body(monkeypatch):
+def test_mask_body():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK, 'true')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)

@@ -101,12 +101,11 @@ def test_dynamodb():
 
 def test_dynamodb_put_item():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
+    item = {
+        'id': {'S': "3"},
+        'text': {'S': "test2"}
+    }
     try:
-        item = {
-            'id': {'S': "3"},
-            'text': {'S': "test2"}
-        }
-
         dynamodb = boto3.client('dynamodb', region_name='eu-west-2')
         dynamodb.put_item(
             TableName="test-table",
@@ -133,13 +132,11 @@ def test_dynamodb_put_item():
 
 def test_dynamodb_put_item_resource():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
-
+    item = {
+        'id': '3',
+        'text': 'test'
+    }
     try:
-        item = {
-            'id': '3',
-            'text': 'test'
-        }
-
         dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
         table = dynamodb.Table('test-table')
         table.put_item(
@@ -413,7 +410,7 @@ def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
         assert span.get_tag('aws.sqs.queue.name') == 'test-queue'
         assert span.get_tag('aws.request.name') == 'SendMessage'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
-        assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == None
+        assert span.get_tag(constants.AwsSQSTags['MESSAGE']) is None
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -661,7 +658,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartQueryExecution'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == database
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
         assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == [
             "98765432-1111-1111-1111-12345678910"]
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == query
@@ -698,8 +695,8 @@ def test_athena_statement_masked():
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StartQueryExecution'
         assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == database
         assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == s3_output
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_athena_stop_query_execution():
@@ -719,10 +716,10 @@ def test_athena_stop_query_execution():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'StopQueryExecution'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [query_execution_id]
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_athena_batch_get_named_query():
@@ -743,11 +740,11 @@ def test_athena_batch_get_named_query():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'BatchGetNamedQuery'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ["test"]
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_athena_batch_get_query_execution():
@@ -769,11 +766,11 @@ def test_athena_batch_get_query_execution():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'BatchGetQueryExecution'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
         assert sorted(span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS'])) == ['test', 'test2']
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -798,11 +795,11 @@ def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_qu
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'CreateNamedQuery'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) is None
         assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == ["98765432-1111-1111-1111-12345678910"]
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) == query
 
@@ -824,13 +821,13 @@ def test_athena_delete_named_query():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'WRITE'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'DeleteNamedQuery'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) is None
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ['98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_athena_get_named_query():
@@ -850,13 +847,13 @@ def test_athena_get_named_query():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetNamedQuery'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) is None
         assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == ['98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_athena_get_query_execution():
@@ -875,14 +872,14 @@ def test_athena_get_query_execution():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryExecution'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [
             '98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_athena_get_query_results():
@@ -901,14 +898,14 @@ def test_athena_get_query_results():
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'GetQueryResults'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
         assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == [
             '98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -976,14 +973,14 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
         assert span.domain_name == 'DB'
         assert span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'LIST'
         assert span.get_tag(constants.AwsSDKTags['REQUEST_NAME']) == 'ListQueryExecutions'
-        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) == None
-        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) == None
-        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) == None
+        assert span.get_tag(constants.SpanTags['DB_INSTANCE']) is None
+        assert span.get_tag(constants.AthenaTags['S3_OUTPUT_LOCATION']) is None
+        assert span.get_tag(constants.AthenaTags['REQUEST_QUERY_EXECUTION_IDS']) is None
         assert span.get_tag(constants.AthenaTags['RESPONSE_QUERY_EXECUTION_IDS']) == [
             '98765432-1111-1111-1111-12345678910']
-        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) == None
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
+        assert span.get_tag(constants.AthenaTags['REQUEST_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.AthenaTags['RESPONSE_NAMED_QUERY_IDS']) is None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
 def test_ses_send_email():

@@ -6,10 +6,8 @@ from thundra.config import config_names
 
 
 class GlobalApplicationInfoProvider(ApplicationInfoProvider):
-    application_info = {}
-    application_info_provider = None
-
     def __init__(self, application_info_provider=None):
+        self.application_info = {}
         self.application_info_provider = application_info_provider
         if self.application_info_provider:
             self.application_info = self.application_info_provider.get_application_info()
@@ -19,7 +17,7 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
         self.update(app_info_from_config)
 
     def get_application_info(self):
-        return GlobalApplicationInfoProvider.application_info
+        return self.application_info
 
     def get_application_tags(self):
         return self.application_info.get('applicationTags', {}).copy()

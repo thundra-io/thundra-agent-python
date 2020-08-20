@@ -7,14 +7,17 @@ loggers = {}
 
 
 class StreamToLogger(object):
-    def __init__(self, logger, old_stdout):
+    def __init__(self, logger, stdout):
         self.logger = logger
-        self.old_stdout = old_stdout
+        self.stdout = stdout
 
     def write(self, buf):
         for line in buf.rstrip().splitlines():
             self.logger.info(line.rstrip())
-        self.old_stdout.write(buf)
+        self.stdout.write(buf)
+
+    def flush(self):
+        self.stdout.flush()
 
 
 def get_logger(name):

@@ -90,7 +90,7 @@ def test_http_put_body_masked():
         assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
         assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
         assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
-        assert http_span.get_tag(constants.HttpTags['BODY']) == None
+        assert http_span.get_tag(constants.HttpTags['BODY']) is None
     except Exception:
         raise
     finally:
@@ -148,7 +148,7 @@ def test_http_call_with_session():
         raise
 
 
-def test_errorneous_http_call():
+def test_erroneous_http_call():
     try:
         url = 'http://adummyurlthatnotexists.xyz/'
         parsed_url = urlparse(url)
@@ -328,9 +328,9 @@ def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
     assert http_span.get_tag(constants.HttpTags['HTTP_HOST']) == host
     assert http_span.get_tag(constants.HttpTags['HTTP_PATH']) == path
     assert http_span.get_tag(constants.HttpTags['QUERY_PARAMS']) == query
-    assert http_span.get_tag('error') == None
-    assert http_span.get_tag('error.kind') == None
-    assert http_span.get_tag('error.message') == None
+    assert http_span.get_tag('error') is None
+    assert http_span.get_tag('error.kind') is None
+    assert http_span.get_tag('error.message') is None
 
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
