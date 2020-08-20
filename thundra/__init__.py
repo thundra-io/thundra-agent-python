@@ -46,10 +46,6 @@ def lambda_wrapper(func):
     return WrapperFactory.get_or_create(LambdaWrapper)(func)
 
 
-def django_wrapper(func):
-    return WrapperFactory.get_or_create(DjangoWrapper)(func)
-
-
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     patch_modules()
 
