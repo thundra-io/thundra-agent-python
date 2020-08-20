@@ -5,6 +5,8 @@ from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.integrations.modules.requests import _wrapper as request_wrapper
 
+import thundra.integrations.botocore
+
 INTEGRATIONS = {
     class_obj.CLASS_TYPE: class_obj()
     for class_obj in BaseIntegration.__subclasses__()

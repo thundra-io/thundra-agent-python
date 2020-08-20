@@ -1,6 +1,7 @@
 import logging
 import sys
 import uuid
+from threading import Lock
 
 import wrapt
 
@@ -13,29 +14,10 @@ from thundra.plugins.log import log_support
 from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
 from thundra.plugins.log.thundra_logger import StreamToLogger
 
-logger = logging.getLogger('STDOUT')
-
-
-def _wrapper(wrapped, instance, args, kwargs):
-    try:
-        wrapped(*args, **kwargs)
-        logger.info(str(args[0]))
-    except:
-        pass
-
-
-if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
-    if PY37 or PY38:
-        wrapt.wrap_function_wrapper(
-            'builtins',
-            'print',
-            _wrapper
-        )
-    else:
-        sys.stdout = StreamToLogger(logger, sys.stdout)
-
 
 class LogPlugin:
+    lock = Lock()
+    wrapped = False
 
     def __init__(self, plugin_context=None, config=None):
         self.hooks = {
@@ -43,22 +25,44 @@ class LogPlugin:
             'after:invocation': self.after_invocation
         }
         self.plugin_context = plugin_context
+        self.logger = logging.getLogger('STDOUT')
+
         if isinstance(config, LogConfig):
             self.config = config
         else:
             self.config = LogConfig()
 
-        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE, self.config.enabled):
+        with LogPlugin.lock:
+            if (not LogPlugin.wrapped) and (
+                    not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE, not self.config.enabled)):
+                if PY37 or PY38:
+                    wrapt.wrap_function_wrapper(
+                        'builtins',
+                        'print',
+                        self._wrapper
+                    )
+                else:
+                    sys.stdout = StreamToLogger(self.logger, sys.stdout)
+                LogPlugin.wrapped = True
+
+        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE, not self.config.enabled):
             handler = ThundraLogHandler()
             has_thundra_log_handler = False
-            for log_handlers in logger.handlers:
+            for log_handlers in self.logger.handlers:
                 if isinstance(log_handlers, ThundraLogHandler):
                     has_thundra_log_handler = True
             if not has_thundra_log_handler:
-                logger.addHandler(handler)
-            logger.setLevel(logging.INFO)
+                self.logger.addHandler(handler)
+            self.logger.setLevel(logging.INFO)
             handler.setLevel(logging.INFO)
-            logger.propagate = False
+            self.logger.propagate = False
+
+    def _wrapper(self, wrapped, instance, args, kwargs):
+        try:
+            wrapped(*args, **kwargs)
+            self.logger.info(str(args[0]))
+        except:
+            pass
 
     def before_invocation(self, execution_context):
         execution_context.capture_log = True
