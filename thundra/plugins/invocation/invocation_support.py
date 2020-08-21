@@ -33,6 +33,11 @@ def set_tag(key, value):
     execution_context.user_tags[key] = value
 
 
+def set_tags(tags):
+    execution_context = ExecutionContextManager.get()
+    execution_context.user_tags.update(tags)
+
+
 def set_many(tags):
     execution_context = ExecutionContextManager.get()
     execution_context.user_tags.update(tags)

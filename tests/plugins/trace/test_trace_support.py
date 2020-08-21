@@ -11,7 +11,7 @@ def test_create_empty_span_listener(empty_span_listener):
     sl_env_var = json.dumps(empty_span_listener)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
-    trace_support.parse_span_listeners()
+    trace_support._parse_span_listeners()
 
     sl = trace_support.get_span_listeners()[0]
 
@@ -24,7 +24,7 @@ def test_create_span_listener_with_only_listener(span_listener_with_one_listener
     sl_env_var = json.dumps(span_listener_with_one_listener)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
-    trace_support.parse_span_listeners()
+    trace_support._parse_span_listeners()
 
     sl = trace_support.get_span_listeners()[0]
 
@@ -39,7 +39,7 @@ def test_create_span_listener_with_only_filterer(span_listener_with_one_filterer
     sl_env_var = json.dumps(span_listener_with_one_filterer)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
-    trace_support.parse_span_listeners()
+    trace_support._parse_span_listeners()
 
     sl = trace_support.get_span_listeners()[0]
     f = sl.filterer.span_filters[0]
@@ -55,7 +55,7 @@ def test_create_span_listener_with_filterer_and_listener(span_listener_with_filt
     sl_env_var = json.dumps(span_listener_with_filterer_and_listener)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
-    trace_support.parse_span_listeners()
+    trace_support._parse_span_listeners()
 
     sl = trace_support.get_span_listeners()[0]
     f = sl.filterer.span_filters[0]
@@ -76,7 +76,7 @@ def test_create_span_listener_with_multiple_filter_and_listener(span_listener_wi
     sl_env_var = json.dumps(span_listener_with_multiple_filterers_and_listeners)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
-    trace_support.parse_span_listeners()
+    trace_support._parse_span_listeners()
 
     sl = trace_support.get_span_listeners()[0]
     f1 = sl.filterer.span_filters[0]
@@ -102,7 +102,7 @@ def test_with_non_existing_listener_type():
     sl_env_var = '{"type": "NonExistingSpanListener", "config": {"config": {}}}'
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
-    trace_support.parse_span_listeners()
+    trace_support._parse_span_listeners()
 
     assert len(trace_support.get_span_listeners()) == 0
 

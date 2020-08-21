@@ -4,10 +4,11 @@ import threading
 
 
 class ThreadTimeout(object):
-    def __init__(self, seconds, handler):
+    def __init__(self, seconds, handler, execution_context):
         self.seconds = seconds
         self.timer = None
         self.handler = handler
+        self.execution_context = execution_context
 
     def __enter__(self):
         self.timer = threading.Timer(self.seconds, self.handler, [self.execution_context])

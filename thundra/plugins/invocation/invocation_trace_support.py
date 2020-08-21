@@ -37,7 +37,7 @@ class Resource:
     def merge(self, span):
         if not self.accept(span):
             logger.error(("can not merge resource with id %s:"
-                          " ids not match with target resource"), resource_id(span))
+                          " ids not match with target resource"), _resource_id(span))
             return
         self.count += 1
         self.duration += span.get_duration()
@@ -79,7 +79,7 @@ class Resource:
         return resource
 
 
-def resource_id(span, resource_name=None):
+def _resource_id(span, resource_name=None):
     if resource_name:
         return ('{}${}${}'.format(
             span.class_name.upper(),
@@ -107,7 +107,7 @@ def get_resources():
             resource_names = span.get_tag(constants.SpanTags['RESOURCE_NAMES'])
             if resource_names:
                 for resource_name in resource_names:
-                    rid = resource_id(span, resource_name)
+                    rid = _resource_id(span, resource_name)
                     if rid:
                         if not rid in resources:
                             resources[rid] = Resource(span)
@@ -115,7 +115,7 @@ def get_resources():
                         else:
                             resources[rid].merge(span)
             else:
-                rid = resource_id(span)
+                rid = _resource_id(span)
                 if rid:
                     if not rid in resources:
                         resources[rid] = Resource(span)
@@ -147,6 +147,7 @@ def get_outgoing_trace_links():
     spans = execution_context.recorder.get_spans()
 
     outgoing_trace_links = []
+    outgoing_trace_links.extend(execution_context.outgoing_trace_links)
     for span in spans:
         links = get_outgoing_trace_link(span)
         if links:
@@ -156,8 +157,23 @@ def get_outgoing_trace_links():
     return {"outgoingTraceLinks": outgoing_trace_links}
 
 
+def add_outgoing_trace_link(trace_link):
+    execution_context = ExecutionContextManager.get()
+    execution_context.outgoing_trace_links.append(trace_link)
+
+
+def add_outgoing_trace_links(trace_links):
+    execution_context = ExecutionContextManager.get()
+    execution_context.outgoing_trace_links.extend(trace_links)
+
+
 def get_outgoing_trace_link(span):
     return span.get_tag(constants.SpanTags["TRACE_LINKS"])
+
+
+def add_incoming_trace_link(trace_link):
+    execution_context = ExecutionContextManager.get()
+    execution_context.incoming_trace_links.extend(trace_link)
 
 
 def add_incoming_trace_links(trace_links):

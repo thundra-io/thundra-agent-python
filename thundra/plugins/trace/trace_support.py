@@ -55,7 +55,7 @@ def _get_sl_class(sl_class_name):
     return sl_class
 
 
-def parse_span_listeners():
+def _parse_span_listeners():
     # Clear before parsing to prevent appending duplicate span listeners
     clear_span_listeners()
     # Add span listeners configured using environment variables
@@ -89,7 +89,7 @@ def parse_span_listeners():
 
 
 # Parse span listeners from environment variables
-parse_span_listeners()
+_parse_span_listeners()
 
 
 def get_sampler():
