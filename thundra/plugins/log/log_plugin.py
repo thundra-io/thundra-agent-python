@@ -1,6 +1,5 @@
 import logging
 import sys
-import uuid
 from threading import Lock
 
 import wrapt
@@ -66,8 +65,6 @@ class LogPlugin:
 
     def before_invocation(self, execution_context):
         execution_context.capture_log = True
-        if not execution_context.transaction_id:
-            execution_context.transaction_id = str(uuid.uuid4())
 
     def after_invocation(self, execution_context):
         execution_context.capture_log = False

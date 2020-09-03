@@ -25,7 +25,7 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
     @staticmethod
     def get_application_info_from_config():
         return {
-            'applicationId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_TAG_PREFIX),
+            'applicationId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_ID),
             'applicationDomainName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_DOMAIN_NAME),
             'applicationClassName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_CLASS_NAME),
             'applicationName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_NAME),

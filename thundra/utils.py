@@ -12,7 +12,7 @@ def get_configuration(key, default=None):
     return os.environ.get(key, default)
 
 
-def get_aws_funtion_name(arn):
+def get_aws_function_name(arn):
     return get_arn_part(arn, 6)
 
 

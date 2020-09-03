@@ -24,7 +24,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, '')
         region = utils.get_aws_region_from_arn(arn)
         account_no = 'sam_local' if utils.sam_local_debugging() else utils.get_aws_account_no(arn)
-        function_name = utils.get_aws_funtion_name(arn)
+        function_name = utils.get_aws_function_name(arn)
         application_id_template = 'aws:lambda:{region}:{account_no}:{function_name}'
 
         return application_id_template.format(region=region, account_no=account_no, function_name=function_name)

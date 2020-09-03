@@ -38,8 +38,7 @@ class MetricPlugin:
     def before_invocation(self, execution_context):
         metric_time = time.time() * 1000
         active_span = self.tracer.get_active_span()
-        if not execution_context.transaction_id:
-            execution_context.transaction_id = str(uuid.uuid4())
+
         self.metric_data = {
             'type': "Metric",
             'agentVersion': constants.THUNDRA_AGENT_VERSION,

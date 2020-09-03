@@ -1,8 +1,9 @@
+from thundra.context.context_provider import ContextProvider
 from thundra.context.execution_context import ExecutionContext
 from thundra.opentracing.tracer import ThundraTracer
 
 
-class TracingExecutionContextProvider:
+class TracingExecutionContextProvider(ContextProvider):
     def __init__(self):
         self.tracer = ThundraTracer.get_instance()
         self.execution_context = None
