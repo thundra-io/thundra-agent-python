@@ -48,7 +48,7 @@ class MetricPlugin:
             'spanId': active_span.span_id if active_span is not None else '',
             'metricTimestamp': int(metric_time),
             'tags': {
-                'aws.region': utils.get_configuration(constants.AWS_REGION, default='')
+                'aws.region': utils.get_env_variable(constants.AWS_REGION, default='')
             }
         }
         # Add application related data

@@ -156,7 +156,7 @@ def start_invocation(plugin_context, execution_context):
         'transactionId': execution_context.transaction_id,
         'spanId': execution_context.span_id,
         'applicationPlatform': constants.CONTEXT_APPLICATION_PLATFORM,
-        'functionRegion': utils.get_configuration(constants.AWS_REGION, default=''),
+        'functionRegion': utils.get_env_variable(constants.AWS_REGION, default=''),
         'duration': None,
         'startTimestamp': execution_context.start_timestamp,
         'finishTimestamp': None,

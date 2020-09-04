@@ -1,8 +1,8 @@
 import logging
 import os
-import traceback
 import subprocess
 import time
+import traceback
 import uuid
 from functools import wraps
 
@@ -79,11 +79,10 @@ class LambdaWrapper:
 
         @wraps(original_func)
         def wrapper(event, context):
+            application_name = self.plugin_context.application_info.get('applicationName')
             self.application_info_provider.update({
-                'applicationId': LambdaApplicationInfoProvider.get_application_id(context),
-                'applicationName': getattr(context, constants.CONTEXT_FUNCTION_NAME, ''),
-                'applicationVersion': getattr(context, constants.CONTEXT_FUNCTION_VERSION, ''),
-                'applicationInstanceId': LambdaApplicationInfoProvider.get_application_instance_id(context)
+                'applicationId': LambdaApplicationInfoProvider.get_application_id(context,
+                                                                                  application_name=application_name)
             })
 
             # Execution context initialization

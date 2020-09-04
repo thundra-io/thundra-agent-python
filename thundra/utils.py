@@ -8,7 +8,7 @@ from thundra.compat import urlparse
 logger = logging.getLogger(__name__)
 
 
-def get_configuration(key, default=None):
+def get_env_variable(key, default=None):
     return os.environ.get(key, default)
 
 
@@ -184,7 +184,7 @@ def is_excluded_url(url):
 
 
 def get_default_timeout_margin():
-    region = get_configuration(constants.AWS_REGION, default='')
+    region = get_env_variable(constants.AWS_REGION, default='')
     size_from_env_var = get_aws_lambda_function_memory_size()
     memory = -1
     if size_from_env_var:
@@ -220,7 +220,7 @@ def parse_x_ray_trace_info():
 
 
 def get_nearest_collector():
-    region = get_configuration(constants.AWS_REGION)
+    region = get_env_variable(constants.AWS_REGION)
 
     if region:
         return '{}.collector.thundra.io'.format(region)
