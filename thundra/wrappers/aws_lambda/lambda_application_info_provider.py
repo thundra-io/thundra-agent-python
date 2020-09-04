@@ -11,9 +11,13 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         function_version = utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_VERSION)
         function_name = utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_NAME)
 
+        application_instance_id = str(uuid.uuid4())
+        if log_stream_name and len(log_stream_name.split(']')) >= 2:
+            application_instance_id = log_stream_name.split(']')[1]
+
         self.application_info = {
             'applicationId': '',
-            'applicationInstanceId': log_stream_name.split(']')[1] if log_stream_name else str(uuid.uuid4()),
+            'applicationInstanceId': application_instance_id,
             'applicationName': function_name,
             'applicationVersion': function_version
         }
