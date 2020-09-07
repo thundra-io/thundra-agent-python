@@ -1,23 +1,28 @@
-import os
 import logging
+import os
 import re
 
-from thundra.compat import urlparse
 from thundra import constants
+from thundra.compat import urlparse
 
 logger = logging.getLogger(__name__)
 
-def get_configuration(key, default=None):
+
+def get_env_variable(key, default=None):
     return os.environ.get(key, default)
 
-def get_aws_funtion_name(arn):
+
+def get_aws_function_name(arn):
     return get_arn_part(arn, 6)
+
 
 def get_aws_region_from_arn(arn):
     return get_arn_part(arn, 3)
 
+
 def get_aws_account_no(arn):
     return get_arn_part(arn, 4)
+
 
 def get_arn_part(arn, index):
     # ARN format: arn:aws:lambda:{region}:{account_no}:function:{function_name}
@@ -26,11 +31,14 @@ def get_arn_part(arn, index):
     except:
         return ""
 
+
 def get_aws_lambda_function_memory_size():
     return os.environ.get(constants.AWS_LAMBDA_FUNCTION_MEMORY_SIZE)
 
+
 def sam_local_debugging():
     return os.environ.get(constants.AWS_SAM_LOCAL) == 'true'
+
 
 #### memory ####
 def process_memory_usage():
@@ -45,7 +53,7 @@ def process_memory_usage():
                     mems[mem_key] = mem_val
                 except IndexError:
                     continue
-            
+
             size_from_env_var = get_aws_lambda_function_memory_size()
             if not size_from_env_var:
                 size = int(mems['VmSize'])
@@ -60,6 +68,7 @@ def process_memory_usage():
     except Exception as e:
         logger.error('ERROR: {}'.format(e))
         return 0, 0
+
 
 ##### cpu #####
 def process_cpu_usage():
@@ -105,6 +114,7 @@ def system_cpu_usage():
 
 class Singleton(object):
     _instances = {}
+
     def __new__(class_, *args, **kwargs):
         if class_ not in class_._instances:
             class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
@@ -140,7 +150,7 @@ def process_trace_def_var(value):
     function_prefix = path[-1][:-1] if path[-1] != '*' else ''
     module_path = ".".join(path[:-1])
     trace_string = value[1].strip(']').split(',')
-    for arg  in trace_string:
+    for arg in trace_string:
         arg = arg.split('=')
         try:
             trace_args[arg[0]] = arg[1]
@@ -153,9 +163,10 @@ def process_trace_def_var(value):
 def get_allowed_functions(module):
     allowed_functions = []
     for prop in vars(module):
-        #TO DO: differentiate functions
+        # TO DO: differentiate functions
         allowed_functions.append(str(prop))
     return allowed_functions
+
 
 def is_excluded_url(url):
     host = urlparse(url).netloc
@@ -171,8 +182,9 @@ def is_excluded_url(url):
                 return True
     return False
 
+
 def get_default_timeout_margin():
-    region = get_configuration(constants.AWS_REGION, default='')
+    region = get_env_variable(constants.AWS_REGION, default='')
     size_from_env_var = get_aws_lambda_function_memory_size()
     memory = -1
     if size_from_env_var:
@@ -189,8 +201,9 @@ def get_default_timeout_margin():
     elif region.startswith('sa-'):
         timeout_margin = 800
 
-    normalized_timeout_margin = int((384.0/memory) * timeout_margin)
+    normalized_timeout_margin = int((384.0 / memory) * timeout_margin)
     return max(timeout_margin, normalized_timeout_margin)
+
 
 def parse_x_ray_trace_info():
     xray_trace_header = os.environ.get("_X_AMZN_TRACE_ID")
@@ -205,13 +218,15 @@ def parse_x_ray_trace_info():
 
     return xray_info
 
+
 def get_nearest_collector():
-    region = get_configuration(constants.AWS_REGION)
+    region = get_env_variable(constants.AWS_REGION)
 
     if region:
         return '{}.collector.thundra.io'.format(region)
 
     return "collector.thundra.io"
+
 
 def get_compiled_operation_type_patterns():
     compiled = []
@@ -219,10 +234,11 @@ def get_compiled_operation_type_patterns():
         compiled.append(re.compile(pattern))
     return compiled
 
+
 def extract_api_gw_resource_name(event):
     try:
         resource_path = None
-        if 'resource' in  event:
+        if 'resource' in event:
             resource_path = event['resource']
         else:
             resource_path = event['requestContext']['http']['path']
@@ -233,6 +249,7 @@ def extract_api_gw_resource_name(event):
         return resource_path
     except:
         return None
+
 
 def get_normalized_path(url_path, path_depth):
     path_seperator_count = 0
@@ -248,6 +265,7 @@ def get_normalized_path(url_path, path_depth):
         normalized_path += c
         prev_c = c
     return normalized_path
+
 
 def parse_http_url(url, url_path_depth):
     url_dict = {
@@ -270,7 +288,8 @@ def parse_http_url(url, url_path_depth):
         pass
     return url_dict
 
-# Excluded url's 
+
+# Excluded url's
 EXCLUDED_URLS = {
     str.endswith: [
         'thundra.io',

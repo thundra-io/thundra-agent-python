@@ -1,5 +1,4 @@
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
 from thundra.integrations.rdb_base import RdbBaseIntegration
 from thundra.integrations.base_integration import BaseIntegration
 from thundra.config.config_provider import ConfigProvider
@@ -47,8 +46,7 @@ class PostgreIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['DB_TYPE']: "postgresql",
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),
             constants.SpanTags['TRIGGER_CLASS_NAME']: "API",
-            constants.SpanTags['TOPOLOGY_VERTEX']: True,
-            constants.SpanTags['TRIGGER_OPERATION_NAMES']: [invocation_support.function_name]
+            constants.SpanTags['TOPOLOGY_VERTEX']: True
         }
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK):

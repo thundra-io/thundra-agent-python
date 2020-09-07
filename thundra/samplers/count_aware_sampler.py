@@ -1,9 +1,10 @@
 from threading import Lock
+
 from thundra import constants
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.samplers.base_sampler import BaseSampler
 
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 
 class CountAwareSampler(BaseSampler):
 

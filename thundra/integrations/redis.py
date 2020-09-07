@@ -1,8 +1,8 @@
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
-from thundra.integrations.base_integration import BaseIntegration
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.integrations.base_integration import BaseIntegration
+
 
 class RedisIntegration(BaseIntegration):
     CLASS_TYPE = 'redis'

@@ -1,16 +1,15 @@
-import simplejson as json
-import sys
 import inspect
-import copy
+import sys
 from functools import wraps
 from threading import Lock
-import jsonpickle
 
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.serializable import Serializable
-from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import constants
+import jsonpickle
 from opentracing import Scope
+
+from thundra import constants
+from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.serializable import Serializable
 
 
 def __get_traceable_from_back_frame(frame):
@@ -108,6 +107,7 @@ def trace_calls(frame, event, arg):
 _lock = Lock()
 _line_traced_count = 0
 
+
 class Traceable:
 
     def __init__(self,
@@ -188,7 +188,6 @@ class Traceable:
         except:
             return '<not-json-serializable-object>'
 
-
     def __call__(self, original_func):
         @wraps(original_func)
         def ___thundra_trace___(*args, **kwargs):
@@ -200,6 +199,7 @@ class Traceable:
             scope = self.tracer.start_active_span(original_func.__name__, child_of=parent_span, finish_on_close=False)
             scope.span.class_name = 'Method'
             traced_err = None
+            global _line_traced_count
             try:
                 # Add argument related tags to the span before calling original method
                 if self._trace_args is True:
@@ -234,7 +234,6 @@ class Traceable:
                             scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
                         debug_logger("Cannot get source code in traceable: " + str(e))
-                    global _line_traced_count
                     with _lock:
                         if _line_traced_count == 0:
                             sys.settrace(trace_calls)

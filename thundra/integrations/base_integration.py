@@ -2,6 +2,7 @@ import abc
 import logging
 import time
 import traceback
+
 from thundra.opentracing.tracer import ThundraTracer
 
 logger = logging.getLogger(__name__)

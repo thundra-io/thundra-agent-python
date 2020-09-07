@@ -1,10 +1,11 @@
 import mysql.connector
 from mysql.connector.errors import Error as MySQLError
+
 from thundra import constants
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.opentracing.tracer import ThundraTracer
 
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 
 def test_mysql_integration():
     query = "SELECT 1 + 1 AS solution"
@@ -22,7 +23,7 @@ def test_mysql_integration():
 
     finally:
         tracer = ThundraTracer.get_instance()
-        mysql_span = tracer.get_spans()[0]
+        mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
         assert mysql_span.class_name == constants.ClassNames['MYSQL']
@@ -33,8 +34,8 @@ def test_mysql_integration():
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
-        tracer.clear()
         connection.close()
+
 
 def test_mysql_integration_mask_statement():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK, 'true')
@@ -54,7 +55,7 @@ def test_mysql_integration_mask_statement():
 
     finally:
         tracer = ThundraTracer.get_instance()
-        mysql_span = tracer.get_spans()[0]
+        mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
         assert mysql_span.class_name == constants.ClassNames['MYSQL']
@@ -65,8 +66,8 @@ def test_mysql_integration_mask_statement():
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == None
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
-        tracer.clear()
         connection.close()
+
 
 def test_mysql_integration_with_empty_query():
     connection = mysql.connector.connect(
@@ -84,7 +85,7 @@ def test_mysql_integration_with_empty_query():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        mysql_span = tracer.get_spans()[0]
+        mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
         assert mysql_span.class_name == constants.ClassNames['MYSQL']
@@ -95,7 +96,6 @@ def test_mysql_integration_with_empty_query():
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == ''
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == ''
 
-        tracer.clear()
         connection.close()
 
 
@@ -113,7 +113,7 @@ def test_mysql_integration_callproc():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        mysql_span = tracer.get_spans()[0]
+        mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
         assert mysql_span.class_name == constants.ClassNames['MYSQL']
@@ -124,5 +124,4 @@ def test_mysql_integration_callproc():
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT']) == 'multiply'
         assert mysql_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'MULTIPLY'
 
-        tracer.clear()
         connection.close()

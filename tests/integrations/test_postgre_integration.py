@@ -1,15 +1,16 @@
 import psycopg2
 from psycopg2 import Error as PostgreError
+
 from thundra import constants
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.opentracing.tracer import ThundraTracer
 
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 
 def test_postgre_integration():
     query = "select 1 + 1 AS solution"
 
-    connection =  psycopg2.connect(
+    connection = psycopg2.connect(
         user='user',
         host='localhost',
         password='userpass',
@@ -23,7 +24,7 @@ def test_postgre_integration():
 
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.get_spans()[0]
+        postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
         assert postgre_span.class_name == constants.ClassNames['POSTGRESQL']
@@ -34,14 +35,14 @@ def test_postgre_integration():
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
-        tracer.clear()
         connection.close()
+
 
 def test_postgre_integration_mask_statement():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK, 'true')
     query = "select 1 + 1 AS solution"
 
-    connection =  psycopg2.connect(
+    connection = psycopg2.connect(
         user='user',
         host='localhost',
         password='userpass',
@@ -55,7 +56,7 @@ def test_postgre_integration_mask_statement():
 
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.get_spans()[0]
+        postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
         assert postgre_span.class_name == constants.ClassNames['POSTGRESQL']
@@ -63,14 +64,14 @@ def test_postgre_integration_mask_statement():
         assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == 'READ'
         assert postgre_span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
-        assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == None
+        assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) is None
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
-        tracer.clear()
         connection.close()
 
+
 def test_postgre_integration_with_empty_query():
-    connection =  psycopg2.connect(
+    connection = psycopg2.connect(
         user='user',
         host='localhost',
         password='userpass',
@@ -85,23 +86,22 @@ def test_postgre_integration_with_empty_query():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.get_spans()[0]
+        postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
         assert postgre_span.class_name == constants.ClassNames['POSTGRESQL']
         assert postgre_span.operation_name == 'db'
-        assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == ''
+        assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) is ''
         assert postgre_span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == ''
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == ''
 
-        tracer.clear()
         connection.close()
 
 
 def test_postgre_integration_callproc():
-    connection =  psycopg2.connect(
+    connection = psycopg2.connect(
         user='user',
         host='localhost',
         password='userpass',
@@ -114,12 +114,12 @@ def test_postgre_integration_callproc():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        postgre_span = tracer.get_spans()[0]
+        postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
         assert postgre_span.class_name == constants.ClassNames['POSTGRESQL']
         assert postgre_span.operation_name == 'db'
-        assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) == ''
+        assert postgre_span.get_tag(constants.SpanTags['OPERATION_TYPE']) is ''
         assert postgre_span.get_tag(constants.SpanTags['DB_INSTANCE']) == 'db'
         assert postgre_span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
         assert postgre_span.get_tag(constants.SpanTags['DB_STATEMENT']) == 'multiply'

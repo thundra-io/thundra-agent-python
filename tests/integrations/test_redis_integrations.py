@@ -1,8 +1,10 @@
 import redis
+
 from thundra import constants
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.opentracing.tracer import ThundraTracer
+
 
 def test_set():
     try:
@@ -12,7 +14,7 @@ def test_set():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
 
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
@@ -23,7 +25,6 @@ def test_set():
         assert span.get_tag(constants.RedisTags['REDIS_HOST']) == 'test'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND_TYPE']) == 'SET'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == 'SET foo bar'
-        tracer.clear()
 
 
 def test_set_mask_command():
@@ -36,7 +37,7 @@ def test_set_mask_command():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
 
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
@@ -47,10 +48,8 @@ def test_set_mask_command():
         assert span.get_tag(constants.DBTags['DB_STATEMENT_TYPE']) == 'WRITE'
         assert span.get_tag(constants.RedisTags['REDIS_HOST']) == 'test'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND_TYPE']) == 'SET'
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == None
-        
-        tracer.clear()
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
+        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) is None
 
 
 def test_get():
@@ -61,7 +60,7 @@ def test_get():
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'
@@ -71,10 +70,9 @@ def test_get():
         assert span.get_tag(constants.RedisTags['REDIS_HOST']) == 'test'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND_TYPE']) == 'GET'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == 'GET foo'
-        tracer.clear()
 
 
-def test_get_mask_command(monkeypatch):
+def test_get_mask_command():
     ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
 
     try:
@@ -84,7 +82,7 @@ def test_get_mask_command(monkeypatch):
         pass
     finally:
         tracer = ThundraTracer.get_instance()
-        span = tracer.get_spans()[0]
+        span = tracer.get_spans()[1]
         assert span.class_name == 'Redis'
         assert span.domain_name == 'Cache'
         assert span.operation_name == 'test'
@@ -93,6 +91,6 @@ def test_get_mask_command(monkeypatch):
         assert span.get_tag(constants.DBTags['DB_STATEMENT_TYPE']) == 'READ'
         assert span.get_tag(constants.RedisTags['REDIS_HOST']) == 'test'
         assert span.get_tag(constants.RedisTags['REDIS_COMMAND_TYPE']) == 'GET'
-        assert span.get_tag(constants.DBTags['DB_STATEMENT']) == None
-        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) == None
+        assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
+        assert span.get_tag(constants.RedisTags['REDIS_COMMAND']) is None
         tracer.clear()

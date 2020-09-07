@@ -1,9 +1,7 @@
 import traceback
-import json
 import time
 import logging
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
@@ -30,7 +28,6 @@ class CommandTracer(CommandListener):
         scope = tracer.start_active_span(operation_name=event.database_name, finish_on_close=False)
 
         self._scopes[event.request_id] = scope
-        span = scope.span
 
         # Inject before span tags
         try:
@@ -89,7 +86,6 @@ class CommandTracer(CommandListener):
         scope = self._scopes.pop(event.request_id, None)
         if scope is None:
             return
-        span = scope.span
         try:
             scope.span.finish()
         except Exception as e:

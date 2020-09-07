@@ -1,9 +1,13 @@
-import pytest
 import mock
-from thundra.thundra_agent import Thundra
-from thundra.reporter import Reporter
-from thundra.plugins.invocation import invocation_support
+import pytest
+
 from thundra.config.config_provider import ConfigProvider
+from thundra.context.execution_context import ExecutionContext
+from thundra.context.execution_context_manager import ExecutionContextManager
+from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
+from thundra.plugins.invocation import invocation_support
+from thundra.reporter import Reporter
+from thundra.thundra_agent import Thundra
 
 
 class MockContext:
@@ -45,18 +49,18 @@ class LambdaTriggeredMockContext:
             'x-thundra-trigger-operation-name': 'Sample Context'
         }
 
-@pytest.fixture(scope="module", autouse=True)
-def clear_function_name():
-    invocation_support.function_name = ""
+
+@pytest.fixture(scope="session", autouse=True)
+def set_execution_context_provider():
+    ExecutionContextManager.set_provider(GlobalExecutionContextProvider())
+
 
 @pytest.fixture(autouse=True)
 def teardown():
     yield
     ConfigProvider.clear()
+    ExecutionContextManager.set(ExecutionContext())
 
-@pytest.fixture(scope="module", autouse=True)
-def clear_invocation_tags():
-    invocation_support.clear()
 
 @pytest.fixture
 def mock_context():
@@ -190,6 +194,7 @@ def handler_with_exception(thundra):
 
     return thundra, _handler
 
+
 @pytest.fixture
 def handler_with_user_error(thundra):
     @thundra.call
@@ -197,7 +202,6 @@ def handler_with_user_error(thundra):
         invocation_support.set_error(Exception("test"))
 
     return thundra, _handler
-
 
 
 @pytest.fixture
@@ -274,6 +278,7 @@ def mock_lambda_response():
             }
     }
     return response
+
 
 @pytest.fixture()
 def mock_athena_start_query_exec_response():
@@ -887,3 +892,9 @@ def mock_eventbridge_event():
         }
     }
     return event
+
+
+@pytest.fixture(scope='session', autouse=True)
+def mock_context_clear():
+    with mock.patch('thundra.context.execution_context_manager.ExecutionContextManager.clear') as _fixture:
+        yield _fixture

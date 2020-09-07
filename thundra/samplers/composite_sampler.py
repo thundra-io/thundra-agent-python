@@ -6,7 +6,9 @@ available_operators = ['and', 'or']
 
 class CompositeSampler(BaseSampler):
 
-    def __init__(self, samplers=[], operator=default_operator):
+    def __init__(self, samplers=None, operator=default_operator):
+        if samplers is None:
+            samplers = []
         self.samplers = samplers
         if operator in available_operators:
             self.operator = operator

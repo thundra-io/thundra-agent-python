@@ -1,70 +1,12 @@
-import os
-from thundra.plugins.trace.trace_plugin import TracePlugin
-from thundra import constants
-
-def test_when_app_stage_exists(handler_with_profile, mock_context, mock_event):
-    thundra, handler = handler_with_profile
-
-    trace_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_plugin = plugin
-
-    handler(mock_event, mock_context)
-
-    assert trace_plugin.trace_data['applicationStage'] == 'dev'
-
-
-def test_when_app_stage_not_exists(handler, mock_context, mock_event):
-    thundra, handler = handler
-
-    trace_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_plugin = plugin
-
-    handler(mock_event, mock_context)
-
-    assert trace_plugin.trace_data['applicationStage'] is ''
-
-
-def test_report(handler_with_profile, mock_context, mock_event):
-    thundra, handler = handler_with_profile
-
-    trace_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_plugin = plugin
-
-    handler(mock_event, mock_context)
-
-    assert trace_plugin.trace_data['startTimestamp'] is not None
-    assert trace_plugin.trace_data['finishTimestamp'] is not None
-
-    start_time = trace_plugin.trace_data['startTimestamp']
-    end_time = trace_plugin.trace_data['finishTimestamp']
-
-    duration = end_time - start_time
-
-    assert trace_plugin.trace_data['duration'] == duration
-
-    assert trace_plugin.trace_data['applicationName'] == 'test_func'
-    assert trace_plugin.trace_data['applicationId'] == 'aws:lambda:us-west-2:123456789123:test'
-    assert trace_plugin.trace_data['applicationInstanceId'] == 'id'
-    assert trace_plugin.trace_data['applicationVersion'] == 'version'
-    assert trace_plugin.trace_data['applicationRuntime'] == 'python'
+from thundra.context.execution_context_manager import ExecutionContextManager
 
 
 def test_invocation_support_error_set_to_root_span(handler_with_user_error, mock_context, mock_event):
     thundra, handler = handler_with_user_error
 
-    trace_plugin = None
-    for plugin in thundra.plugins:
-        if isinstance(plugin, TracePlugin):
-            trace_plugin = plugin
-
     handler(mock_event, mock_context)
+    execution_context = ExecutionContextManager.get()
 
-    assert trace_plugin.root_span.get_tag('error') is True
-    assert trace_plugin.root_span.get_tag('error.kind') == 'Exception'
-    assert trace_plugin.root_span.get_tag('error.message') == 'test'
+    assert execution_context.root_span.get_tag('error') is True
+    assert execution_context.root_span.get_tag('error.kind') == 'Exception'
+    assert execution_context.root_span.get_tag('error.message') == 'test'

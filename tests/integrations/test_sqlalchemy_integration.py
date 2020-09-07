@@ -2,16 +2,15 @@ from datetime import date
 
 from sqlalchemy import Column, String, Integer, Date
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 from thundra import constants
+from thundra.compat import PY2
 from thundra.opentracing.tracer import ThundraTracer
-
 
 Base = declarative_base()
 
-from thundra.compat import PY2
 
 class Movie(Base):
     __tablename__ = 'movies'
@@ -68,7 +67,6 @@ def test_sqlalchemy_session_pqsql():
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == statement
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'INSERT'
 
-    tracer.clear()
 
 def test_sqlalchemy_connection_execute_pqsql():
     engine = set_up_engine_and_table('postgresql://user:userpass@localhost:5432/db')
@@ -90,7 +88,6 @@ def test_sqlalchemy_connection_execute_pqsql():
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
-    tracer.clear()
 
 def test_sqlalchemy_connection_execute_mysql():
     engine = set_up_engine_and_table('mysql+mysqlconnector://user:userpass@localhost:3306/db')
@@ -112,7 +109,6 @@ def test_sqlalchemy_connection_execute_mysql():
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
 
-    tracer.clear()
 
 def test_sqlalchemy_connection_execute_mysql_error():
     engine = set_up_engine_and_table('mysql+mysqlconnector://user:userpass@localhost:3306/db')
@@ -135,12 +131,11 @@ def test_sqlalchemy_connection_execute_mysql_error():
     assert span.get_tag(constants.SpanTags['DB_HOST']) == 'localhost'
     assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
     assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-    assert span.get_tag("error") == True
+    assert span.get_tag("error") is True
 
-    tracer.clear()
 
-if not PY2:
-    def test_sqlalchemy_connection_execute_sqlite():
+def test_sqlalchemy_connection_execute_sqlite():
+    if not PY2:
         engine = set_up_engine_and_table('sqlite:///:memory:')
 
         query = "SELECT title FROM movies"
@@ -159,8 +154,3 @@ if not PY2:
         assert span.get_tag(constants.SpanTags['DB_HOST']) == ''
         assert span.get_tag(constants.SpanTags['DB_STATEMENT']) == query
         assert span.get_tag(constants.SpanTags['DB_STATEMENT_TYPE']) == 'SELECT'
-
-        tracer.clear()
-
-
-

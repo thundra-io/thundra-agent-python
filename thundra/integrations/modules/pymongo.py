@@ -1,8 +1,9 @@
 import wrapt
 
-from thundra.integrations.mongodb import CommandTracer
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.integrations.mongodb import CommandTracer
+
 
 def _wrapper(wrapped, instance, args, kwargs):
     event_listeners = list(kwargs.pop('event_listeners', []))

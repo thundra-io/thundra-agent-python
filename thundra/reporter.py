@@ -15,7 +15,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class Reporter():
+class Reporter:
 
     def __init__(self, api_key, session=None):
         if api_key is not None:
@@ -23,7 +23,6 @@ class Reporter():
         else:
             self.api_key = ''
             logger.error('Please set an API key!')
-        self.reports = []
 
         if not session:
             session = requests.Session()
@@ -33,14 +32,7 @@ class Reporter():
         self.session = session
         self.pool = futures.ThreadPoolExecutor(max_workers=20)
 
-    def add_report(self, report):
-        if isinstance(report, list):
-            for data in report:
-                self.reports.append(data)
-        else:
-            self.reports.append(report)
-
-    def send_report(self):
+    def send_report(self, reports):
         if not self.api_key:
             debug_logger("API key not set, not sending report to Thundra.")
             return []
@@ -59,11 +51,11 @@ class Reporter():
 
         if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
             if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE, True):
-                reports_json = self.prepare_composite_report_json()
+                reports_json = self.prepare_composite_report_json(reports)
                 for report in reports_json:
                     print(report)
             else:
-                for report in self.reports:
+                for report in reports:
                     try:
                         print(json.dumps(report, separators=(',', ':')))
                     except TypeError:
@@ -73,9 +65,9 @@ class Reporter():
             return []
 
         if rest_composite_data_enabled:
-            reports_json = self.prepare_composite_report_json()
+            reports_json = self.prepare_composite_report_json(reports)
         else:
-            reports_json = self.prepare_report_json()
+            reports_json = self.prepare_report_json(reports)
 
         responses = []
         if len(reports_json) > 0:
@@ -84,23 +76,22 @@ class Reporter():
 
         if ConfigProvider.get(config_names.THUNDRA_DEBUG_ENABLE):
             debug_logger("Thundra API responses: " + str(responses))
-        self.clear()
         return responses
 
     def send_batch(self, args):
         url, headers, data = args
         return self.session.post(url, data=data, headers=headers, timeout=constants.DEFAULT_REPORT_TIMEOUT)
 
-    def get_report_batches(self):
+    def get_report_batches(self, reports):
         batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE)
         if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
             batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
 
-        batches = [self.reports[i:i + batch_size] for i in range(0, len(self.reports), batch_size)]
+        batches = [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
         return batches
 
-    def prepare_report_json(self):
-        batches = self.get_report_batches()
+    def prepare_report_json(self, reports):
+        batches = self.get_report_batches(reports)
         batched_reports = []
         for batch in batches:
             report_jsons = []
@@ -114,23 +105,23 @@ class Reporter():
             batched_reports.append(json_string)
         return batched_reports
 
-    def prepare_composite_report_json(self):
+    def prepare_composite_report_json(self, reports):
         invocation_report = None
-        for report in self.reports:
+        for report in reports:
             if report["type"] == "Invocation":
                 invocation_report = report
 
         if not invocation_report:
             return []
 
-        composite.init_composite_data_common_fields(invocation_report["data"])
+        common_fields = composite.init_composite_data_common_fields(invocation_report["data"])
 
-        batches = self.get_report_batches()
+        batches = self.get_report_batches(reports)
         batched_reports = []
 
         for batch in batches:
             all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in batch]
-            composite_data = composite.get_composite_data(all_monitoring_data, self.api_key)
+            composite_data = composite.get_composite_data(all_monitoring_data, self.api_key, common_fields)
             try:
                 batched_reports.append(json.dumps(composite_data, separators=(',', ':')))
 
@@ -138,8 +129,4 @@ class Reporter():
                 logger.error("Couldn't dump report with type Composite to json string, "
                              "probably it contains a byte array")
 
-        composite.clear()
         return batched_reports
-
-    def clear(self):
-        self.reports = []

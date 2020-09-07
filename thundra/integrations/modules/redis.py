@@ -1,10 +1,13 @@
 import wrapt
+
 from thundra import constants
-from thundra.integrations.redis import RedisIntegration
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.integrations.redis import RedisIntegration
 
 redis_integration = RedisIntegration()
+
+
 def _wrapper(wrapped, instance, args, kwargs):
     return redis_integration.run_and_trace(
         wrapped,
@@ -12,6 +15,7 @@ def _wrapper(wrapped, instance, args, kwargs):
         args,
         kwargs
     )
+
 
 def patch():
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_DISABLE):

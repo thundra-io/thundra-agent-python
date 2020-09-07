@@ -1,9 +1,8 @@
 from __future__ import absolute_import
+
 import os
 import traceback
 from importlib import import_module
-
-from thundra import config
 
 MODULES = {}
 IGNORE_MODULES = ('__init__',)

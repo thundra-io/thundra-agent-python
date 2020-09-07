@@ -86,7 +86,7 @@ class FilteringSpanListener(ThundraSpanListener):
             sl_class.__name__: sl_class 
             for sl_class in ThundraSpanListener.__subclasses__()
         }
-
+        listener_config = None
         if 'listener' not in config:
             listener_class = None
         else:

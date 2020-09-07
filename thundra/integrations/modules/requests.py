@@ -1,8 +1,9 @@
 import wrapt
+
 from thundra import utils
-from thundra.integrations.requests import RequestsIntegration
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.integrations.requests import RequestsIntegration
 
 request_integration = RequestsIntegration()
 
@@ -20,6 +21,7 @@ def _wrapper(wrapped, instance, args, kwargs):
         kwargs,
     )
 
+
 def patch():
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE):
         wrapt.wrap_function_wrapper(
@@ -27,4 +29,3 @@ def patch():
             'Session.send',
             _wrapper
         )
-        

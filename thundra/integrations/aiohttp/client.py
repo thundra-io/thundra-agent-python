@@ -1,12 +1,12 @@
-import aiohttp
 import logging
-
 from types import SimpleNamespace
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.invocation import invocation_support
+
+import aiohttp
+
 from thundra import constants, utils
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.opentracing.tracer import ThundraTracer
 
 logger = logging.getLogger(__name__)
 
@@ -16,20 +16,21 @@ async def on_request_start(session, trace_config_ctx, params):
     if not tracer.get_active_span():
         return
 
-    url_dict = utils.parse_http_url(str(params.url), ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
+    url_dict = utils.parse_http_url(str(params.url),
+                                    ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
     scope = tracer.start_active_span(operation_name=url_dict.get('operation_name'), finish_on_close=False)
     scope.span.class_name = constants.ClassNames['HTTP']
     scope.span.domain_name = constants.DomainNames['API']
-    
+
     tags = {
-            constants.SpanTags['OPERATION_TYPE']: params.method,
-            constants.HttpTags['HTTP_METHOD']: params.method,
-            constants.HttpTags['HTTP_URL']: url_dict.get('url'),
-            constants.HttpTags['HTTP_PATH']: url_dict.get('path'),
-            constants.HttpTags['HTTP_HOST']: url_dict.get('host'),
-            constants.HttpTags['QUERY_PARAMS']: url_dict.get('query'),
-            constants.SpanTags['TOPOLOGY_VERTEX']: True,
-        }
+        constants.SpanTags['OPERATION_TYPE']: params.method,
+        constants.HttpTags['HTTP_METHOD']: params.method,
+        constants.HttpTags['HTTP_URL']: url_dict.get('url'),
+        constants.HttpTags['HTTP_PATH']: url_dict.get('path'),
+        constants.HttpTags['HTTP_HOST']: url_dict.get('host'),
+        constants.HttpTags['QUERY_PARAMS']: url_dict.get('query'),
+        constants.SpanTags['TOPOLOGY_VERTEX']: True,
+    }
 
     scope.span.tags = tags
     try:
@@ -49,7 +50,7 @@ async def on_request_chunk_sent(session, trace_config_ctx, params):
         return
     scope = trace_config_ctx.scope
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK) and \
-         (scope.span.get_tag(constants.HttpTags["BODY"]) is None):
+            (scope.span.get_tag(constants.HttpTags["BODY"]) is None):
         body = params.chunk if params.chunk else ""
         scope.span.set_tag(constants.HttpTags["BODY"], body)
 
@@ -61,8 +62,8 @@ async def on_request_end(session, trace_config_ctx, params):
 
     response = params.response
     if response is not None:
-        statusCode = response.status
-        scope.span.set_tag(constants.HttpTags['HTTP_STATUS'], statusCode)
+        status_code = response.status
+        scope.span.set_tag(constants.HttpTags['HTTP_STATUS'], status_code)
 
         if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
             scope.span.class_name = constants.ClassNames['APIGATEWAY']
@@ -71,7 +72,8 @@ async def on_request_end(session, trace_config_ctx, params):
             resource_name = response.headers.get("x-thundra-resource-name")
             scope.span.operation_name = resource_name
 
-        if (statusCode and ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= statusCode):
+        if (status_code and ConfigProvider.get(
+                config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= status_code):
             scope.span.set_tag('error.kind', "HttpError")
             scope.span.set_tag('error', True)
             scope.span.set_tag('error.message', response.reason)
@@ -81,6 +83,7 @@ async def on_request_end(session, trace_config_ctx, params):
         logger.error(e)
 
     scope.close()
+
 
 async def on_request_exception(session, trace_config_ctx, params):
     if not hasattr(trace_config_ctx, "scope"):

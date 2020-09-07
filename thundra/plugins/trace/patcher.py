@@ -1,12 +1,13 @@
 from __future__ import absolute_import, unicode_literals
-from thundra import constants
-import thundra.utils as utils
-from thundra.plugins.trace.traceable import Traceable
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
 
 import sys
 from importlib.machinery import PathFinder, ModuleSpec, SourceFileLoader
+
+import thundra.utils as utils
+from thundra import constants
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.plugins.trace.traceable import Traceable
 
 
 class ImportPatcher(utils.Singleton):
@@ -25,20 +26,21 @@ class ImportPatcher(utils.Singleton):
             if variable.startswith(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG):
                 try:
                     module_path, function_prefix, arguments = utils.process_trace_def_var(value)
+                    if module_path is not None:
+                        modules[module_path] = [function_prefix, arguments]
                 except:
-                    module_path = None
-                if module_path != None:
-                    modules[module_path] = [function_prefix, arguments]
+                    pass
+
         return modules
-    
+
     def get_module_function_prefix(self, module_name):
-        try: 
+        try:
             return self.modules_map[module_name][0]
         except:
             return None
-    
+
     def get_trace_arguments(self, module_name):
-        try: 
+        try:
             return self.modules_map[module_name][1]
         except:
             return None
@@ -58,7 +60,7 @@ class ThundraFinder(PathFinder):
 
 # Loading the module in a load time
 class ThundraLoader(SourceFileLoader):
-  
+
     def exec_module(self, module):
         super(ThundraLoader, self).exec_module(module)
         import_patcher = ImportPatcher()
@@ -68,7 +70,7 @@ class ThundraLoader(SourceFileLoader):
         try:
             trace_args = utils.str2bool(trace_args_list[constants.TRACE_ARGS])
         except:
-            trace_args = False  
+            trace_args = False
 
         try:
             trace_return_value = utils.str2bool(trace_args_list[constants.TRACE_RETURN_VALUE])
@@ -76,7 +78,7 @@ class ThundraLoader(SourceFileLoader):
             trace_return_value = False
 
         try:
-            trace_error= utils.str2bool(trace_args_list[constants.TRACE_ERROR])
+            trace_error = utils.str2bool(trace_args_list[constants.TRACE_ERROR])
         except:
             trace_error = True
 
@@ -95,5 +97,5 @@ class ThundraLoader(SourceFileLoader):
                         Traceable(trace_args=trace_args,
                                   trace_return_value=trace_return_value,
                                   trace_error=trace_error)(getattr(module, function)))
-        
+
         return module

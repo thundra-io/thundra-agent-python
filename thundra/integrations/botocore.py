@@ -1,23 +1,20 @@
-import hashlib
-import base64
-import simplejson as json
 import copy
+import hashlib
 import uuid
-
-from dateutil.parser import parse
 from datetime import datetime
 
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
-from thundra.application.application_manager import ApplicationManager
+import simplejson as json
+from dateutil.parser import parse
+
 import thundra.constants as constants
+import thundra.utils as utils
+from thundra.compat import PY37
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.base_integration import BaseIntegration
 
-import thundra.utils as utils
-
-from thundra.compat import PY37
-
 OPERATION_TYPE_MAPPING_PATTERNS = utils.get_compiled_operation_type_patterns()
+
 
 def dummy_func(*args):
     return None
@@ -25,9 +22,9 @@ def dummy_func(*args):
 
 def get_operation_type(class_name, operation_name):
     if class_name in constants.OperationTypeMappings["exclusions"] and \
-        operation_name in constants.OperationTypeMappings["exclusions"][class_name]:
+            operation_name in constants.OperationTypeMappings["exclusions"][class_name]:
         return constants.OperationTypeMappings["exclusions"][class_name][operation_name]
-    
+
     for sre in OPERATION_TYPE_MAPPING_PATTERNS:
         if sre.match(operation_name):
             return constants.OperationTypeMappings["patterns"][sre.pattern]
@@ -53,7 +50,6 @@ class AWSDynamoDBIntegration(BaseIntegration):
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         scope.span.domain_name = constants.DomainNames['DB']
         scope.span.class_name = constants.ClassNames['DYNAMODB']
-
         operation_name, request_data = args
         operation_type = get_operation_type(scope.span.class_name, operation_name)
 
@@ -116,7 +112,8 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
             if 'dynamodb-attr-value-input' in id_handlers:
                 id_handlers['dynamodb-attr-value-input']['handler'](params=params,
-                                                                    model=instance._service_model.operation_model(operation_name))
+                                                                    model=instance._service_model.operation_model(
+                                                                        operation_name))
 
             region = instance.meta.region_name
 
@@ -130,7 +127,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
             elif operation_name == 'DeleteItem':
                 if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE) and \
-                     'Attributes' in response:
+                        'Attributes' in response:
                     span_id = response['Attributes'].get("x-thundra-span-id")
                     if span_id and span_id.get('S'):
                         trace_links = ['DELETE:' + span_id.get('S')]
@@ -569,42 +566,28 @@ class AWSLambdaIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
-        return request_data.get('FunctionName', constants.AWS_SERVICE_REQUEST)
-
-    def inject_span_context_into_client_context(self, request_data):
-        encoded_client_context = request_data.get('X-Amz-Client-Context', None)
-        client_context = {}
-        if encoded_client_context != None:
-            client_context = json.loads(base64.b64decode(encoded_client_context))
-
-        custom = {}
-        if 'custom' in client_context:
-            custom = client_context['custom']
-
-        application_info = ApplicationManager.get_application_info()
-
-        custom[constants.TRIGGER_DOMAIN_NAME_TAG] = application_info['applicationDomainName']
-        custom[constants.TRIGGER_CLASS_NAME_TAG] = application_info['applicationClassName']
-        custom[constants.TRIGGER_OPERATION_NAME_TAG] = application_info['applicationName']
-
-        client_context['custom'] = custom
-        encoded_client_context = base64.b64encode(json.dumps(client_context).encode()).decode()
-        request_data['ClientContext'] = encoded_client_context
+        operation_name = constants.AWS_SERVICE_REQUEST
+        if request_data.get('FunctionName'):
+            operation_name = self.normalize_function_name(request_data.get('FunctionName')).get('name', operation_name)
+        return operation_name
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         operation_name, request_data = args
-        self.lambdaFunction = request_data.get('FunctionName', '')
+        lambda_function = request_data.get('FunctionName', '')
         scope.span.domain_name = constants.DomainNames['API']
         scope.span.class_name = constants.ClassNames['LAMBDA']
+
+        lambda_function = self.normalize_function_name(lambda_function)
 
         tags = {
             constants.AwsSDKTags['REQUEST_NAME']: operation_name,
             constants.SpanTags['OPERATION_TYPE']: get_operation_type(scope.span.class_name, operation_name),
-            constants.AwsLambdaTags['FUNCTION_NAME']: self.lambdaFunction,
+            constants.AwsLambdaTags['FUNCTION_NAME']: lambda_function.get('name'),
+            constants.AwsLambdaTags['FUNCTION_QUALIFIER']: lambda_function.get('qualifier')
         }
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK) and \
-             'Payload' in request_data:
+                'Payload' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
                 request_data['Payload']) is not str else request_data['Payload']
@@ -618,10 +601,6 @@ class AWSLambdaIntegration(BaseIntegration):
         scope.span.tags = tags
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_TRACEINJECTION_DISABLE) \
-             and 'invoke' in operation_name.lower():
-            self.inject_span_context_into_client_context(request_data)
-
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSLambdaIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
 
@@ -629,12 +608,30 @@ class AWSLambdaIntegration(BaseIntegration):
         if trace_links:
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], trace_links)
 
-    def get_trace_links(self, response):
+    @staticmethod
+    def get_trace_links(response):
         try:
             request_id = response["ResponseMetadata"]["HTTPHeaders"]['x-amzn-requestid']
             return [request_id]
         except Exception:
             return None
+
+    @staticmethod
+    def normalize_function_name(function_name):
+        parts = function_name.split(':')
+        if len(parts) < 2:  # funcName
+            return {'name': function_name}
+        if len(parts) == 2:  # funcName:qualifier
+            return {'name': parts[0], 'qualifier': parts[1]}
+        if len(parts) == 3:  # accountId:function:funcName
+            return {'name': parts[2]}
+        if len(parts) == 4:  # accountId:function:funcName:qualifier
+            return {'name': parts[2], 'qualifier': parts[2]}
+        if len(parts) == 7:  # arn:aws:lambda:region:accountId:function:funcName
+            return {'name': parts[6]}
+        if len(parts) == 8:  # arn:aws:lambda:region:accountId:function:funcName:qualifier
+            return {'name': parts[6], 'qualifier': parts[7]}
+        return {}
 
 
 class AWSServiceIntegration(BaseIntegration):
@@ -717,6 +714,7 @@ class AWSStepFunctionIntegration(BaseIntegration):
                 scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_START_DATE'], start_date_str)
         except:
             pass
+
 
 class AWSAthenaIntegration(BaseIntegration):
     CLASS_TYPE = 'athena'
@@ -847,12 +845,13 @@ class AWSEventBridgeIntegration(BaseIntegration):
         entries = []
         for entry in request_data.get('Entries', []):
             new_entry = {
-                'Detail': None if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK) else entry.get('Detail'),
+                'Detail': None if ConfigProvider.get(
+                    config_names.THUNDRA_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK) else entry.get('Detail'),
                 'DetailType': entry.get('DetailType'),
                 'EventBusName': entry.get('EventBusName'),
                 'Resources': entry.get('Resources'),
                 'Source': entry.get('Source')
-                }
+            }
             if isinstance(entry.get('Time'), datetime):
                 new_entry['Time'] = datetime.timestamp(entry.get('Time'))
             elif isinstance(entry.get('Time'), int):
@@ -865,7 +864,6 @@ class AWSEventBridgeIntegration(BaseIntegration):
 
         scope.span.tags = tags
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSEventBridgeIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
@@ -884,6 +882,7 @@ class AWSEventBridgeIntegration(BaseIntegration):
             return event_ids
         except Exception:
             return None
+
 
 class AWSSESIntegration(BaseIntegration):
     CLASS_TYPE = 'ses'
@@ -923,7 +922,6 @@ class AWSSESIntegration(BaseIntegration):
             constants.AwsSESTags['TEMPLATE_DATA']: None if mask_mail else template_data
         }
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
-
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
         super(AWSSESIntegration, self).after_call(scope, wrapped, instance, args, kwargs, response, exception)
