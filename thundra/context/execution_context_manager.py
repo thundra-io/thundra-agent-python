@@ -1,4 +1,5 @@
 from thundra.context.execution_context import ExecutionContext
+from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 
 
 class ExecutionContextManager:
@@ -18,6 +19,8 @@ class ExecutionContextManager:
 
     @staticmethod
     def get():
+        if not ExecutionContextManager.context_provider:
+            return ExecutionContext()
         execution_context = ExecutionContextManager.context_provider.get()
         if not execution_context:
             return ExecutionContext()

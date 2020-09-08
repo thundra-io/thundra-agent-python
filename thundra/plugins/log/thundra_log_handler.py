@@ -12,7 +12,7 @@ class ThundraLogHandler(logging.Handler):
     def emit(self, record):
         formatted_message = self.format(record)
         execution_context = ExecutionContextManager.get()
-        if execution_context.capture_log:
+        if execution_context and execution_context.capture_log:
             log = {
                 'id': str(uuid.uuid4()),
                 'spanId': execution_context.span_id if execution_context is not None else '',
