@@ -113,7 +113,7 @@ class LambdaWrapper:
                 response = None
                 with Timeout(timeout_duration, self.timeout_handler, execution_context):
                     if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
-                        self.start_debugger_tracing()
+                        self.start_debugger_tracing(context)
 
                     response = original_func(event, context)
                     execution_context.response = response
@@ -157,7 +157,7 @@ class LambdaWrapper:
         except Exception as e:
             logger.error("Could not import ptvsd. Thundra ptvsd layer must be added")
 
-    def start_debugger_tracing(self):
+    def start_debugger_tracing(self, context):
         try:
             import ptvsd
             ptvsd.tracing(True)
@@ -170,11 +170,10 @@ class LambdaWrapper:
                 env['DEBUGGER_PORT'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT))
                 env['AUTH_TOKEN'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN))
                 env['SESSION_NAME'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME))
-                context = self.plugin_context["context"]
                 if hasattr(context, 'get_remaining_time_in_millis'):
                     env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time() * 1000.0))
 
-                debug_bridge_file_path = os.path.join(os.path.dirname(__file__), 'debug/bridge.py')
+                debug_bridge_file_path = os.path.join(os.path.dirname(__file__), '../../debug/bridge.py')
                 self.debugger_process = subprocess.Popen(["python", debug_bridge_file_path], stdout=subprocess.PIPE,
                                                          stdin=subprocess.PIPE, env=env)
 
