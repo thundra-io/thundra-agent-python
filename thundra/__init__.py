@@ -27,7 +27,9 @@ from thundra.plugins.log import log_support as log
 from thundra.plugins.metric import metric_support as metric
 from thundra.plugins.trace import trace_support as trace
 from thundra.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
+from thundra.plugins.trace.traceable import Traceable
 from thundra.wrappers.aws_lambda.lambda_wrapper import LambdaWrapper
+from thundra.wrappers.django.django_wrapper import DjangoWrapper
 from thundra.wrappers.wrapper_factory import WrapperFactory as _WrapperFactory
 
 
@@ -53,6 +55,10 @@ def lambda_wrapper(func):
     return _WrapperFactory.get_or_create(LambdaWrapper)(func)
 
 
+def django_wrapper(func):
+    return _WrapperFactory.get_or_create(DjangoWrapper)(func)
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     _patch_modules()
 
@@ -63,6 +69,7 @@ __all__ = [
     'metric',
     'trace',
     'lambda_wrapper',
+    'django_wrapper',
     'add_incoming_trace_link',
     'add_incoming_trace_links',
     'add_outgoing_trace_link',
@@ -75,5 +82,6 @@ __all__ = [
     'get_tag',
     'get_tags',
     'set_error',
-    'clear_error'
+    'clear_error',
+    'Traceable'
 ]

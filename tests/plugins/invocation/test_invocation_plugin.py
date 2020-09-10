@@ -54,7 +54,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert execution_context.invocation_data['errorType'] == ''
     assert execution_context.invocation_data['errorMessage'] == ''
 
-    assert execution_context.invocation_data['functionRegion'] == 'region'
+    assert execution_context.invocation_data['applicationRegion'] == 'region'
 
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):

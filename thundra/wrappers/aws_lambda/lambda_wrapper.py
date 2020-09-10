@@ -17,38 +17,20 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 from thundra.context.plugin_context import PluginContext
 from thundra.integrations import handler_wrappers
-from thundra.plugins.config.thundra_config import ThundraConfig
 from thundra.plugins.log.thundra_logger import debug_logger
-from thundra.reporter import Reporter
 from thundra.timeout import Timeout
 from thundra.wrappers import wrapper_utils
 from thundra.wrappers.aws_lambda import LambdaApplicationInfoProvider
 from thundra.wrappers.aws_lambda import lambda_executor
+from thundra.wrappers.base_wrapper import BaseWrapper
 
 logger = logging.getLogger(__name__)
 
-if not PY2:
-    from thundra.plugins.trace.patcher import ImportPatcher
 
+class LambdaWrapper(BaseWrapper):
 
-class LambdaWrapper:
-
-    def __init__(self,
-                 api_key=None,
-                 disable_trace=False,
-                 disable_metric=True,
-                 disable_log=True,
-                 opts=None):
-        config = ThundraConfig()
-        if opts is not None:
-            config = ThundraConfig(opts)
-
-        self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
-        if not self.api_key:
-            self.api_key = config.api_key
-        if self.api_key is None:
-            logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
-
+    def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
+        super().__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         self.application_info_provider = GlobalApplicationInfoProvider(LambdaApplicationInfoProvider())
         self.plugin_context = PluginContext(application_info=self.application_info_provider.get_application_info(),
                                             request_count=0,
@@ -57,16 +39,12 @@ class LambdaWrapper:
 
         ExecutionContextManager.set_provider(GlobalExecutionContextProvider())
         self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log,
-                                                        config)
+                                                        self.config)
 
         self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN,
                                                  constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
-        self.reporter = Reporter(self.api_key)
-        self.debugger_process = None
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
-            if not PY2:
-                self.import_patcher = ImportPatcher()
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
 
@@ -87,9 +65,8 @@ class LambdaWrapper:
             })
 
             # Execution context initialization
-            trace_id = str(uuid.uuid4())
             transaction_id = str(uuid.uuid4())
-            execution_context = ExecutionContext(trace_id=trace_id, transaction_id=transaction_id)
+            execution_context = ExecutionContext(transaction_id=transaction_id)
             execution_context.start_timestamp = int(time.time() * 1000)
             try:
                 execution_context.platform_data['originalEvent'] = copy.deepcopy(event)
@@ -174,6 +151,7 @@ class LambdaWrapper:
                 env['DEBUGGER_PORT'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT))
                 env['AUTH_TOKEN'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN))
                 env['SESSION_NAME'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME))
+
                 if hasattr(context, 'get_remaining_time_in_millis'):
                     env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time() * 1000.0))
 
@@ -219,13 +197,6 @@ class LambdaWrapper:
         except Exception as e:
             self.debugger_process = None
             logger.error("error while killing proxy process for debug: {}".format(e))
-
-    def execute_hook(self, name, data):
-        if name == 'after:invocation':
-            [plugin.hooks[name](data) for plugin in reversed(self.plugins) if hasattr(plugin, 'hooks') \
-             and name in plugin.hooks]
-        else:
-            [plugin.hooks[name](data) for plugin in self.plugins if hasattr(plugin, 'hooks') and name in plugin.hooks]
 
     def check_and_handle_warmup_request(self, event):
 
@@ -277,7 +248,3 @@ class LambdaWrapper:
         execution_context.timeout = True
         execution_context.error = TimeoutError('Task timed out')
         self.prepare_and_send_reports(execution_context)
-
-    def prepare_and_send_reports(self, execution_context):
-        self.execute_hook('after:invocation', execution_context)
-        self.reporter.send_report(execution_context.reports)

@@ -116,7 +116,7 @@ def mock_invocation_report():
             "spanId": "testspanId",
             "applicationPlatform": "AWS-Lambda",
             "functionName": "",
-            "functionRegion": "us-west-2",
+            "applicationRegion": "us-west-2",
             "duration": 1000,
             "startTimestamp": 1554193011000,
             "finishTimestamp": 1554193012000,

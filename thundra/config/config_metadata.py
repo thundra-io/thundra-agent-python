@@ -27,6 +27,9 @@ CONFIG_METADATA = {
     config_names.THUNDRA_APPLICATION_ID: {
         'type': 'string',
     },
+    config_names.THUNDRA_APPLICATION_INSTANCE_ID: {
+        'type': 'string',
+    },
     config_names.THUNDRA_APPLICATION_NAME: {
         'type': 'string',
     },
@@ -85,11 +88,11 @@ CONFIG_METADATA = {
         'type': 'boolean',
         'defaultValue': False,
     },
-    config_names.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP: {
+    config_names.THUNDRA_TRACE_REQUEST_SKIP: {
         'type': 'boolean',
         'defaultValue': False,
     },
-    config_names.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP: {
+    config_names.THUNDRA_TRACE_REQUEST_SKIP: {
         'type': 'boolean',
         'defaultValue': False,
     },
@@ -208,6 +211,18 @@ CONFIG_METADATA = {
         'defaultValue': True,
     },
     config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_DESTINATION_MASK: {
+        'type': 'boolean',
+        'defaultValue': False,
+    },
+    config_names.THUNDRA_TRACE_INTEGRATIONS_CHALICE_DISABLE: {
+        'type': 'boolean',
+        'defaultValue': False,
+    },
+    config_names.THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE: {
+        'type': 'boolean',
+        'defaultValue': False,
+    },
+    config_names.THUNDRA_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE: {
         'type': 'boolean',
         'defaultValue': False,
     },

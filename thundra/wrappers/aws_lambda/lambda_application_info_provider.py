@@ -10,6 +10,7 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
         log_stream_name = utils.get_env_variable(constants.AWS_LAMBDA_LOG_STREAM_NAME)
         function_version = utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_VERSION)
         function_name = utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_NAME)
+        region = utils.get_env_variable(constants.AWS_REGION, default='')
 
         application_instance_id = str(uuid.uuid4())
         if log_stream_name and len(log_stream_name.split(']')) >= 2:
@@ -19,7 +20,8 @@ class LambdaApplicationInfoProvider(ApplicationInfoProvider):
             'applicationId': '',
             'applicationInstanceId': application_instance_id,
             'applicationName': function_name,
-            'applicationVersion': function_version
+            'applicationVersion': function_version,
+            'applicationRegion': region
         }
 
     def get_application_info(self):

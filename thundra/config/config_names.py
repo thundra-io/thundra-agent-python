@@ -12,12 +12,14 @@ THUNDRA_LOG_DISABLE = 'thundra.agent.log.disable'
 #############################################################################
 
 THUNDRA_APPLICATION_ID = 'thundra.agent.application.id'
+THUNDRA_APPLICATION_INSTANCE_ID = 'thundra.agent.application.instanceid'
 THUNDRA_APPLICATION_NAME = 'thundra.agent.application.name'
 THUNDRA_APPLICATION_STAGE = 'thundra.agent.application.stage'
 THUNDRA_APPLICATION_DOMAIN_NAME = 'thundra.agent.application.domainname'
 THUNDRA_APPLICATION_CLASS_NAME = 'thundra.agent.application.classname'
 THUNDRA_APPLICATION_VERSION = 'thundra.agent.application.version'
 THUNDRA_APPLICATION_TAG_PREFIX = 'thundra.agent.application.tag.'
+THUNDRA_APPLICATION_REGION = 'thundra.agent.application.region'
 
 #############################################################################
 
@@ -38,8 +40,8 @@ THUNDRA_LAMBDA_TIMEOUT_MARGIN = 'thundra.agent.lambda.timeout.margin'
 
 THUNDRA_LAMBDA_ERROR_STACKTRACE_MASK = 'thundra.agent.lambda.error.stacktrace.mask'
 
-THUNDRA_LAMBDA_TRACE_REQUEST_SKIP = 'thundra.agent.lambda.trace.request.skip'
-THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP = 'thundra.agent.lambda.trace.response.skip'
+THUNDRA_TRACE_REQUEST_SKIP = 'thundra.agent.trace.request.skip'
+THUNDRA_TRACE_RESPONSE_SKIP = 'thundra.agent.trace.response.skip'
 THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE = 'thundra.agent.lambda.trace.kinesis.request.enable'
 THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE = 'thundra.agent.lambda.trace.firehose.request.enable'
 THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE = 'thundra.agent.lambda.trace.cloudwatchlog.request.enable'
@@ -102,6 +104,8 @@ THUNDRA_TRACE_INTEGRATIONS_ES_DISABLE = 'thundra.agent.trace.integrations.elasti
 THUNDRA_TRACE_INTEGRATIONS_MONGO_DISABLE = 'thundra.agent.trace.integrations.mongodb.disable'
 THUNDRA_TRACE_INTEGRATIONS_SQLALCHEMY_DISABLE = 'thundra.agent.trace.integrations.sqlalchemy.disable'
 THUNDRA_TRACE_INTEGRATIONS_CHALICE_DISABLE = 'thundra.agent.trace.integrations.chalice.disable'
+THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE = 'thundra.agent.trace.integrations.django.disable'
+THUNDRA_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE = 'thundra.agent.trace.integrations.django.orm.disable'
 
 #############################################################################
 
