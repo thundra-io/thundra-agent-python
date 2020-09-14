@@ -28,8 +28,6 @@ from thundra.plugins.metric import metric_support as metric
 from thundra.plugins.trace import trace_support as trace
 from thundra.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
 from thundra.plugins.trace.traceable import Traceable
-from thundra.wrappers.aws_lambda.lambda_wrapper import LambdaWrapper
-from thundra.wrappers.django.django_wrapper import DjangoWrapper
 from thundra.wrappers.wrapper_factory import WrapperFactory as _WrapperFactory
 
 
@@ -52,10 +50,12 @@ def configure(options):
 
 
 def lambda_wrapper(func):
+    from thundra.wrappers.aws_lambda.lambda_wrapper import LambdaWrapper
     return _WrapperFactory.get_or_create(LambdaWrapper)(func)
 
 
 def django_wrapper(func):
+    from thundra.wrappers.django.django_wrapper import DjangoWrapper
     return _WrapperFactory.get_or_create(DjangoWrapper)(func)
 
 

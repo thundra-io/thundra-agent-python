@@ -4,7 +4,9 @@ import traceback
 import uuid
 from functools import wraps
 
-from thundra import constants
+from thundra.plugins.invocation import invocation_support
+
+from thundra import constants, configure
 
 from thundra.application.global_application_info_provider import GlobalApplicationInfoProvider
 from thundra.config import config_names
@@ -23,6 +25,18 @@ logger = logging.getLogger(__name__)
 class DjangoWrapper(BaseWrapper):
 
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
+        try:
+            from django.conf import settings
+            django_settings = getattr(settings, 'THUNDRA', {})
+            configure({'config': django_settings})
+
+            api_key = None
+            for var in django_settings:
+                if var.lower() == 'thundra.apikey' and not api_key:
+                    api_key = django_settings.get(var)
+        except:
+            pass
+
         super().__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         self.application_info_provider = GlobalApplicationInfoProvider()
         ExecutionContextManager.set_provider(TracingExecutionContextProvider())
@@ -74,6 +88,11 @@ class DjangoWrapper(BaseWrapper):
             setattr(request, '_thundra_wrapped', True)
             try:
                 execution_context = self.before_request(request)
+                if execution_context.scope:
+                    execution_context.scope.span.operation_name = request.resolver_match.route
+                    execution_context.trigger_operation_name = request.resolver_match.route
+                    invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'],
+                                                     [request.resolver_match.route])
             except Exception as e:
                 logger.error("Error during the before part of Thundra: {}".format(e))
                 return original_func(request, *args, **kwargs)

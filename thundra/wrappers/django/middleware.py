@@ -1,6 +1,4 @@
-from django.conf import settings
-
-from thundra import configure, constants
+from thundra import constants
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.plugins.invocation import invocation_support
 from thundra.wrappers.django.django_wrapper import DjangoWrapper, logger
@@ -10,14 +8,7 @@ class ThundraMiddleware:
     def __init__(self, get_response=None):
         super().__init__()
         self.get_response = get_response
-        opts = getattr(settings, 'THUNDRA', {})
-        configure({'config': opts})
-        api_key = None
-        for var in opts:
-            if var.lower() == 'thundra.apikey':
-                api_key = opts.get(var)
-
-        self._wrapper = DjangoWrapper(disable_log=False, api_key=api_key)
+        self._wrapper = DjangoWrapper(disable_log=False)
 
     def __call__(self, request):
         setattr(request, '_thundra_wrapped', True)
