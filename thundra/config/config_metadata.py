@@ -92,7 +92,7 @@ CONFIG_METADATA = {
         'type': 'boolean',
         'defaultValue': False,
     },
-    config_names.THUNDRA_TRACE_REQUEST_SKIP: {
+    config_names.THUNDRA_TRACE_RESPONSE_SKIP: {
         'type': 'boolean',
         'defaultValue': False,
     },
