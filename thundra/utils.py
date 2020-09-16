@@ -304,5 +304,6 @@ EXCLUDED_URLS = {
 EXCLUDE_EXCEPTION_URLS = {
     str.__contains__: [
         'execute-api',
+        'elb'
     ]
 }

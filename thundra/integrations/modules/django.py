@@ -1,7 +1,8 @@
 import wrapt
 
-from thundra.config.config_provider import ConfigProvider
+from thundra import utils, constants
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.django import DjangoORMIntegration
 
 try:
@@ -56,7 +57,8 @@ def install_db_execute_wrapper(connection, **kwargs):
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE):
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE) and (
+            not utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_NAME)):
         wrapt.wrap_function_wrapper(
             'django.core.handlers.base',
             'BaseHandler.load_middleware',
