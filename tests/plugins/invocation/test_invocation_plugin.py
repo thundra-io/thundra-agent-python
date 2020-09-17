@@ -1,8 +1,8 @@
 import os
 
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+from thundra.context.execution_context_manager import ExecutionContextManager
 
 
 def test_coldstarts(handler, mock_context, mock_event):
@@ -54,12 +54,11 @@ def test_report(handler_with_profile, mock_context, mock_event):
     assert execution_context.invocation_data['errorType'] == ''
     assert execution_context.invocation_data['errorMessage'] == ''
 
-    assert execution_context.invocation_data['applicationRegion'] == 'region'
-
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
     ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
-    monkeypatch.setitem(os.environ, "_X_AMZN_TRACE_ID", "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")
+    monkeypatch.setitem(os.environ, "_X_AMZN_TRACE_ID",
+                        "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")
     thundra, handler = handler_with_profile
 
     try:
@@ -68,7 +67,8 @@ def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkey
         pass
 
     execution_context = ExecutionContextManager.get()
-    assert execution_context.invocation_data['tags']['aws.lambda.arn'] == 'arn:aws:lambda:us-west-2:123456789123:function:test'
+    assert execution_context.invocation_data['tags'][
+               'aws.lambda.arn'] == 'arn:aws:lambda:us-west-2:123456789123:function:test'
     assert execution_context.invocation_data['tags']['aws.account_no'] == '123456789123'
     assert execution_context.invocation_data['tags']['aws.lambda.memory_limit'] == 128
     assert execution_context.invocation_data['tags']['aws.lambda.log_group_name'] == 'log_group_name'

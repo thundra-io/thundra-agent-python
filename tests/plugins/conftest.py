@@ -44,8 +44,8 @@ def thundra_with_request_response_skip(monkeypatch):
     ConfigProvider.set(config_names.THUNDRA_APPLICATION_ID, '[]test')
     ConfigProvider.set(config_names.THUNDRA_APPLICATION_VERSION, 'version')
     ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
-    ConfigProvider.set(config_names.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP, 'true')
-    ConfigProvider.set(config_names.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_REQUEST_SKIP, 'true')
+    ConfigProvider.set(config_names.THUNDRA_TRACE_RESPONSE_SKIP, 'true')
     thundra = Thundra('api key', disable_metric=True)
     return thundra
 

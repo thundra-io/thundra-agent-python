@@ -111,9 +111,9 @@ def finish_trace(execution_context):
         enable_request_data = False
 
     # ADDING TAGS #
-    if (not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)) and enable_request_data:
+    if (not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP)) and enable_request_data:
         root_span.set_tag('aws.lambda.invocation.request', execution_context.platform_data['originalEvent'])
-    if not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP):
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_RESPONSE_SKIP):
         root_span.set_tag('aws.lambda.invocation.response', execution_context.response)
 
     if trigger_class_name == constants.ClassNames['APIGATEWAY']:
