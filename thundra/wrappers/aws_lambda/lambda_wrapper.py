@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 import subprocess
@@ -90,7 +91,10 @@ class LambdaWrapper:
             transaction_id = str(uuid.uuid4())
             execution_context = ExecutionContext(trace_id=trace_id, transaction_id=transaction_id)
             execution_context.start_timestamp = int(time.time() * 1000)
-            execution_context.platform_data['originalEvent'] = event
+            try:
+                execution_context.platform_data['originalEvent'] = copy.deepcopy(event)
+            except:
+                execution_context.platform_data['originalEvent'] = event
             execution_context.platform_data['originalContext'] = context
             ExecutionContextManager.set(execution_context)
 
