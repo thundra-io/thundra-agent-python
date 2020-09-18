@@ -33,7 +33,7 @@ class LogPlugin:
 
         with LogPlugin.lock:
             if (not LogPlugin.wrapped) and (
-                    not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE, not self.config.enabled)):
+                    not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)):
                 if PY37 or PY38:
                     wrapt.wrap_function_wrapper(
                         'builtins',
@@ -44,7 +44,7 @@ class LogPlugin:
                     sys.stdout = StreamToLogger(self.logger, sys.stdout)
                 LogPlugin.wrapped = True
 
-        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE, not self.config.enabled):
+        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
             handler = ThundraLogHandler()
             has_thundra_log_handler = False
             for log_handlers in self.logger.handlers:

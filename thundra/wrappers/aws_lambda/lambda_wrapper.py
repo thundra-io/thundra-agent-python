@@ -49,7 +49,8 @@ class LambdaWrapper(BaseWrapper):
             handler_wrappers.patch_modules(self)
 
         self.ptvsd_imported = False
-        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE):
+        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
+                              ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN)):
             self.initialize_debugger()
 
     def __call__(self, original_func):
@@ -93,7 +94,9 @@ class LambdaWrapper(BaseWrapper):
             try:
                 response = None
                 with Timeout(timeout_duration, self.timeout_handler, execution_context):
-                    if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
+                    if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
+                                          ConfigProvider.get(
+                                              config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN)) and self.ptvsd_imported:
                         self.start_debugger_tracing(context)
 
                     response = original_func(event, context)
@@ -111,7 +114,9 @@ class LambdaWrapper(BaseWrapper):
                     pass
                 raise e
             finally:
-                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE) and self.ptvsd_imported:
+                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
+                                      ConfigProvider.get(
+                                          config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN)) and self.ptvsd_imported:
                     self.stop_debugger_tracing()
 
             # After having run the user's handler
