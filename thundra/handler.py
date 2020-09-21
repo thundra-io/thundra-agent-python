@@ -3,13 +3,16 @@ from __future__ import absolute_import
 import imp
 import os
 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 from thundra.thundra_agent import Thundra
 
 thundra = Thundra()
 
 handler_found = False
 user_handler = None
-handler_path = os.environ.get('thundra_agent_lambda_handler', None)
+
+handler_path = ConfigProvider.get(config_names.THUNDRA_LAMBDA_HANDLER, None)
 if handler_path is None:
     raise ValueError(
         "No handler specified for \'thundra_agent_lambda_handler\' environment variable"

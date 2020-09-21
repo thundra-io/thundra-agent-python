@@ -13,6 +13,7 @@ from thundra.wrappers.aws_lambda import lambda_event_utils
 def start_trace(plugin_context, execution_context, tracer):
     wrapper_utils.set_start_time(execution_context)
     context = execution_context.platform_data['originalContext']
+    execution_context.trace_id = str(uuid.uuid4())
     # Start root span
     scope = tracer.start_active_span(operation_name=context.function_name,
                                      start_time=execution_context.start_timestamp,
@@ -43,7 +44,6 @@ def start_trace(plugin_context, execution_context, tracer):
     root_span.on_started()
     execution_context.root_span = root_span
     execution_context.scope = scope
-    execution_context.trace_id = str(uuid.uuid4())
 
 
 def inject_trigger_tags(span, original_event, original_context):
