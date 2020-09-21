@@ -116,7 +116,8 @@ ClassNames = {
     'ATHENA': 'AWS-Athena',
     'STEPFUNCTIONS': 'AWS-StepFunctions',
     'EVENTBRIDGE': 'AWS-EventBridge',
-    'SES': 'AWS-SES'
+    'SES': 'AWS-SES',
+    'DJANGO': 'Django'
 }
 
 DBTags = {

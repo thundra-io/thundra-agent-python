@@ -4,10 +4,7 @@ import traceback
 import uuid
 from functools import wraps
 
-from thundra.plugins.invocation import invocation_support
-
 from thundra import constants, configure
-
 from thundra.application.global_application_info_provider import GlobalApplicationInfoProvider
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
@@ -15,6 +12,7 @@ from thundra.context.execution_context import ExecutionContext
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.plugin_context import PluginContext
 from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
+from thundra.plugins.invocation import invocation_support
 from thundra.wrappers import wrapper_utils
 from thundra.wrappers.base_wrapper import BaseWrapper
 from thundra.wrappers.django import django_executor
@@ -51,8 +49,11 @@ class DjangoWrapper(BaseWrapper):
     def before_request(self, request):
         # Set application info
         self.application_info_provider.update({
-            #'applicationClassName': 'Django',
-            'applicationDomainName': 'API'
+            'applicationClassName': constants.ClassNames['DJANGO'],
+            'applicationDomainName': 'API',
+            'applicationId': 'python:{}:{}:{}'.format(constants.ClassNames['DJANGO'],
+                                                      self.plugin_context.application_info.get('applicationRegion'),
+                                                      self.plugin_context.application_info.get('applicationName'))
         })
 
         # Execution context initialization

@@ -41,6 +41,10 @@ class ThundraSpan(opentracing.Span):
     def execution_context(self):
         return self._execution_context
 
+    @execution_context.setter
+    def execution_context(self, execution_context):
+        self._execution_context = execution_context
+
     @property
     def trace_id(self):
         return self._context.trace_id

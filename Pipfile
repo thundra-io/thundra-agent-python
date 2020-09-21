@@ -23,6 +23,7 @@ mysql-connector = "*"
 elasticsearch = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
+django = "*"
 
 [requires]
 python_version = "3.6.4"
