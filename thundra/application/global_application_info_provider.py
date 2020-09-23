@@ -47,7 +47,7 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
             self.application_info['applicationInstanceId'] = str(uuid.uuid4())
 
         if not self.application_info.get('applicationId'):
-            default_app_id = 'python:{}:{}:{}'.format(self.application_info.get('applicationClassName'),
-                                                      self.application_info.get('applicationRegion'),
-                                                      self.application_info.get('applicationName'))
+            default_app_id = 'python:{}:{}:{}'.format(self.application_info.get('applicationClassName', ''),
+                                                      self.application_info.get('applicationRegion', ''),
+                                                      self.application_info.get('applicationName', ''))
             self.application_info['applicationId'] = default_app_id
