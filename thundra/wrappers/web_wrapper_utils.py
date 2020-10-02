@@ -11,8 +11,6 @@ from thundra.wrappers import wrapper_utils
 
 
 def start_trace(execution_context, tracer, class_name, domain_name, request):
-    wrapper_utils.set_start_time(execution_context)
-
     propagated_span_context = tracer.extract(Format.HTTP_HEADERS, request.get('headers'))
     trace_id = str(uuid.uuid4())
     incoming_span_id = None

@@ -66,9 +66,7 @@ class LambdaWrapper(BaseWrapper):
             })
 
             # Execution context initialization
-            transaction_id = str(uuid.uuid4())
-            execution_context = ExecutionContext(transaction_id=transaction_id)
-            execution_context.start_timestamp = int(time.time() * 1000)
+            execution_context = wrapper_utils.create_execution_context()
             try:
                 execution_context.platform_data['originalEvent'] = copy.deepcopy(event)
             except:

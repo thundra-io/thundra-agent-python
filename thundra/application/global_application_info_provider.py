@@ -1,5 +1,4 @@
 import sys
-import uuid
 
 from thundra.application.application_info_provider import ApplicationInfoProvider
 from thundra.config import config_names
@@ -30,7 +29,7 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
             'applicationInstanceId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_INSTANCE_ID),
             'applicationDomainName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_DOMAIN_NAME),
             'applicationClassName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_CLASS_NAME),
-            'applicationName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_NAME, 'thundra-app'),
+            'applicationName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_NAME),
             'applicationVersion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_VERSION, ''),
             'applicationStage': ConfigProvider.get(config_names.THUNDRA_APPLICATION_STAGE, ''),
             'applicationRegion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_REGION, ''),

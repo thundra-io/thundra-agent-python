@@ -1,5 +1,4 @@
 import logging
-import time
 import traceback
 import uuid
 from functools import wraps
@@ -8,7 +7,6 @@ from thundra import constants, configure
 from thundra.application.global_application_info_provider import GlobalApplicationInfoProvider
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.context.execution_context import ExecutionContext
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.plugin_context import PluginContext
 from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
@@ -49,18 +47,19 @@ class DjangoWrapper(BaseWrapper):
     def before_request(self, request):
         # Set application info
         self.application_info_provider.update({
+            'applicationName': self.plugin_context.application_info.get('applicationName', 'thundra-app'),
             'applicationClassName': constants.ClassNames['DJANGO'],
             'applicationDomainName': 'API',
-            'applicationInstanceId': self.plugin_context.application_info.get('applicationInstanceId',  str(uuid.uuid4())),
+            'applicationInstanceId': self.plugin_context.application_info.get('applicationInstanceId',
+                                                                              str(uuid.uuid4())),
             'applicationId': 'python:{}:{}:{}'.format(constants.ClassNames['DJANGO'],
                                                       self.plugin_context.application_info.get('applicationRegion', ''),
-                                                      self.plugin_context.application_info.get('applicationName', ''))
+                                                      self.plugin_context.application_info.get('applicationName',
+                                                                                               'thundra-app'))
         })
 
         # Execution context initialization
-        transaction_id = str(uuid.uuid4())
-        execution_context = ExecutionContext(transaction_id=transaction_id)
-        execution_context.start_timestamp = int(time.time() * 1000)
+        execution_context = wrapper_utils.create_execution_context()
         execution_context.platform_data['request'] = request
 
         # Execute plugin hooks before running user's handler

@@ -1,9 +1,10 @@
 import time
 import uuid
 
-from thundra import constants, utils
+from thundra import constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
+from thundra.context.execution_context import ExecutionContext
 from thundra.plugins.invocation import invocation_trace_support
 from thundra.plugins.invocation.invocation_plugin import InvocationPlugin
 from thundra.plugins.log.log_plugin import LogPlugin
@@ -104,16 +105,6 @@ def get_response_status(execution_context):
     return status_code
 
 
-def set_start_time(execution_context):
-    if not execution_context.start_timestamp:
-        execution_context.start_timestamp = int(time.time() * 1000)
-
-
-def set_end_time(execution_context):
-    if not execution_context.finish_timestamp:
-        execution_context.finish_timestamp = int(time.time() * 1000)
-
-
 def set_error(invocation_data, error):
     invocation_data['erroneous'] = True
     if isinstance(error, Exception):
@@ -125,3 +116,9 @@ def set_error(invocation_data, error):
     elif isinstance(error, dict):
         invocation_data['errorType'] = error.get('type')
         invocation_data['errorMessage'] = error.get('message')
+
+
+def create_execution_context():
+    transaction_id = str(uuid.uuid4())
+    start_timestamp = int(time.time() * 1000)
+    return ExecutionContext(transaction_id=transaction_id, start_timestamp=start_timestamp)

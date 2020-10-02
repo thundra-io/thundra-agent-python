@@ -5,7 +5,6 @@ from thundra.wrappers import wrapper_utils, web_wrapper_utils
 
 
 def start_trace(plugin_context, execution_context, tracer):
-    wrapper_utils.set_start_time(execution_context)
     request = execution_context.platform_data['request']
 
     request = {
@@ -20,7 +19,6 @@ def start_trace(plugin_context, execution_context, tracer):
 
 
 def finish_trace(execution_context):
-    wrapper_utils.set_end_time(execution_context)
     root_span = execution_context.root_span
     if execution_context.response:
         root_span.set_tag(constants.HttpTags['HTTP_STATUS'], execution_context.response.status_code)
@@ -38,8 +36,6 @@ def finish_trace(execution_context):
 
 
 def start_invocation(plugin_context, execution_context):
-    wrapper_utils.set_start_time(execution_context)
-
     if not execution_context.transaction_id:
         execution_context.transaction_id = str(uuid.uuid4())
 
@@ -47,5 +43,4 @@ def start_invocation(plugin_context, execution_context):
 
 
 def finish_invocation(execution_context):
-    wrapper_utils.set_end_time(execution_context)
     wrapper_utils.finish_invocation(execution_context)

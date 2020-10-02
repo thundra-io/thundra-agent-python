@@ -1,5 +1,6 @@
 import abc
 import logging
+import time
 
 from thundra.compat import PY2
 from thundra.config import config_names
@@ -43,5 +44,6 @@ class BaseWrapper(ABC):
              hasattr(plugin, 'hooks') and name in plugin.hooks]
 
     def prepare_and_send_reports(self, execution_context):
+        execution_context.finish_timestamp = int(time.time() * 1000)
         self.execute_hook('after:invocation', execution_context)
         self.reporter.send_report(execution_context.reports)

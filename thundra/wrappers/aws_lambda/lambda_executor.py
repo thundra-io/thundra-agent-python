@@ -11,7 +11,6 @@ from thundra.wrappers.aws_lambda import lambda_event_utils
 
 
 def start_trace(plugin_context, execution_context, tracer):
-    wrapper_utils.set_start_time(execution_context)
     context = execution_context.platform_data['originalContext']
     execution_context.trace_id = str(uuid.uuid4())
     # Start root span
@@ -82,7 +81,6 @@ def inject_trigger_tags(span, original_event, original_context):
 
 
 def finish_trace(execution_context):
-    wrapper_utils.set_end_time(execution_context)
     root_span = execution_context.root_span
     scope = execution_context.scope
     try:
@@ -134,8 +132,6 @@ def process_api_gw_response(execution_context):
 
 
 def start_invocation(plugin_context, execution_context):
-    wrapper_utils.set_start_time(execution_context)
-
     if not execution_context.transaction_id:
         execution_context.transaction_id = str(uuid.uuid4())
 
@@ -172,8 +168,6 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
 
 
 def finish_invocation(execution_context):
-    wrapper_utils.set_end_time(execution_context)
-
     wrapper_utils.finish_invocation(execution_context)
     invocation_data = execution_context.invocation_data
     context = execution_context.platform_data['originalContext']
