@@ -51,9 +51,10 @@ class DjangoWrapper(BaseWrapper):
         self.application_info_provider.update({
             'applicationClassName': constants.ClassNames['DJANGO'],
             'applicationDomainName': 'API',
+            'applicationInstanceId': self.plugin_context.application_info.get('applicationInstanceId',  str(uuid.uuid4())),
             'applicationId': 'python:{}:{}:{}'.format(constants.ClassNames['DJANGO'],
-                                                      self.plugin_context.application_info.get('applicationRegion'),
-                                                      self.plugin_context.application_info.get('applicationName'))
+                                                      self.plugin_context.application_info.get('applicationRegion', ''),
+                                                      self.plugin_context.application_info.get('applicationName', ''))
         })
 
         # Execution context initialization
