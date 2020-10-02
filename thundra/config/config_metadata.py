@@ -49,9 +49,13 @@ CONFIG_METADATA = {
     },
     config_names.THUNDRA_REPORT_REST_BASEURL: {
         'type': 'string',
-        'defaultValue': 'https://api.thundra.io/v1',
+        'defaultValue': 'https://collector.thundra.io/v1',
     },
     config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE: {
+        'type': 'boolean',
+        'defaultValue': False,
+    },
+    config_names.THUNDRA_REPORT_REST_LOCAL: {
         'type': 'boolean',
         'defaultValue': False,
     },

@@ -44,10 +44,8 @@ class Reporter:
         rest_composite_data_enabled = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, True)
         path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
 
-        request_url = "https://" + utils.get_nearest_collector() + "/v1" + path
-        base_url = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_BASEURL)
-        if base_url is not None:
-            request_url = base_url + path
+        base_url = self.get_collector_url()
+        request_url = base_url + path
 
         if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
             if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE, True):
@@ -130,3 +128,12 @@ class Reporter:
                              "probably it contains a byte array")
 
         return batched_reports
+
+    @staticmethod
+    def get_collector_url():
+        use_local = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_LOCAL)
+
+        if use_local:
+            return 'http://' + constants.LOCAL_COLLECTOR_ENDPOINT + '/v1'
+        return ConfigProvider.get(config_names.THUNDRA_REPORT_REST_BASEURL, 'https://' + utils.get_nearest_collector() + '/v1')
+
