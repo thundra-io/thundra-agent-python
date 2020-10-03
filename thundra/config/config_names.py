@@ -27,6 +27,7 @@ THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE = 'thundra.agent.report.rest.composite.
 THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 'thundra.agent.report.cloudwatch.composite.batchsize'
 THUNDRA_REPORT_REST_COMPOSITE_ENABLE = 'thundra.agent.report.rest.composite.enable'
 THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE = 'thundra.agent.report.cloudwatch.composite.enable'
+THUNDRA_REPORT_REST_LOCAL = 'thundra.agent.report.rest.local'
 
 #############################################################################
 
