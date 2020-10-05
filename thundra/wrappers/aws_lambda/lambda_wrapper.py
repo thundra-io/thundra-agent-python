@@ -4,7 +4,6 @@ import os
 import subprocess
 import time
 import traceback
-import uuid
 from functools import wraps
 
 from thundra import constants
@@ -12,7 +11,6 @@ from thundra.application.global_application_info_provider import GlobalApplicati
 from thundra.compat import PY2, TimeoutError
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.context.execution_context import ExecutionContext
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 from thundra.context.plugin_context import PluginContext

@@ -32,7 +32,7 @@ class Reporter:
         self.session = session
         self.pool = futures.ThreadPoolExecutor(max_workers=20)
 
-    def send_report(self, reports):
+    def send_reports(self, reports):
         if not self.api_key:
             debug_logger("API key not set, not sending report to Thundra.")
             return []

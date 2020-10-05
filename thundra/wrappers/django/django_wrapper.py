@@ -61,7 +61,7 @@ class DjangoWrapper(BaseWrapper):
         execution_context = ExecutionContextManager.get()
         if response:
             execution_context.response = response
-        self.prepare_and_send_reports(execution_context)
+        self.prepare_and_send_reports_async(execution_context)
 
     def process_exception(self, exception):
         execution_context = ExecutionContextManager.get()

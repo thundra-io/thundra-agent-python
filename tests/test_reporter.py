@@ -13,7 +13,7 @@ def test_send_report_to_url(mock_requests, mock_report):
     ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, 'false')
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
-    responses = reporter.send_report([mock_report])
+    responses = reporter.send_reports([mock_report])
 
     post_url = 'different_url/api/monitoring-data'
     headers = {
@@ -37,7 +37,7 @@ def test_send_report_to_url_composite(mock_requests, mock_report, mock_invocatio
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
 
-    responses = reporter.send_report([mock_invocation_report, mock_report])
+    responses = reporter.send_reports([mock_invocation_report, mock_report])
     assert reporter.session.post.call_count == 2
 
     reporter.session.post.return_value.status_code = 200
@@ -53,7 +53,7 @@ def test_send_report_to_url_async(mock_requests, mock_report):
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
 
-    responses = reporter.send_report([mock_report])
+    responses = reporter.send_reports([mock_report])
 
     reporter.session.post.assert_not_called()
     assert responses == []
@@ -63,7 +63,7 @@ def test_send_report_to_url_async(mock_requests, mock_report):
 def test_send_report(mock_requests, mock_invocation_report):
     test_session = mock_requests.Session()
     reporter = Reporter('unauthorized api key', session=test_session)
-    responses = reporter.send_report([mock_invocation_report])
+    responses = reporter.send_reports([mock_invocation_report])
 
     assert reporter.session.post.call_count == 1
     test_session.post.return_value.status_code = 401
