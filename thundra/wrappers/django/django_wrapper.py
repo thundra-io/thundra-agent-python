@@ -1,6 +1,5 @@
 import logging
 import traceback
-import uuid
 from functools import wraps
 
 from thundra import constants, configure
@@ -11,7 +10,7 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.plugin_context import PluginContext
 from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
 from thundra.plugins.invocation import invocation_support
-from thundra.wrappers import wrapper_utils
+from thundra.wrappers import wrapper_utils, web_wrapper_utils
 from thundra.wrappers.base_wrapper import BaseWrapper
 from thundra.wrappers.django import django_executor
 
@@ -28,7 +27,7 @@ class DjangoWrapper(BaseWrapper):
 
             api_key = None
             for var in django_settings:
-                if var.lower() == 'thundra.apikey' and not api_key:
+                if var.lower() == config_names.THUNDRA_APIKEY and not api_key:
                     api_key = django_settings.get(var)
         except:
             pass
@@ -44,20 +43,10 @@ class DjangoWrapper(BaseWrapper):
         self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log,
                                                         config=self.config)
 
-    def before_request(self, request):
-        # Set application info
-        self.application_info_provider.update({
-            'applicationName': self.plugin_context.application_info.get('applicationName', 'thundra-app'),
-            'applicationClassName': constants.ClassNames['DJANGO'],
-            'applicationDomainName': 'API',
-            'applicationInstanceId': self.plugin_context.application_info.get('applicationInstanceId',
-                                                                              str(uuid.uuid4())),
-            'applicationId': 'python:{}:{}:{}'.format(constants.ClassNames['DJANGO'],
-                                                      self.plugin_context.application_info.get('applicationRegion', ''),
-                                                      self.plugin_context.application_info.get('applicationName',
-                                                                                               'thundra-app'))
-        })
+        web_wrapper_utils.update_application_info(self.application_info_provider, self.plugin_context.application_info,
+                                                  constants.ClassNames['DJANGO'])
 
+    def before_request(self, request):
         # Execution context initialization
         execution_context = wrapper_utils.create_execution_context()
         execution_context.platform_data['request'] = request

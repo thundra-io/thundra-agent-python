@@ -7,7 +7,6 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 from thundra.utils import get_normalized_path
-from thundra.wrappers import wrapper_utils
 
 
 def start_trace(execution_context, tracer, class_name, domain_name, request):
@@ -55,3 +54,33 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
 
     if incoming_span_id:
         invocation_trace_support.add_incoming_trace_link(incoming_span_id)
+
+
+def update_application_info(application_info_provider, application_info, app_class_name):
+    application_info_provider.update({
+        'applicationName': application_info.get('applicationName', 'thundra-app'),
+        'applicationClassName': app_class_name,
+        'applicationDomainName': 'API',
+        'applicationInstanceId': application_info.get('applicationInstanceId',
+                                                      str(uuid.uuid4())),
+        'applicationId': 'python:{}:{}:{}'.format(app_class_name,
+                                                  application_info.get('applicationRegion', ''),
+                                                  application_info.get('applicationName',
+                                                                       'thundra-app'))
+    })
+
+
+def finish_trace(execution_context):
+    root_span = execution_context.root_span
+    if execution_context.response:
+        root_span.set_tag(constants.HttpTags['HTTP_STATUS'], execution_context.response.status_code)
+        if execution_context.trigger_operation_name:
+            execution_context.response[constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
+    scope = execution_context.scope
+    try:
+        root_span.finish(f_time=execution_context.finish_timestamp)
+    except Exception:
+        # TODO: handle root span finish errors
+        pass
+    finally:
+        scope.close()

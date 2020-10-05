@@ -132,9 +132,6 @@ def process_api_gw_response(execution_context):
 
 
 def start_invocation(plugin_context, execution_context):
-    if not execution_context.transaction_id:
-        execution_context.transaction_id = str(uuid.uuid4())
-
     execution_context.invocation_data = wrapper_utils.create_invocation_data(plugin_context, execution_context)
     execution_context.invocation_data['applicationPlatform'] = constants.CONTEXT_APPLICATION_PLATFORM
 

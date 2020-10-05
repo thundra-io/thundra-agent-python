@@ -27,6 +27,8 @@ def initialize_plugins(plugin_context, disable_trace, disable_metric, disable_lo
 
 
 def create_invocation_data(plugin_context, execution_context):
+    if not execution_context.transaction_id:
+        execution_context.transaction_id = str(uuid.uuid4())
     invocation_data = {
         'id': str(uuid.uuid4()),
         'type': "Invocation",
