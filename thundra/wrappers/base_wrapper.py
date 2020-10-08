@@ -2,6 +2,7 @@ import abc
 import logging
 import time
 from concurrent import futures
+from queue import Queue
 
 from thundra.compat import PY2
 from thundra.config import config_names
@@ -13,6 +14,12 @@ from thundra.reporter import Reporter
 ABC = abc.ABCMeta('ABC', (object,), {})
 
 logger = logging.getLogger(__name__)
+
+
+class ThreadPoolExecutorWithQueueSizeLimit(futures.ThreadPoolExecutor):
+    def __init__(self, maxsize=50, *args, **kwargs):
+        super(ThreadPoolExecutorWithQueueSizeLimit, self).__init__(*args, **kwargs)
+        self._work_queue = Queue(maxsize=maxsize)
 
 
 class BaseWrapper(ABC):
@@ -35,7 +42,7 @@ class BaseWrapper(ABC):
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
             if not PY2:
                 self.import_patcher = ImportPatcher()
-        self.thread_pool_executor = futures.ThreadPoolExecutor()
+        self.thread_pool_executor = ThreadPoolExecutorWithQueueSizeLimit()
 
     def execute_hook(self, name, data):
         if name == 'after:invocation':
