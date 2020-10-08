@@ -1,5 +1,4 @@
 import math
-import time
 import uuid
 
 from thundra import utils, constants
@@ -7,12 +6,13 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.invocation import invocation_trace_support
 from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.wrappers import wrapper_utils
 from thundra.wrappers.aws_lambda import lambda_event_utils
 
 
 def start_trace(plugin_context, execution_context, tracer):
-    set_start_time(execution_context)
     context = execution_context.platform_data['originalContext']
+    execution_context.trace_id = str(uuid.uuid4())
     # Start root span
     scope = tracer.start_active_span(operation_name=context.function_name,
                                      start_time=execution_context.start_timestamp,
@@ -81,7 +81,6 @@ def inject_trigger_tags(span, original_event, original_context):
 
 
 def finish_trace(execution_context):
-    set_end_time(execution_context)
     root_span = execution_context.root_span
     scope = execution_context.scope
     try:
@@ -110,9 +109,9 @@ def finish_trace(execution_context):
         enable_request_data = False
 
     # ADDING TAGS #
-    if (not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_REQUEST_SKIP)) and enable_request_data:
+    if (not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP)) and enable_request_data:
         root_span.set_tag('aws.lambda.invocation.request', execution_context.platform_data['originalEvent'])
-    if not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_RESPONSE_SKIP):
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_RESPONSE_SKIP):
         root_span.set_tag('aws.lambda.invocation.response', execution_context.response)
 
     if trigger_class_name == constants.ClassNames['APIGATEWAY']:
@@ -132,48 +131,9 @@ def process_api_gw_response(execution_context):
         pass
 
 
-def set_start_time(execution_context):
-    if not execution_context.start_timestamp:
-        execution_context.start_timestamp = int(time.time() * 1000)
-
-
-def set_end_time(execution_context):
-    if not execution_context.finish_timestamp:
-        execution_context.finish_timestamp = int(time.time() * 1000)
-
-
 def start_invocation(plugin_context, execution_context):
-    set_start_time(execution_context)
-
-    if not execution_context.transaction_id:
-        execution_context.transaction_id = str(uuid.uuid4())
-    invocation_data = {
-        'id': str(uuid.uuid4()),
-        'type': "Invocation",
-        'agentVersion': constants.THUNDRA_AGENT_VERSION,
-        'dataModelVersion': constants.DATA_FORMAT_VERSION,
-        'traceId': execution_context.trace_id,
-        'transactionId': execution_context.transaction_id,
-        'spanId': execution_context.span_id,
-        'applicationPlatform': constants.CONTEXT_APPLICATION_PLATFORM,
-        'functionRegion': utils.get_env_variable(constants.AWS_REGION, default=''),
-        'duration': None,
-        'startTimestamp': execution_context.start_timestamp,
-        'finishTimestamp': None,
-        'erroneous': False,
-        'errorType': '',
-        'errorMessage': '',
-        'errorCode': -1,
-        'coldStart': plugin_context.request_count == 1,
-        'timeout': False,
-        'tags': {},
-    }
-
-    # Add application related data
-    application_info = plugin_context.application_info
-    invocation_data.update(application_info)
-
-    execution_context.invocation_data = invocation_data
+    execution_context.invocation_data = wrapper_utils.create_invocation_data(plugin_context, execution_context)
+    execution_context.invocation_data['applicationPlatform'] = constants.CONTEXT_APPLICATION_PLATFORM
 
 
 def get_response_status(execution_context):
@@ -204,67 +164,22 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
         print(e)
 
 
-def set_error(invocation_data, error):
-    invocation_data['erroneous'] = True
-    if isinstance(error, Exception):
-        error_type = type(error)
-        invocation_data['errorType'] = error_type.__name__
-        invocation_data['errorMessage'] = str(error)
-        if hasattr(error, 'code'):
-            invocation_data['errorCode'] = error.code
-    elif isinstance(error, dict):
-        invocation_data['errorType'] = error.get('type')
-        invocation_data['errorMessage'] = error.get('message')
-
-
 def finish_invocation(execution_context):
-    set_end_time(execution_context)
-
-    context = execution_context.platform_data['originalContext']
+    wrapper_utils.finish_invocation(execution_context)
     invocation_data = execution_context.invocation_data
+    context = execution_context.platform_data['originalContext']
 
     _, used_mem = utils.process_memory_usage()
     used_mem_in_mb = used_mem / 1048576
-
-    # Add user tags
-    invocation_data['userTags'] = execution_context.user_tags
-
-    # Add agent tags
-    invocation_data['tags'] = execution_context.tags
-
-    response_status_code = get_response_status(execution_context)
-
-    if response_status_code and not invocation_data['userTags'].get('http.status_code'):
-        invocation_data['userTags']['http.status_code'] = response_status_code
-
-    # Get resources
-    resources = invocation_trace_support.get_resources()
-    invocation_data.update(resources)
-
-    # Get incoming trace links
-    incoming_trace_links = invocation_trace_support.get_incoming_trace_links()
-    invocation_data.update(incoming_trace_links)
 
     # Get outgoing trace links
     outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
 
     # Inject trace link to response and add it to outgoing trace links
     inject_step_function_info(execution_context, outgoing_trace_links)
-
     invocation_data.update(outgoing_trace_links)
 
-    # Check errors
-    user_error = execution_context.user_error
-    if execution_context.error:
-        set_error(invocation_data, execution_context.error)
-    elif user_error:
-        set_error(invocation_data, user_error)
-
     invocation_data['timeout'] = execution_context.timeout
-
-    duration = execution_context.finish_timestamp - execution_context.start_timestamp
-    invocation_data['duration'] = int(duration)
-    invocation_data['finishTimestamp'] = int(execution_context.finish_timestamp)
 
     arn = getattr(context, constants.CONTEXT_INVOKED_FUNCTION_ARN, None)
 

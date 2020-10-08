@@ -32,6 +32,9 @@ if PY2:
     str = unicode
     basestring = basestring
 
+    import Queue
+    queue = Queue
+
 
 elif PY3:
     from urllib.parse import urlparse
@@ -41,3 +44,5 @@ elif PY3:
     bytes = bytes
     basestring = (str, bytes)
     numeric_types = (int, float)
+
+    import queue

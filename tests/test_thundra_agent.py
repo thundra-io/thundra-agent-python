@@ -99,7 +99,7 @@ def test_if_thundra_is_disabled(mock_reporter, handler, mock_event, mock_context
     handler(mock_event, mock_context)
 
     assert not mock_reporter.add_report.called
-    assert not mock_reporter.send_report.called
+    assert not mock_reporter.send_reports.called
 
 
 def test_if_exception_is_handled(handler_with_exception, mock_context, mock_event):
@@ -120,7 +120,7 @@ def test_if_thundra_crashes_user_handler_before(mocked_func, handler, mock_event
         pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
 
 
-@mock.patch('thundra.reporter.Reporter.send_report')
+@mock.patch('thundra.reporter.Reporter.send_reports')
 def test_if_thundra_crashes_user_handler_after(mocked_func, handler, mock_event, mock_context):
     mocked_func.side_effect = RuntimeError('Boom!')
     thundra, handler = handler

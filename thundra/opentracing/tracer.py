@@ -2,10 +2,13 @@ import uuid
 from threading import Lock
 
 import opentracing
+from opentracing import Format
 from opentracing.scope_managers import ThreadLocalScopeManager
 
 from thundra import constants
 from thundra.context.execution_context_manager import ExecutionContextManager
+from thundra.opentracing.propagation.http import HTTPPropagator
+from thundra.opentracing.propagation.text import TextMapPropagator
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
@@ -24,6 +27,10 @@ class ThundraTracer(opentracing.Tracer):
         self.lock = Lock()
         self.global_span_order = 0
         ThundraTracer.__instance = self
+        self._propagators = {
+            Format.HTTP_HEADERS: HTTPPropagator(),
+            Format.TEXT_MAP: TextMapPropagator(),
+        }
 
     def start_active_span(self,
                           operation_name,
@@ -182,10 +189,20 @@ class ThundraTracer(opentracing.Tracer):
             execution_context.recorder.clear()
 
     def inject(self, span_context, format, carrier):
-        raise NotImplementedError('inject method not implemented yet')
+        propagator = self._propagators.get(format, None)
+
+        if propagator is None:
+            raise opentracing.UnsupportedFormatException
+
+        propagator.inject(span_context, carrier)
 
     def extract(self, format, carrier):
-        raise NotImplementedError('extract method not implemented yet')
+        propagator = self._propagators.get(format, None)
+
+        if propagator is None:
+            raise opentracing.UnsupportedFormatException
+
+        return propagator.extract(carrier)
 
     def add_span_listener(self, listener):
         trace_support.register_span_listener(listener)

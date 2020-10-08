@@ -30,6 +30,7 @@ class ExecutionContext:
         self.logs = opts.get('logs', [])
         self.metrics = opts.get('metrics', {})
         self.capture_log = False
+        self.trigger_operation_name = ''
 
     def report(self, data):
         """

@@ -42,8 +42,8 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 | thundra_agent_lambda_trace_disable            |  bool  |              false               |
 | thundra_agent_lambda_metric_disable           |  bool  |              false               |
 | thundra_agent_lambda_log_disable              |  bool  |              false               |
-| thundra_agent_lambda_trace_request_skip       |  bool  |              false               |
-| thundra_agent_lambda_trace_response_skip      |  bool  |              false               |
+| thundra_agent_trace_request_skip              |  bool  |              false               |
+| thundra_agent_trace_response_skip             |  bool  |              false               |
 | thundra_agent_lambda_timeout_margin           |  int   |               200                |
 | thundra_agent_lambda_report_rest_baseUrl      | string |     https://api.thundra.io/v1    |
 | thundra_agent_lambda_report_cloudwatch_enable |  bool  |              false               |

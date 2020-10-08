@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 from thundra._version import __version__
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
@@ -17,6 +18,11 @@ TRIGGER_OPERATION_NAME_TAG = 'x-thundra-trigger-operation-name'
 TRIGGER_CLASS_NAME_TAG = 'x-thundra-trigger-class-name'
 TRIGGER_DOMAIN_NAME_TAG = 'x-thundra-trigger-domain-name'
 TRIGGER_RESOURCE_NAME_TAG = 'x-thundra-resource-name'
+
+THUNDRA_TRACE_ID_KEY = 'x-thundra-trace-id'
+THUNDRA_TRANSACTION_ID_KEY = 'x-thundra-transaction-id'
+THUNDRA_SPAN_ID_KEY = 'x-thundra-span-id'
+THUNDRA_BAGGAGE_PREFIX = 'x-thundra-baggage-'
 
 DEFAULT_METRIC_SAMPLING_TIME_FREQ = 5 * 60 * 1000
 DEFAULT_METRIC_SAMPLING_COUNT_FREQ = 100
@@ -61,7 +67,7 @@ DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 10
 #### INTEGRATIONS ####
 
 DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
-DEFAULT_REPORT_TIMEOUT = 3
+DEFAULT_REPORT_TIMEOUT = 5
 
 AWS_SERVICE_REQUEST = 'AWSServiceRequest'
 
@@ -111,7 +117,8 @@ ClassNames = {
     'ATHENA': 'AWS-Athena',
     'STEPFUNCTIONS': 'AWS-StepFunctions',
     'EVENTBRIDGE': 'AWS-EventBridge',
-    'SES': 'AWS-SES'
+    'SES': 'AWS-SES',
+    'DJANGO': 'Django'
 }
 
 DBTags = {

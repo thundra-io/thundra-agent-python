@@ -1,8 +1,8 @@
 import sys
 
 from thundra.application.application_info_provider import ApplicationInfoProvider
-from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 
 
 class GlobalApplicationInfoProvider(ApplicationInfoProvider):
@@ -26,11 +26,13 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
     def get_application_info_from_config():
         return {
             'applicationId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_ID),
+            'applicationInstanceId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_INSTANCE_ID),
             'applicationDomainName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_DOMAIN_NAME),
             'applicationClassName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_CLASS_NAME),
             'applicationName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_NAME),
-            'applicationVersion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_VERSION),
+            'applicationVersion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_VERSION, ''),
             'applicationStage': ConfigProvider.get(config_names.THUNDRA_APPLICATION_STAGE, ''),
+            'applicationRegion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_REGION, ''),
             'applicationRuntime': 'python',
             'applicationRuntimeVersion': str(sys.version_info[0]),
             'applicationTags': ApplicationInfoProvider.parse_application_tags()
