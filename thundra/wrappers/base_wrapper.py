@@ -2,13 +2,11 @@ import abc
 import logging
 import time
 from concurrent import futures
-from queue import Queue
 
-from thundra.compat import PY2
+from thundra.compat import PY2, queue
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.config.thundra_config import ThundraConfig
-from thundra.plugins.trace.patcher import ImportPatcher
 from thundra.reporter import Reporter
 
 ABC = abc.ABCMeta('ABC', (object,), {})
@@ -17,9 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 class ThreadPoolExecutorWithQueueSizeLimit(futures.ThreadPoolExecutor):
-    def __init__(self, maxsize=50, *args, **kwargs):
+    def __init__(self, maxsize=10000, *args, **kwargs):
         super(ThreadPoolExecutorWithQueueSizeLimit, self).__init__(*args, **kwargs)
-        self._work_queue = Queue(maxsize=maxsize)
+        self._work_queue = NoWaitQueue(maxsize=maxsize)
+
+
+class NoWaitQueue(queue.Queue):
+    def __init__(self, *args, **kwargs):
+        queue.Queue.__init__(self, *args, **kwargs)
+
+    def put(self, item, **kwargs):
+        queue.Queue.put(self, item, block=False)
 
 
 class BaseWrapper(ABC):
@@ -41,6 +47,7 @@ class BaseWrapper(ABC):
 
         if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
             if not PY2:
+                from thundra.plugins.trace.patcher import ImportPatcher
                 self.import_patcher = ImportPatcher()
         self.thread_pool_executor = ThreadPoolExecutorWithQueueSizeLimit()
 
@@ -60,4 +67,9 @@ class BaseWrapper(ABC):
     def prepare_and_send_reports_async(self, execution_context):
         execution_context.finish_timestamp = int(time.time() * 1000)
         self.execute_hook('after:invocation', execution_context)
-        self.thread_pool_executor.submit(self.reporter.send_reports, execution_context.reports)
+        try:
+            self.thread_pool_executor.submit(self.reporter.send_reports, execution_context.reports)
+        except queue.Full:
+            logger.error("Dropping the monitoring report as the request queue is full")
+        except Exception as e:
+            logger.error(e)

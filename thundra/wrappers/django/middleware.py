@@ -4,9 +4,9 @@ from thundra.plugins.invocation import invocation_support
 from thundra.wrappers.django.django_wrapper import DjangoWrapper, logger
 
 
-class ThundraMiddleware:
+class ThundraMiddleware(object):
     def __init__(self, get_response=None):
-        super().__init__()
+        super(ThundraMiddleware, self).__init__()
         self.get_response = get_response
         self._wrapper = DjangoWrapper(disable_log=False)
 

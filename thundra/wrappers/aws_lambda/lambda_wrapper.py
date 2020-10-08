@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class LambdaWrapper(BaseWrapper):
 
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
-        super().__init__(api_key, disable_trace, disable_metric, disable_log, opts)
+        super(LambdaWrapper, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         self.application_info_provider = GlobalApplicationInfoProvider(LambdaApplicationInfoProvider())
         self.plugin_context = PluginContext(application_info=self.application_info_provider.get_application_info(),
                                             request_count=0,

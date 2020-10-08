@@ -32,7 +32,7 @@ class DjangoWrapper(BaseWrapper):
         except:
             pass
 
-        super().__init__(api_key, disable_trace, disable_metric, disable_log, opts)
+        super(DjangoWrapper, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         self.application_info_provider = GlobalApplicationInfoProvider()
         ExecutionContextManager.set_provider(TracingExecutionContextProvider())
         self.plugin_context = PluginContext(application_info=self.application_info_provider.get_application_info(),
