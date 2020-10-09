@@ -95,6 +95,7 @@ def finish_invocation(execution_context):
     invocation_data['duration'] = int(duration)
     invocation_data['finishTimestamp'] = int(execution_context.finish_timestamp)
     invocation_data['timeout'] = execution_context.timeout
+    invocation_data['applicationResourceName'] = execution_context.application_resource_name
 
     execution_context.invocation_data = invocation_data
 
