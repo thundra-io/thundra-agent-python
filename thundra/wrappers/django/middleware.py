@@ -38,6 +38,7 @@ class ThundraMiddleware(object):
         if execution_context.scope:
             execution_context.scope.span.operation_name = request.resolver_match.route
             execution_context.trigger_operation_name = request.resolver_match.route
+            execution_context.application_resource_name = request.resolver_match.route
             invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'],
                                              [request.resolver_match.route])
 

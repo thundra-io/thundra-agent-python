@@ -79,3 +79,8 @@ def set_error(err):
 def get_error():
     execution_context = ExecutionContextManager.get()
     return execution_context.user_error
+
+
+def set_application_resource_name(resource_name):
+    execution_context = ExecutionContextManager.get()
+    execution_context.application_resource_name = resource_name

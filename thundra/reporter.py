@@ -66,7 +66,6 @@ class Reporter:
             reports_json = self.prepare_composite_report_json(reports)
         else:
             reports_json = self.prepare_report_json(reports)
-
         responses = []
         if len(reports_json) > 0:
             _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
