@@ -11,6 +11,7 @@ class ThundraMiddleware(object):
         self._wrapper = DjangoWrapper(disable_log=False)
 
     def __call__(self, request):
+
         setattr(request, '_thundra_wrapped', True)
         # Code to be executed for each request before
         # the view (and later middleware) are called.

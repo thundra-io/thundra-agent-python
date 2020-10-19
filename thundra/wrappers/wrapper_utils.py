@@ -67,11 +67,6 @@ def finish_invocation(execution_context):
     # Add agent tags
     invocation_data['tags'] = execution_context.tags
 
-    response_status_code = get_response_status(execution_context)
-
-    if response_status_code and not invocation_data['userTags'].get('http.status_code'):
-        invocation_data['userTags']['http.status_code'] = response_status_code
-
     # Get resources
     resources = invocation_trace_support.get_resources()
     invocation_data.update(resources)
@@ -100,14 +95,6 @@ def finish_invocation(execution_context):
     execution_context.invocation_data = invocation_data
 
 
-def get_response_status(execution_context):
-    try:
-        status_code = execution_context.response['statusCode']
-    except:
-        return None
-    return status_code
-
-
 def set_error(invocation_data, error):
     invocation_data['erroneous'] = True
     if isinstance(error, Exception):
@@ -125,3 +112,8 @@ def create_execution_context():
     transaction_id = str(uuid.uuid4())
     start_timestamp = int(time.time() * 1000)
     return ExecutionContext(transaction_id=transaction_id, start_timestamp=start_timestamp)
+
+
+def set_response_status(execution_context, response_status_code):
+    if response_status_code and not execution_context.invocation_data['userTags'].get('http.status_code'):
+        execution_context.invocation_data['userTags']['http.status_code'] = response_status_code
