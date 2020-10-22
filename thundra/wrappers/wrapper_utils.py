@@ -115,5 +115,8 @@ def create_execution_context():
 
 
 def set_response_status(execution_context, response_status_code):
-    if response_status_code and not execution_context.invocation_data['userTags'].get('http.status_code'):
-        execution_context.invocation_data['userTags']['http.status_code'] = response_status_code
+    if response_status_code:
+        if execution_context.invocation_data.get('userTags') is None:
+            execution_context.invocation_data['userTags'] = {}
+        if execution_context.invocation_data['userTags'].get('http.status_code') is None:
+            execution_context.invocation_data['userTags']['http.status_code'] = response_status_code

@@ -8,7 +8,7 @@ class ThundraMiddleware(object):
     def __init__(self, get_response=None):
         super(ThundraMiddleware, self).__init__()
         self.get_response = get_response
-        self._wrapper = DjangoWrapper(disable_log=False)
+        self._wrapper = DjangoWrapper()
 
     def __call__(self, request):
 
