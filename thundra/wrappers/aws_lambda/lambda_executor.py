@@ -167,6 +167,10 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
 def finish_invocation(execution_context):
     wrapper_utils.finish_invocation(execution_context)
     invocation_data = execution_context.invocation_data
+
+    # Set response status code
+    wrapper_utils.set_response_status(execution_context, get_response_status(execution_context))
+
     context = execution_context.platform_data['originalContext']
 
     _, used_mem = utils.process_memory_usage()

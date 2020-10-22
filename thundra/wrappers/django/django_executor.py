@@ -25,3 +25,14 @@ def start_invocation(plugin_context, execution_context):
 
 def finish_invocation(execution_context):
     wrapper_utils.finish_invocation(execution_context)
+
+    # Set response status code
+    wrapper_utils.set_response_status(execution_context, get_response_status(execution_context))
+
+
+def get_response_status(execution_context):
+    try:
+        status_code = execution_context.response.status_code
+    except:
+        return None
+    return status_code
