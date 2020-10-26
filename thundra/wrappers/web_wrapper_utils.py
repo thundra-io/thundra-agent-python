@@ -49,6 +49,7 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
     trigger_operation_name = request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
                              request.get('host', '') + normalized_path
     execution_context.application_resource_name = normalized_path
+    invocation_support.set_agent_tag(constants.HttpTags['HTTP_METHOD'], request.get('method'))
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [trigger_operation_name])
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], 'API')
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], 'HTTP')
