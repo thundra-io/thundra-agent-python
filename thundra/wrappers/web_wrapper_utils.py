@@ -74,10 +74,6 @@ def update_application_info(application_info_provider, application_info, app_cla
 
 def finish_trace(execution_context):
     root_span = execution_context.root_span
-    if execution_context.response:
-        root_span.set_tag(constants.HttpTags['HTTP_STATUS'], execution_context.response.status_code)
-        if execution_context.trigger_operation_name:
-            execution_context.response[constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
     scope = execution_context.scope
     try:
         root_span.finish(f_time=execution_context.finish_timestamp)

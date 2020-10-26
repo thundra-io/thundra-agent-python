@@ -230,6 +230,10 @@ CONFIG_METADATA = {
         'type': 'boolean',
         'defaultValue': False,
     },
+    config_names.THUNDRA_TRACE_INTEGRATIONS_FLASK_DISABLE: {
+        'type': 'boolean',
+        'defaultValue': False,
+    },
     config_names.THUNDRA_LOG_CONSOLE_DISABLE: {
         'type': 'boolean',
         'defaultValue': False,
