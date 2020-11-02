@@ -24,6 +24,7 @@ elasticsearch = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 django = "*"
+flask = "*"
 
 [requires]
 python_version = "3.6.4"
