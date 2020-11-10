@@ -1,5 +1,6 @@
 import os
 
+from thundra.config import config_names
 from thundra.config.config_metadata import CONFIG_METADATA
 
 
@@ -12,6 +13,8 @@ class ConfigProvider:
         if options is not None:
             config_options = options.get('config', {})
             for opt in config_options:
+                if opt.lower() == config_names.THUNDRA_APIKEY:
+                    ConfigProvider.configs[config_names.THUNDRA_APIKEY] = config_options.get(opt)
                 ConfigProvider.traverse_config_object(config_options.get(opt), opt)
         ConfigProvider.initialize_config_from_environment_variables()
         ConfigProvider.add_non_lambda_aliases()

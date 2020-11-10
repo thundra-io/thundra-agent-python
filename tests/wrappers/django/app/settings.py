@@ -18,7 +18,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'thundra.wrappers.django.middleware.ThundraMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
