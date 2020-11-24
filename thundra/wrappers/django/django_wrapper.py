@@ -22,13 +22,9 @@ class DjangoWrapper(BaseWrapper):
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
         try:
             from django.conf import settings
-            django_settings = getattr(settings, 'THUNDRA', {})
-            configure({'config': django_settings})
-
-            api_key = None
-            for var in django_settings:
-                if var.lower() == config_names.THUNDRA_APIKEY and not api_key:
-                    api_key = django_settings.get(var)
+            django_settings = getattr(settings, 'THUNDRA', None)
+            if django_settings is not None:
+                configure({'config': django_settings})
         except:
             pass
 
