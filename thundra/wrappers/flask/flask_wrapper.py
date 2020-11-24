@@ -41,28 +41,38 @@ class FlaskWrapper(BaseWrapper):
         # Execute plugin hooks before running user's handler
         self.plugin_context.request_count += 1
         self.execute_hook('before:invocation', execution_context)
+
+        try:
+            from flask import g
+            g.thundra_execution_context = execution_context
+        except ImportError:
+            pass
         return execution_context
 
     def after_request(self, response):
         try:
-            execution_context = ExecutionContextManager.get()
-            if response:
-                execution_context.response = response
+            from flask import g
+            if hasattr(g, 'thundra_execution_context'):
+                execution_context = g.thundra_execution_context
+                if response:
+                    execution_context.response = response
         except Exception as e:
-            logger.error("Error setting response to context for Thundra: {}".format(e))
+            logger.error('Error setting response to context for Thundra: {}'.format(e))
         return response
 
     def teardown_request(self, exception=None):
         try:
-            execution_context = ExecutionContextManager.get()
-            if exception:
-                execution_context.error = exception
-            self.prepare_and_send_reports_async(execution_context)
+            from flask import g
+            if hasattr(g, 'thundra_execution_context'):
+                execution_context = g.thundra_execution_context
+                if exception:
+                    execution_context.error = exception
+                self.prepare_and_send_reports_async(execution_context)
         except Exception as e:
-            logger.error("Error during the request teardown of Thundra: {}".format(e))
+            logger.error('Error during the request teardown of Thundra: {}'.format(e))
 
     def __call__(self, original_func):
-        if hasattr(original_func, "thundra_wrapper") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
+        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
             return original_func
 
         @wraps(original_func)
@@ -78,7 +88,7 @@ class FlaskWrapper(BaseWrapper):
             try:
                 execution_context = self.before_request(request)
             except Exception as e:
-                logger.error("Error during the before part of Thundra: {}".format(e))
+                logger.error('Error during the before part of Thundra: {}'.format(e))
                 return original_func(*args, **kwargs)
 
             response = None
@@ -104,7 +114,7 @@ class FlaskWrapper(BaseWrapper):
                 logger.error("Error during the after part of Thundra: {}".format(e))
             return response
 
-        setattr(wrapper, 'thundra_wrapper', True)
+        setattr(wrapper, '_thundra_wrapped', True)
         return wrapper
 
     call = __call__

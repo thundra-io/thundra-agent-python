@@ -16,17 +16,10 @@ def start_trace(plugin_context, execution_context, tracer):
         'path': request.path
     }
 
-    web_wrapper_utils.start_trace(execution_context, tracer, 'Flask', 'API', _request)
+    if request.url_rule:
+        _request['url_rule'] = str(request.url_rule)
 
-    try:
-        if execution_context.scope:
-            execution_context.scope.span.operation_name = str(request.url_rule)
-            execution_context.trigger_operation_name = str(request.url_rule)
-            execution_context.application_resource_name = str(request.url_rule)
-            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'],
-                                             [str(request.url_rule)])
-    except:
-        pass
+    web_wrapper_utils.start_trace(execution_context, tracer, 'Flask', 'API', _request)
 
 
 def finish_trace(execution_context):

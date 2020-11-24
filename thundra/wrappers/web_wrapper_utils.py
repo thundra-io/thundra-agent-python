@@ -13,6 +13,7 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
     propagated_span_context = tracer.extract(Format.HTTP_HEADERS, request.get('headers'))
     trace_id = str(uuid.uuid4())
     incoming_span_id = None
+    url_rule = request.get('url_rule')
     if propagated_span_context:
         trace_id = propagated_span_context.trace_id
         incoming_span_id = propagated_span_context.span_id
@@ -20,7 +21,8 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
     # Start root span
     url_path_depth = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH)
     normalized_path = get_normalized_path(request.get('path'), url_path_depth)
-    scope = tracer.start_active_span(operation_name=normalized_path,
+    operation_name = url_rule or normalized_path
+    scope = tracer.start_active_span(operation_name=operation_name,
                                      child_of=propagated_span_context,
                                      start_time=execution_context.start_timestamp,
                                      finish_on_close=False,
@@ -46,11 +48,14 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
     execution_context.scope = scope
     execution_context.trace_id = trace_id
 
-    trigger_operation_name = request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
+    trigger_operation_name = url_rule or request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
                              request.get('host', '') + normalized_path
-    execution_context.application_resource_name = normalized_path
-    invocation_support.set_agent_tag(constants.HttpTags['HTTP_METHOD'], request.get('method'))
+    execution_context.application_resource_name = url_rule or normalized_path
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [trigger_operation_name])
+    if url_rule:
+        execution_context.trigger_operation_name = url_rule
+
+    invocation_support.set_agent_tag(constants.HttpTags['HTTP_METHOD'], request.get('method'))
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], 'API')
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], 'HTTP')
 
