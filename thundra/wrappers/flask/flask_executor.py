@@ -1,11 +1,11 @@
 from thundra import constants
-from thundra.plugins.invocation import invocation_support
 
 from thundra.wrappers import wrapper_utils, web_wrapper_utils
 
 
 def start_trace(plugin_context, execution_context, tracer):
     request = execution_context.platform_data['request']
+    request_route_path = str(request.url_rule) if request.url_rule else None
 
     _request = {
         'method': request.method,
@@ -16,10 +16,7 @@ def start_trace(plugin_context, execution_context, tracer):
         'path': request.path
     }
 
-    if request.url_rule:
-        _request['url_rule'] = str(request.url_rule)
-
-    web_wrapper_utils.start_trace(execution_context, tracer, 'Flask', 'API', _request)
+    web_wrapper_utils.start_trace(execution_context, tracer, 'Flask', 'API', _request, request_route_path)
 
 
 def finish_trace(execution_context):

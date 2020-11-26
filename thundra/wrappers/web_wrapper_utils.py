@@ -9,11 +9,10 @@ from thundra.plugins.invocation import invocation_support, invocation_trace_supp
 from thundra.utils import get_normalized_path
 
 
-def start_trace(execution_context, tracer, class_name, domain_name, request):
+def start_trace(execution_context, tracer, class_name, domain_name, request, request_route_path=None):
     propagated_span_context = tracer.extract(Format.HTTP_HEADERS, request.get('headers'))
     trace_id = str(uuid.uuid4())
     incoming_span_id = None
-    url_rule = request.get('url_rule')
     if propagated_span_context:
         trace_id = propagated_span_context.trace_id
         incoming_span_id = propagated_span_context.span_id
@@ -21,7 +20,7 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
     # Start root span
     url_path_depth = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH)
     normalized_path = get_normalized_path(request.get('path'), url_path_depth)
-    operation_name = url_rule or normalized_path
+    operation_name = request_route_path or normalized_path
     scope = tracer.start_active_span(operation_name=operation_name,
                                      child_of=propagated_span_context,
                                      start_time=execution_context.start_timestamp,
@@ -48,12 +47,11 @@ def start_trace(execution_context, tracer, class_name, domain_name, request):
     execution_context.scope = scope
     execution_context.trace_id = trace_id
 
-    trigger_operation_name = url_rule or request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
+    trigger_operation_name = request_route_path or request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
                              request.get('host', '') + normalized_path
-    execution_context.application_resource_name = url_rule or normalized_path
+    execution_context.application_resource_name = request_route_path or normalized_path
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [trigger_operation_name])
-    if url_rule:
-        execution_context.trigger_operation_name = url_rule
+    execution_context.trigger_operation_name = trigger_operation_name
 
     invocation_support.set_agent_tag(constants.HttpTags['HTTP_METHOD'], request.get('method'))
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], 'API')
@@ -75,6 +73,14 @@ def update_application_info(application_info_provider, application_info, app_cla
                                                   application_info.get('applicationName',
                                                                        'thundra-app'))
     })
+
+
+def process_request_route(execution_context, request_route_path):
+    if request_route_path and execution_context and execution_context.scope:
+        execution_context.scope.span.operation_name = request_route_path
+        execution_context.trigger_operation_name = request_route_path
+        execution_context.application_resource_name = request_route_path
+        invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [request_route_path])
 
 
 def finish_trace(execution_context):
