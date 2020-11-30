@@ -75,12 +75,13 @@ def update_application_info(application_info_provider, application_info, app_cla
     })
 
 
-def process_request_route(execution_context, request_route_path):
+def process_request_route(execution_context, request_route_path, request_host):
     if request_route_path and execution_context and execution_context.scope:
+        trigger_operation_name = request_host + request_route_path
         execution_context.scope.span.operation_name = request_route_path
-        execution_context.trigger_operation_name = request_route_path
+        execution_context.trigger_operation_name = trigger_operation_name
         execution_context.application_resource_name = request_route_path
-        invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [request_route_path])
+        invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [trigger_operation_name])
 
 
 def finish_trace(execution_context):
