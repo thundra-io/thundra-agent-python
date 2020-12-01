@@ -45,7 +45,7 @@ def test_successful_view(finish_trace):
     assert execution_context.root_span.class_name == constants.ClassNames['FLASK']
     assert execution_context.root_span.domain_name == 'API'
 
-    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/']
+    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['localhost/']
     assert execution_context.tags.get(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert execution_context.tags.get(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'HTTP'
     assert execution_context.response.data == response.data
@@ -65,7 +65,7 @@ def test_erroneous_view(finish_trace):
     assert execution_context.root_span.class_name == constants.ClassNames['FLASK']
     assert execution_context.root_span.domain_name == 'API'
 
-    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/error']
+    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['localhost/error']
     assert execution_context.tags.get(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert execution_context.tags.get(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'HTTP'
     assert execution_context.error is not None
@@ -91,7 +91,7 @@ def test_blueprint(finish_trace):
     assert execution_context.root_span.class_name == constants.ClassNames['FLASK']
     assert execution_context.root_span.domain_name == 'API'
 
-    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['/api/test']
+    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['localhost/api/test']
     assert execution_context.tags.get(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
     assert execution_context.tags.get(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'HTTP'
     assert execution_context.response.data == response.data
