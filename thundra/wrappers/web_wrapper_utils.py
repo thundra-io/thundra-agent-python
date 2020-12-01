@@ -47,7 +47,10 @@ def start_trace(execution_context, tracer, class_name, domain_name, request, req
     execution_context.scope = scope
     execution_context.trace_id = trace_id
 
-    trigger_operation_name = request_route_path or request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
+    if request_route_path:
+        trigger_operation_name = request.get('host', '') + request_route_path
+    else:
+        trigger_operation_name = request.get('headers').get(constants.TRIGGER_RESOURCE_NAME_TAG) or \
                              request.get('host', '') + normalized_path
     execution_context.application_resource_name = request_route_path or normalized_path
     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], [trigger_operation_name])
