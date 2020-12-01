@@ -107,6 +107,7 @@ THUNDRA_TRACE_INTEGRATIONS_SQLALCHEMY_DISABLE = 'thundra.agent.trace.integration
 THUNDRA_TRACE_INTEGRATIONS_CHALICE_DISABLE = 'thundra.agent.trace.integrations.chalice.disable'
 THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE = 'thundra.agent.trace.integrations.django.disable'
 THUNDRA_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE = 'thundra.agent.trace.integrations.django.orm.disable'
+THUNDRA_TRACE_INTEGRATIONS_FLASK_DISABLE = 'thundra.agent.trace.integrations.flask.disable'
 
 #############################################################################
 

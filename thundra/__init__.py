@@ -59,6 +59,11 @@ def django_wrapper(func):
     return _WrapperFactory.get_or_create(DjangoWrapper)(func)
 
 
+def flask_wrapper(func):
+    from thundra.wrappers.flask.flask_wrapper import FlaskWrapper
+    return _WrapperFactory.get_or_create(FlaskWrapper)(func)
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     _patch_modules()
 
@@ -70,6 +75,7 @@ __all__ = [
     'trace',
     'lambda_wrapper',
     'django_wrapper',
+    'flask_wrapper',
     'add_incoming_trace_link',
     'add_incoming_trace_links',
     'add_outgoing_trace_link',

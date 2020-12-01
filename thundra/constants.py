@@ -118,7 +118,8 @@ ClassNames = {
     'STEPFUNCTIONS': 'AWS-StepFunctions',
     'EVENTBRIDGE': 'AWS-EventBridge',
     'SES': 'AWS-SES',
-    'DJANGO': 'Django'
+    'DJANGO': 'Django',
+    'FLASK': 'Flask'
 }
 
 DBTags = {
