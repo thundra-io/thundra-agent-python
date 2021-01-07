@@ -33,7 +33,9 @@ class PostgreCursorWrapper(wrapt.ObjectProxy):
 
     def __enter__(self):
         # raise appropriate error if api not supported (should reach the user)
-        self.__wrapped__.__enter__
+        value = self.__wrapped__.__enter__()
+        if value is not self.__wrapped__:
+            return value
         return self
 
 
@@ -56,14 +58,27 @@ def _wrapper_register_type(wrapped, instance, args, kwargs):
     return wrapped(*_args, **kwargs)
 
 
+def patch_extensions():
+    _extensions = [
+        ('psycopg2.extensions', 'register_type', _wrapper_register_type),
+        ('psycopg2.extensions', 'quote_ident', _wrapper_register_type),
+        ('psycopg2._psycopg', 'register_type', _wrapper_register_type)
+    ]
+
+    try:
+        import psycopg2
+        if getattr(psycopg2, '_json', None):
+            _extensions.append(('psycopg2._json', 'register_type', _wrapper_register_type))
+    except ImportError:
+        pass
+
+    for ext in _extensions:
+        wrapt.wrap_function_wrapper(ext[0], ext[1], ext[2])
+
+
 def patch():
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_DISABLE):
-        wrapt.wrap_function_wrapper(
-            'psycopg2.extensions',
-            'register_type',
-            _wrapper_register_type
-        )
-
+        patch_extensions()
         wrapt.wrap_function_wrapper(
             'psycopg2',
             'connect',
