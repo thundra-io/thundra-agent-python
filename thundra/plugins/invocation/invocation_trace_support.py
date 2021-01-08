@@ -173,7 +173,7 @@ def get_outgoing_trace_link(span):
 
 def add_incoming_trace_link(trace_link):
     execution_context = ExecutionContextManager.get()
-    execution_context.incoming_trace_links.extend(trace_link)
+    execution_context.incoming_trace_links.append(trace_link)
 
 
 def add_incoming_trace_links(trace_links):
