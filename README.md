@@ -63,7 +63,7 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 ## Async Monitoring with Zero Overhead
 By default, Thundra agent reports by making an HTTPS request. This adds an overhead to your lambda function.
 
-Instead, you can [setup async monitoring](https://docs.thundra.io/performance/zero-overhead-with-asynchronous-monitoring) in **2 minutes** and monitor your lambda functions with **zero overhead**!
+Instead, you can [setup async monitoring](https://apm.docs.thundra.io/performance/zero-overhead-with-asynchronous-monitoring) in **2 minutes** and monitor your lambda functions with **zero overhead**!
 
 ## Log Plugin
 Log plugin is added by default, but in order to enable it, you should add `ThundraLogHandler` to your logger.
