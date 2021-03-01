@@ -25,6 +25,7 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 django = "*"
 flask = "*"
+tornado = "*"
 
 [requires]
 python_version = "3.6.4"

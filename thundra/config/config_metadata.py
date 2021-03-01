@@ -276,5 +276,9 @@ CONFIG_METADATA = {
     },
     config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN: {
         'type': 'string',
+    },
+    config_names.THUNDRA_TRACE_INTEGRATIONS_TORNADO_DISABLE: {
+        'type': 'boolean',
+        'defaultValue': False,
     }
 }
