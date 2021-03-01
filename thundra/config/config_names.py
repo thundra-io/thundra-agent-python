@@ -109,6 +109,7 @@ THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE = 'thundra.agent.trace.integrations.dj
 THUNDRA_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE = 'thundra.agent.trace.integrations.django.orm.disable'
 THUNDRA_TRACE_INTEGRATIONS_FLASK_DISABLE = 'thundra.agent.trace.integrations.flask.disable'
 THUNDRA_TRACE_INTEGRATIONS_FASTAPI_DISABLE = 'thundra.agent.trace.integrations.fastapi.disable'
+THUNDRA_TRACE_INTEGRATIONS_TORNADO_DISABLE = 'thundra.agent.trace.integrations.tornado.disable'
 
 #############################################################################
 
