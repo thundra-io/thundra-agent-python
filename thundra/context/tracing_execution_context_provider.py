@@ -4,8 +4,8 @@ from thundra.opentracing.tracer import ThundraTracer
 
 
 class TracingExecutionContextProvider(ContextProvider):
-    def __init__(self):
-        self.tracer = ThundraTracer.get_instance()
+    def __init__(self, scope_manager=None):
+        self.tracer = ThundraTracer.get_instance(scope_manager)
 
     def get(self):
         execution_context = None

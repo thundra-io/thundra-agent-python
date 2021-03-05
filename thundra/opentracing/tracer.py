@@ -18,8 +18,8 @@ class ThundraTracer(opentracing.Tracer):
     __instance = None
 
     @staticmethod
-    def get_instance():
-        return ThundraTracer() if ThundraTracer.__instance is None else ThundraTracer.__instance
+    def get_instance(scope_manager=None):
+        return ThundraTracer(scope_manager) if ThundraTracer.__instance is None else ThundraTracer.__instance
 
     def __init__(self, scope_manager=None):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
