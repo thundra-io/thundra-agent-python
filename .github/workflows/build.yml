@@ -18,6 +18,8 @@ jobs:
           python-version: "3.6"
       - name: Start Docker Images
         run: docker-compose up -d --quiet-pull --no-recreate
+      - name: Install pipenv
+        run: pip install pipenv
       - name: Install dependencies
         run: pipenv install --dev
       - name: Run Tests
