@@ -12,14 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Python 3.6
+      - name: Use Python 3.6.13
         uses: actions/setup-python@v2
         with:
-          python-version: "3.6"
+          python-version: "3.6.13"
       - name: Start Docker Images
         run: docker-compose up -d --quiet-pull --no-recreate
       - name: Install pipenv
-        run: pip install pipenv
+        run: |
+          pip install pipenv
+          pipenv --python 3.6.13
       - name: Install dependencies
         run: pipenv install --dev
       - name: Run Tests
