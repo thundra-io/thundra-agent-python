@@ -12,10 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Use Python 3.6.4
+      - name: Use Python 3.6
         uses: actions/setup-python@v2
         with:
-          python-version: "3.6.4"
+          python-version: "3.6"
       - name: Start Docker Images
         run: docker-compose up -d --quiet-pull --no-recreate
       - name: Install dependencies
