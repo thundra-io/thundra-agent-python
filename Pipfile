@@ -25,6 +25,10 @@ sqlalchemy = "*"
 psycopg2-binary = "*"
 django = "*"
 flask = "*"
+fastapi = "*"
+uvicorn = "*"
+async-exit-stack = "*"
+async-generator = "*"
 
 [requires]
 python_version = "3.6.4"

@@ -64,6 +64,11 @@ def flask_wrapper(func):
     return _WrapperFactory.get_or_create(FlaskWrapper)(func)
 
 
+def fastapi_wrapper(func):
+    from thundra.wrappers.fastapi.fastapi_wrapper import FastapiWrapper
+    return _WrapperFactory.get_or_create(FastapiWrapper)(func)
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     _patch_modules()
 

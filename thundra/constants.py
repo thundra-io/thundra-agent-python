@@ -119,7 +119,8 @@ ClassNames = {
     'EVENTBRIDGE': 'AWS-EventBridge',
     'SES': 'AWS-SES',
     'DJANGO': 'Django',
-    'FLASK': 'Flask'
+    'FLASK': 'Flask',
+    "FASTAPI": "Fastapi"
 }
 
 DBTags = {
