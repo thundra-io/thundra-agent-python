@@ -29,6 +29,10 @@ fastapi = "*"
 uvicorn = "*"
 async-exit-stack = "*"
 async-generator = "*"
+databases = "*"
+asyncpg = "*"
+httpx = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.6.4"
