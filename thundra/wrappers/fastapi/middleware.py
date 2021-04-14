@@ -73,14 +73,14 @@ class ThundraMiddleware(object):
                             execution_context.response = {
                                 "status_code": execution_context.response.get("status"),
                                 "headers": extract_headers(execution_context.response),
-                                "body": execution_context.response.get("body") if execution_context.response.get("body") else ""
+                                "body": execution_context.response.get("body") if execution_context.response.get("body") else None
                             }
                             self._wrapper.after_request(execution_context)
                     except Exception as e:
                         try:
                             handle_error(e, self._wrapper.error_handler)
-                        except Exception as e:
-                            logger.error("Error during the after part of Thundra fastapi: {}".format(e))
+                        except Exception as exc:
+                            logger.error("Error during the after part of Thundra fastapi: {}".format(exc))
             except Exception as e:
                 logger.error("Error during getting res body in fast api: {}".format(e))
     
@@ -126,8 +126,8 @@ class ThundraMiddleware(object):
             except Exception as e:
                 try:
                     handle_error(e, self._wrapper.error_handler)
-                except Exception as e:
-                    logger.error("Error during receive request fast api asgi function: {}".format(e))
+                except Exception as exc:
+                    logger.error("Error during receive request fast api asgi function: {}".format(exc))
                 raise e
             handle_request(req)
             return req
@@ -137,6 +137,6 @@ class ThundraMiddleware(object):
         except Exception as e:
             try:
                 handle_error(e, self._wrapper.error_handler)
-            except Exception as e:
-                logger.error("Error in the app fastapi: {}".format(e))
+            except Exception as exc:
+                logger.error("Error in the app fastapi: {}".format(exc))
             raise e
