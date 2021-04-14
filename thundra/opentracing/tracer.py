@@ -17,9 +17,16 @@ from thundra.plugins.trace import trace_support
 class ThundraTracer(opentracing.Tracer):
     __instance = None
 
+
+    @staticmethod
+    def create_instance(scope_manager=ThreadLocalScopeManager()):
+        return ThundraTracer(scope_manager)
+
+
     @staticmethod
     def get_instance():
         return ThundraTracer() if ThundraTracer.__instance is None else ThundraTracer.__instance
+
 
     def __init__(self, scope_manager=None):
         scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager

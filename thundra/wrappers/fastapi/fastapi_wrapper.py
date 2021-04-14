@@ -19,7 +19,6 @@ import thundra.utils as utils
 import traceback
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -28,7 +27,7 @@ class FastapiWrapper(BaseWrapper):
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
         super(FastapiWrapper, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         self.application_info_provider = GlobalApplicationInfoProvider()
-        ThundraTracer(AsyncioScopeManager())
+        ThundraTracer.create_instance(AsyncioScopeManager())
         ExecutionContextManager.set_provider(TracingExecutionContextProvider())
         self.plugin_context = PluginContext(application_info=self.application_info_provider.get_application_info(),
                                             request_count=0,
@@ -50,7 +49,6 @@ class FastapiWrapper(BaseWrapper):
         self.plugin_context.request_count += 1
         self.execute_hook("before:invocation", execution_context)
 
-        print(f"transactionId: {execution_context.transaction_id}")
         return execution_context
 
 
@@ -77,16 +75,15 @@ class FastapiWrapper(BaseWrapper):
                 return await original_func(*args, **kwargs)
             setattr(request, '_thundra_wrapped', True)
             try:
-                execution_context = self.before_request(request.scope, request._body)
+                req_body = request._body if hasattr(request, "_body") else None
+                execution_context = self.before_request(request.scope, req_body)
             except Exception as e:
                 logger.error('Error during the before part of Thundra: {}'.format(e))
                 return await original_func(*args, **kwargs)
 
             response = None
-            # Invoke user handler
             try:
                 response = await original_func(*args, **kwargs)
-                execution_context.response = response
             except Exception as e:
                 try:
                     error = {
