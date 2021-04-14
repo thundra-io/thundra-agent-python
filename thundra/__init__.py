@@ -30,6 +30,8 @@ from thundra.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
 from thundra.plugins.trace.traceable import Traceable
 from thundra.wrappers.wrapper_factory import WrapperFactory as _WrapperFactory
 
+import logging
+logger = logging.getLogger(__name__)
 
 def _import_exists(module_name):
     try:
@@ -42,7 +44,11 @@ def _import_exists(module_name):
 def _patch_modules():
     for module_name, module in integrations.MODULES.items():
         if _import_exists(module_name):
-            module.patch()
+            if hasattr(module, "patch"):
+                try:
+                    module.patch()
+                except Exception as e:
+                    logger.error("Couldn't patch module: %s", e)
 
 
 def configure(options):
