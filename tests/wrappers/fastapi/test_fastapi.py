@@ -1,98 +1,57 @@
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import JSONResponse
-from unittest import mock
-from unittest.mock import Mock
-from fastapi.testclient import TestClient
-
 from thundra import constants
 from thundra.context.execution_context_manager import ExecutionContextManager
-
 from thundra.wrappers.fastapi.fastapi_wrapper import FastapiWrapper
-
-app = FastAPI()
-
-client = TestClient(app)
-
-@app.get("/")
-def root():
-    return JSONResponse({ "hello": "world"})
+from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
+from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
+from thundra.wrappers import wrapper_utils
+import pytest
 
 
-def read_request(request: Request):
-    return JSONResponse({"content": "request gathered!!!"})
+def test_fastapi_hooks_called(test_app, monkeypatch):
+    
+    def mock_before_request(self, request, req_body):
+        ExecutionContextManager.set_provider(TracingExecutionContextProvider())
+        execution_context = wrapper_utils.create_execution_context()
+        execution_context.platform_data["request"] = request
+        execution_context.platform_data["request"]["body"] = req_body
 
-@app.route("/error")
-def error():
-    raise RuntimeError("Test")
+        self.plugin_context.request_count += 1
+        self.execute_hook("before:invocation", execution_context)
 
+        assert execution_context.root_span.operation_name == '/1'
+        assert execution_context.root_span.get_tag('http.method') == 'GET'
+        assert execution_context.root_span.get_tag('http.host') == 'testserver'
+        assert execution_context.root_span.get_tag('http.query_params') == b''
+        assert execution_context.root_span.get_tag('http.path') == '/1'
+        assert execution_context.root_span.class_name == constants.ClassNames['FASTAPI']
+        assert execution_context.root_span.domain_name == 'API'
 
-@mock.patch('thundra.wrappers.fastapi.fastapi_wrapper.FastapiWrapper.before_request')
-@mock.patch('thundra.wrappers.fastapi.fastapi_wrapper.FastapiWrapper.after_request')
-def test_fastapi_hooks_called(mock_before_request, mock_after_request):
-    response = client.get('/')
+        return execution_context
 
-    assert response.status_code == 200
-    assert response.json() == {'hello':"world"}
+    def mock_after_request(self, execution_context):
+        assert execution_context.response.body == b'{"hello_world":1}'
+        assert execution_context.response.status_code == 200
+        self.prepare_and_send_reports_async(execution_context)
+        ExecutionContextManager.clear()
 
-    assert mock_before_request.called
-    assert mock_after_request.called
+    monkeypatch.setattr(FastapiWrapper, "before_request", mock_before_request)
+    monkeypatch.setattr(FastapiWrapper, "after_request", mock_after_request)
+    response = test_app.get('/1')
 
-
-@mock.patch('thundra.wrappers.fastapi.fastapi_wrapper.FastapiWrapper.before_request')
-@mock.patch('thundra.wrappers.fastapi.fastapi_wrapper.FastapiWrapper.error_handler')
-def test_fastapi_errornous(mock_before_request, mock_error_handler):
+def test_fastapi_errornous(test_app, monkeypatch):
     try:
-        client.get('/error/')
+
+        def mock_error_handler(self, error):
+            execution_context = ExecutionContextManager.get()
+            if error:
+                execution_context.error = error
+
+            self.prepare_and_send_reports_async(execution_context)
+            assert error.type == "RuntimeError"
+            assert error.message == "Test Error"
+
+        monkeypatch.setattr(FastapiWrapper, "error_handler", mock_error_handler)
+
+        test_app.get('/error')
     except:
         "Error thrown in endpoint"
-
-    assert mock_before_request.called
-    assert mock_error_handler.called
-
-
-def test_successful_view():
-    from starlette.requests import Request
-    scope = {
-        'method': 'GET',
-        'type': 'http',
-        'headers': [[b'host', b'asgi-scope.now.sh'],
-             [b'x-now-id', b'fb6gw-1527863960919-mjYC9OJ9WTsfnw4EiRTDmMst'],
-             [b'x-now-log-id', b'mjYC9OJ9WTsfnw4EiRTDmMst'],
-             [b'connection', b'close'],
-             [b'user-agent',
-              b'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:60.0) Gecko'
-              b'/20100101 Firefox/60.0'],
-             [b'accept',
-              b'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q='
-              b'0.8'],
-             [b'accept-language', b'en-US,en;q=0.5'],
-             [b'accept-encoding', b'gzip, deflate, br'],
-             [b'upgrade-insecure-requests', b'1']],
-        'path': '/',
-        'query_string': b'param=1',
-        'server': ('localhost', 8000)
-    }
-    request = Request(scope)
-    wrapper = FastapiWrapper()
-    wrapper.reporter = "fastapi_test"
-    execution_context = wrapper.before_request(scope, None)
-
-    assert execution_context.root_span.operation_name == '/'
-    assert execution_context.root_span.get_tag('http.method') == 'GET'
-    assert execution_context.root_span.get_tag('http.host') == 'localhost'
-    assert execution_context.root_span.get_tag('http.query_params') == b'param=1'
-    assert execution_context.root_span.get_tag('http.path') == '/'
-    assert execution_context.root_span.class_name == constants.ClassNames['FASTAPI']
-    assert execution_context.root_span.domain_name == 'API'
-
-    assert execution_context.tags.get(constants.SpanTags['TRIGGER_OPERATION_NAMES']) == ['localhost/']
-    assert execution_context.tags.get(constants.SpanTags['TRIGGER_DOMAIN_NAME']) == 'API'
-    assert execution_context.tags.get(constants.SpanTags['TRIGGER_CLASS_NAME']) == 'HTTP'
-
-    response = read_request(request)
-    execution_context.response = response
-    wrapper.after_request(execution_context)
-
-    assert execution_context.response == response
-    assert execution_context.response.status_code == 200
-    ExecutionContextManager.clear()
