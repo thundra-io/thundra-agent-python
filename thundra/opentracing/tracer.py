@@ -11,6 +11,7 @@ from thundra.opentracing.propagation.http import HTTPPropagator
 from thundra.opentracing.propagation.text import TextMapPropagator
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
+from thundra.opentracing.context_scope_manager import ContextVarsScopeManager
 from thundra.plugins.trace import trace_support
 
 
@@ -22,7 +23,7 @@ class ThundraTracer(opentracing.Tracer):
         return ThundraTracer(scope_manager) if ThundraTracer.__instance is None else ThundraTracer.__instance
 
     def __init__(self, scope_manager=None):
-        scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
+        scope_manager = ContextVarsScopeManager() # ThreadLocalScopeManager() if scope_manager is None else scope_manager
         super(ThundraTracer, self).__init__(scope_manager)
         self.lock = Lock()
         self.global_span_order = 0
