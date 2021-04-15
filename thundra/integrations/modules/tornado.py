@@ -4,7 +4,6 @@ from thundra import utils, constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.wrappers.tornado.middleware import ThundraMiddleware
-from tornado.web import HTTPError
 
 
 def _init_wrapper(_wrapped, _application, args, kwargs):
@@ -33,8 +32,13 @@ def _log_exception_wrapper(_wrapped, _handler, args, kwargs):
         return _wrapped(*args, **kwargs)
 
     middleware = _handler.settings.get('_thundra_middleware')
-    if not isinstance(value, HTTPError) or 500 <= value.status_code <= 599:
-        middleware.finish(_handler, error=value)
+    try:
+        from tornado.web import HTTPError
+        if not isinstance(value, HTTPError) or 500 <= value.status_code <= 599:
+            middleware.finish(_handler, error=value)
+    except ImportError:
+        error = type('', (object,), {"status_code": 500})()
+        middleware.finish(_handler, error=error)
 
     return _wrapped(*args, **kwargs)
 
