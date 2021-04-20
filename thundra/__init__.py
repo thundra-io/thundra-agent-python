@@ -81,6 +81,7 @@ __all__ = [
     'lambda_wrapper',
     'django_wrapper',
     'flask_wrapper',
+    'fastapi_wrapper',
     'add_incoming_trace_link',
     'add_incoming_trace_links',
     'add_outgoing_trace_link',
