@@ -1,5 +1,6 @@
-import simplejson as json
+import json
 
+from thundra.encoder import to_json
 from thundra import constants
 
 
@@ -27,4 +28,4 @@ class InvocationPlugin:
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'data': execution_context.invocation_data
         }
-        execution_context.report(json.loads(json.dumps(report_data)))
+        execution_context.report(json.loads(to_json(report_data)))

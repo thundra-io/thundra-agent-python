@@ -1,4 +1,3 @@
-import simplejson as json
 import logging
 import concurrent.futures as futures
 
@@ -6,6 +5,7 @@ from thundra.plugins.log.thundra_logger import debug_logger
 from thundra import constants, composite, utils
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from thundra.encoder import to_json
 
 try:
     import requests
@@ -55,7 +55,7 @@ class Reporter:
             else:
                 for report in reports:
                     try:
-                        print(json.dumps(report, separators=(',', ':')))
+                        print(to_json(report, separators=(',', ':')))
                     except TypeError:
                         logger.error(("Couldn't dump report with type {} to json string, "
                                       "probably it contains a byte array").format(report.get('type')))
@@ -94,7 +94,7 @@ class Reporter:
             report_jsons = []
             for report in batch:
                 try:
-                    report_jsons.append(json.dumps(report, separators=(',', ':')))
+                    report_jsons.append(to_json(report, separators=(',', ':')))
                 except TypeError:
                     logger.error(("Couldn't dump report with type {} to json string, "
                                   "probably it contains a byte array").format(report.get('type')))
@@ -120,7 +120,7 @@ class Reporter:
             all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in batch]
             composite_data = composite.get_composite_data(all_monitoring_data, self.api_key, common_fields)
             try:
-                batched_reports.append(json.dumps(composite_data, separators=(',', ':')))
+                batched_reports.append(to_json(composite_data, separators=(',', ':')))
 
             except TypeError:
                 logger.error("Couldn't dump report with type Composite to json string, "

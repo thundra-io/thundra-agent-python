@@ -1,10 +1,11 @@
 import mock
-import simplejson as json
+import json
 
 from thundra import constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.reporter import Reporter
+from thundra.encoder import to_json
 
 
 @mock.patch('thundra.reporter.requests')
@@ -21,7 +22,7 @@ def test_send_report_to_url(mock_requests, mock_report):
         'Authorization': 'ApiKey api key'
     }
 
-    reporter.session.post.assert_called_once_with(post_url, data=json.dumps([mock_report], separators=(',', ':')),
+    reporter.session.post.assert_called_once_with(post_url, data=to_json([mock_report], separators=(',', ':')),
                                                   headers=headers, timeout=constants.DEFAULT_REPORT_TIMEOUT)
     reporter.session.post.return_value.status_code = 200
     for response in responses:
