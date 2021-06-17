@@ -2,13 +2,14 @@ import json
 
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
+from thundra.encoder import to_json
 from thundra.listeners import *
 from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
 from thundra.plugins.trace import trace_support
 
 
 def test_create_empty_span_listener(empty_span_listener):
-    sl_env_var = json.dumps(empty_span_listener)
+    sl_env_var = to_json(empty_span_listener)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support._parse_span_listeners()
@@ -21,7 +22,7 @@ def test_create_empty_span_listener(empty_span_listener):
 
 
 def test_create_span_listener_with_only_listener(span_listener_with_one_listener):
-    sl_env_var = json.dumps(span_listener_with_one_listener)
+    sl_env_var = to_json(span_listener_with_one_listener)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support._parse_span_listeners()
@@ -36,7 +37,7 @@ def test_create_span_listener_with_only_listener(span_listener_with_one_listener
 
 
 def test_create_span_listener_with_only_filterer(span_listener_with_one_filterer):
-    sl_env_var = json.dumps(span_listener_with_one_filterer)
+    sl_env_var = to_json(span_listener_with_one_filterer)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support._parse_span_listeners()
@@ -52,7 +53,7 @@ def test_create_span_listener_with_only_filterer(span_listener_with_one_filterer
 
 
 def test_create_span_listener_with_filterer_and_listener(span_listener_with_filterer_and_listener):
-    sl_env_var = json.dumps(span_listener_with_filterer_and_listener)
+    sl_env_var = to_json(span_listener_with_filterer_and_listener)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support._parse_span_listeners()
@@ -73,7 +74,7 @@ def test_create_span_listener_with_filterer_and_listener(span_listener_with_filt
 
 
 def test_create_span_listener_with_multiple_filter_and_listener(span_listener_with_multiple_filterers_and_listeners):
-    sl_env_var = json.dumps(span_listener_with_multiple_filterers_and_listeners)
+    sl_env_var = to_json(span_listener_with_multiple_filterers_and_listeners)
     ConfigProvider.set(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG, sl_env_var)
 
     trace_support._parse_span_listeners()

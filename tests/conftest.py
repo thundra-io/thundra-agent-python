@@ -86,7 +86,9 @@ def mock_report():
         'apiKey': 'api key',
         'type': 'type',
         'dataFormatVersion': '1.1.1',
-        'data': {}
+        'data': {
+            'response': b'\xff\xd8\xff\xe0\x00\x10JFIF\x00'
+        }
     }
 
 

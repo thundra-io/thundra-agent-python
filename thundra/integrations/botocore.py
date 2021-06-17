@@ -3,7 +3,7 @@ import hashlib
 import uuid
 from datetime import datetime
 
-import simplejson as json
+import json
 from dateutil.parser import parse
 
 import thundra.constants as constants
@@ -11,6 +11,7 @@ import thundra.utils as utils
 from thundra.compat import PY37
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
+from thundra.encoder import to_json
 from thundra.integrations.base_integration import BaseIntegration
 
 OPERATION_TYPE_MAPPING_PATTERNS = utils.get_compiled_operation_type_patterns()
@@ -689,7 +690,7 @@ class AWSStepFunctionIntegration(BaseIntegration):
                     "step": 0
                 }
                 scope.span.set_tag(constants.AwsStepFunctionsTags['EXECUTION_INPUT'], orig_input)
-                request_data['input'] = json.dumps(parsed_input)
+                request_data['input'] = to_json(parsed_input)
                 scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [trace_link])
                 scope.span.resource_trace_links = [trace_link]
         except:
