@@ -44,6 +44,7 @@ class ThundraMiddleware(object):
 
         try:
             scope["thundra_execution_context"] = self._wrapper.before_request(scope, None)
+            execution_context = scope["thundra_execution_context"]
         except Exception as e:
             logger.error("Error during the before part of Thundra fastapi: {}".format(e))
 
@@ -58,25 +59,25 @@ class ThundraMiddleware(object):
                 if "status" in message and message.get("status") == RESPONSE_REDIRECT_STATUS_CODE:
                     scope["res_redirected"] = True
                 if message and message.get("type") == "http.response.start" and message.get("status") != 307:
-                    scope["thundra_execution_context"].response = message
-                    scope["thundra_execution_context"].response["body"] = b""
+                    execution_context.response = message
+                    execution_context.response["body"] = b""
                     scope["res_redirected"] = False
                 elif message and message.get("type") == "http.response.body" and not scope["res_redirected"]:
-                    if scope["thundra_execution_context"].response["body"]:
-                        scope["thundra_execution_context"].response["body"] += message.get("body")
+                    if execution_context.response["body"]:
+                        execution_context.response["body"] += message.get("body")
                     else:
-                        scope["thundra_execution_context"].response["body"] = message.get("body")
+                        execution_context.response["body"] = message.get("body")
                     try:
                         if not message.get("more_body") or message.get("more_body") == False:
-                            scope["thundra_execution_context"].response = {
-                                "status_code": scope["thundra_execution_context"].response.get("status"),
-                                "headers": extract_headers(scope["thundra_execution_context"].response),
-                                "body": scope["thundra_execution_context"].response.get("body") if scope["thundra_execution_context"].response.get("body") else None
+                            execution_context.response = {
+                                "status_code": execution_context.response.get("status"),
+                                "headers": extract_headers(execution_context.response),
+                                "body": execution_context.response.get("body") if execution_context.response.get("body") else None
                             }
-                            self._wrapper.after_request(scope["thundra_execution_context"])
+                            self._wrapper.after_request(execution_context)
                     except Exception as e:
                         try:
-                            handle_error(e, self._wrapper.error_handler, scope["thundra_execution_context"])
+                            handle_error(e, self._wrapper.error_handler, execution_context)
                         except Exception as exc:
                             logger.error("Error during the after part of Thundra fastapi: {}".format(exc))
             except Exception as e:
@@ -99,12 +100,12 @@ class ThundraMiddleware(object):
                 try:
                     if "body" in req:
                         req_body = req.get("body", b"")
-                        if scope["thundra_execution_context"].platform_data["request"]["body"]:
-                            scope["thundra_execution_context"].platform_data["request"]["body"] += req_body
+                        if execution_context.platform_data["request"]["body"]:
+                            execution_context.platform_data["request"]["body"] += req_body
                         else:
-                            scope["thundra_execution_context"].platform_data["request"]["body"] = req_body
+                            execution_context.platform_data["request"]["body"] = req_body
                         if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, True):
-                            scope["thundra_execution_context"].root_span.set_tag(constants.HttpTags['BODY'], scope["thundra_execution_context"].platform_data["request"]["body"])
+                            execution_context.root_span.set_tag(constants.HttpTags['BODY'], execution_context.platform_data["request"]["body"])
                 except Exception as e:
                     logger.error("Error during getting req body in fast api: {}".format(e))
 
@@ -122,7 +123,7 @@ class ThundraMiddleware(object):
                 req = await receive()
             except Exception as e:
                 try:
-                    handle_error(e, self._wrapper.error_handler, scope["thundra_execution_context"])
+                    handle_error(e, self._wrapper.error_handler, execution_context)
                 except Exception as exc:
                     logger.error("Error during receive request fast api asgi function: {}".format(exc))
                 raise e
@@ -133,7 +134,7 @@ class ThundraMiddleware(object):
             await self.app(scope, wrapped_receive, wrapped_send)
         except Exception as e:
             try:
-                handle_error(e, self._wrapper.error_handler, scope["thundra_execution_context"])
+                handle_error(e, self._wrapper.error_handler, execution_context)
             except Exception as exc:
                 logger.error("Error in the app fastapi: {}".format(exc))
             raise e

@@ -82,6 +82,7 @@ class FastapiWrapper(BaseWrapper):
             try:
                 req_body = request._body if hasattr(request, "_body") else None
                 request.scope["thundra_execution_context"] = self.before_request(request.scope, req_body)
+                execution_context = request.scope["thundra_execution_context"]
             except Exception as e:
                 logger.error('Error during the before part of Thundra: {}'.format(e))
                 if inspect.iscoroutinefunction(original_func):
@@ -102,14 +103,14 @@ class FastapiWrapper(BaseWrapper):
                         'message': str(e),
                         'traceback': traceback.format_exc()
                     }
-                    self.error_handler(error, request.scope["thundra_execution_context"])
+                    self.error_handler(error, execution_context)
                 except Exception as e_in:
                     logger.error("Error during the after part of Thundra: {}".format(e_in))
                 raise e
 
             try:
-                request.scope["thundra_execution_context"].response = response
-                self.after_request(request.scope["thundra_execution_context"])
+                execution_context.response = response
+                self.after_request(execution_context)
             except Exception as e:
                 logger.error("Error during the after part of Thundra: {}".format(e))
             return response
