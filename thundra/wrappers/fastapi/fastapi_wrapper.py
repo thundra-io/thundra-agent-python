@@ -97,7 +97,7 @@ class FastapiWrapper(BaseWrapper):
 
             try:
                 request.scope["thundra_execution_context"].response = response
-                self.after_request(request.state["thundra_execution_context"])
+                self.after_request(request.scope["thundra_execution_context"])
             except Exception as e:
                 logger.error("Error during the after part of Thundra: {}".format(e))
             return response
