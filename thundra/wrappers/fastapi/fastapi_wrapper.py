@@ -55,8 +55,7 @@ class FastapiWrapper(BaseWrapper):
     def after_request(self, execution_context):
         self.prepare_and_send_reports_async(execution_context)
 
-    def error_handler(self, error):
-        execution_context = ExecutionContextManager.get()
+    def error_handler(self, error, execution_context):
         if error:
             execution_context.error = error
 
@@ -65,6 +64,8 @@ class FastapiWrapper(BaseWrapper):
         
 
     def __call__(self, original_func):
+
+        import inspect
         if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
             return original_func
 
@@ -72,18 +73,29 @@ class FastapiWrapper(BaseWrapper):
         async def wrapper(*args, **kwargs):
             request = kwargs.get("request")
             if request is None or getattr(request, '_thundra_wrapped', False):
-                return await original_func(*args, **kwargs)
+                if inspect.iscoroutinefunction(original_func):
+                    return await original_func(*args, **kwargs)
+                else:
+                    return original_func(*args, **kwargs)
+
             setattr(request, '_thundra_wrapped', True)
             try:
                 req_body = request._body if hasattr(request, "_body") else None
-                execution_context = self.before_request(request.scope, req_body)
+                request.scope["thundra_execution_context"] = self.before_request(request.scope, req_body)
+                execution_context = request.scope["thundra_execution_context"]
             except Exception as e:
                 logger.error('Error during the before part of Thundra: {}'.format(e))
-                return await original_func(*args, **kwargs)
+                if inspect.iscoroutinefunction(original_func):
+                    return await original_func(*args, **kwargs)
+                else:
+                    return original_func(*args, **kwargs)
 
             response = None
             try:
-                response = await original_func(*args, **kwargs)
+                if inspect.iscoroutinefunction(original_func):
+                    response = await original_func(*args, **kwargs)
+                else:
+                    response = original_func(*args, **kwargs)
             except Exception as e:
                 try:
                     error = {
@@ -91,13 +103,12 @@ class FastapiWrapper(BaseWrapper):
                         'message': str(e),
                         'traceback': traceback.format_exc()
                     }
-                    self.error_handler(error)
+                    self.error_handler(error, execution_context)
                 except Exception as e_in:
                     logger.error("Error during the after part of Thundra: {}".format(e_in))
                 raise e
 
             try:
-                execution_context = ExecutionContextManager.get()
                 execution_context.response = response
                 self.after_request(execution_context)
             except Exception as e:
