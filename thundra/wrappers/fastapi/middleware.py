@@ -1,10 +1,6 @@
 from thundra.wrappers.fastapi.fastapi_wrapper import FastapiWrapper, logger
 from thundra.config import config_names
 
-from starlette.requests import Request
-from starlette.background import BackgroundTask
-
-from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.wrappers.fastapi.fastapi_utils import extract_headers
 
 from thundra.config.config_provider import ConfigProvider
