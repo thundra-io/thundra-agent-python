@@ -3,7 +3,6 @@ from threading import Lock
 
 import opentracing
 from opentracing import Format
-from opentracing.scope_managers import ThreadLocalScopeManager
 
 from thundra import constants
 from thundra.context.execution_context_manager import ExecutionContextManager
@@ -13,15 +12,12 @@ from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
 
+from thundra.utils import arrange_scope_manager
+
 
 class ThundraTracer(opentracing.Tracer):
     __instance = None
-
-
-    @staticmethod
-    def create_instance(scope_manager=ThreadLocalScopeManager()):
-        return ThundraTracer(scope_manager)
-
+    
 
     @staticmethod
     def get_instance():
@@ -29,7 +25,7 @@ class ThundraTracer(opentracing.Tracer):
 
 
     def __init__(self, scope_manager=None):
-        scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
+        scope_manager = arrange_scope_manager(scope_manager)
         super(ThundraTracer, self).__init__(scope_manager)
         self.lock = Lock()
         self.global_span_order = 0
