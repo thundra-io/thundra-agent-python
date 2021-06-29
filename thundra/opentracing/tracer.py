@@ -16,12 +16,7 @@ from thundra.plugins.trace import trace_support
 
 class ThundraTracer(opentracing.Tracer):
     __instance = None
-
-
-    @staticmethod
-    def create_instance(scope_manager=ThreadLocalScopeManager()):
-        return ThundraTracer(scope_manager)
-
+    
 
     @staticmethod
     def get_instance():
