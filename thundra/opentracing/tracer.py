@@ -3,7 +3,6 @@ from threading import Lock
 
 import opentracing
 from opentracing import Format
-from opentracing.scope_managers import ThreadLocalScopeManager
 
 from thundra import constants
 from thundra.context.execution_context_manager import ExecutionContextManager
@@ -12,6 +11,8 @@ from thundra.opentracing.propagation.text import TextMapPropagator
 from thundra.opentracing.span import ThundraSpan
 from thundra.opentracing.span_context import ThundraSpanContext
 from thundra.plugins.trace import trace_support
+
+from thundra.utils import arrange_scope_manager
 
 
 class ThundraTracer(opentracing.Tracer):
@@ -24,13 +25,7 @@ class ThundraTracer(opentracing.Tracer):
 
 
     def __init__(self, scope_manager=None):
-        import sys
-        if scope_manager is None:
-            if (sys.version_info[0] > 3) or (sys.version_info[0] == 3 and (sys.version_info[1] >= 6 and sys.version_info[2] != 0)):
-                from opentracing.scope_managers.contextvars import ContextVarsScopeManager
-                scope_manager = ContextVarsScopeManager()
-            else:
-                scope_manager = ThreadLocalScopeManager()
+        scope_manager = arrange_scope_manager(scope_manager)
         super(ThundraTracer, self).__init__(scope_manager)
         self.lock = Lock()
         self.global_span_order = 0

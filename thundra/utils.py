@@ -4,6 +4,7 @@ import re
 
 from thundra import constants
 from thundra.compat import urlparse
+from opentracing.scope_managers import ThreadLocalScopeManager
 
 logger = logging.getLogger(__name__)
 
@@ -287,6 +288,20 @@ def parse_http_url(url, url_path_depth):
     except Exception:
         pass
     return url_dict
+
+
+def arrange_scope_manager(scope_manager):
+    if scope_manager is None:
+        try:
+            import sys
+            if (sys.version_info[0] > 3) or (sys.version_info[0] == 3 and (sys.version_info[1] >= 6 and sys.version_info[2] != 0)):
+                from opentracing.scope_managers.contextvars import ContextVarsScopeManager
+                scope_manager = ContextVarsScopeManager()
+            else:
+                scope_manager = ThreadLocalScopeManager()
+        except Exception:
+            scope_manager = ThreadLocalScopeManager()
+    return scope_manager
 
 
 # Excluded url's
