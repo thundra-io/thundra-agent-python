@@ -1,7 +1,3 @@
-import fastapi
-from fastapi.routing import APIRoute
-from fastapi.middleware import Middleware
-
 import wrapt
 
 from thundra import utils, constants
@@ -24,6 +20,7 @@ def _wrapper(wrapped, instance, args, kwargs):
         args (list): Wrapped function list of arguments
         kwargs (dict): Wrapped function key:value arguments
     """
+    from fastapi.middleware import Middleware
     middlewares = kwargs.pop("middleware", [])
     middlewares.insert(0, Middleware(ThundraMiddleware))
     kwargs.update({"middleware": middlewares})
