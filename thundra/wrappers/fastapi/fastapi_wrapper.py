@@ -3,7 +3,7 @@ import logging
 from thundra import constants
 
 from thundra.opentracing.tracer import ThundraTracer
-from opentracing.scope_managers.asyncio import AsyncioScopeManager
+from opentracing.scope_managers.contextvars import ContextVarsScopeManager
 from thundra.wrappers.base_wrapper import BaseWrapper
 
 from thundra.config.config_provider import ConfigProvider
@@ -27,7 +27,7 @@ class FastapiWrapper(BaseWrapper):
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
         super(FastapiWrapper, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         self.application_info_provider = GlobalApplicationInfoProvider()
-        ThundraTracer.create_instance(AsyncioScopeManager())
+        ThundraTracer.create_instance(ContextVarsScopeManager())
         ExecutionContextManager.set_provider(TracingExecutionContextProvider())
         self.plugin_context = PluginContext(application_info=self.application_info_provider.get_application_info(),
                                             request_count=0,
