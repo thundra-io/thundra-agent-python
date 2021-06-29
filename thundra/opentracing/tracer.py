@@ -29,7 +29,16 @@ class ThundraTracer(opentracing.Tracer):
 
 
     def __init__(self, scope_manager=None):
-        scope_manager = ThreadLocalScopeManager() if scope_manager is None else scope_manager
+        import sys
+        if scope_manager is None:
+            print(sys.version_info)
+            if (sys.version_info[0] > 3) or (sys.version_info[0] == 3 and (sys.version_info[1] >= 6 and sys.version_info[2] != 0)):
+                from opentracing.scope_managers.contextvars import ContextVarsScopeManager
+                scope_manager = ContextVarsScopeManager()
+                print("context")
+            else:
+                print("thread")
+                scope_manager = ThreadLocalScopeManager()
         super(ThundraTracer, self).__init__(scope_manager)
         self.lock = Lock()
         self.global_span_order = 0
