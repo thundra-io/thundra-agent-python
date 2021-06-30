@@ -22,7 +22,7 @@ def get_version(rel_path):
 setup(name='thundra',
       version=get_version('thundra/_version.py'),
       description='Thundra Python agent',
-      url='https://github.com/thundra-io/thundra-lambda-agent-python',
+      url='https://github.com/thundra-agent-python',
       author='Thundra',
       author_email='python@thundra.io',
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*',
