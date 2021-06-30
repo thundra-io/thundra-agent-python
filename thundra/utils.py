@@ -294,7 +294,7 @@ def arrange_scope_manager(scope_manager):
     if scope_manager is None:
         try:
             import sys
-            if (sys.version_info[0] > 3) or (sys.version_info[0] == 3 and (sys.version_info[1] >= 6 and sys.version_info[2] != 0)):
+            if (sys.version_info[0] > 3) or (sys.version_info[0] == 3 and (sys.version_info[1] >= 7 and sys.version_info[2] != 0)):
                 from opentracing.scope_managers.contextvars import ContextVarsScopeManager
                 scope_manager = ContextVarsScopeManager()
             else:
