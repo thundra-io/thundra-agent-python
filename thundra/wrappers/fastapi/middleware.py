@@ -39,6 +39,7 @@ class ThundraMiddleware(object):
             return await self.app(scope, receive, send)
 
         try:
+            scope["_thundra_wrapped"] = True
             scope["thundra_execution_context"] = self._wrapper.before_request(scope, None)
             execution_context = scope["thundra_execution_context"]
         except Exception as e:
