@@ -18,7 +18,7 @@ do
     echo "Releasing '$LAYER_NAME' layer for region $REGION ..."
 
     ARTIFACT_BUCKET=$BUCKET_PREFIX-$REGION
-    ARTIFACT_OBJECT=layers/python/thundra-lambda-layer-$VERSION.zip
+    ARTIFACT_OBJECT=layers/python/thundra-agent-layer-$VERSION.zip
 
     echo "Publishing '$LAYER_NAME' layer from artifact $ARTIFACT_OBJECT" \
          " at bucket $ARTIFACT_BUCKET ..."
