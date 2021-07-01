@@ -70,13 +70,13 @@ class FastapiWrapper(BaseWrapper):
         @wraps(original_func)
         async def wrapper(*args, **kwargs):
             request = kwargs.get("request")
-            if request is None or getattr(request, '_thundra_wrapped', False):
+            if request is None or request.scope.get('_thundra_wrapped', False):
                 if inspect.iscoroutinefunction(original_func):
                     return await original_func(*args, **kwargs)
                 else:
                     return original_func(*args, **kwargs)
 
-            setattr(request, '_thundra_wrapped', True)
+            request.scope['_thundra_wrapped'] = True
             try:
                 req_body = request._body if hasattr(request, "_body") else None
                 request.scope["thundra_execution_context"] = self.before_request(request.scope, req_body)
