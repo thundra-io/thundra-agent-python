@@ -3,7 +3,6 @@ import wrapt
 from thundra import utils, constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.wrappers.fastapi.middleware import ThundraMiddleware
 
 def _wrapper(wrapped, instance, args, kwargs):
     """Set middleware to trace Fast api. Fastapi has been built on starlett and pydantic frameworks.
@@ -21,6 +20,7 @@ def _wrapper(wrapped, instance, args, kwargs):
         kwargs (dict): Wrapped function key:value arguments
     """
     from fastapi.middleware import Middleware
+    from thundra.wrappers.fastapi.middleware import ThundraMiddleware
     middlewares = kwargs.pop("middleware", [])
     middlewares.insert(0, Middleware(ThundraMiddleware))
     kwargs.update({"middleware": middlewares})
