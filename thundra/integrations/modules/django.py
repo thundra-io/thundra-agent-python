@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import wrapt
 
 from thundra import utils, constants

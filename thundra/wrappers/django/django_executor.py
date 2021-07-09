@@ -4,17 +4,29 @@ from thundra.wrappers import wrapper_utils, web_wrapper_utils
 
 def start_trace(plugin_context, execution_context, tracer):
     request = execution_context.platform_data['request']
-    request_route_path = str(
-        request.resolver_match.route) if request.resolver_match and request.resolver_match.route else None
-
-    request = {
-        'method': request.method,
-        'host': request.get_host().split(':')[0],
-        'query_params': request.GET,
-        'body': request.body,
-        'headers': request.headers,
-        'path': request.path
-    }
+    import sys
+    if sys.version_info[0] >= 3:
+        request_route_path = str(
+            request.resolver_match.route) if request.resolver_match and request.resolver_match.route else None
+        request = {
+            'method': request.method,
+            'host': request.get_host().split(':')[0],
+            'query_params': request.GET,
+            'body': request.body,
+            'headers': request.headers,
+            'path': request.path
+        }
+    else:
+        request_route_path = str(
+            request.resolver_match.url_name) if request.resolver_match and request.resolver_match.url_name else None
+        request = {
+            'method': request.method,
+            'host': request.get_host().split(':')[0],
+            'query_params': request.GET,
+            'body': request.body,
+            'headers': request.META,
+            'path': request.path
+        }
     web_wrapper_utils.start_trace(execution_context, tracer, 'Django', 'API', request, request_route_path)
 
 

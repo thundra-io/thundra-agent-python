@@ -36,7 +36,11 @@ class ThundraMiddleware(object):
         execution_context = ExecutionContextManager.get()
         if request.resolver_match:
             request_host = request.get_host().split(':')[0]
-            process_request_route(execution_context, request.resolver_match.route, request_host)
-
+            import sys
+            if sys.version_info[0] >= 3:
+                process_request_route(execution_context, request.resolver_match.route, request_host)
+            else:
+                process_request_route(execution_context, request.resolver_match.url_name, request_host)
+            
     def process_exception(self, request, exception):
         self._wrapper.process_exception(exception)
