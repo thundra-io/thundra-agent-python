@@ -1,7 +1,7 @@
 # Thundra Agent Python For Tracing
 
 [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
-[![Pyversions](https://img.shields.io/pypi/pyversions/thundra.svg?style|flat)](https://pypi.org/project/thundra/)
+[![Pyversions](https://img.shields.io/pypi/pyversions/thundra.svg?style=flat)](https://pypi.org/project/thundra/)
 [![PyPI](https://img.shields.io/pypi/v/thundra.svg)](https://pypi.org/project/thundra/)
 
 Trace your marvelous python projects with async monitoring by [Thundra](https://start.thundra.me/)!
@@ -74,15 +74,15 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 
 The simplest way to auto trace configuration of all your endpoints into project by setting following environment variables:
 ```sh
-export THUNDRA_APIKEY  |<your_thundra_api_key>
-export THUNDRA_APPLICATION_NAME|<your_application_name>
+export THUNDRA_APIKEY=<your_thundra_api_key>
+export THUNDRA_APPLICATION_NAME=<your_application_name>
 <python command>
 ```
 
 For illustration of Fastapi:
 ```sh
-export THUNDRA_APIKEY  |<your_thundra_api_key>
-export THUNDRA_APPLICATION_NAME|fastapi-prod
+export THUNDRA_APIKEY=<your_thundra_api_key>
+export THUNDRA_APPLICATION_NAME=fastapi-prod
 uvicorn main:app --reload
 ```
 
@@ -97,7 +97,7 @@ Another simple alternative is to copy the snippet into your code before your app
 import thundra
 
 thundra.configure(
-     options   |{
+     options={
          "config": {
              "thundra.apikey": <your_thundra_api_key>,
              "thundra.agent.application.name": <your_application_name>
@@ -116,7 +116,7 @@ Just import this module, pass your api key to it and use our decorator to wrap y
 import thundra
 
 thundra.configure(
-     options   |{
+     options={
          "config": {
              "thundra.apikey": <your_thundra_api_key>,
              "thundra.agent.application.name": <your_application_name>
@@ -132,8 +132,8 @@ def handler(event, context):
 OR
 
 ```sh
-export THUNDRA_APIKEY  |<your_thundra_api_key>
-export THUNDRA_APPLICATION_NAME|<your_application_name>
+export THUNDRA_APIKEY=<your_thundra_api_key>
+export THUNDRA_APPLICATION_NAME=<your_application_name>
 ```
 
 ```python
@@ -151,7 +151,7 @@ To run on your framework please refer to [supported frameworks](#frameworks)
 Normally thundra does not get your project's requests' body. In order to see request body on tracing data, following environment variable shall be set besides api key and application name:
 
 ```sh
-export THUNDRA_TRACE_REQUEST_SKIP  |True
+export THUNDRA_TRACE_REQUEST_SKIP=True
 ```
 
 OR
@@ -160,7 +160,7 @@ OR
 import thundra
 
 thundra.configure(
-     options   |{
+     options={
          "config": {
              "thundra.apikey": <your_thundra_api_key>,
              "thundra.agent.application.name": <your_application_name>,
@@ -177,10 +177,10 @@ The following frameworks are supported by Thundra:
 |Framework                               |Supported Version          |Auto-tracing Supported                               |
 |----------------------------------------|---------------------------|-----------------------------------------------------|
 |[AWS Lambda](#aws-lambda)               |All                        |<ul><li>- [x] </li></ul>                             |
-|[Django](#django)                       |`>   |1.11`                   |<ul><li>- [x] </li></ul>                             |
-|[Flask](#flask)                         |`>   |0.5`                    |<ul><li>- [x] </li></ul>                             |
-|[Fastapi](#fastapi)                     |`>   |0.62.0`                 |<ul><li>- [x] </li></ul>                             |
-|[Chalice](#chalice)                     |`>   |1.0.0`                  |<ul><li>- [x] </li></ul>                             |
+|[Django](#django)                       |`>=1.11`                   |<ul><li>- [x] </li></ul>                             |
+|[Flask](#flask)                         |`>=0.5`                    |<ul><li>- [x] </li></ul>                             |
+|[Fastapi](#fastapi)                     |`>=0.62.0`                 |<ul><li>- [x] </li></ul>                             |
+|[Chalice](#chalice)                     |`>=1.0.0`                  |<ul><li>- [x] </li></ul>                             |
 
 ### AWS Lambda
 
@@ -211,8 +211,8 @@ To trace django database processes, following environment variables shall be set
 - [No-Code Change Tracing](#no-code-change-tracing):
     
     ```sh
-    export THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE |false
-    export THUNDRA_AGENT_TRACE_INTEGRATIONS_RDB_DISABLE|false
+    export THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE=false
+    export THUNDRA_AGENT_TRACE_INTEGRATIONS_RDB_DISABLE=false
     ```
 
 - [In-Code Configuration Tracing](#in-code-configuration-tracing):
@@ -221,7 +221,7 @@ To trace django database processes, following environment variables shall be set
     import thundra
 
     thundra.configure(
-        options|{
+        options={
             "config": {
                 "thundra.apikey": <your_thundra_api_key>,
                 "thundra.agent.application.name": <your_application_name>,
@@ -295,16 +295,16 @@ Thundra provides out-of-the-box instrumentation (tracing) for following librarie
 |Library             |Supported Version          |
 |--------------------|---------------------------|
 |logging             |Fully supported            |
-|requests            |`>   |2.0.0`                  |
-|redis               |`>   |2.10.0`                 |
-|pymongo             |`>   |3.0.0`                  |
-|PyMySQL             |`>   |0.7.0`                  |
-|MySQLdb             |`>   |1.0.0`                  |
-|psycopg2            |`>   |2.2.0`                  |
-|botocore (boto3)    |`>   |1.4.0`                  |
-|SQLAlchemy          |`>   |1.2.0`                  |
-|elasticsearch       |`>   |0.4.1`                  |
-|aiohttp             |`>   |1.1.5`                  |
+|requests            |`>=2.0.0`                  |
+|redis               |`>=2.10.0`                 |
+|pymongo             |`>=3.0.0`                  |
+|PyMySQL             |`>=0.7.0`                  |
+|MySQLdb             |`>=1.0.0`                  |
+|psycopg2            |`>=2.2.0`                  |
+|botocore (boto3)    |`>=1.4.0`                  |
+|SQLAlchemy          |`>=1.2.0`                  |
+|elasticsearch       |`>=0.4.1`                  |
+|aiohttp             |`>=1.1.5`                  |
 
 
 ## Log Plugin
@@ -317,33 +317,33 @@ An example of configuration file is as follows:
 
 ```
 [loggers]
-keys   |root
+keys=root
 
 [handlers]
-keys   |thundraHandler
+keys=thundraHandler
 
 [formatters]
-keys   |simpleFormatter
+keys=simpleFormatter
 
 [logger_root]
-level  |NOTSET
-handlers   |thundraHandler
+level=NOTSET
+handlers=thundraHandler
 
 [handler_thundraHandler]
-class  |ThundraLogHandler
-level  |NOTSET
-formatter  |simpleFormatter
-args   |()
+class=ThundraLogHandler
+level=NOTSET
+formatter=simpleFormatter
+args=()
 
 [formatter_simpleFormatter]
-format |%(asctime)s - %(name)s - %(levelname)s - %(message)s
-datefmt|
+format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
+datefmt=
 ```
 
 #### Configure during getting logger object
 You should add the followings after getting the logger object:
 ```python
-handler    | ThundraLogHandler()
+handler = ThundraLogHandler()
 logger.addHandler(handler)
 ...
 logger.removeHandler(handler)
