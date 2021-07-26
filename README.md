@@ -312,7 +312,7 @@ Log plugin is added by default, but in order to enable it, you should add `Thund
 
 You can either add it via logging.conf or add during getting logger object.
 
-#### Configurepy test via logging.conf
+#### Configure via logging.conf
 An example of configuration file is as follows:
 
 ```
