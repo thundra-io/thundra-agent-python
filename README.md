@@ -225,8 +225,8 @@ To trace django database processes, following environment variables shall be set
             "config": {
                 "thundra.apikey": <your_thundra_api_key>,
                 "thundra.agent.application.name": <your_application_name>,
-                "thundra.agent.trace.integrations.django.orm.disable": True,
-                "thundra.agent.trace.integrations.rdb.disable": True
+                "thundra.agent.trace.integrations.django.orm.disable": False,
+                "thundra.agent.trace.integrations.rdb.disable": False
             }
         }
     )
