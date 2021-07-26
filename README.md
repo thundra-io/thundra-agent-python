@@ -22,6 +22,7 @@ Instead, you can [setup async monitoring](https://apm.docs.thundra.io/performanc
   - [Request Body](#request-body)
 - [Frameworks](#frameworks)
 - [Integrations](#integrations)
+- [Log Plugin](#log-plugin)
 - [Getting Help](#getting-help)
 - [Opening Issues](#opening-issues)
 
@@ -44,18 +45,17 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 
 | Name                                          | Type   |          Default Value           |
 |:----------------------------------------------|:------:|:--------------------------------:|
-| thundra_apiKey                                | string |                -                 |
-| thundra_agent_application_name                | string |                -                 |
-| thundra_agent_lambda_disable                  |  bool  |              false               |
-| thundra_agent_lambda_application_stage        | string |                -                 |
-| thundra_agent_lambda_trace_disable            |  bool  |              false               |
-| thundra_agent_lambda_metric_disable           |  bool  |              false               |
-| thundra_agent_lambda_log_disable              |  bool  |              false               |
-| thundra_agent_trace_request_skip              |  bool  |              false               |
-| thundra_agent_trace_response_skip             |  bool  |              false               |
-| thundra_agent_lambda_timeout_margin           |  int   |               200                |
-| thundra_agent_lambda_report_rest_baseUrl      | string |     https://api.thundra.io/v1    |
-| thundra_agent_lambda_report_cloudwatch_enable |  bool  |              false               |
+| THUNDRA_APIKEY                                | string |                -                 |
+| THUNDRA_APPLICATION_NAME                      | string |                -                 |
+| THUNDRA_APPLICATION_STAGE                     | string |                -                 |
+| THUNDRA_TRACE_DISABLE                         |  bool  |              false               |
+| THUNDRA_METRIC_DISABLE                        |  bool  |              false               |
+| THUNDRA_LOG_DISABLE                           |  bool  |              false               |
+| THUNDRA_TRACE_REQUEST_SKIP                    |  bool  |              false               |
+| THUNDRA_TRACE_RESPONSE_SKIP                   |  bool  |              false               |
+| THUNDRA_LAMBDA_TIMEOUT_MARGIN                 |  int   |               200                |
+| THUNDRA_REPORT_REST_BASEURL                   | string |     https://api.thundra.io/v1    |
+| THUNDRA_REPORT_CLOUDWATCH_ENABLE              |  bool  |              false               |
 
 
 #### 2. Object initialization parameters
@@ -74,14 +74,14 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 The simplest way to auto trace configuration of all your endpoints into project by setting following environment variables:
 ```sh
 export THUNDRA_APIKEY =<your_thundra_api_key>
-export THUNDRA_AGENT_APPLICATION_NAME=<app-name>
+export THUNDRA_APPLICATION_NAME=<app-name>
 <python command>
 ```
 
 For illustration of Fastapi:
 ```sh
 export THUNDRA_APIKEY =<your_thundra_api_key>
-export THUNDRA_AGENT_APPLICATION_NAME=fastapi-prod
+export THUNDRA_APPLICATION_NAME=fastapi-prod
 uvicorn main:app --reload
 ```
 
@@ -132,7 +132,7 @@ OR
 
 ```sh
 export THUNDRA_APIKEY =<your_thundra_api_key>
-export THUNDRA_AGENT_APPLICATION_NAME=<your_application_name>
+export THUNDRA_APPLICATION_NAME=<your_application_name>
 ```
 
 ```python
@@ -171,7 +171,7 @@ thundra.configure(
 
 ## Frameworks
 
-The following frameworks are supported by Epsagon:
+The following frameworks are supported by Thundra:
 
 |Framework                               |Supported Version          |Auto-tracing Supported                               |
 |----------------------------------------|---------------------------|-----------------------------------------------------|
@@ -205,13 +205,13 @@ Tracing Django application:
 2. Trace specific endpoints by [Decorator](#decorator)
 
 Code snippet in [In-Code Configuration Tracing](#in-code-configuration-tracing) should be added into `settings.py` file.
-To trace django database processes, following environment variables shall be set to true:
+To trace django database processes, following environment variables shall be set to false:
 
 - [No-Code Change Tracing](#no-code-change-tracing):
     
     ```sh
-    export THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE=true
-    export THUNDRA_AGENT_TRACE_INTEGRATIONS_RDB_DISABLE=true
+    export THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE=false
+    export THUNDRA_AGENT_TRACE_INTEGRATIONS_RDB_DISABLE=false
     ```
 
 - [In-Code Configuration Tracing](#in-code-configuration-tracing):
@@ -311,7 +311,7 @@ Log plugin is added by default, but in order to enable it, you should add `Thund
 
 You can either add it via logging.conf or add during getting logger object.
 
-#### Configurepy tes via logging.conf
+#### Configurepy test via logging.conf
 An example of configuration file is as follows:
 
 ```
