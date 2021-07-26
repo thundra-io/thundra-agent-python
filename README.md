@@ -1,7 +1,7 @@
 # Thundra Agent Python For Tracing
 
 [![OpenTracing Badge](https://img.shields.io/badge/OpenTracing-enabled-blue.svg)](http://opentracing.io)
-[![Pyversions](https://img.shields.io/pypi/pyversions/thundra.svg?style=flat)](https://pypi.org/project/thundra/)
+[![Pyversions](https://img.shields.io/pypi/pyversions/thundra.svg?style|flat)](https://pypi.org/project/thundra/)
 [![PyPI](https://img.shields.io/pypi/v/thundra.svg)](https://pypi.org/project/thundra/)
 
 Trace your marvelous python projects with async monitoring by [Thundra](https://start.thundra.me/)!
@@ -25,8 +25,9 @@ Instead, you can [setup async monitoring](https://apm.docs.thundra.io/performanc
 - [Log Plugin](#log-plugin)
 - [Getting Help](#getting-help)
 - [Opening Issues](#opening-issues)
+- [All Environment Variables](#all-environment-variables)
 
-
+  
 ## Installation
 
 Run this command from your project directory:
@@ -41,7 +42,7 @@ Environment variables have **higher precedence** over initialization parameters.
 
 Check out the [configuration part](https://docs.thundra.io/python/configuration-options) of our docs for more detailed information.
 
-#### 1. Environment variables
+#### 1. Most Useful Environment variables
 
 | Name                                          | Type   |          Default Value           |
 |:----------------------------------------------|:------:|:--------------------------------:|
@@ -73,15 +74,15 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 
 The simplest way to auto trace configuration of all your endpoints into project by setting following environment variables:
 ```sh
-export THUNDRA_APIKEY =<your_thundra_api_key>
-export THUNDRA_APPLICATION_NAME=<app-name>
+export THUNDRA_APIKEY  |<your_thundra_api_key>
+export THUNDRA_APPLICATION_NAME|<your_application_name>
 <python command>
 ```
 
 For illustration of Fastapi:
 ```sh
-export THUNDRA_APIKEY =<your_thundra_api_key>
-export THUNDRA_APPLICATION_NAME=fastapi-prod
+export THUNDRA_APIKEY  |<your_thundra_api_key>
+export THUNDRA_APPLICATION_NAME|fastapi-prod
 uvicorn main:app --reload
 ```
 
@@ -96,7 +97,7 @@ Another simple alternative is to copy the snippet into your code before your app
 import thundra
 
 thundra.configure(
-     options={
+     options   |{
          "config": {
              "thundra.apikey": <your_thundra_api_key>,
              "thundra.agent.application.name": <your_application_name>
@@ -115,7 +116,7 @@ Just import this module, pass your api key to it and use our decorator to wrap y
 import thundra
 
 thundra.configure(
-     options={
+     options   |{
          "config": {
              "thundra.apikey": <your_thundra_api_key>,
              "thundra.agent.application.name": <your_application_name>
@@ -131,8 +132,8 @@ def handler(event, context):
 OR
 
 ```sh
-export THUNDRA_APIKEY =<your_thundra_api_key>
-export THUNDRA_APPLICATION_NAME=<your_application_name>
+export THUNDRA_APIKEY  |<your_thundra_api_key>
+export THUNDRA_APPLICATION_NAME|<your_application_name>
 ```
 
 ```python
@@ -150,7 +151,7 @@ To run on your framework please refer to [supported frameworks](#frameworks)
 Normally thundra does not get your project's requests' body. In order to see request body on tracing data, following environment variable shall be set besides api key and application name:
 
 ```sh
-export THUNDRA_TRACE_REQUEST_SKIP=True
+export THUNDRA_TRACE_REQUEST_SKIP  |True
 ```
 
 OR
@@ -159,7 +160,7 @@ OR
 import thundra
 
 thundra.configure(
-     options={
+     options   |{
          "config": {
              "thundra.apikey": <your_thundra_api_key>,
              "thundra.agent.application.name": <your_application_name>,
@@ -176,10 +177,10 @@ The following frameworks are supported by Thundra:
 |Framework                               |Supported Version          |Auto-tracing Supported                               |
 |----------------------------------------|---------------------------|-----------------------------------------------------|
 |[AWS Lambda](#aws-lambda)               |All                        |<ul><li>- [x] </li></ul>                             |
-|[Django](#django)                       |`>=1.11`                   |<ul><li>- [x] </li></ul>                             |
-|[Flask](#flask)                         |`>=0.5`                    |<ul><li>- [x] </li></ul>                             |
-|[Fastapi](#fastapi)                     |`>=0.62.0`                 |<ul><li>- [x] </li></ul>                             |
-|[Chalice](#chalice)                     |`>=1.0.0`                  |<ul><li>- [x] </li></ul>                             |
+|[Django](#django)                       |`>   |1.11`                   |<ul><li>- [x] </li></ul>                             |
+|[Flask](#flask)                         |`>   |0.5`                    |<ul><li>- [x] </li></ul>                             |
+|[Fastapi](#fastapi)                     |`>   |0.62.0`                 |<ul><li>- [x] </li></ul>                             |
+|[Chalice](#chalice)                     |`>   |1.0.0`                  |<ul><li>- [x] </li></ul>                             |
 
 ### AWS Lambda
 
@@ -210,8 +211,8 @@ To trace django database processes, following environment variables shall be set
 - [No-Code Change Tracing](#no-code-change-tracing):
     
     ```sh
-    export THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE=false
-    export THUNDRA_AGENT_TRACE_INTEGRATIONS_RDB_DISABLE=false
+    export THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE |false
+    export THUNDRA_AGENT_TRACE_INTEGRATIONS_RDB_DISABLE|false
     ```
 
 - [In-Code Configuration Tracing](#in-code-configuration-tracing):
@@ -220,7 +221,7 @@ To trace django database processes, following environment variables shall be set
     import thundra
 
     thundra.configure(
-        options={
+        options|{
             "config": {
                 "thundra.apikey": <your_thundra_api_key>,
                 "thundra.agent.application.name": <your_application_name>,
@@ -294,16 +295,16 @@ Thundra provides out-of-the-box instrumentation (tracing) for following librarie
 |Library             |Supported Version          |
 |--------------------|---------------------------|
 |logging             |Fully supported            |
-|requests            |`>=2.0.0`                  |
-|redis               |`>=2.10.0`                 |
-|pymongo             |`>=3.0.0`                  |
-|PyMySQL             |`>=0.7.0`                  |
-|MySQLdb             |`>=1.0.0`                  |
-|psycopg2            |`>=2.2.0`                  |
-|botocore (boto3)    |`>=1.4.0`                  |
-|SQLAlchemy          |`>=1.2.0`                  |
-|elasticsearch       |`>=0.4.1`                  |
-|aiohttp             |`>=1.1.5`                  |
+|requests            |`>   |2.0.0`                  |
+|redis               |`>   |2.10.0`                 |
+|pymongo             |`>   |3.0.0`                  |
+|PyMySQL             |`>   |0.7.0`                  |
+|MySQLdb             |`>   |1.0.0`                  |
+|psycopg2            |`>   |2.2.0`                  |
+|botocore (boto3)    |`>   |1.4.0`                  |
+|SQLAlchemy          |`>   |1.2.0`                  |
+|elasticsearch       |`>   |0.4.1`                  |
+|aiohttp             |`>   |1.1.5`                  |
 
 
 ## Log Plugin
@@ -316,33 +317,33 @@ An example of configuration file is as follows:
 
 ```
 [loggers]
-keys=root
+keys   |root
 
 [handlers]
-keys=thundraHandler
+keys   |thundraHandler
 
 [formatters]
-keys=simpleFormatter
+keys   |simpleFormatter
 
 [logger_root]
-level=NOTSET
-handlers=thundraHandler
+level  |NOTSET
+handlers   |thundraHandler
 
 [handler_thundraHandler]
-class=ThundraLogHandler
-level=NOTSET
-formatter=simpleFormatter
-args=()
+class  |ThundraLogHandler
+level  |NOTSET
+formatter  |simpleFormatter
+args   |()
 
 [formatter_simpleFormatter]
-format=%(asctime)s - %(name)s - %(levelname)s - %(message)s
-datefmt=
+format |%(asctime)s - %(name)s - %(levelname)s - %(message)s
+datefmt|
 ```
 
 #### Configure during getting logger object
 You should add the followings after getting the logger object:
 ```python
-handler = ThundraLogHandler()
+handler    | ThundraLogHandler()
 logger.addHandler(handler)
 ...
 logger.removeHandler(handler)
@@ -367,3 +368,93 @@ When opening a new issue, please provide as much information about the environme
 * A reproducible example can really help.
 
 The GitHub issues are intended for bug reports and feature requests.
+
+
+## All Environment Variables
+
+Following table shows all environment variables of [No-Code Change Tracing](#no-code-change-tracing) and their [In-Code Configuration Tracing](#in-code-configuration-tracing) equivalent.
+
+
+| Environment Variable Name                                        |  [In-Code Configuration Tracing](#in-code-configuration-tracing) Name     |
+|:-----------------------------------------------------------------|:--------------------------------------------------------------------------|
+| THUNDRA_APIKEY                                                   | thundra.apikey                                                            |
+| THUNDRA_DEBUG_ENABLE                                             | thundra.agent.debug.enable                                                |
+| THUNDRA_DISABLE                                                  | thundra.agent.disable                                                     | 
+| THUNDRA_TRACE_DISABLE                                            | thundra.agent.trace.disable                                               |
+| THUNDRA_METRIC_DISABLE                                           | thundra.agent.metric.disable                                              |
+| THUNDRA_LOG_DISABLE                                              | thundra.agent.log.disable                                                 |
+| THUNDRA_APPLICATION_ID                                           | thundra.agent.application.id                                              |
+| THUNDRA_APPLICATION_INSTANCE_ID                                  | thundra.agent.application.instanceid                                      |
+| THUNDRA_APPLICATION_NAME                                         | thundra.agent.application.name                                            |
+| THUNDRA_APPLICATION_STAGE                                        | thundra.agent.application.stage                                           |
+| THUNDRA_APPLICATION_DOMAIN_NAME                                  | thundra.agent.application.domainname                                      |
+| THUNDRA_APPLICATION_CLASS_NAME                                   | thundra.agent.application.classname                                       |
+| THUNDRA_APPLICATION_VERSION                                      | thundra.agent.application.version                                         |
+| THUNDRA_APPLICATION_TAG_PREFIX                                   | thundra.agent.application.tag.prefix                                      |
+| THUNDRA_APPLICATION_REGION                                       | thundra.agent.application.region                                          |
+| THUNDRA_REPORT_REST_BASEURL                                      | thundra.agent.report.rest.baseurl                                         |
+| THUNDRA_REPORT_CLOUDWATCH_ENABLE                                 | thundra.agent.report.cloudwatch.enable                                    |
+| THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE                         | thundra.agent.report.rest.composite.batchsize                             |
+| THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE                   | thundra.agent.report.cloudwatch.composite.batchsize                       |
+| THUNDRA_REPORT_REST_COMPOSITE_ENABLE                             | thundra.agent.report.rest.composite.enable                                |
+| THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE                       | thundra.agent.report.cloudwatch.composite.enable                          | 
+| THUNDRA_REPORT_REST_LOCAL                                        | thundra.agent.report.rest.local                                           |
+| THUNDRA_LAMBDA_HANDLER                                           | thundra.agent.lambda.handler                                              |
+| THUNDRA_LAMBDA_WARMUP_WARMUPAWARE                                | thundra.agent.lambda.warmup.warmupaware                                   |
+| THUNDRA_LAMBDA_TIMEOUT_MARGIN                                    | thundra.agent.lambda.timeout.margin                                       |
+| THUNDRA_LAMBDA_ERROR_STACKTRACE_MASK                             | thundra.agent.lambda.error.stacktrace.mask                                |
+| THUNDRA_TRACE_REQUEST_SKIP                                       | thundra.agent.trace.request.skip                                          |
+| THUNDRA_TRACE_RESPONSE_SKIP                                      | thundra.agent.trace.response.skip                                         |
+| THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE                      | thundra.agent.lambda.trace.kinesis.request.enable                         |
+| THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE                     | thundra.agent.lambda.trace.firehose.request.enable                        |
+| THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE                | thundra.agent.lambda.trace.cloudwatchlog.request.enable                   |
+| THUNDRA_LAMBDA_AWS_STEPFUNCTIONS                                 | thundra.agent.lambda.aws.stepfunctions                                    |
+| THUNDRA_TRACE_INSTRUMENT_DISABLE                                 | thundra.agent.trace.instrument.disable                                    |
+| THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG                         | thundra.agent.trace.instrument.traceableconfig                            |
+| THUNDRA_TRACE_SPAN_LISTENERCONFIG                                | thundra.agent.trace.span.listenerconfig                                   |
+| THUNDRA_SAMPLER_TIMEAWARE_TIMEFREQ                               | thundra.agent.sampler.timeaware.timefreq                                  |
+| THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ                             | thundra.agent.sampler.countaware.countfreq                                |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK                  | thundra.agent.trace.integrations.aws.sns.message.mask                     |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_TRACEINJECTION_DISABLE        | thundra.agent.trace.integrations.aws.sns.traceinjection.disable           |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK                  | thundra.agent.trace.integrations.aws.sqs.message.mask                     |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_SQS_TRACEINJECTION_DISABLE        | thundra.agent.trace.integrations.aws.sqs.traceinjection.disable           |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK               | thundra.agent.trace.integrations.aws.lambda.payload.mask                  |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_TRACEINJECTION_DISABLE     | thundra.agent.trace.integrations.aws.lambda.traceinjection.disable        |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK           | thundra.agent.trace.integrations.aws.dynamodb.statement.mask              |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE    | thundra.agent.trace.integrations.aws.dynamodb.traceinjection.enable       |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK             | thundra.agent.trace.integrations.aws.athena.statement.mask                |
+| THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK                        | thundra.agent.trace.integrations.http.body.mask                           |
+| THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH                        | thundra.agent.trace.integrations.http.url.depth                           |
+| THUNDRA_TRACE_INTEGRATIONS_HTTP_TRACEINJECTION_DISABLE           | thundra.agent.trace.integrations.http.traceinjection.disable              |
+| THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN            | thundra.agent.trace.integrations.http.error.status.code.min               |
+| THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK                    | thundra.agent.trace.integrations.redis.command.mask                       |
+| THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK                    | thundra.agent.trace.integrations.rdb.statement.mask                       |
+| THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK               | thundra.agent.trace.integrations.elasticsearch.body.mask                  |
+| THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH              | thundra.agent.trace.integrations.elasticsearch.path.depth                 |
+| THUNDRA_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK                  | thundra.agent.trace.integrations.mongodb.command.mask                     |
+| THUNDRA_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK               | thundra.agent.trace.integrations.aws.eventbridge.detail.mask              |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_MASK                     | thundra.agent.trace.integrations.aws.ses.mail.mask                        |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_DESTINATION_MASK         | thundra.agent.trace.integrations.aws.ses.mail.destination.mask            |
+| THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE                          | thundra.agent.trace.integrations.http.disable                             |
+| THUNDRA_TRACE_INTEGRATIONS_RDB_DISABLE                           | thundra.agent.trace.integrations.rdb.disable                              |
+| THUNDRA_TRACE_INTEGRATIONS_AWS_DISABLE                           | thundra.agent.trace.integrations.aws.disable                              |
+| THUNDRA_TRACE_INTEGRATIONS_REDIS_DISABLE                         | thundra.agent.trace.integrations.redis.disable                            |
+| THUNDRA_TRACE_INTEGRATIONS_ES_DISABLE                            | thundra.agent.trace.integrations.elasticsearch.disable                    |
+| THUNDRA_TRACE_INTEGRATIONS_MONGO_DISABLE                         | thundra.agent.trace.integrations.mongodb.disable                          |
+| THUNDRA_TRACE_INTEGRATIONS_SQLALCHEMY_DISABLE                    | thundra.agent.trace.integrations.sqlalchemy.disable                       |
+| THUNDRA_TRACE_INTEGRATIONS_CHALICE_DISABLE                       | thundra.agent.trace.integrations.chalice.disable                          |
+| THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE                        | thundra.agent.trace.integrations.django.disable                           |
+| THUNDRA_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE                    | thundra.agent.trace.integrations.django.orm.disable                       |
+| THUNDRA_TRACE_INTEGRATIONS_FLASK_DISABLE                         | thundra.agent.trace.integrations.flask.disable                            |
+| THUNDRA_TRACE_INTEGRATIONS_FASTAPI_DISABLE                       | thundra.agent.trace.integrations.fastapi.disable                          | 
+| THUNDRA_LOG_CONSOLE_DISABLE                                      | thundra.agent.log.console.disable                                         |
+| THUNDRA_LOG_LOGLEVEL                                             | thundra.agent.log.loglevel                                                |
+| THUNDRA_LAMBDA_DEBUGGER_ENABLE                                   | thundra.agent.lambda.debugger.enable                                      |
+| THUNDRA_LAMBDA_DEBUGGER_PORT                                     | thundra.agent.lambda.debugger.port                                        |
+| THUNDRA_LAMBDA_DEBUGGER_LOGS_ENABLE                              | thundra.agent.lambda.debugger.logs.enable                                 |
+| THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX                                 | thundra.agent.lambda.debugger.wait.max                                    |
+| THUNDRA_LAMBDA_DEBUGGER_IO_WAIT                                  | thundra.agent.lambda.debugger.io.wait                                     |
+| THUNDRA_LAMBDA_DEBUGGER_BROKER_PORT                              | thundra.agent.lambda.debugger.broker.port                                 |
+| THUNDRA_LAMBDA_DEBUGGER_BROKER_HOST                              | thundra.agent.lambda.debugger.broker.host                                 |
+| THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME                             | thundra.agent.lambda.debugger.session.name                                |
+| THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN                               | thundra.agent.lambda.debugger.auth.token                                  |
