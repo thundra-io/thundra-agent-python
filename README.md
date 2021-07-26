@@ -55,7 +55,7 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 | THUNDRA_AGENT_TRACE_REQUEST_SKIP                    |  bool  |              false               |
 | THUNDRA_AGENT_TRACE_RESPONSE_SKIP                   |  bool  |              false               |
 | THUNDRA_AGENT_LAMBDA_TIMEOUT_MARGIN                 |  int   |               200                |
-| THUNDRA_AGENT_REPORT_REST_BASEURL                   | string |     https://api.thundra.io/v1    |
+| THUNDRA_AGENT_REPORT_REST_BASEURL                   | string |     https://collector.thundra.io/v1    |
 | THUNDRA_AGENT_REPORT_CLOUDWATCH_ENABLE              |  bool  |              false               |
 
 
