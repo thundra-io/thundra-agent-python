@@ -18,7 +18,7 @@ THUNDRA_APPLICATION_STAGE = 'thundra.agent.application.stage'
 THUNDRA_APPLICATION_DOMAIN_NAME = 'thundra.agent.application.domainname'
 THUNDRA_APPLICATION_CLASS_NAME = 'thundra.agent.application.classname'
 THUNDRA_APPLICATION_VERSION = 'thundra.agent.application.version'
-THUNDRA_APPLICATION_TAG_PREFIX = 'thundra.agent.application.tag.'
+THUNDRA_APPLICATION_TAG_PREFIX = 'thundra.agent.application.tag.prefix'
 THUNDRA_APPLICATION_REGION = 'thundra.agent.application.region'
 
 #############################################################################
