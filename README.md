@@ -4,7 +4,7 @@
 [![Pyversions](https://img.shields.io/pypi/pyversions/thundra.svg?style=flat)](https://pypi.org/project/thundra/)
 [![PyPI](https://img.shields.io/pypi/v/thundra.svg)](https://pypi.org/project/thundra/)
 
-Trace your marvelous python projects with async monitoring by [Thundra](https://start.thundra.me/)!
+Trace your marvelous python projects with async monitoring by [Thundra](https://start.thundra.io/)!
 
 ## Async Monitoring with Zero Overhead
 By default, Thundra agent reports by making an HTTPS request. This adds an overhead to your lambda function.
