@@ -45,12 +45,11 @@ class TornadoWrapper(BaseWrapper):
 
         return execution_context
 
-    def after_request(self, response):
+    def after_request(self, response, error=None):
         execution_context = ExecutionContextManager.get()
-        if response:
-            execution_context.response = response
+        execution_context.response = response
+        execution_context.error = error
         self.prepare_and_send_reports_async(execution_context)
-
 
     def __call__(self, original_func):
         if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
