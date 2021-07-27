@@ -14,10 +14,10 @@ def _init_wrapper(_wrapped, _application, args, kwargs):
         _application.settings['_thundra_middleware'] = ThundraMiddleware()
 
 
-def _execute_wrapper(_wrapped, _handler, args, kwargs):
+async def _execute_wrapper(_wrapped, _handler, args, kwargs):
     middleware = _handler.settings.get('_thundra_middleware')
     middleware.execute(_handler)
-    return _wrapped(*args, **kwargs)
+    return await _wrapped(*args, **kwargs)
 
 
 def _on_finish_wrapper(_wrapped, _handler, args, kwargs):
