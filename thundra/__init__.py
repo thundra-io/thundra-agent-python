@@ -75,6 +75,11 @@ def fastapi_wrapper(func):
     return _WrapperFactory.get_or_create(FastapiWrapper)(func)
 
 
+def tornado_wrapper(func):
+    from thundra.wrappers.tornado.tornado_wrapper import TornadoWrapper
+    return _WrapperFactory.get_or_create(TornadoWrapper)(func)
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
     _patch_modules()
 
@@ -88,6 +93,7 @@ __all__ = [
     'django_wrapper',
     'flask_wrapper',
     'fastapi_wrapper',
+    'tornado_wrapper',
     'add_incoming_trace_link',
     'add_incoming_trace_links',
     'add_outgoing_trace_link',

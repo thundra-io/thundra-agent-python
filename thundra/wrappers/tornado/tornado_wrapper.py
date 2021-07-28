@@ -55,20 +55,21 @@ class TornadoWrapper(BaseWrapper):
             return original_func
 
         @wraps(original_func)
-        def wrapper(request, *args, **kwargs):
-            if getattr(request, '_thundra_wrapped', False):
-                return original_func(request, *args, **kwargs)
-            setattr(request, '_thundra_wrapped', True)
+        def wrapper(request_handler, *args, **kwargs):
+            request = request_handler.request
+            if getattr(request_handler, '_thundra_wrapped', False):
+                return original_func(request_handler, *args, **kwargs)
+            setattr(request_handler, '_thundra_wrapped', True)
             try:
                 execution_context = self.before_request(request)
             except Exception as e:
                 logger.error("Error during the before part of Thundra: {}".format(e))
-                return original_func(request, *args, **kwargs)
+                return original_func(request_handler, *args, **kwargs)
 
             response = None
             # Invoke user handler
             try:
-                response = original_func(request, *args, **kwargs)
+                response = original_func(request_handler, *args, **kwargs)
             except Exception as e:
                 try:
                     execution_context.error = {
