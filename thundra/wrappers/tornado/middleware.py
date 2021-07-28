@@ -1,6 +1,5 @@
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.wrappers.web_wrapper_utils import process_request_route
 from thundra.wrappers.tornado.tornado_wrapper import TornadoWrapper, logger
+
 
 class ThundraMiddleware(object):
     def __init__(self):

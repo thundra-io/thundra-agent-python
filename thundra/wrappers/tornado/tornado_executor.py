@@ -1,5 +1,4 @@
 from thundra import constants
-
 from thundra.wrappers import wrapper_utils, web_wrapper_utils
 
 
@@ -16,7 +15,7 @@ def start_trace(plugin_context, execution_context, tracer):
         'path': request.path
     }
 
-    web_wrapper_utils.start_trace(execution_context, tracer, 'Flask', 'API', _request, request_route_path)
+    web_wrapper_utils.start_trace(execution_context, tracer, 'Tornado', 'API', _request, request_route_path)
 
 
 def finish_trace(execution_context):

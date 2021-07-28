@@ -16,7 +16,6 @@ from thundra.wrappers.tornado import tornado_executor
 logger = logging.getLogger(__name__)
 
 
-
 class TornadoWrapper(BaseWrapper):
 
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
@@ -32,7 +31,7 @@ class TornadoWrapper(BaseWrapper):
                                                         config=self.config)
 
         web_wrapper_utils.update_application_info(self.application_info_provider, self.plugin_context.application_info,
-                                                  constants.ClassNames['DJANGO'])
+                                                  constants.ClassNames['TORNADO'])
 
     def before_request(self, request):
         # Execution context initialization

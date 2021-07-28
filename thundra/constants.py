@@ -120,7 +120,8 @@ ClassNames = {
     'SES': 'AWS-SES',
     'DJANGO': 'Django',
     'FLASK': 'Flask',
-    "FASTAPI": "Fastapi"
+    "FASTAPI": "Fastapi",
+    "TORNADO": "Tornado"
 }
 
 DBTags = {
