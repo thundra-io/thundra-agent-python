@@ -144,7 +144,11 @@ def handler(event, context):
     print("Hello Thundra!")
 ```
 
-To run on your framework please refer to [supported frameworks](#frameworks)
+**NOTES**
+
+- To run on your framework please refer to [supported frameworks](#frameworks)
+- You should disable framework that you use by using environment variable or in-code configuration. Explanations can
+be found in corresponding framework section.
 
 ###  Request Body
 
@@ -181,20 +185,20 @@ The following frameworks are supported by Thundra:
 |[Flask](#flask)                         |`>=0.5`                    |<ul><li>- [x] </li></ul>                             |
 |[Fastapi](#fastapi)                     |`>=0.62.0`                 |<ul><li>- [x] </li></ul>                             |
 |[Chalice](#chalice)                     |`>=1.0.0`                  |<ul><li>- [x] </li></ul>                             |
+|[Tornado](#tornado)                     |`>=6.0.0`                  |<ul><li>- [x] </li></ul>                             |
 
 ### AWS Lambda
 
 Tracing Lambda functions:
 
-1. Auto trace by using one of the following methods:
-    - [No-Code Change Tracing](#no-code-change-tracing).
-    - [In-Code Configuration Tracing](#in-code-configuration-tracing)
-2. Trace specific endpoints by [Decorator](#decorator)
+1. Check our [integration document on web site](https://apm.docs.thundra.io/python/integration-options)
 
 **NOTES**
 
 - Make sure to choose just one of the methods.
-- For decorator tracing method, just change `@thundra.<framework_wrapper>` by `@thundra.lambda_wrapper`.
+- For decorator tracing method:
+    1. Disable thundra django instrumentation by using `` or its corresponding in-code configuration. 
+    2. Change `@thundra.<framework_wrapper>` by `@thundra.lambda_wrapper`.
 
 ### Django
 
@@ -236,8 +240,9 @@ To trace django database processes, following environment variables shall be set
 **NOTES**
 
 - Make sure to choose just one of the methods.
-- For decorator tracing method, just change `@thundra.<framework_wrapper>` by `@thundra.django_wrapper`.
-
+- For decorator tracing method:
+    1. Disable thundra django instrumentation by using `THUNDRA_AGENT_TRACE_INTEGRATIONS_DJANGO_DISABLE` or its corresponding in-code configuration. 
+    2. Change `@thundra.<framework_wrapper>` by `@thundra.django_wrapper`.
 
 ### Flask
 
@@ -254,7 +259,9 @@ application is initialized.
 **NOTES**
 
 - Make sure to choose just one of the methods.
-- For decorator tracing method, just change `@thundra.<framework_wrapper>` by `@thundra.flask_wrapper`.
+- For decorator tracing method:
+    1. Disable thundra flask instrumentation by using `THUNDRA_AGENT_TRACE_INTEGRATIONS_FLASK_DISABLE` or its corresponding in-code configuration. 
+    2. Change `@thundra.<framework_wrapper>` by `@thundra.flask_wrapper`.
 
 ### Fastapi
 
@@ -263,18 +270,20 @@ Tracing Fastapi application:
 1. Auto trace by using one of the following methods:
     - [No-Code Change Tracing](#no-code-change-tracing).
     - [In-Code Configuration Tracing](#in-code-configuration-tracing)
-2. Trace specific endpoints by [Decorator](#decorator)
+2. Trace specific endpoints by [Decorator](#decorator) by adding fastapi.Request as an parameter to your function if not exists.
 
 
 **NOTES**
 
 - Make sure to choose just one of the methods.
-- For decorator tracing method, just change `@thundra.<framework_wrapper>` by `@thundra.fastapi_wrapper`.
+- For decorator tracing method:
+    1. Disable thundra fastapi instrumentation by using `THUNDRA_AGENT_TRACE_INTEGRATIONS_FASTAPI_DISABLE` or its corresponding in-code configuration. 
+    2. Change `@thundra.<framework_wrapper>` by `@thundra.fastapi_wrapper`.
 - Fastapi has been supported for python 3.7 and above.
 
 ### Chalice
 
-Tracing Fastapi application:
+Tracing Chalice application:
 
 1. Auto trace by using one of the following methods:
     - [No-Code Change Tracing](#no-code-change-tracing).
@@ -285,7 +294,28 @@ Tracing Fastapi application:
 **NOTES**
 
 - Make sure to choose just one of the methods.
-- For decorator tracing method, just change `@thundra.<framework_wrapper>` by `@thundra.fastapi_wrapper`.
+- For decorator tracing method:
+    1. Disable thundra chalice instrumentation by using `THUNDRA_AGENT_TRACE_INTEGRATIONS_CHALICE_DISABLE` or its corresponding in-code configuration. 
+    2. Change `@thundra.<framework_wrapper>` by `@thundra.chalice_wrapper`.
+
+
+### Tornado
+
+Tracing Tornado application:
+
+1. Auto trace by using one of the following methods:
+    - [No-Code Change Tracing](#no-code-change-tracing).
+    - [In-Code Configuration Tracing](#in-code-configuration-tracing)
+2. Trace specific endpoints by [Decorator](#decorator)
+
+
+**NOTES**
+
+- Make sure to choose just one of the methods.
+- Tornado has been supported for python 3.7 and above.
+- For decorator tracing method:
+    1. Disable thundra tornado instrumentation by using `THUNDRA_AGENT_TRACE_INTEGRATIONS_TORNADO_DISABLE` or its corresponding in-code configuration. 
+    2. Change `@thundra.<framework_wrapper>` by `@thundra.tornado_wrapper`.
 
 
 ## Integrations

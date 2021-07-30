@@ -33,6 +33,8 @@ databases = "*"
 asyncpg = "*"
 httpx = "*"
 pytest-asyncio = "*"
+tornado = "*"
+pytest-tornado = "*"
 
 [requires]
 python_version = "3.6.4"
