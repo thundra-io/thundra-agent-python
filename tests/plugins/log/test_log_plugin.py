@@ -30,6 +30,7 @@ def test_log_plugin_with_initialization():
     assert log['logLevel'] == "INFO"
     assert log['logLevelCode'] == 2
     del execution_context.logs[:]
+    logger.removeHandler(log_handler)
 
 
 def test_log_plugin_with_config_file():
