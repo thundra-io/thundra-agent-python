@@ -22,14 +22,17 @@ def test_log_plugin_with_initialization():
     execution_context.capture_log = True
     logger.info("This is an info log")
 
-    assert len(execution_context.logs) == 1
-    log = execution_context.logs[0]
+    try:
+        assert len(execution_context.logs) == 1
+        log = execution_context.logs[0]
 
-    assert log['logMessage'] == "This is an info log"
-    assert log['logContextName'] == 'test_handler'
-    assert log['logLevel'] == "INFO"
-    assert log['logLevelCode'] == 2
-    del execution_context.logs[:]
+        assert log['logMessage'] == "This is an info log"
+        assert log['logContextName'] == 'test_handler'
+        assert log['logLevel'] == "INFO"
+        assert log['logLevelCode'] == 2
+    finally:
+        del execution_context.logs[:]
+        logger.removeHandler(log_handler)
 
 
 def test_log_plugin_with_config_file():
