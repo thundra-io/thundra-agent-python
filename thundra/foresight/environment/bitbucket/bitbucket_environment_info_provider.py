@@ -1,5 +1,7 @@
+from thundra import config
 from thundra.foresight.environment.git.git_helper import GitHelper
 from thundra.foresight.environment.environment_info import EnvironmentInfo
+from thundra.foresight.util.test_runner_utils import TestRunnerUtils
 import os, logging
 
 LOGGER = logging.getLogger(__name__)
@@ -14,9 +16,18 @@ class BitbucketEnvironmentInfoProvider:
     BITBUCKET_BUILD_NUMBER_ENV_VAR_NAME = "BITBUCKET_BUILD_NUMBER"
     environment_info = None
 
-    @staticmethod
-    def get_test_run_id(repo_url, commit_hash):
-        pass #TODO
+
+    @classmethod
+    def get_test_run_id(cls, repo_url, commit_hash):
+        configured_test_run_id = TestRunnerUtils.get_configured_test_run_id()
+        if configured_test_run_id:
+            return configured_test_run_id
+        build_number = os.getenv(cls.BITBUCKET_BUILD_NUMBER_ENV_VAR_NAME)
+        if build_number:
+            return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, build_number)
+        else:
+            return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
+
 
     @classmethod
     def _build_env_info(cls):

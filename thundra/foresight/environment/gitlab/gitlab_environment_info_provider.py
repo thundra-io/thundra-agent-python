@@ -1,5 +1,6 @@
 from thundra.foresight.environment.git.git_helper import GitHelper
 from thundra.foresight.environment.environment_info import EnvironmentInfo
+from thundra.foresight.util.test_runner_utils import TestRunnerUtils
 import logging
 import os
 
@@ -18,9 +19,20 @@ class GitlabEnvironmentInfoProvider:
 
     environment_info = None
 
-    @staticmethod
-    def get_test_run_id(repo_url, commit_hash):
-        pass #TODO
+
+    @classmethod
+    def get_test_run_id(cls, repo_url, commit_hash):
+        configured_test_run_id = TestRunnerUtils.get_configured_test_run_id()
+        if configured_test_run_id:
+            return configured_test_run_id
+        job_id = os.getenv(cls.CI_JOB_ID_ENV_VAR_NAME)
+        job_url = os.getenv(cls.CI_JOB_URL_ENV_VAR_NAME)
+        if job_id or job_url:
+            return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
+                TestRunnerUtils.string_concat_by_underscore(job_id, job_url))
+        else:
+            return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
+
 
     @classmethod
     def _build_env_info(cls):

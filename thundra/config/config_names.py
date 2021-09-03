@@ -127,3 +127,7 @@ THUNDRA_LAMBDA_DEBUGGER_BROKER_PORT = 'thundra.agent.lambda.debugger.broker.port
 THUNDRA_LAMBDA_DEBUGGER_BROKER_HOST = 'thundra.agent.lambda.debugger.broker.host'
 THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME = 'thundra.agent.lambda.debugger.session.name'
 THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN = 'thundra.agent.lambda.debugger.auth.token'
+
+
+#############################################################################
+THUNDRA_AGENT_TEST_RUN_ID = "thundra.agent.test.run.id"

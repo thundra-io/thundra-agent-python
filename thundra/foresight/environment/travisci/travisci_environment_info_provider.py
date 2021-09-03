@@ -1,5 +1,6 @@
 from thundra.foresight.environment.git.git_helper import GitHelper
 from thundra.foresight.environment.environment_info import EnvironmentInfo
+from thundra.foresight.util.test_runner_utils import TestRunnerUtils 
 import os, logging
 
 
@@ -17,9 +18,20 @@ class TravisCIEnvironmentInfoProvider:
     TRAVIS_BUILD_ID_ENV_VAR_NAME = "TRAVIS_BUILD_ID"
     environment_info = None
 
-    @staticmethod
-    def get_test_run_id(repo_url, commit_hash):
-        pass #TODO
+
+    @classmethod
+    def get_test_run_id(cls, repo_url, commit_hash):
+        configured_test_run_id = TestRunnerUtils.get_configured_test_run_id()
+        if configured_test_run_id:
+            return configured_test_run_id
+        build_web_url = os.get(cls.TRAVIS_BUILD_WEB_URL_ENV_VAR_NAME)
+        build_id = os.get(cls.TRAVIS_BUILD_ID_ENV_VAR_NAME)
+        if build_web_url or build_id:
+            return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
+                TestRunnerUtils.string_concat_by_underscore(build_web_url, build_id))
+        else:
+            return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
+
 
     @classmethod
     def _build_env_info(cls):

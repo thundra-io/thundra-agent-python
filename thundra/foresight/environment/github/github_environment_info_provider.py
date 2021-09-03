@@ -1,8 +1,7 @@
-import logging
-import os
 from thundra.foresight.environment.git.git_helper import GitHelper
 from thundra.foresight.environment.environment_info import EnvironmentInfo
-import json
+from thundra.foresight.util.test_runner_utils import TestRunnerUtils
+import json, os, logging
 
 
 LOGGER = logging.getLogger(__name__);
@@ -21,9 +20,18 @@ class GithubEnvironmentInfoProvider:
     environment_info = None
 
 
-    @staticmethod
-    def get_test_run_id(repo_url, commit_hash):
-        pass # TODO
+    @classmethod
+    def get_test_run_id(cls, repo_url, commit_hash):
+        configured_test_run_id = TestRunnerUtils.get_configured_test_run_id()
+        if configured_test_run_id:
+            return configured_test_run_id
+        run_id = os.getenv(cls.GITHUB_RUN_ID_ENV_VAR_NAME)
+        if run_id:
+            invocation_id = os.getenv(cls.INVOCATION_ID_ENV_VAR_NAME)
+            return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
+                TestRunnerUtils.string_concat_by_underscore(run_id, invocation_id))
+        else:
+            return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
 
 
     @classmethod
