@@ -11,6 +11,7 @@ simplejson = "*"
 enum-compat = "*"
 jsonpickle = "*"
 websocket-client = "*"
+jsonpath-ng = "*"
 
 [dev-packages]
 mock = "*"
