@@ -12,6 +12,7 @@ enum-compat = "*"
 jsonpickle = "*"
 websocket-client = "*"
 jsonpath-ng = "*"
+fastcounter = "*"
 
 [dev-packages]
 mock = "*"
