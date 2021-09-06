@@ -9,17 +9,17 @@ class TestRunContext:
         self.ignored_count = fastcounter.FastWriteCounter()
         self.aborted_count = fastcounter.FastWriteCounter()
 
-    def increase_total_count(self):
-        self.total_count.increment()
+    def increase_total_count(self, count=1):
+        self.total_count.increment(count)
 
     def increase_successful_count(self):
         self.successful_count.increment()
 
-    def increase_failcleared_count(self):
+    def increase_failed_count(self):
         self.failed_count.increment()
 
-    def increase_ignored_count(self):
-        self.ignored_count.increment()
+    def increase_ignored_count(self, count=1):
+        self.ignored_count.increment(count)
 
     def increase_aborted_count(self):
         self.aborted_count.increment()
