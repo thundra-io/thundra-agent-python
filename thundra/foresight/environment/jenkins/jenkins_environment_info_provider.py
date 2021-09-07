@@ -33,7 +33,7 @@ class JenkinsEnvironmentInfoProvider:
 
 
     @classmethod
-    def _build_env_info(cls):
+    def build_env_info(cls):
         try:
             repo_url = os.getenv(cls.GIT_URL_ENV_VAR_NAME)
             if not repo_url:
@@ -58,4 +58,3 @@ class JenkinsEnvironmentInfoProvider:
             LOGGER.error("Unable to build environment info", err)
             cls.environment_info = None
 
-JenkinsEnvironmentInfoProvider._build_env_info()

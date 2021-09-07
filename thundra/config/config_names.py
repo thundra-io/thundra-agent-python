@@ -130,4 +130,9 @@ THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN = 'thundra.agent.lambda.debugger.auth.token'
 
 
 #############################################################################
-THUNDRA_AGENT_TEST_RUN_ID = "thundra.agent.test.run.id"
+THUNDRA_TEST_RUN_ID = "thundra.agent.test.run.id"
+THUNDRA_TEST_PROJECT_ID = "thundra.agent.test.project.id"
+THUNDRA_TEST_STATUS_REPORT_FREQUENCY = "thundra.agent.test.status.report.freq"
+THUNDRA_TEST_LOG_ENABLE = "thundra.agent.test.log.enable"
+THUNDRA_TEST_LOG_COUNT_MAX = "thundra.agent.test.log.count.max"
+THUNDRA_TEST_SPAN_COUNT_MAX = "thundra.agent.test.span.count.max"

@@ -284,5 +284,27 @@ CONFIG_METADATA = {
     config_names.THUNDRA_TRACE_INTEGRATIONS_TORNADO_DISABLE: {
         'type': 'boolean',
         'defaultValue': False,
+    },
+    config_names.THUNDRA_TEST_RUN_ID: {
+        'type': 'string'
+    },
+    config_names.THUNDRA_TEST_PROJECT_ID: {
+        'type': 'string'
+    },
+    config_names.THUNDRA_TEST_STATUS_REPORT_FREQUENCY: {
+        'type': 'int',
+        'defaultValue': 10,
+    },
+    config_names.THUNDRA_TEST_LOG_ENABLE: {
+        'type': 'boolean',
+        'defaultValue': True,
+    },
+    config_names.THUNDRA_TEST_LOG_COUNT_MAX: {
+        'type': 'int',
+        'defaultValue': 100,
+    },
+    config_names.THUNDRA_TEST_SPAN_COUNT_MAX: {
+        'type': 'int',
+        'defaultValue': 100,
     }
 }

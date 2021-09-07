@@ -24,8 +24,8 @@ class TravisCIEnvironmentInfoProvider:
         configured_test_run_id = TestRunnerUtils.get_configured_test_run_id()
         if configured_test_run_id:
             return configured_test_run_id
-        build_web_url = os.get(cls.TRAVIS_BUILD_WEB_URL_ENV_VAR_NAME)
-        build_id = os.get(cls.TRAVIS_BUILD_ID_ENV_VAR_NAME)
+        build_web_url = os.getenv(cls.TRAVIS_BUILD_WEB_URL_ENV_VAR_NAME)
+        build_id = os.getenv(cls.TRAVIS_BUILD_ID_ENV_VAR_NAME)
         if build_web_url or build_id:
             return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
                 TestRunnerUtils.string_concat_by_underscore(build_web_url, build_id))
@@ -34,7 +34,7 @@ class TravisCIEnvironmentInfoProvider:
 
 
     @classmethod
-    def _build_env_info(cls):
+    def build_env_info(cls):
         try:
             repo_url = "https://github.com/{}.git".format(os.getenv(cls.TRAVIS_REPO_SLUG_VAR_NAME))
             repo_name = GitHelper.extractRepoName(repo_url)
@@ -58,5 +58,3 @@ class TravisCIEnvironmentInfoProvider:
         except Exception as err:
             LOGGER.error("Unable to build environment info", err)
             cls.environment_info = None
-
-TravisCIEnvironmentInfoProvider._build_env_info()

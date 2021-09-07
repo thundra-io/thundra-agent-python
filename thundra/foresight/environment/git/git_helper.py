@@ -1,6 +1,7 @@
+import __future__
 import os
 import logging
-from utils import backward_search_for_file
+from thundra.foresight.environment.git.utils import backward_search_for_file
 from git import Repo
 
 LOGGER = logging.getLogger(__name__)

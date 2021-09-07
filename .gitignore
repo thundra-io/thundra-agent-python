@@ -16,3 +16,4 @@ python-*
 test-reports/
 .venv
 TODO
+*.pyc

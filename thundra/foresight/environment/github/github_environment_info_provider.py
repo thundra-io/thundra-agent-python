@@ -35,9 +35,9 @@ class GithubEnvironmentInfoProvider:
 
 
     @classmethod
-    def _build_env_info(cls):
+    def build_env_info(cls):
         try:
-            github_repo = os.getenv(GithubEnvironmentInfoProvider.GITHUB_REPOSITORY_ENV_VAR_NAME)
+            github_repo = os.getenv(cls.GITHUB_REPOSITORY_ENV_VAR_NAME)
             repo_url = "https://github.com/" + github_repo + ".git"
             repo_name = GitHelper.extractRepoName(github_repo)
             branch = os.getenv(cls.GITHUB_HEAD_REF_ENV_VAR_NAME)
@@ -75,6 +75,3 @@ class GithubEnvironmentInfoProvider:
         except Exception as err:
             LOGGER.error("Unable to build environment info", err)
             cls.environment_info = None
-
-
-GithubEnvironmentInfoProvider._build_env_info()

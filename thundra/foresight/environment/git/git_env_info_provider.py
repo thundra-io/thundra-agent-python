@@ -15,10 +15,10 @@ class GitEnvironmentInfoProvider:
         configured_test_run_id = TestRunnerUtils.get_configured_test_run_id()
         if configured_test_run_id:
             return configured_test_run_id
-        return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
+        return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
 
     @classmethod
-    def _build_env_info(cls):
+    def build_env_info(cls):
         try:
             repo_url = GitHelper.get_repo_url()
             if not repo_url:
@@ -33,5 +33,3 @@ class GitEnvironmentInfoProvider:
         except Exception as err:
             LOGGER.error("Unable to build environment info", err)
             cls.environment_info = None
-
-GitEnvironmentInfoProvider._build_env_info()

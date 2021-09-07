@@ -9,7 +9,7 @@ class NULL_NAMESPACE:
 
 class TestRunnerUtils:
 
-    CONFIGURED_TEST_RUN_ID = ConfigProvider.get(config_names.THUNDRA_AGENT_TEST_RUN_ID)
+    CONFIGURED_TEST_RUN_ID = ConfigProvider.get(config_names.THUNDRA_TEST_RUN_ID)
 
 
     @classmethod

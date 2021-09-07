@@ -30,7 +30,7 @@ class BitbucketEnvironmentInfoProvider:
 
 
     @classmethod
-    def _build_env_info(cls):
+    def build_env_info(cls):
         try:
             repo_url = os.getenv(cls.BITBUCKET_GIT_HTTP_ORIGIN_ENV_VAR_NAME)
             if not repo_url:
@@ -54,5 +54,3 @@ class BitbucketEnvironmentInfoProvider:
         except Exception as err:
             LOGGER.error("Unable to build environment info", err)
             cls.environment_info = None
-
-BitbucketEnvironmentInfoProvider._build_env_info()

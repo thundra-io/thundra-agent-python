@@ -1,5 +1,4 @@
 import os, logging
-from thundra.foresight.environment.environment_info import EnvironmentInfo
 from thundra.foresight.environment.git.git_helper import GitHelper
 from thundra.foresight.environment.git.git_env_info_provider import GitEnvironmentInfoProvider
 from thundra.foresight.environment.github.github_environment_info_provider import GithubEnvironmentInfoProvider
@@ -8,6 +7,8 @@ from thundra.foresight.environment.jenkins.jenkins_environment_info_provider imp
 from thundra.foresight.environment.travisci.travisci_environment_info_provider import TravisCIEnvironmentInfoProvider
 from thundra.foresight.environment.circleci.circleci_environment_info_provider import CircleCIEnvironmentInfoProvider
 from thundra.foresight.environment.bitbucket.bitbucket_environment_info_provider import BitbucketEnvironmentInfoProvider
+from thundra.foresight.test_runner_tags import TestRunnerTags
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,10 +34,12 @@ class EnvironmentSupport:
         global ENVIRONMENTS_VARS
         try:
             if GitHelper.get_repo_url():
-                cls.environment_inf = GitEnvironmentInfoProvider.environment_info
+                GitEnvironmentInfoProvider.build_env_info()
+                cls.environment_info = GitEnvironmentInfoProvider.environment_info
             else:
                 for key, clz in cls.ENVIRONMENTS_VARS.items():
                     if os.getenv(key):
+                        clz.build_env_info()
                         cls.environment_inf = clz.environment_info
                         break
         except Exception as err:
@@ -45,13 +48,19 @@ class EnvironmentSupport:
 
 
     @classmethod
-    def tag_invocation(cls, invocation):
-        pass #TODO
+    def set_tags(cls, obj):
+        """Set span and invocation data tags corresponds to TestRunner
 
-
-    @classmethod
-    def tag_span(cls, span):
-        pass #TODO
+        Args:
+            obj (ThundraSpan | invocation): Span or invocation data
+        """
+        if cls.environmentInfo:
+            obj.setTag(TestRunnerTags.TEST_ENVIRONMENT, cls.environmentInfo.environment)
+            obj.setTag(TestRunnerTags.SOURCE_CODE_REPO_URL, cls.environmentInfo.repo_url)
+            obj.setTag(TestRunnerTags.SOURCE_CODE_REPO_NAME, cls.environmentInfo.repo_name)
+            obj.setTag(TestRunnerTags.SOURCE_CODE_BRANCH, cls.environmentInfo.branch)
+            obj.setTag(TestRunnerTags.SOURCE_CODE_COMMIT_HASH, cls.environmentInfo.commit_hash)
+            obj.setTag(TestRunnerTags.SOURCE_CODE_COMMIT_MESSAGE, cls.environmentInfo.commit_message)
 
 
 EnvironmentSupport._set_global_env_info()

@@ -35,7 +35,7 @@ class GitlabEnvironmentInfoProvider:
 
 
     @classmethod
-    def _build_env_info(cls):
+    def build_env_info(cls):
         try:
             repo_url = os.getenv(cls.CI_REPOSITORY_URL_ENV_VAR_NAME)
             repo_name = GitHelper.extractRepoName(repo_url)
@@ -60,5 +60,3 @@ class GitlabEnvironmentInfoProvider:
         except Exception as err:
             LOGGER.error("Unable to build environment info", err)
             cls.environment_info = None
-            
-GitlabEnvironmentInfoProvider._build_env_info()

@@ -13,6 +13,7 @@ jsonpickle = "*"
 websocket-client = "*"
 jsonpath-ng = "*"
 fastcounter = "*"
+gitpython = "*"
 
 [dev-packages]
 mock = "*"
