@@ -40,7 +40,7 @@ class EnvironmentSupport:
                 for key, clz in cls.ENVIRONMENTS_VARS.items():
                     if os.getenv(key):
                         clz.build_env_info()
-                        cls.environment_inf = clz.environment_info
+                        cls.environment_info = clz.environment_info
                         break
         except Exception as err:
             LOGGER.error("Environment Support environment_info could not set", err)
