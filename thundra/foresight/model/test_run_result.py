@@ -1,7 +1,7 @@
 class TestRunResult:
 
-    def __init__(self, total_count, successful_count, failed_count,
-     ignored_count, aborted_count):
+    def __init__(self, total_count=None, successful_count=None, failed_count=None,
+     ignored_count=None, aborted_count=None):
         self.total_count = total_count
         self.successful_count = successful_count
         self.failed_count = failed_count

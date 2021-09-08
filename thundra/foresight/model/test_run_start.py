@@ -1,7 +1,9 @@
 class TestRunStart:
 
-    def __init__(self, id, project_id, task_id, start_timestamp,
-        duration, host_name, environment_info, tags):
+    EVENT_NAME = "TestRunStart"
+
+    def __init__(self, id=None, project_id=None, task_id=None, start_timestamp=None,
+        duration=None, host_name=None, environment_info=None, tags=None):
         self.id = id
         self.project_id = project_id
         self.task_id = task_id

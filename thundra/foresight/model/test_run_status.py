@@ -1,17 +1,16 @@
+from thundra.foresight.model.test_run_result import TestRunResult
+class TestRunStatus(TestRunResult):
 
-class TestRunFinish:
+    EVENT_NAME="TestRunStatus"
 
-    def __init__(self, id, project_id, task_id, total_count, successful_count, 
-        failed_count, ignored_count, aborted_count, start_timestamp, status_timestamp,
-        duration, host_name, environment_info, tags):
+    def __init__(self, id=None, project_id=None, task_id=None, total_count=None, successful_count=None, 
+        failed_count=None, ignored_count=None, aborted_count=None, start_timestamp=None, status_timestamp=None,
+        duration=None, host_name=None, environment_info=None, tags=None):
+        super(TestRunStatus, self).__init__(total_count, successful_count, failed_count,
+            ignored_count, aborted_count)
         self.id = id
         self.project_id = project_id
         self.task_id = task_id
-        self.total_count = total_count
-        self.successful_count = successful_count
-        self.failed_count = failed_count
-        self.ignored_count = ignored_count
-        self.aborted_count = aborted_count
         self.start_timestamp = start_timestamp
         self.status_timestamp = status_timestamp
         self.duration = duration

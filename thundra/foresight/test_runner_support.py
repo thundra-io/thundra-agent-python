@@ -2,8 +2,12 @@ from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 from thundra.foresight.environment.environment_info_support import EnvironmentSupport
 from thundra.foresight.model.test_run_start import TestRunStart
+from thundra.foresight.model.test_run_status import TestRunStatus
+from thundra.foresight.model.test_run_result import TestRunResult
+from thundra.foresight.model.test_run_finish import TestRunFinish
+from thundra.reporter import Reporter
 
-import logging, socket, time
+import logging, socket, time, threading
 from uuid import uuid4
 
 LOGGER = logging.getLogger(__name__)
@@ -43,6 +47,51 @@ class TestRunnerSupport:
     test_suite_contexts = dict()
     started_test_suites = set()
     test_run_scope = None
+    test_run_reporter = None
+    status_reporter = None
+
+    class _StatusReporter:
+
+        def __init__(self):
+            self.delay = TestRunnerSupport.STATUS_REPORT_FREQ_SECS
+            self.t = None
+
+
+        def start(self):
+            if not self.t:
+                self.t = threading.Timer(self.delay, self.report_status)
+                self.t.start()
+
+
+        def stop(self):
+            if self.t and self.t.is_alive():
+                self.t.cancel()
+
+
+        def report_status(self):
+            status_time = _current_milli_time()
+            test_run_status = TestRunStatus(
+                id = TestRunnerSupport.test_run_scope.id,
+                project_id = TestRunnerSupport.PROJECT_ID,
+                task_id = TestRunnerSupport.test_run_scope.task_id,
+                start_timestamp= TestRunnerSupport.test_run_scope.start_timestamp,
+                status_timestamp= status_time,
+                total_count= TestRunnerSupport.test_run_scope.context.total_count,
+                successful_count= TestRunnerSupport.test_run_scope.context.successful_count,
+                failed_count = TestRunnerSupport.test_run_scope.context.failed_count,
+                ignored_count= TestRunnerSupport.test_run_scope.context.ignored_count,
+                aborted_count= TestRunnerSupport.test_run_scope.context.aborted_count,
+                host_name=TestRunnerSupport.HOST_NAME,
+                environment_info= EnvironmentSupport.environment_info,
+                # TODO tags
+            )
+            TestRunnerSupport.test_run_reporter(test_run_status) # TODO ASK
+
+
+    @classmethod
+    def init_test_runner_support(cls, api_key):
+        cls.test_run_reporter = Reporter(api_key)
+        cls.status_reporter = cls._StatusReporter()
 
 
     @classmethod
@@ -94,7 +143,7 @@ class TestRunnerSupport:
 
     @classmethod
     def clear_test_run(cls):
-        test_run_scope = None
+        cls.test_run_scope = None
 
 
     @staticmethod
@@ -124,13 +173,70 @@ class TestRunnerSupport:
         task_id = str(uuid4())
         current_time = _current_milli_time()
         logs = cls.capture_logs() #TODO
-        test_run_scope = TestRunScope(id, task_id, current_time, logs, context)
+        cls.test_run_scope = TestRunScope(id, task_id, current_time, logs, context)
         #TODO Sampling
         test_run_start = TestRunStart(
-            test_run_scope.id,
+            cls.test_run_scope.id,
             cls.PROJECT_ID,
-            test_run_scope.task_id,
-            test_run_scope.start_timestamp,
+            cls.test_run_scope.task_id,
+            cls.test_run_scope.start_timestamp,
             cls.HOST_NAME,
             EnvironmentSupport.environment_info.environment
         )
+        cls.test_run_reporter(test_run_start) #TODO ASK
+        if cls.status_reporter:
+            cls.status_reporter.stop()
+        cls.status_reporter.start()
+    
+
+    @classmethod
+    def finish_current_test_run(cls):
+        test_run_context = cls.get_test_run_context()
+        if test_run_context:
+            test_run_result = TestRunResult(
+                total_count = test_run_context.total_count,
+                successful_count = test_run_context.successful_count,
+                failed_count = test_run_context.failed_count,
+                ignored_count = test_run_context.ignored_count,
+                aborted_count = test_run_context.aborted_count
+            ) 
+            cls.finish_test_run(test_run_result)
+
+
+    @classmethod
+    def finish_test_run(cls, test_run_result):
+        try:
+            finish_time = _current_milli_time()
+            if cls.test_run_scope:
+                cls.uncapture_logs() # TODO
+                #TODO Sampler reset
+                if cls.status_reporter:
+                    try:
+                        cls.status_reporter.stop()
+                    finally:
+                        cls.status_reporter = None
+                test_run_finish = TestRunFinish(
+                    id = TestRunnerSupport.test_run_scope.id,
+                    project_id = TestRunnerSupport.PROJECT_ID,
+                    task_id = TestRunnerSupport.test_run_scope.task_id,
+                    start_timestamp= TestRunnerSupport.test_run_scope.start_timestamp,
+                    finish_timestamp= finish_time,
+                    duration = finish_time - cls.test_run_scope.start_timestamp,
+                    total_count= TestRunnerSupport.test_run_scope.context.total_count,
+                    successful_count= TestRunnerSupport.test_run_scope.context.successful_count,
+                    failed_count = TestRunnerSupport.test_run_scope.context.failed_count,
+                    ignored_count= TestRunnerSupport.test_run_scope.context.ignored_count,
+                    aborted_count= TestRunnerSupport.test_run_scope.context.aborted_count,
+                    host_name=TestRunnerSupport.HOST_NAME,
+                    environment_info= EnvironmentSupport.environment_info,
+                    # TODO tags
+                )
+                cls.test_run_reporter(test_run_finish) # TODO ASK
+        finally:
+            cls.test_run_scope = None
+
+    @classmethod
+    def get_test_run_context(cls):
+        if not cls.test_run_scope:
+            return cls.test_run_scope.context
+        return None
