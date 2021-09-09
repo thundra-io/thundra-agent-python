@@ -1,0 +1,168 @@
+import pytest
+
+# Register argparse-style options and ini-style config values, called once at the beginning of a test run.
+def pytest_addoption(parser):
+    group = parser.getgroup("thundra")
+
+    # config.getoption(markerName) 
+    group.addoption(
+        "--thundra",
+        action="store_true",
+        dest="thundra",
+        default=False,
+        help='Default "name" for thundra.',
+    )
+    # ini style config file
+    # https://docs.python.org/3/library/configparser.html
+    # config.getini(markerName) 
+    parser.addini("thundra", 'Default "name" for thundra.', type="bool")
+
+
+# Called after the Session object has been created and before performing collection and entering the run test loop.
+def pytest_sessionstart(session):
+    print("session start")
+    patch()
+
+
+# Called after whole test run finished, right before returning the exit status to the system.
+def pytest_sessionfinish(session, exitstatus):
+    print("session exit")
+
+'''
+    - Allow plugins and conftest files to perform initial configuration.
+    - This hook is called for every plugin and initial conftest file after command line options have been parsed.
+    - After that, the hook is called for other conftest files as they are imported.
+
+    If your plugin uses any markers, you should register them so that they appear in pytest’s help text and do not cause spurious warnings
+'''
+def pytest_configure(config):
+    config.addinivalue_line("markers", "thundra_tags(**kwargs): Deneme custom plugin.")
+
+
+'''
+    Create useful data structures fro test_suites and test_runs
+
+    - Synchronized Map<nodeid: String, ThundraScope> testDescriptionScopeMap
+    - Synchronized Map<item.location[FILENAME]: String, TestSuiteContext> TestSuiteContexts. It will be used into pytest_runtest_makereport
+    foreach item in request.session.items:
+        item.location => A tuple of (filename(Full test path), lineno, testname)
+        - location enums like FILENAME(0), LINENO(1), OPERATION_NAME(2)
+        - test_suite_name => index = item.location[FILENAME].rfind(os.sep) and return item.location[FILENAME][index+1:] 
+
+        item.nodeid => Test runner scope store id(TestRunnerScopeStore.getDescriptionId)
+        - testDescriptionScopeMap[item.nodeid] = ThundraScope
+        - if not "test_suite_name" in TestSuiteContexts.keys():
+            - TestSuiteContexts[test_suite_name] = TestSuiteContext
+'''
+@pytest.fixture(scope="session", autouse=True)
+def x_thundra_patch_all(request):
+    # import traceback
+    # traceback.print_stack()
+    arg_name = request.config.getoption("thundra")
+    # print("request:",request.session.items)
+    # print(arg_name)
+
+
+@pytest.fixture(scope="function", autouse=True)
+def x_thundra_function_fix(request):
+    """
+        BeforeEach
+    """
+    print("setup_function: ", request.node.name)
+    yield
+    """
+        AfterEach
+    """
+    print("teardown_function: ", request.node.name)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def x_thundra_module_fix(request):
+    print("setup_module: ", request.node.name)
+    yield
+    print("finish_module: ", request.node.name)
+    
+
+'''
+    test_suite_name = index = item.location[FILENAME].rfind(os.sep) and return item.location[FILENAME][index+1:] 
+    - if not TestSuiteContexts[test_suite_name].start:
+        TestSuiteContexts[test_suite_name].start = time.now()
+    
+   beforeClass, afterClass, beforeAll, afterAll 
+'''
+# Perform the runtest protocol for a single test item
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_protocol(item, nextitem):
+    yield
+
+
+
+# Called to create a _pytest.reports.TestReport for each of the setup, call and teardown runtest phases of a test item
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    yield
+
+'''
+    ignored paths in collection process
+    -- ignore
+'''
+def pytest_ignore_collect(path, config): 
+    # print("ignored: ", path)
+    pass
+
+'''
+    Deselected items should be added into ignored test cases.
+    --deselect
+'''
+def pytest_deselected(items):
+    # print("deselected items", items)
+    pass
+
+def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
+    res = None
+    try:
+        request = args[1]
+        if not "x_thundra" in request.fixturename:
+            print("before fixture call")
+            res = wrapped(*args, **kwargs)
+            print("after fixture call")
+        else:
+            res = wrapped(*args, **kwargs)
+    except Exception as err:
+        print("error occured while fixture_setup function wrapped") # TODO
+        res = wrapped(*args, **kwargs)
+    if res:
+        return res
+
+def _wrapper_teardown_fixture(wrapped, instance, args, kwargs):
+    try:
+        if not "x_thundra" in kwargs["request"].fixturename:
+            print("before teardown function")
+            wrapped(*args, **kwargs)
+            print("after teardown function")
+        else:
+            wrapped(*args, **kwargs)
+    except Exception as err:
+        print("error occured while fixture_teardown function wrapped") # TODO
+        wrapped(*args, **kwargs)
+
+import wrapt
+
+def patch():
+    '''
+        fixture function has been called in call_fixture_func.
+    '''
+    wrapt.wrap_function_wrapper(
+            "_pytest.fixtures",
+            "call_fixture_func",
+            _wrapper_setup_fixture
+        )
+    '''
+        teardown functions has been stored in a stack(FixtureDef._finalizer).
+        finish function has been iterated over this stack and call teardown fixtures.
+    '''    
+    wrapt.wrap_function_wrapper(
+            "_pytest.fixtures",
+            "FixtureDef.finish",
+            _wrapper_teardown_fixture
+        )
