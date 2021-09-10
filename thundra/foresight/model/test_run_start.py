@@ -1,4 +1,6 @@
-class TestRunStart:
+from thundra.foresight.model.test_run_monitoring import TestRunMonitoring
+
+class TestRunStart(TestRunMonitoring):
 
     EVENT_NAME = "TestRunStart"
 
@@ -23,6 +25,9 @@ class TestRunStart:
             "id": self.id,
             "projectId'": self.project_id,
             "taskId'": self.task_id,
+            "type": self.EVENT_NAME,
+            "agentVersion": self.AGENT_VERSION,
+            "dataModelVersion": self.TEST_RUN_DATA_MODEL_VERSION,
             "startTimestamp" : self.start_timestamp,
             "duration" : self.duration,
             "environment": self.environment,
@@ -33,3 +38,9 @@ class TestRunStart:
             "commitMessage": self.commit_message,
             "tags": self.tags
         }
+        
+    def get_monitoring_data(self, api_key):
+        dummy_monitoring_data = super().get_monitoring_data(api_key)
+        dummy_monitoring_data["type"] = self.EVENT_NAME
+        dummy_monitoring_data["data"] = self.to_json()
+        return dummy_monitoring_data  

@@ -1,5 +1,7 @@
 from thundra.foresight.model.test_run_result import TestRunResult
-class TestRunStatus(TestRunResult):
+from thundra.foresight.model.test_run_monitoring import TestRunMonitoring
+
+class TestRunStatus(TestRunResult, TestRunMonitoring):
 
     EVENT_NAME="TestRunStatus"
 
@@ -28,6 +30,9 @@ class TestRunStatus(TestRunResult):
             "id": self.id,
             "projectId'": self.project_id,
             "taskId'": self.task_id,
+            "type": self.EVENT_NAME,
+            "agentVersion": self.AGENT_VERSION,
+            "dataModelVersion": self.TEST_RUN_DATA_MODEL_VERSION,
             "totalCount" : self.total_count,
             "successfulCount" : self.successful_count,
             "failedCount" : self.failed_count,
@@ -44,3 +49,8 @@ class TestRunStatus(TestRunResult):
             "commitMessage": self.commit_message,
             "tags": self.tags
         }
+    def get_monitoring_data(self, api_key):
+        dummy_monitoring_data = super().get_monitoring_data(api_key)
+        dummy_monitoring_data["type"] = self.EVENT_NAME
+        dummy_monitoring_data["data"] = self.to_json()
+        return dummy_monitoring_data  
