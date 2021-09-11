@@ -5,12 +5,11 @@ class TestRunStart(TestRunMonitoring):
     EVENT_NAME = "TestRunStart"
 
     def __init__(self, id=None, project_id=None, task_id=None, start_timestamp=None,
-        duration=None, host_name=None, environment_info=None, tags=None):
+        host_name=None, environment_info=None, tags=None):
         self.id = id
         self.project_id = project_id
         self.task_id = task_id
         self.start_timestamp = start_timestamp
-        self.duration = duration
         self.host_name = host_name
         self.environment = environment_info.environment if environment_info.environment else None
         self.repo_url = environment_info.repo_url if environment_info.repo_url else None
@@ -29,7 +28,6 @@ class TestRunStart(TestRunMonitoring):
             "agentVersion": self.AGENT_VERSION,
             "dataModelVersion": self.TEST_RUN_DATA_MODEL_VERSION,
             "startTimestamp" : self.start_timestamp,
-            "duration" : self.duration,
             "environment": self.environment,
             "repoURL": self.repo_url,
             "repoName": self.repo_name,
@@ -39,8 +37,8 @@ class TestRunStart(TestRunMonitoring):
             "tags": self.tags
         }
         
-    def get_monitoring_data(self, api_key):
-        dummy_monitoring_data = super().get_monitoring_data(api_key)
+    def get_monitoring_data(self):
+        dummy_monitoring_data = super().get_monitoring_data()
         dummy_monitoring_data["type"] = self.EVENT_NAME
         dummy_monitoring_data["data"] = self.to_json()
         return dummy_monitoring_data  

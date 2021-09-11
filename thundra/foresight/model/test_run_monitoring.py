@@ -2,6 +2,8 @@ import abc
 from thundra.constants import (TEST_RUN_EVENTS_DATA_VERSION,
      DATA_FORMAT_VERSION,
      THUNDRA_AGENT_VERSION)
+from thundra.config.config_provider import ConfigProvider
+from thundra.config.config_names import THUNDRA_APIKEY
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 
@@ -12,9 +14,9 @@ class TestRunMonitoring(ABC):
     DATA_FORMAT_VERSION = DATA_FORMAT_VERSION
     AGENT_VERSION = THUNDRA_AGENT_VERSION
 
-    def get_monitoring_data(self, api_key):
+    def get_monitoring_data(self):
         return {
-            'apiKey': api_key,
+            'apiKey': ConfigProvider.get(THUNDRA_APIKEY, None),
             'type': None,
             'dataModelVersion': self.DATA_FORMAT_VERSION,
             'data': None

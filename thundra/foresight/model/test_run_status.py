@@ -7,7 +7,7 @@ class TestRunStatus(TestRunResult, TestRunMonitoring):
 
     def __init__(self, id=None, project_id=None, task_id=None, total_count=None, successful_count=None, 
         failed_count=None, ignored_count=None, aborted_count=None, start_timestamp=None, status_timestamp=None,
-        duration=None, host_name=None, environment_info=None, tags=None):
+        host_name=None, environment_info=None, tags=None):
         super(TestRunStatus, self).__init__(total_count, successful_count, failed_count,
             ignored_count, aborted_count)
         self.id = id
@@ -15,7 +15,6 @@ class TestRunStatus(TestRunResult, TestRunMonitoring):
         self.task_id = task_id
         self.start_timestamp = start_timestamp
         self.status_timestamp = status_timestamp
-        self.duration = duration
         self.host_name = host_name
         self.environment = environment_info.environment if environment_info.environment else None
         self.repo_url = environment_info.repo_url if environment_info.repo_url else None
@@ -40,7 +39,6 @@ class TestRunStatus(TestRunResult, TestRunMonitoring):
             "abortedCount" : self.aborted_count,
             "startTimestamp" : self.start_timestamp,
             "statusTimestamp" : self.status_timestamp,
-            "duration" : self.duration,
             "environment": self.environment,
             "repoURL": self.repo_url,
             "repoName": self.repo_name,
@@ -49,8 +47,8 @@ class TestRunStatus(TestRunResult, TestRunMonitoring):
             "commitMessage": self.commit_message,
             "tags": self.tags
         }
-    def get_monitoring_data(self, api_key):
-        dummy_monitoring_data = super().get_monitoring_data(api_key)
+    def get_monitoring_data(self):
+        dummy_monitoring_data = super().get_monitoring_data()
         dummy_monitoring_data["type"] = self.EVENT_NAME
         dummy_monitoring_data["data"] = self.to_json()
         return dummy_monitoring_data  

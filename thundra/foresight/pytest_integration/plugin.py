@@ -79,6 +79,7 @@ def x_thundra_function_fix(request):
     print("teardown_function: ", request.node.name)
 
 
+
 @pytest.fixture(scope="module", autouse=True)
 def x_thundra_module_fix(request):
     print("setup_module: ", request.node.name)

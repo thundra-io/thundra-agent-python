@@ -8,6 +8,7 @@ class TestRunResult:
         self.ignored_count = ignored_count
         self.aborted_count = aborted_count
 
+
     def to_json(self):
         return {
             "totalCount" : self.total_count,
