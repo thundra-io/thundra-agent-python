@@ -10,13 +10,9 @@ from thundra.foresight.test_run_context import TestRunContext
 from uuid import uuid4
 
 import thundra.foresight.utils as utils
-import logging, socket, time, threading
+import logging, socket, threading
 
 LOGGER = logging.getLogger(__name__)
-
-
-def _current_milli_time():
-    return round(time.time() * 1000)
 
 
 class _TestRunScope:
@@ -47,7 +43,7 @@ class _StatusReporter:
 
 
     def report_status(self):
-        status_time = _current_milli_time()
+        status_time = utils.current_milli_time()
         test_run_status = TestRunStatus(
             id = TestRunnerSupport.test_run_scope.id,
             project_id = TestRunnerSupport.PROJECT_ID,
@@ -144,36 +140,14 @@ class TestRunnerSupport:
             test_run_id = str(uuid4())
         return test_run_id
 
-    
-    @staticmethod
-    def capture_logs():
-        """
-            First check log_plugin already started or not.
-            - if not started, then create plugin_context and execution_context for log_plugin
-            and set maxcountawaresampler.
-            - if started do nothing
-        """
-        pass #TODO
-
-
-    @staticmethod 
-    def uncapture_logs():
-        """
-            if log_pluging already initialized, then do nothing
-            o.w call after invocation for log_plugin
-        """
-        pass #TODO
-
 
     @classmethod
     def start_test_run(cls):
         context = TestRunContext()
         id = cls.do_get_test_run_id()
         task_id = str(uuid4())
-        current_time = _current_milli_time()
-        logs = cls.capture_logs() #TODO
+        current_time = utils.current_milli_time()
         cls.test_run_scope = _TestRunScope(id, task_id, current_time, context)
-        print(EnvironmentSupport.environment_info.to_json())
         #TODO Sampling
         test_run_start = TestRunStart(
             cls.test_run_scope.id,
@@ -208,9 +182,8 @@ class TestRunnerSupport:
     @classmethod
     def finish_test_run(cls, test_run_result):
         try:
-            finish_time = _current_milli_time()
+            finish_time = utils.current_milli_time()
             if cls.test_run_scope:
-                cls.uncapture_logs() # TODO
                 #TODO Sampler reset
                 if cls.status_reporter:
                     try:

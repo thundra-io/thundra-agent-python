@@ -28,45 +28,37 @@ class PytestHelper:
     MAX_TEST_METHOD_NAME = 100
     TEST_SUITE_CONTEXT_PROP_NAME = "THUNDRA::TEST_SUITE_CONTEXT"
     TEST_OPERATION_NAME_INDEX = 2
+    TEST_SUITE = "module"
+    TEST_CASE = "function"
 
     @staticmethod
-    def get_test_application_name(session):
-        return session.startdir.strpath.strpath
-
-
-    @staticmethod
-    def get_test_class_application_name(request):
+    def get_test_application_name(request):
         return request.node.nodeid.replace("::", os.sep)
 
 
     @classmethod
-    def get_test_application_id(cls, session):
-        return cls.TEST_APP_ID_PREFIX + cls.get_test_application_name(session)
-
-
-    @classmethod
-    def get_test_application_instance_id(cls, session):
-        return cls.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_application_name(session)
-
-
-    @classmethod
-    def get_test_class_application_id(cls, request):
+    def get_test_application_id(cls, request):
         return cls.TEST_APP_ID_PREFIX + cls.get_test_class_application_name(request)
 
 
     @classmethod
-    def get_test_class_application_instance_id(cls, request):
+    def get_test_application_instance_id(cls, request):
         return cls.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_class_application_name(request)
 
 
     @classmethod
-    def get_test_application_info(cls, session):
+    def get_test_application_info(cls, request):
+        domain_name = None
+        if request.scope == cls.TEST_SUITE:
+            domain_name = cls.TEST_SUITE_DOMAIN_NAME
+        if request.scope == cls.TEST_CASE:
+            domain_name = cls.TEST_DOMAIN_NAME
         return ApplicationInfo(
-            cls.get_test_application_id(session),
-            cls.get_test_application_instance_id(session),
-            cls.TEST_DOMAIN_NAME,
+            cls.get_test_application_id(request),
+            cls.get_test_application_instance_id(request),
+            domain_name,
             cls.TEST_CLASS_NAME,
-            cls.get_test_application_name(session),
+            cls.get_test_application_name(request),
             cls.TEST_APP_VERSION,
             cls.TEST_APP_STAGE,
             ApplicationInfoProvider.APPLICATION_RUNTIME,
@@ -76,24 +68,10 @@ class PytestHelper:
 
 
     @classmethod
-    def get_test_class_application_info(cls, request):
-        return ApplicationInfo(
-            cls.get_test_class_application_id(request),
-            cls.get_test_class_application_instance_id(request),
-            cls.TEST_SUITE_DOMAIN_NAME,
-            cls.TEST_CLASS_NAME,
-            cls.get_test_class_application_name(request),
-            cls.TEST_APP_VERSION,
-            cls.TEST_APP_STAGE,
-            ApplicationInfoProvider.APPLICATION_RUNTIME,
-            ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
-            None
-        )
-
-
-    @classmethod
     def get_test_method_name(cls, request):
         nodeid = request.node.nodeid
+        if request.scope == cls.TEST_CASE:
+            nodeid = cls.get_test_application_name(nodeid)
         if len(nodeid) > cls.MAX_TEST_METHOD_NAME:
             nodeid = "..." + nodeid[(len(nodeid)-cls.MAX_TEST_METHOD_NAME) + 3:]
         return nodeid
@@ -105,8 +83,8 @@ class PytestHelper:
 
 
     @classmethod
-    def get_test_operation_name(cls, node):
-        return node.location[cls.TEST_OPERATION_NAME_INDEX]
+    def get_test_name(cls, request):
+        return cls.get_test_method_name(request)
 
 
     @classmethod
@@ -123,13 +101,3 @@ class PytestHelper:
                 and cls.TEST_SUITE_DOMAIN_NAME == current_span.domain_name):
             test_suite_context = current_span.get(cls.TEST_SUITE_CONTEXT_PROP_NAME)
         return test_suite_context
-
-    
-    @classmethod
-    def create_test_runner_span(cls, session):
-        TestRunnerSupport.start_test_run()
-        current_test_suite_context = cls.get_current_test_suite_context()
-        tracer = ThundraTracer.get_instance()
-        test_runner_scope = tracer.create_span(
-            
-        )

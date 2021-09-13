@@ -2,12 +2,13 @@ import fastcounter
 
 class TestRunContext:
 
-    def __init__(self):
-        self.total_count = fastcounter.FastWriteCounter()
-        self.successful_count = fastcounter.FastWriteCounter()
-        self.failed_count = fastcounter.FastWriteCounter()
-        self.ignored_count = fastcounter.FastWriteCounter()
-        self.aborted_count = fastcounter.FastWriteCounter()
+    def __init__(self, total_count=0, successful_count = 0, failed_count=0, ignored_count=0, 
+        aborted_count=0, **ignored):
+        self.total_count = fastcounter.FastWriteCounter(total_count)
+        self.successful_count = fastcounter.FastWriteCounter(successful_count)
+        self.failed_count = fastcounter.FastWriteCounter(failed_count)
+        self.ignored_count = fastcounter.FastWriteCounter(ignored_count)
+        self.aborted_count = fastcounter.FastWriteCounter(aborted_count)
 
     def increase_total_count(self, count=1):
         self.total_count.increment(count)
