@@ -1,6 +1,8 @@
 import pytest
 
 from thundra.foresight.pytest_integration.utils import patch, unpatch
+from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
+from thundra.foresight import foresight_executor
 
 # Register argparse-style options and ini-style config values, called once at the beginning of a test run.
 def pytest_addoption(parser):
@@ -23,13 +25,15 @@ def pytest_addoption(parser):
 # Called after the Session object has been created and before performing collection and entering the run test loop.
 def pytest_sessionstart(session):
     print("session start")
-    patch()
+    # patch()
+    PytestHelper.session_setup(executor=foresight_executor)
 
 
 # Called after whole test run finished, right before returning the exit status to the system.
 def pytest_sessionfinish(session, exitstatus):
     print("session exit")
-    unpatch()
+    # unpatch()
+    PytestHelper.session_teardown()
 
 '''
     - Allow plugins and conftest files to perform initial configuration.
@@ -71,20 +75,21 @@ def x_thundra_function_fix(request):
     """
         BeforeEach
     """
-    print("setup_function: ", request.node.name)
+    print("before_function: ", request.node.name)
     yield
     """
         AfterEach
     """
-    print("teardown_function: ", request.node.name)
-
+    print("after_function: ", request.node.name)
 
 
 @pytest.fixture(scope="module", autouse=True)
 def x_thundra_module_fix(request):
-    print("setup_module: ", request.node.name)
+    PytestHelper.start_test_suite(request)
+    PytestHelper.create_before_all_span(request)
     yield
-    print("finish_module: ", request.node.name)
+    PytestHelper.create_after_all_span(request)
+    PytestHelper.finish_test_suite()
     
 
 '''

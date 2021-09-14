@@ -30,8 +30,7 @@ class EnvironmentSupport:
         First check git provider, then iterate over ENVIRONMENTS_VARS dict.
     '''
     @classmethod
-    def _set_global_env_info(cls):
-        global ENVIRONMENTS_VARS
+    def init(cls):
         try:
             if GitHelper.get_repo_url():
                 GitEnvironmentInfoProvider.build_env_info()
@@ -48,19 +47,31 @@ class EnvironmentSupport:
 
 
     @classmethod
-    def set_tags(cls, obj):
+    def set_span_tags(cls, span):
         """Set span and invocation data tags corresponds to TestRunner
 
         Args:
             obj (ThundraSpan | invocation): Span or invocation data
         """
-        if cls.environmentInfo:
-            obj.setTag(TestRunnerTags.TEST_ENVIRONMENT, cls.environmentInfo.environment)
-            obj.setTag(TestRunnerTags.SOURCE_CODE_REPO_URL, cls.environmentInfo.repo_url)
-            obj.setTag(TestRunnerTags.SOURCE_CODE_REPO_NAME, cls.environmentInfo.repo_name)
-            obj.setTag(TestRunnerTags.SOURCE_CODE_BRANCH, cls.environmentInfo.branch)
-            obj.setTag(TestRunnerTags.SOURCE_CODE_COMMIT_HASH, cls.environmentInfo.commit_hash)
-            obj.setTag(TestRunnerTags.SOURCE_CODE_COMMIT_MESSAGE, cls.environmentInfo.commit_message)
+        if cls.environment_info:
+            span.set_tag(TestRunnerTags.TEST_ENVIRONMENT, cls.environment_info.environment)
+            span.set_tag(TestRunnerTags.SOURCE_CODE_REPO_URL, cls.environment_info.repo_url)
+            span.set_tag(TestRunnerTags.SOURCE_CODE_REPO_NAME, cls.environment_info.repo_name)
+            span.set_tag(TestRunnerTags.SOURCE_CODE_BRANCH, cls.environment_info.branch)
+            span.set_tag(TestRunnerTags.SOURCE_CODE_COMMIT_HASH, cls.environment_info.commit_hash)
+            span.set_tag(TestRunnerTags.SOURCE_CODE_COMMIT_MESSAGE, cls.environment_info.commit_message)
 
+    @classmethod
+    def set_invocation_tags(cls, invocation_data):
+        """Set span and invocation data tags corresponds to TestRunner
 
-EnvironmentSupport._set_global_env_info()
+        Args:
+            obj (ThundraSpan | invocation): Span or invocation data
+        """
+        if cls.environment_info:
+            invocation_data[TestRunnerTags.TEST_ENVIRONMENT] =  cls.environment_info.environment
+            invocation_data[TestRunnerTags.SOURCE_CODE_REPO_URL] =  cls.environment_info.repo_url
+            invocation_data[TestRunnerTags.SOURCE_CODE_REPO_NAME] =  cls.environment_info.repo_name
+            invocation_data[TestRunnerTags.SOURCE_CODE_BRANCH] =  cls.environment_info.branch
+            invocation_data[TestRunnerTags.SOURCE_CODE_COMMIT_HASH] =  cls.environment_info.commit_hash
+            invocation_data[TestRunnerTags.SOURCE_CODE_COMMIT_MESSAGE] =  cls.environment_info.commit_message

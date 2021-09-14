@@ -71,58 +71,33 @@ class TestRunnerSupport:
     MAX_SPAN_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_SPAN_COUNT_MAX)
     HOST_NAME = socket.gethostname()
 
-    test_suite_contexts = dict()
-    started_test_suites = set()
+    test_suite_execution_context = None
+    test_case_execution_context = None
+    test_suite_application_info = None
+    test_case_application_info = None
     test_run_scope = None
-    test_run_reporter = None
     status_reporter = None
 
 
-    @classmethod
-    def on_test_suite_start(cls, test_module_name):
-        cls.add_started_test_suite(test_module_name)
-
 
     @classmethod
-    def add_started_test_suite(cls, test_module_name, thundra_span): #TODO thundra_span?
-        if not test_module_name:
-            return False
-        cls.started_test_suites.add(test_module_name)
-        return True
+    def set_test_suite_execution_context(cls, execution_context):
+        cls.test_suite_execution_context = execution_context
+
+       
+    @classmethod
+    def set_test_case_execution_context(cls, execution_context):
+        cls.test_case_execution_context = execution_context  
 
 
     @classmethod
-    def on_test_suite_finish(cls, test_module_name):
-        cls.remove_started_test_suite(test_module_name)
-    
-
-    @classmethod
-    def remove_started_test_suite(cls, test_module_name):
-        if not test_module_name:
-            return False
-        try:
-            cls.started_test_suites.remove(test_module_name)
-        except Exception as err:
-            LOGGER.error("Started test suite with {} name couldn't be removed".format(test_module_name), err)
-        return True
+    def set_test_suite_application_info(cls, application_info):
+        cls.test_suite_application_info = application_info
 
 
     @classmethod
-    def clear_started_test_suites(cls):
-        cls.started_test_suites.clear()
-
-
-    @classmethod
-    def start_test_suite_context(cls, test_suite_context):
-        cls.test_suite_contexts[test_suite_context.transaction_id] = test_suite_context
-
-
-    @classmethod
-    def finish_test_suite_context(cls, test_suite_context):
-        try:
-            del cls.test_suite_contexts[test_suite_context.transaction_id]
-        except Exception as err:
-            LOGGER.error("Test suite couldn't removed from test suite contexts", err)
+    def set_test_case_application_info(cls, application_info):
+        cls.test_case_application_info = application_info
 
 
     @classmethod
@@ -158,7 +133,7 @@ class TestRunnerSupport:
             cls.HOST_NAME,
             EnvironmentSupport.environment_info
         )
-        test_wrapper_utils.send_test_run_data(cls.test_run_reporter, test_run_start) #TODO
+        test_wrapper_utils.send_test_run_data(test_run_start) #TODO
         if cls.status_reporter:
             cls.status_reporter.stop()
         else:
@@ -213,6 +188,7 @@ class TestRunnerSupport:
             LOGGER.error("Thundra foresight finist test run error", err)
         finally:
             cls.test_run_scope = None
+
 
     @classmethod
     def get_test_run_context(cls):

@@ -5,11 +5,11 @@ class TestCaseExecutionContext(ExecutionContext):
 
     def __init__(self, **opts):
         super(TestCaseExecutionContext, self).__init__(**opts)
-        self.id = opts.id or '' # id = nodeid
-        self.name = opts.name or ''
-        self.method = opts.method or ''
-        self.test_class = opts.test_class or ''
-        self.test_suite_name = opts.test_suite_name or ''
+        self.node_id = opts.get("node_id", "")
+        self.name = opts.get("name", "")
+        self.method = opts.get("method", "")
+        self.test_class = opts.get("test_class", '')
+        self.test_suite_name = opts.get("test_suite_name", "")
 
     def set_status(self, status):
         self.status = status

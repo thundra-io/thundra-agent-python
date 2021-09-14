@@ -80,4 +80,11 @@ class GitHelper:
             return GitHelper.normalize_repo_name(repo_url)
 
 
-GitHelper.populate_git_info_map()
+GitHelper.git_info_map = {
+    "sourceCodePath": "sourceCodePath",
+    "repositoryURL": "git@github.com:jaredpar/VsVim.git",
+    "branch": "branch",
+    "commitHash": "commitHash",
+    "commitMessage": "commitMessage"
+}
+# GitHelper.populate_git_info_map()
