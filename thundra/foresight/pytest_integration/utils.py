@@ -1,5 +1,5 @@
 import wrapt
-
+from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
 """
     Refactor this file. It's been written rapidly.
 """
@@ -10,9 +10,15 @@ def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
     try:
         request = args[1]
         if not "x_thundra" in request.fixturename:
-            print("before fixture call")
+            if request.scope == "function":
+                PytestHelper.start_before_each_span(request)
+            else:
+                PytestHelper.start_before_all_span(request)
             res = wrapped(*args, **kwargs)
-            print("after fixture call")
+            if request.scope == "function":
+                PytestHelper.finish_before_each_span()
+            else:
+                PytestHelper.finish_before_all_span()
         else:
             res = wrapped(*args, **kwargs)
     except Exception as err:
@@ -25,9 +31,16 @@ def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
 def _wrapper_teardown_fixture(wrapped, instance, args, kwargs):
     try:
         if not "x_thundra" in kwargs["request"].fixturename:
-            print("before teardown function")
+            request = kwargs["request"]
+            if request.scope == "function":
+                PytestHelper.start_after_each_span(request)
+            else:
+                PytestHelper.start_after_all_span(request)
             wrapped(*args, **kwargs)
-            print("after teardown function")
+            if request.scope == "function":
+                PytestHelper.finish_after_each_span(request)
+            else:
+                PytestHelper.finish_after_all_span()
         else:
             wrapped(*args, **kwargs)
     except Exception as err:

@@ -1,7 +1,6 @@
 from thundra.context.execution_context import ExecutionContext
 from thundra.foresight.test_runner_tags import TestRunnerTags
 from thundra.foresight.test_run_context import TestRunContext
-import fastcounter
 
 
 class TestSuiteExecutionContext(TestRunContext, ExecutionContext):

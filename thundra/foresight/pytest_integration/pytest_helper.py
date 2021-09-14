@@ -140,20 +140,20 @@ class PytestHelper:
 
 
     @classmethod
-    def start_test_suite(cls, request):
+    def start_test_suite_span(cls, request):
         test_wrapper_utils = TestWrapperUtils.get_instance()
         test_suite_name = request.node.nodeid
         context = test_wrapper_utils.create_test_suite_execution_context(test_suite_name)
-        test_wrapper_utils.before_test_process(context)
         app_info = cls.get_test_application_info(request)
         test_wrapper_utils.change_app_info(app_info)
         TestRunnerSupport.set_test_suite_application_info(app_info)
         TestRunnerSupport.set_test_suite_execution_context(context)
+        test_wrapper_utils.before_test_process(context)
         ExecutionContextManager.set(context)
 
 
     @staticmethod
-    def finish_test_suite():
+    def finish_test_suite_span():
         test_wrapper_utils = TestWrapperUtils.get_instance()
         app_info = TestRunnerSupport.test_suite_application_info
         context = TestRunnerSupport.test_suite_execution_context
@@ -163,14 +163,88 @@ class PytestHelper:
 
 
     @classmethod
-    def create_before_all_span(cls, request):
+    def start_before_all_span(cls, request):
         context = ExecutionContextManager.get()
         span = HandleSpan.create_span(cls.TEST_BEFORE_ALL_OPERATION_NAME, context)
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.nodeid)
 
-    
+
+    @staticmethod
+    def finish_before_all_span():
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_active_span()
+        HandleSpan.finish_span(span, TestRunnerTags.TEST_BEFORE_ALL_DURATION)
+        tracer.scope_manager.active.close()
+
+
     @classmethod
-    def create_after_all_span(cls, request):
+    def start_after_all_span(cls, request):
+        context = ExecutionContextManager.get()
+        span = HandleSpan.create_span(cls.TEST_AFTER_ALL_OPERATION_NAME, context)
+        span.set_tag(TestRunnerTags.TEST_SUITE, request.node.nodeid)
+
+
+    @staticmethod
+    def finish_after_all_span():
         tracer = ThundraTracer.get_instance()
         span = tracer.get_active_span()
         HandleSpan.finish_span(span, TestRunnerTags.TEST_AFTER_ALL_DURATION)
+        tracer.scope_manager.active.close()
+
+
+    @classmethod
+    def start_test_span(cls, request):
+        test_wrapper_utils = TestWrapperUtils.get_instance()
+        test_suite_name = request.node.location[0]
+        node_id = request.node.nodeid
+        app_info = cls.get_test_application_info(request)
+        test_wrapper_utils.change_app_info(app_info)
+        context = test_wrapper_utils.create_test_case_execution_context(test_suite_name, node_id)   
+        TestRunnerSupport.set_test_case_application_info(app_info)
+        TestRunnerSupport.set_test_case_execution_context(context)
+        test_wrapper_utils.before_test_process(context)
+        ExecutionContextManager.set(context)
+
+
+    @classmethod
+    def start_before_each_span(cls, request):
+        context = ExecutionContextManager.get()
+        span = HandleSpan.create_span(cls.TEST_BEFORE_EACH_OPERATION_NAME, context)
+        span.set_tag(TestRunnerTags.TEST_SUITE, request.node.location[0])
+
+
+    @staticmethod
+    def finish_before_each_span():
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_active_span()
+        HandleSpan.finish_span(span, TestRunnerTags.TEST_BEFORE_EACH_DURATION)
+        tracer.scope_manager.active.close()
+
+
+    @classmethod
+    def start_after_each_span(cls, request):
+        context = ExecutionContextManager.get()
+        span = HandleSpan.create_span(cls.TEST_AFTER_EACH_OPERATION_NAME, context)
+        span.set_tag(TestRunnerTags.TEST_SUITE, request.node.location[0])
+
+
+    @classmethod
+    def finish_after_each_span(cls, request):
+        tracer = ThundraTracer.get_instance()
+        span = tracer.get_active_span()
+        span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request))
+        HandleSpan.finish_span(span, TestRunnerTags.TEST_AFTER_EACH_DURATION)
+        tracer.scope_manager.active.close()
+
+
+    @staticmethod
+    def finish_test_span():
+        test_wrapper_utils = TestWrapperUtils.get_instance()
+        test_case_context = TestRunnerSupport.test_case_execution_context
+        test_wrapper_utils.after_test_process(test_case_context)
+        tracer = ThundraTracer.get_instance()
+        tracer.scope_manager.active.close()
+        app_info = TestRunnerSupport.test_suite_application_info
+        context = TestRunnerSupport.test_suite_execution_context
+        test_wrapper_utils.change_app_info(app_info)
+        ExecutionContextManager.set(context)

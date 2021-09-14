@@ -1,8 +1,10 @@
+from thundra.context.execution_context import ExecutionContext
 import pytest
 
 from thundra.foresight.pytest_integration.utils import patch, unpatch
 from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
 from thundra.foresight import foresight_executor
+from thundra.context.execution_context_manager import ExecutionContextManager
 
 # Register argparse-style options and ini-style config values, called once at the beginning of a test run.
 def pytest_addoption(parser):
@@ -25,14 +27,14 @@ def pytest_addoption(parser):
 # Called after the Session object has been created and before performing collection and entering the run test loop.
 def pytest_sessionstart(session):
     print("session start")
-    # patch()
+    patch()
     PytestHelper.session_setup(executor=foresight_executor)
 
 
 # Called after whole test run finished, right before returning the exit status to the system.
 def pytest_sessionfinish(session, exitstatus):
     print("session exit")
-    # unpatch()
+    unpatch()
     PytestHelper.session_teardown()
 
 '''
@@ -72,24 +74,16 @@ def x_thundra_patch_all(request):
 
 @pytest.fixture(scope="function", autouse=True)
 def x_thundra_function_fix(request):
-    """
-        BeforeEach
-    """
-    print("before_function: ", request.node.name)
+    PytestHelper.start_test_span(request)
     yield
-    """
-        AfterEach
-    """
-    print("after_function: ", request.node.name)
+    PytestHelper.finish_test_span()
 
 
 @pytest.fixture(scope="module", autouse=True)
 def x_thundra_module_fix(request):
-    PytestHelper.start_test_suite(request)
-    PytestHelper.create_before_all_span(request)
+    PytestHelper.start_test_suite_span(request)
     yield
-    PytestHelper.create_after_all_span(request)
-    PytestHelper.finish_test_suite()
+    PytestHelper.finish_test_suite_span()
     
 
 '''
@@ -109,7 +103,14 @@ def pytest_runtest_protocol(item, nextitem):
 # Called to create a _pytest.reports.TestReport for each of the setup, call and teardown runtest phases of a test item
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    yield
+    outcome = yield
+    if call.when == "setup":
+        pass
+    elif call.when == "call":
+        context = ExecutionContextManager.get()
+        context.set_status(outcome.get_result().outcome)
+    elif call.when == "teardown":
+        pass
 
 '''
     ignored paths in collection process

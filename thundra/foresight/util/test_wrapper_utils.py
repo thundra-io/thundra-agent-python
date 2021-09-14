@@ -66,18 +66,18 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def create_test_case_execution_context(self, test_suite_name, test_case_id):
-        transaction_id = str(uuid4)
+        transaction_id = str(uuid4())
         start_timestamp = utils.current_milli_time()
         return TestCaseExecutionContext(
             transaction_id = transaction_id,
             start_timestamp = start_timestamp,
             test_suite_name = test_suite_name,
-            id = test_case_id
+            node_id = test_case_id
         )
 
 
     def start_trace(self, execution_context, tracer):
-        trace_id = str(uuid4)
+        trace_id = str(uuid4())
         operation_name = execution_context.get_operation_name()
         scope = tracer.start_active_span(
             operation_name=operation_name,

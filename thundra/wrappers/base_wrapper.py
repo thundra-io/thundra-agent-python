@@ -51,6 +51,7 @@ class BaseWrapper(ABC):
                 self.import_patcher = ImportPatcher()
         self.thread_pool_executor = ThreadPoolExecutorWithQueueSizeLimit()
 
+
     def execute_hook(self, name, data):
         if name == 'after:invocation':
             [plugin.hooks[name](data) for plugin in reversed(self.plugins) if hasattr(plugin, 'hooks')
@@ -59,10 +60,12 @@ class BaseWrapper(ABC):
             [plugin.hooks[name](data) for plugin in self.plugins if
              hasattr(plugin, 'hooks') and name in plugin.hooks]
 
+
     def prepare_and_send_reports(self, execution_context):
         execution_context.finish_timestamp = int(time.time() * 1000)
         self.execute_hook('after:invocation', execution_context)
         self.reporter.send_reports(execution_context.reports)
+
 
     def prepare_and_send_reports_async(self, execution_context):
         execution_context.finish_timestamp = int(time.time() * 1000)
