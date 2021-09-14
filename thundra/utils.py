@@ -122,7 +122,6 @@ class Singleton(object):
             class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
         return class_._instances[class_]
 
-
 def get_all_env_variables():
     return os.environ
 

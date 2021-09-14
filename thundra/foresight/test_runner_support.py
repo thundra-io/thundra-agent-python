@@ -5,10 +5,9 @@ from thundra.foresight.model.test_run_start import TestRunStart
 from thundra.foresight.model.test_run_status import TestRunStatus
 from thundra.foresight.model.test_run_result import TestRunResult
 from thundra.foresight.model.test_run_finish import TestRunFinish
-from thundra.reporter import Reporter
 from thundra.foresight.test_run_context import TestRunContext
 from uuid import uuid4
-
+from thundra.foresight.util.test_wrapper_utils import TestWrapperUtils
 import thundra.foresight.utils as utils
 import logging, socket, threading
 
@@ -43,6 +42,7 @@ class _StatusReporter:
 
 
     def report_status(self):
+        test_wrapper_utils = TestWrapperUtils.get_instance()
         status_time = utils.current_milli_time()
         test_run_status = TestRunStatus(
             id = TestRunnerSupport.test_run_scope.id,
@@ -59,7 +59,7 @@ class _StatusReporter:
             environment_info= EnvironmentSupport.environment_info,
             # TODO tags
         )
-        utils.send_report_data(TestRunnerSupport.test_run_reporter, test_run_status) # TODO
+        test_wrapper_utils.send_test_run_data(test_run_status) # TODO
 
 
 class TestRunnerSupport:
@@ -74,7 +74,7 @@ class TestRunnerSupport:
     test_suite_contexts = dict()
     started_test_suites = set()
     test_run_scope = None
-    test_run_reporter = Reporter(ConfigProvider.get(config_names.THUNDRA_APIKEY, None))
+    test_run_reporter = None
     status_reporter = None
 
 
@@ -143,6 +143,7 @@ class TestRunnerSupport:
 
     @classmethod
     def start_test_run(cls):
+        test_wrapper_utils = TestWrapperUtils.get_instance()
         context = TestRunContext()
         id = cls.do_get_test_run_id()
         task_id = str(uuid4())
@@ -157,7 +158,7 @@ class TestRunnerSupport:
             cls.HOST_NAME,
             EnvironmentSupport.environment_info
         )
-        utils.send_report_data(cls.test_run_reporter, test_run_start) #TODO
+        test_wrapper_utils.send_test_run_data(cls.test_run_reporter, test_run_start) #TODO
         if cls.status_reporter:
             cls.status_reporter.stop()
         else:
@@ -182,6 +183,7 @@ class TestRunnerSupport:
     @classmethod
     def finish_test_run(cls, test_run_result):
         try:
+            test_wrapper_utils = TestWrapperUtils.get_instance()
             finish_time = utils.current_milli_time()
             if cls.test_run_scope:
                 #TODO Sampler reset
@@ -206,7 +208,7 @@ class TestRunnerSupport:
                     environment_info= EnvironmentSupport.environment_info,
                     # TODO tags
                 )
-                utils.send_report_data(cls.test_run_reporter, test_run_finish) # TODO ASK
+                test_wrapper_utils.send_test_run_data(test_run_finish) # TODO ASK
         except Exception as err:
             LOGGER.error("Thundra foresight finist test run error", err)
         finally:

@@ -1,5 +1,3 @@
-import uuid
-from thundra import foresight
 from thundra.wrappers.base_wrapper import BaseWrapper
 import thundra.wrappers.wrapper_utils as wrapper_utils
 from thundra.context.plugin_context import PluginContext
@@ -16,11 +14,13 @@ class TestWrapperUtils(BaseWrapper):
     __instance = None
 
     @staticmethod
-    def get_instance():
-        return TestWrapperUtils() if TestWrapperUtils.__instance is None else TestWrapperUtils.__instance
+    def get_instance(*args, **kwargs):
+        print(TestWrapperUtils.__instance)
+        if not TestWrapperUtils.__instance:
+            TestWrapperUtils.__instance = TestWrapperUtils(*args, **kwargs)
+        return TestWrapperUtils.__instance
 
-
-    def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
+    def __init__(self, *, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None, **ignored):
         super(TestWrapperUtils, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         ExecutionContextManager.set_provider(TracingExecutionContextProvider) #TODO
         self.application_info_provider = GlobalApplicationInfoProvider()
@@ -88,41 +88,6 @@ class TestWrapperUtils(BaseWrapper):
         execution_context.reports = []
 
 
-    def start_trace(self, execution_context, tracer):
-        trace_id = str(uuid4)
-        operation_name = execution_context.get_operation_name()
-        scope = tracer.start_active_span(
-            operation_name=operation_name,
-            start_time=execution_context.start_timestamp,
-            finish_on_close=False,
-            trace_id=trace_id,
-            transaction_id=execution_context.transaction_id,
-            execution_context=execution_context
-        )
-        root_span = scope.span
-        root_span.class_name = self.plugin_context.application_info.get("applicationClassName")
-        root_span.domain_name = self.plugin_context.application_info.get("applicationDomainName")
-        execution_context.span_id = root_span.context.span_id
-        execution_context.root_span = root_span
-        execution_context.scope = scope
-        execution_context.trace_id = trace_id
-
-
-    def finish_trace(self, execution_context):
-        root_span = execution_context.root_span
-        scope = execution_context.scope
-        try:
-            root_span.finish(f_time=execution_context.finish_timestamp)
-        except Exception:
-            # TODO: handle root span finish errors
-            pass
-        finally:
-            scope.close()
-
-
-    def create_invocation_data(self, execution_context):
-        wrapper_utils.create_invocation_data(self.plugin_context, execution_context)
-
-
-    def finish_invocation_data(self, execution_context):
-        wrapper_utils.finish_invocation(execution_context)
+    def send_test_run_data(self, test_run_event):
+        test_run_monitoring_data = test_run_event.get_monitoring_data()
+        self.reporter.send_reports([test_run_monitoring_data])
