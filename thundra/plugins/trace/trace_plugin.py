@@ -83,7 +83,7 @@ class TracePlugin:
     def build_span(self, span, execution_context):
         if not execution_context.transaction_id:
             execution_context.transaction_id = str(uuid.uuid4())
-
+        service_name = span.service_name if hasattr(span, "service_name") else ''
         span_data = {
             'id': span.context.span_id,
             'type': "Span",
@@ -95,7 +95,7 @@ class TracePlugin:
             'spanOrder': span.span_order,
             'domainName': span.domain_name or '',
             'className': span.class_name or '',
-            'serviceName': '',
+            'serviceName': service_name,
             'operationName': span.operation_name,
             'startTimestamp': span.start_time,
             'finishTimestamp': span.finish_time,

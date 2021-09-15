@@ -65,14 +65,15 @@ class TestWrapperUtils(BaseWrapper):
         )
 
 
-    def create_test_case_execution_context(self, test_suite_name, test_case_id):
+    def create_test_case_execution_context(self, test_suite_name, test_case_id, parent_transaction_id=""):
         transaction_id = str(uuid4())
         start_timestamp = utils.current_milli_time()
         return TestCaseExecutionContext(
             transaction_id = transaction_id,
             start_timestamp = start_timestamp,
             test_suite_name = test_suite_name,
-            node_id = test_case_id
+            node_id = test_case_id,
+            parent_transaction_id = parent_transaction_id
         )
 
 
@@ -82,15 +83,16 @@ class TestWrapperUtils(BaseWrapper):
         scope = tracer.start_active_span(
             operation_name=operation_name,
             start_time=execution_context.start_timestamp,
-            finish_on_close=False,
             trace_id=trace_id,
             transaction_id=execution_context.transaction_id,
-            execution_context=execution_context
+            execution_context=execution_context,
+            ignore_active_span=True,
         )
         root_span = scope.span
         app_info = self.application_info_provider.get_application_info()
         root_span.class_name = app_info.get("applicationClassName")
         root_span.domain_name = app_info.get("applicationDomainName")
+        root_span.service_name = app_info.get("applicationName")
         execution_context.span_id = root_span.context.span_id
         execution_context.root_span = root_span
         execution_context.scope = scope

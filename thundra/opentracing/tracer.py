@@ -81,6 +81,8 @@ class ThundraTracer(opentracing.Tracer):
                    execution_context=None):
         # Create a new span
         _span = self.create_span(operation_name=operation_name,
+                                 class_name=class_name,
+                                 domain_name=domain_name,
                                  child_of=child_of,
                                  references=references,
                                  trace_id=trace_id,

@@ -10,6 +10,7 @@ class TestCaseExecutionContext(ExecutionContext):
         self.method = opts.get("method", "")
         self.test_class = opts.get("test_class", '')
         self.test_suite_name = opts.get("test_suite_name", "")
+        self.parent_transaction_id = opts.get("parent_transaction_id", "")
 
     def set_status(self, status):
         self.status = status
@@ -22,7 +23,8 @@ class TestCaseExecutionContext(ExecutionContext):
             TestRunnerTags.TEST_NAME: self.name,
             TestRunnerTags.TEST_SUITE: self.test_suite_name,
             TestRunnerTags.TEST_METHOD: self.method,
-            TestRunnerTags.TEST_CLASS: self.test_class
+            TestRunnerTags.TEST_CLASS: self.test_class,
+            TestRunnerTags.TEST_SUITE_TRANSACTION_ID: self.parent_transaction_id
         }
 
     def get_additional_finish_tags(self):
