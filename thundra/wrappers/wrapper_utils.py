@@ -65,7 +65,7 @@ def finish_invocation(execution_context):
     invocation_data['userTags'] = execution_context.user_tags
 
     # Add agent tags
-    invocation_data['tags'] = execution_context.tags
+    invocation_data['tags'].update(execution_context.tags)
 
     # Get resources
     resources = invocation_trace_support.get_resources()

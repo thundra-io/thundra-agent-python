@@ -79,7 +79,7 @@ class GitHelper:
         else:
             return GitHelper.normalize_repo_name(repo_url)
 
-
+# TODO
 GitHelper.git_info_map = {
     "sourceCodePath": "sourceCodePath",
     "repositoryURL": "git@github.com:jaredpar/VsVim.git",

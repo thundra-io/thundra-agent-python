@@ -221,7 +221,8 @@ class PytestHelper:
         node_id = request.node.nodeid
         app_info = cls.get_test_application_info(request)
         test_wrapper_utils.change_app_info(app_info)
-        parent_transaction_id = ExecutionContextManager.get().transaction_id
+        current_context = ExecutionContextManager.get()
+        parent_transaction_id = current_context.invocation_data.get("transactionId")
         context = test_wrapper_utils.create_test_case_execution_context(test_suite_name, node_id, parent_transaction_id)   
         ExecutionContextManager.set(context)
         TestRunnerSupport.set_test_case_application_info(app_info)

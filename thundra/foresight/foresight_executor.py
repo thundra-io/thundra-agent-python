@@ -34,7 +34,7 @@ def start_invocation(plugin_context, execution_context):
     test_wrapper_utils = TestWrapperUtils.get_instance()
     test_wrapper_utils.start_invocation(execution_context)
     
-    execution_context.invocation_data.update(execution_context.get_additional_start_tags())
+    execution_context.invocation_data["tags"].update(execution_context.get_additional_start_tags())
 
 
 def finish_invocation(execution_context):
