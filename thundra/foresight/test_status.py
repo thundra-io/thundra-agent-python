@@ -1,15 +1,56 @@
-from enum import Enum
+from thundra.foresight.test_runner_support import TestRunnerSupport
 
-class AutoNumber(Enum):
-     def __new__(cls):
-        value = len(cls.__members__)  # note no + 1
-        obj = object.__new__(cls)
-        obj._value_ = value
-        return obj
+class TestStatus:
+    SUCCESSFUL = "PASSED"
+    FAILED = "FAILED"
+    ABORTED = "ABORTED"
+    SKIPPED = "SKIPPED"
+    TOTAL = "TOTAL"
 
-class TestStatus(AutoNumber):
-    SUCCESSFUL = ()
-    FAILED = ()
-    ABORTED = ()
-    IGNORED = ()
- 
+def increase_successful_count():
+    test_run_context = TestRunnerSupport.test_run_scope
+    test_suite_context = TestRunnerSupport.test_suite_execution_context
+
+    test_run_context.context.increase_successful_count()
+    test_suite_context.increase_successful_count()
+
+
+def increase_failed_count():
+    test_run_context = TestRunnerSupport.test_run_scope
+    test_suite_context = TestRunnerSupport.test_suite_execution_context
+
+    test_run_context.context.increase_failed_count()
+    test_suite_context.increase_failed_count()
+
+
+def increase_aborted_count():
+    test_run_context = TestRunnerSupport.test_run_scope
+    test_suite_context = TestRunnerSupport.test_suite_execution_context
+
+    test_run_context.context.increase_aborted_count()
+    test_suite_context.increase_aborted_count()
+
+
+def increase_skipped_count():
+    test_run_context = TestRunnerSupport.test_run_scope
+    test_suite_context = TestRunnerSupport.test_suite_execution_context
+
+    test_run_context.context.increase_ignored_count()
+    test_suite_context.increase_ignored_count() 
+
+
+def increase_total_count():
+    test_run_context = TestRunnerSupport.test_run_scope
+    test_suite_context = TestRunnerSupport.test_suite_execution_context
+
+    test_run_context.context.increase_total_count()
+    test_suite_context.increase_total_count() 
+
+
+increase_actions = {
+    TestStatus.SUCCESSFUL: increase_successful_count,
+    TestStatus.FAILED: increase_failed_count,
+    TestStatus.ABORTED: increase_aborted_count,
+    TestStatus.SKIPPED: increase_skipped_count,
+    TestStatus.TOTAL: increase_total_count
+}

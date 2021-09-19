@@ -11,6 +11,7 @@ class TestCaseExecutionContext(ExecutionContext):
         self.test_class = opts.get("test_class", '')
         self.test_suite_name = opts.get("test_suite_name", "")
         self.parent_transaction_id = opts.get("parent_transaction_id", "")
+        self.status = opts.get("status", "")
 
     def set_status(self, status):
         self.status = status

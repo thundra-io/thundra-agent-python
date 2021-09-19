@@ -1,10 +1,10 @@
-from thundra.context.execution_context import ExecutionContext
 import pytest
 
 from thundra.foresight.pytest_integration.utils import patch, unpatch
 from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
 from thundra.foresight import foresight_executor
 from thundra.context.execution_context_manager import ExecutionContextManager
+from thundra.foresight.test_status import increase_actions, TestStatus
 
 # Register argparse-style options and ini-style config values, called once at the beginning of a test run.
 def pytest_addoption(parser):
@@ -104,13 +104,40 @@ def pytest_runtest_protocol(item, nextitem):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-    if call.when == "setup":
-        pass
-    elif call.when == "call":
-        context = ExecutionContextManager.get()
-        context.set_status(outcome.get_result().outcome)
-    elif call.when == "teardown":
-        pass
+
+    is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
+    exception = call.excinfo
+
+    if is_setup_or_teardown:
+        return
+
+    test_status = TestStatus.SUCCESSFUL
+    context = ExecutionContextManager.get()
+    if exception: # error occured on call.when == call
+        test_status = TestStatus.FAILED    
+        context.error = exception
+    else:
+        # After Function call report to get test status(success, failed, aborted, skipped , ignored)
+        result = outcome.get_result()
+        xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
+        has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif", "skipped"])
+        if result.skipped:
+            if xfail and not has_skip_keyword:
+                test_status = TestStatus.SUCCESSFUL
+            else:
+                test_status = TestStatus.SKIPPED
+        elif result.passed:
+            # Check XPASS TODO
+            test_status = TestStatus.SUCCESSFUL
+        else: # failed
+            test_status = TestStatus.FAILED    
+            context = ExecutionContextManager.get()
+            context.error = exception
+    increase_action = increase_actions[test_status]
+    context.set_status(test_status)
+    if increase_action:
+        increase_action()
+        increase_actions[TestStatus.TOTAL]()
 
 '''
     ignored paths in collection process

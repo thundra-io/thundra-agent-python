@@ -1,6 +1,6 @@
-class TestRunnerScopeStore:
+class TestRunnerScopeStore: #TODO
     """
-        For pytest.request, use request.node
+        For pytest.request, use request.node. Check usage for parallel executions.
     """
 
     test_item_store_map = dict() # keeps <item.nodeid, ThundraScope>

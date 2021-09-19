@@ -10,11 +10,13 @@ import thundra.foresight.utils as utils
 import uuid, os
 import pytest
 
+THUNDRA_SPAN = "x-thundra-span"
+
 
 class HandleSpan:
 
     @staticmethod
-    def create_span(operation_name, app_info={}):
+    def create_span(request, operation_name, app_info={}):
         tracer = ThundraTracer().get_instance()
         parent_span = tracer.get_active_span()
 
@@ -28,13 +30,14 @@ class HandleSpan:
             start_time=utils.current_milli_time()
         )
         span.service_name = app_info.get("applicationName")
+        HandleSpan.inject_span(request, span)
         return span
 
 
     @staticmethod
-    def finish_span(tagName):
+    def finish_span(request, tagName):
         context = ExecutionContextManager.get()
-        current_span = context.recorder.get_current_span()
+        current_span = HandleSpan.extract_span(request)
         current_span.finish(f_time=utils.current_milli_time())
         if not context or not context.invocation_data:
             #TODO Add log
@@ -49,6 +52,15 @@ class HandleSpan:
             duration = duration + current_duration
             invocation_data["tags"][tagName] = duration
 
+
+    @staticmethod
+    def inject_span(request, span):
+        setattr(request, THUNDRA_SPAN, span)
+
+
+    @staticmethod
+    def extract_span(request):
+        return getattr(request, THUNDRA_SPAN, None)
 
 class PytestHelper:
 
@@ -144,9 +156,7 @@ class PytestHelper:
 
     @classmethod
     def get_test_method_name(cls, request):
-        nodeid = request.node.nodeid
-        if request.scope == cls.TEST_CASE:
-            nodeid = cls.get_test_application_name(nodeid)
+        nodeid = cls.get_test_application_name(request)
         if len(nodeid) > cls.MAX_TEST_METHOD_NAME:
             nodeid = "..." + nodeid[(len(nodeid)-cls.MAX_TEST_METHOD_NAME) + 3:]
         return nodeid
@@ -185,26 +195,26 @@ class PytestHelper:
     @classmethod
     def start_before_all_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
-        span = HandleSpan.create_span(cls.TEST_BEFORE_ALL_OPERATION_NAME, app_info)
+        span = HandleSpan.create_span(request, cls.TEST_BEFORE_ALL_OPERATION_NAME, app_info)
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.nodeid)
 
 
     @staticmethod
-    def finish_before_all_span():
-        HandleSpan.finish_span(TestRunnerTags.TEST_BEFORE_ALL_DURATION)
+    def finish_before_all_span(request):
+        HandleSpan.finish_span(request, TestRunnerTags.TEST_BEFORE_ALL_DURATION)
 
 
     @classmethod
     def start_after_all_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
-        span = HandleSpan.create_span(cls.TEST_AFTER_ALL_OPERATION_NAME, app_info)
+        span = HandleSpan.create_span(request, cls.TEST_AFTER_ALL_OPERATION_NAME, app_info)
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.nodeid)
         
 
 
     @staticmethod
-    def finish_after_all_span():
-        HandleSpan.finish_span(TestRunnerTags.TEST_AFTER_ALL_DURATION)
+    def finish_after_all_span(request):
+        HandleSpan.finish_span(request, TestRunnerTags.TEST_AFTER_ALL_DURATION)
 
 
     @staticmethod
@@ -232,27 +242,27 @@ class PytestHelper:
     @classmethod
     def start_before_each_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
-        span = HandleSpan.create_span(cls.TEST_BEFORE_EACH_OPERATION_NAME, app_info)
+        span = HandleSpan.create_span(request, cls.TEST_BEFORE_EACH_OPERATION_NAME, app_info)
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.location[0])
 
 
     @staticmethod
-    def finish_before_each_span():
-        HandleSpan.finish_span(TestRunnerTags.TEST_BEFORE_EACH_DURATION)
+    def finish_before_each_span(request):
+        HandleSpan.finish_span(request, TestRunnerTags.TEST_BEFORE_EACH_DURATION)
 
 
     @classmethod
     def start_after_each_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
-        span = HandleSpan.create_span(cls.TEST_AFTER_EACH_OPERATION_NAME, app_info)
+        span = HandleSpan.create_span(request, cls.TEST_AFTER_EACH_OPERATION_NAME, app_info)
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.location[0])
 
 
     @classmethod
     def finish_after_each_span(cls, request):
-        span = ExecutionContextManager.get().recorder.get_current_span()
+        span = HandleSpan.extract_span(request)
         span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request))
-        HandleSpan.finish_span(TestRunnerTags.TEST_AFTER_EACH_DURATION)
+        HandleSpan.finish_span(request, TestRunnerTags.TEST_AFTER_EACH_DURATION)
 
 
     @staticmethod
