@@ -17,7 +17,7 @@ class TestCaseExecutionContext(ExecutionContext):
         self.status = status
 
     def get_operation_name(self):
-        return self.node_id
+        return "RunTest"
 
     def get_additional_start_tags(self):
         return {

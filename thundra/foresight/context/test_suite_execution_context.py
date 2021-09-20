@@ -14,7 +14,7 @@ class TestSuiteExecutionContext(TestRunContext, ExecutionContext):
 
 
     def get_operation_name(self):
-        return self.test_suite_name
+        return "TEST_SUITE"
 
 
     def get_additional_start_tags(self):

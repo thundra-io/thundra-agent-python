@@ -29,7 +29,7 @@ def pytest_sessionstart(session):
     print("session start")
     patch()
     PytestHelper.session_setup(executor=foresight_executor)
-
+    import thundra
 
 # Called after whole test run finished, right before returning the exit status to the system.
 def pytest_sessionfinish(session, exitstatus):

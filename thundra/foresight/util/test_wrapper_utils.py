@@ -6,6 +6,9 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
 from thundra.foresight.context import (TestSuiteExecutionContext, TestCaseExecutionContext)
 import thundra.foresight.utils as utils
+from thundra.opentracing.tracer import ThundraTracer
+from thundra.plugins.invocation import invocation_support, invocation_trace_support
+from thundra import constants
 from uuid import uuid4
 
 class TestWrapperUtils(BaseWrapper):
@@ -65,8 +68,8 @@ class TestWrapperUtils(BaseWrapper):
         )
 
 
-    def create_test_case_execution_context(self, test_suite_name, test_case_id, parent_transaction_id=""):
-        transaction_id = str(uuid4())
+    def create_test_case_execution_context(self, test_suite_name, test_case_id, parent_transaction_id=None):
+        transaction_id = parent_transaction_id or str(uuid4())
         start_timestamp = utils.current_milli_time()
         return TestCaseExecutionContext(
             transaction_id = transaction_id,
@@ -78,15 +81,23 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def start_trace(self, execution_context, tracer):
-        trace_id = str(uuid4())
+
         operation_name = execution_context.get_operation_name()
+        tracer = ThundraTracer().get_instance()
+        parent_span = tracer.get_active_span() or None
+        incoming_span_id = None
+        parent_trace_id = None
+        if parent_span:
+            parent_trace_id = parent_span.trace_id
+            incoming_span_id = parent_span.span_id
+        trace_id = parent_trace_id or str(uuid4())
         scope = tracer.start_active_span(
+            child_of=parent_span,
             operation_name=operation_name,
             start_time=execution_context.start_timestamp,
             trace_id=trace_id,
-            transaction_id=execution_context.transaction_id,
             execution_context=execution_context,
-            ignore_active_span=True,
+            transaction_id=execution_context.transaction_id,
         )
         root_span = scope.span
         app_info = self.application_info_provider.get_application_info()
@@ -100,6 +111,17 @@ class TestWrapperUtils(BaseWrapper):
         
         root_span = execution_context.root_span
 
+        if parent_span:
+            triggered_test_case_span = parent_span.service_name or "TEST_SUITE"
+            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], triggered_test_case_span)
+            execution_context.trigger_operation_name = triggered_test_case_span
+            parent_domain = parent_span.domain_name or "TEST_SUITE"
+            parent_class = parent_span.class_name or "PythonTest"
+            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], parent_domain)
+            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], parent_class)
+
+            if incoming_span_id:
+                invocation_trace_support.add_incoming_trace_link(incoming_span_id)
 
     def finish_trace(self, execution_context):
         root_span = execution_context.root_span

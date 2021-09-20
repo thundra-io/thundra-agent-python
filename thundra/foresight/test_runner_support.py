@@ -66,9 +66,9 @@ class TestRunnerSupport:
 
     PROJECT_ID = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID)
     STATUS_REPORT_FREQ_SECS = ConfigProvider.get(config_names.THUNDRA_TEST_STATUS_REPORT_FREQUENCY)
-    LOG_ENABLE = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_ENABLE)
-    MAX_LOG_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_COUNT_MAX)
-    MAX_SPAN_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_SPAN_COUNT_MAX)
+    LOG_TEST_ENABLE = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_ENABLE)
+    MAX_TEST_LOG_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_COUNT_MAX)
+    MAX_TEST_SPAN_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_SPAN_COUNT_MAX) # TODO
     HOST_NAME = socket.gethostname()
 
     test_suite_execution_context = None
