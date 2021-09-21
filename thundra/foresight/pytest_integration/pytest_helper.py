@@ -9,6 +9,9 @@ from thundra.foresight.test_runner_tags import TestRunnerTags
 import thundra.foresight.utils as utils
 import uuid, os
 import pytest
+from thundra.plugins.invocation import invocation_support, invocation_trace_support
+from thundra import constants
+
 
 THUNDRA_SPAN = "x-thundra-span"
 
@@ -19,26 +22,33 @@ class HandleSpan:
     def create_span(request, operation_name, app_info={}):
         tracer = ThundraTracer().get_instance()
         parent_span = tracer.get_active_span()
-
-        span =  tracer.start_span(
+        parent_trace_id = parent_span.trace_id if parent_span.trace_id else None
+        parent_transaction_id = parent_span.transaction_id if parent_span.transaction_id else None
+        trace_id = parent_trace_id or str(uuid.uuid4())
+        transaction_id = parent_transaction_id or str(uuid.uuid4())
+        scope =  tracer.start_active_span(
             child_of= parent_span,
             span_id=str(uuid.uuid4()),
-            domain_name = app_info.get("applicationDomainName"),
-            class_name = app_info.get("applicationClassName"),
             operation_name=operation_name,
-            trace_id=str(uuid.uuid4()),
+            trace_id=trace_id,
+            transaction_id=transaction_id,
             start_time=utils.current_milli_time()
         )
+        span = scope.span
+        span.domain_name = app_info.get("applicationDomainName")
+        span.class_name = app_info.get("applicationClassName")
         span.service_name = app_info.get("applicationName")
-        HandleSpan.inject_span(request, span)
-        return span
+        HandleSpan.inject_scope(request, scope)
+        return scope.span
 
 
     @staticmethod
     def finish_span(request, tagName):
         context = ExecutionContextManager.get()
-        current_span = HandleSpan.extract_span(request)
+        scope = HandleSpan.extract_scope(request)
+        current_span = scope.span
         current_span.finish(f_time=utils.current_milli_time())
+        scope.close()
         if not context or not context.invocation_data:
             #TODO Add log
             return
@@ -54,12 +64,12 @@ class HandleSpan:
 
 
     @staticmethod
-    def inject_span(request, span):
-        setattr(request, THUNDRA_SPAN, span)
+    def inject_scope(request, scope):
+        setattr(request, THUNDRA_SPAN, scope)
 
 
     @staticmethod
-    def extract_span(request):
+    def extract_scope(request):
         return getattr(request, THUNDRA_SPAN, None)
 
 class PytestHelper:
@@ -260,7 +270,8 @@ class PytestHelper:
 
     @classmethod
     def finish_after_each_span(cls, request):
-        span = HandleSpan.extract_span(request)
+        scope = HandleSpan.extract_scope(request)
+        span = scope.span
         span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request))
         HandleSpan.finish_span(request, TestRunnerTags.TEST_AFTER_EACH_DURATION)
 

@@ -32,7 +32,7 @@ class Reporter:
         self.session = session
         self.pool = futures.ThreadPoolExecutor(max_workers=20)
 
-    def send_reports(self, reports):
+    def send_reports(self, reports, **opts):
         if not self.api_key:
             debug_logger("API key not set, not sending report to Thundra.")
             return []
@@ -61,9 +61,8 @@ class Reporter:
                                       "probably it contains a byte array").format(report.get('type')))
 
             return []
-
         if rest_composite_data_enabled:
-            reports_json = self.prepare_composite_report_json(reports)
+            reports_json = self.prepare_composite_report_json(reports, **opts)
         else:
             reports_json = self.prepare_report_json(reports)
         responses = []
@@ -87,6 +86,7 @@ class Reporter:
         batches = [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
         return batches
 
+
     def prepare_report_json(self, reports):
         batches = self.get_report_batches(reports)
         batched_reports = []
@@ -102,10 +102,12 @@ class Reporter:
             batched_reports.append(json_string)
         return batched_reports
 
-    def prepare_composite_report_json(self, reports):
+    def prepare_composite_report_json(self, reports, **opts):
         invocation_report = None
         for report in reports:
             if report["type"] == "Invocation":
+                invocation_report = report
+            elif opts.get("test_run_event", False):
                 invocation_report = report
 
         if not invocation_report:

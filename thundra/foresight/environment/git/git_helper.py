@@ -52,39 +52,23 @@ class GitHelper:
             repo_url = git_repo.remotes[0].config_reader.get("url")
             source_code_path = git_repo.working_dir
             cls.git_info_map[GitHelper.SOURCE_CODE_PATH] = source_code_path
-            cls.git_info_map[GitHelper.BRANCH] = active_branch
+            cls.git_info_map[GitHelper.BRANCH] = active_branch.name
             cls.git_info_map[GitHelper.COMMIT_HASH] = commit_hash
             cls.git_info_map[GitHelper.COMMIT_MESSAGE] = commit_message
             cls.git_info_map[GitHelper.REPOSITORY_URL] = repo_url
         except Exception as err:
             raise err # TODO
 
-
-    @staticmethod
-    def normalize_repo_name(repo_name):
-        if not repo_name:
-            return None
-        index = repo_name.index(".")
-        if index >= 0:
-            repo_name = repo_name[:index]
-        return repo_name
-
     @staticmethod
     def extractRepoName(repo_url):
-        if not repo_url:
-            return None
-        index = repo_url.rfind("/")
-        if (index >= 0):
-            return GitHelper.normalize_repo_name(repo_url[:index+1])
-        else:
-            return GitHelper.normalize_repo_name(repo_url)
+        return os.path.splitext(os.path.basename(repo_url))[0]
 
 # TODO
-GitHelper.git_info_map = {
-    "sourceCodePath": "sourceCodePath",
-    "repositoryURL": "git@github.com:jaredpar/VsVim.git",
-    "branch": "branch",
-    "commitHash": "commitHash",
-    "commitMessage": "commitMessage"
-}
-# GitHelper.populate_git_info_map()
+# GitHelper.git_info_map = {
+#     "sourceCodePath": "sourceCodePath",
+#     "repositoryURL": "git@github.com:jaredpar/VsVim.git",
+#     "branch": "branch",
+#     "commitHash": "commitHash",
+#     "commitMessage": "commitMessage"
+# }
+GitHelper.populate_git_info_map()

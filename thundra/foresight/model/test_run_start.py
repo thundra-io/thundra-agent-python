@@ -22,8 +22,8 @@ class TestRunStart(TestRunMonitoring):
     def to_json(self):
         return {
             "id": self.id,
-            "projectId'": self.project_id,
-            "taskId'": self.task_id,
+            "projectId": self.project_id,
+            "taskId": self.task_id,
             "type": self.EVENT_NAME,
             "agentVersion": self.AGENT_VERSION,
             "dataModelVersion": self.TEST_RUN_DATA_MODEL_VERSION,

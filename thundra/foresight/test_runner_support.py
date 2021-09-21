@@ -192,7 +192,7 @@ class TestRunnerSupport:
 
     @classmethod
     def get_test_run_context(cls):
-        if not cls.test_run_scope:
+        if cls.test_run_scope:
             return cls.test_run_scope.context
         return None
 

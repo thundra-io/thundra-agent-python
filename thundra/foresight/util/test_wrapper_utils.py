@@ -1,3 +1,4 @@
+from thundra.application.application_info_provider import ApplicationInfoProvider
 from thundra.wrappers.base_wrapper import BaseWrapper
 import thundra.wrappers.wrapper_utils as wrapper_utils
 from thundra.context.plugin_context import PluginContext
@@ -83,16 +84,16 @@ class TestWrapperUtils(BaseWrapper):
     def start_trace(self, execution_context, tracer):
 
         operation_name = execution_context.get_operation_name()
-        tracer = ThundraTracer().get_instance()
-        parent_span = tracer.get_active_span() or None
+        # tracer = ThundraTracer().get_instance()
+        # parent_span = tracer.get_active_span() or None
         incoming_span_id = None
         parent_trace_id = None
-        if parent_span:
-            parent_trace_id = parent_span.trace_id
-            incoming_span_id = parent_span.span_id
-        trace_id = parent_trace_id or str(uuid4())
+        # if parent_span:
+        #     parent_trace_id = parent_span.trace_id
+        #     incoming_span_id = parent_span.span_id
+        # trace_id = parent_trace_id or str(uuid4())
+        trace_id = str(uuid4())
         scope = tracer.start_active_span(
-            child_of=parent_span,
             operation_name=operation_name,
             start_time=execution_context.start_timestamp,
             trace_id=trace_id,
@@ -111,17 +112,17 @@ class TestWrapperUtils(BaseWrapper):
         
         root_span = execution_context.root_span
 
-        if parent_span:
-            triggered_test_case_span = parent_span.service_name or "TEST_SUITE"
-            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], triggered_test_case_span)
-            execution_context.trigger_operation_name = triggered_test_case_span
-            parent_domain = parent_span.domain_name or "TEST_SUITE"
-            parent_class = parent_span.class_name or "PythonTest"
-            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], parent_domain)
-            invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], parent_class)
+        # if parent_span:
+        #     triggered_test_case_span = parent_span.service_name or "TEST_SUITE"
+        #     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_OPERATION_NAMES'], triggered_test_case_span)
+        #     execution_context.trigger_operation_name = triggered_test_case_span
+        #     parent_domain = parent_span.domain_name or "TEST_SUITE"
+        #     parent_class = parent_span.class_name or "PythonTest"
+        #     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_DOMAIN_NAME'], parent_domain)
+        #     invocation_support.set_agent_tag(constants.SpanTags['TRIGGER_CLASS_NAME'], parent_class)
 
-            if incoming_span_id:
-                invocation_trace_support.add_incoming_trace_link(incoming_span_id)
+        #     if incoming_span_id:
+        #         invocation_trace_support.add_incoming_trace_link(incoming_span_id)
 
     def finish_trace(self, execution_context):
         root_span = execution_context.root_span
@@ -154,4 +155,6 @@ class TestWrapperUtils(BaseWrapper):
 
     def send_test_run_data(self, test_run_event):
         test_run_monitoring_data = test_run_event.get_monitoring_data()
-        self.reporter.send_reports([test_run_monitoring_data])
+        app_info = self.application_info_provider.get_application_info()
+        test_run_monitoring_data["data"].update(app_info)
+        self.reporter.send_reports([test_run_monitoring_data], test_run_event = True)

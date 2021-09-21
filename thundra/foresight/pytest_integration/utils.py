@@ -5,7 +5,8 @@ from thundra.foresight.pytest_integration.pytest_helper import PytestHelper, Han
 """
 
 def handle_fixture_error(request, error):
-    span = HandleSpan.extract_span(request)
+    scope = HandleSpan.extract_scope(request)
+    span = scope.span
     span.set_error_to_tag(error)
 
     
