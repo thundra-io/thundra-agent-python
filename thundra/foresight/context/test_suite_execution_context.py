@@ -9,8 +9,6 @@ class TestSuiteExecutionContext(TestRunContext, ExecutionContext):
         super(TestSuiteExecutionContext, self).__init__(**opts)
         super(TestRunContext, self).__init__(**opts)
         self.test_suite_name = opts.get("node_id", '')
-        self.completed = opts.get("completed", False)
-        self.closed = opts.get("closed", False)
 
 
     def get_operation_name(self):

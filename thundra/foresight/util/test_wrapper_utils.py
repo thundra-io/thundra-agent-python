@@ -69,25 +69,32 @@ class TestWrapperUtils(BaseWrapper):
         )
 
 
-    def create_test_case_execution_context(self, test_suite_name, test_case_id, parent_transaction_id=None):
-        transaction_id = parent_transaction_id or str(uuid4())
+    def create_test_case_execution_context(self, request, app_info, parent_transaction_id=None):
+        transaction_id = str(uuid4())
         start_timestamp = utils.current_milli_time()
+        name = request.node.location[2]
+        method = "RunTest"
+        test_class = app_info.application_class_name if app_info.application_class_name else None
+        test_suite_name = request.node.location[0]
+        test_case_id = request.node.nodeid
         return TestCaseExecutionContext(
             transaction_id = transaction_id,
             start_timestamp = start_timestamp,
             test_suite_name = test_suite_name,
             node_id = test_case_id,
-            parent_transaction_id = parent_transaction_id
+            parent_transaction_id = parent_transaction_id,
+            name = name,
+            method = method,
+            test_class = test_class
         )
 
 
     def start_trace(self, execution_context, tracer):
 
         operation_name = execution_context.get_operation_name()
-        # tracer = ThundraTracer().get_instance()
         # parent_span = tracer.get_active_span() or None
-        incoming_span_id = None
-        parent_trace_id = None
+        # incoming_span_id = None
+        # parent_trace_id = None
         # if parent_span:
         #     parent_trace_id = parent_span.trace_id
         #     incoming_span_id = parent_span.span_id
@@ -99,6 +106,7 @@ class TestWrapperUtils(BaseWrapper):
             trace_id=trace_id,
             execution_context=execution_context,
             transaction_id=execution_context.transaction_id,
+            finish_on_close=False,
         )
         root_span = scope.span
         app_info = self.application_info_provider.get_application_info()

@@ -106,11 +106,12 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
 
     is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
-    exception = call.excinfo
+    exception = call.excinfo #TODO 
 
     if is_setup_or_teardown:
         return
 
+    # call.when == "call"
     test_status = TestStatus.SUCCESSFUL
     context = ExecutionContextManager.get()
     if exception: # error occured on call.when == call
@@ -131,7 +132,6 @@ def pytest_runtest_makereport(item, call):
             test_status = TestStatus.SUCCESSFUL
         else: # failed
             test_status = TestStatus.FAILED    
-            context = ExecutionContextManager.get()
             context.error = exception
     increase_action = increase_actions[test_status]
     context.set_status(test_status)

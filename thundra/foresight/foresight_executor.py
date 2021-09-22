@@ -41,7 +41,6 @@ def finish_invocation(execution_context):
     invocation_data = execution_context.invocation_data
 
     test_wrapper_utils = TestWrapperUtils.get_instance()
-    test_wrapper_utils.finish_invocation(execution_context)
     
     test_run_scope = TestRunnerSupport.test_run_scope 
 
@@ -50,4 +49,5 @@ def finish_invocation(execution_context):
 
     invocation_data["tags"].update(execution_context.get_additional_finish_tags())
 
-    EnvironmentSupport.set_invocation_tags(invocation_data)   
+    EnvironmentSupport.set_invocation_tags(invocation_data)  
+    test_wrapper_utils.finish_invocation(execution_context) 

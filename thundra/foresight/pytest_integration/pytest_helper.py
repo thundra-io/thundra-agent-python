@@ -13,7 +13,7 @@ from thundra.plugins.invocation import invocation_support, invocation_trace_supp
 from thundra import constants
 
 
-THUNDRA_SPAN = "x-thundra-span"
+THUNDRA_SCOPE = "x-thundra-scope"
 
 
 class HandleSpan:
@@ -22,17 +22,18 @@ class HandleSpan:
     def create_span(request, operation_name, app_info={}):
         tracer = ThundraTracer().get_instance()
         parent_span = tracer.get_active_span()
-        parent_trace_id = parent_span.trace_id if parent_span.trace_id else None
         parent_transaction_id = parent_span.transaction_id if parent_span.transaction_id else None
-        trace_id = parent_trace_id or str(uuid.uuid4())
+        trace_id = str(uuid.uuid4())
         transaction_id = parent_transaction_id or str(uuid.uuid4())
+        execution_context = ExecutionContextManager.get()
         scope =  tracer.start_active_span(
             child_of= parent_span,
             span_id=str(uuid.uuid4()),
             operation_name=operation_name,
             trace_id=trace_id,
             transaction_id=transaction_id,
-            start_time=utils.current_milli_time()
+            start_time=utils.current_milli_time(),
+            execution_context = execution_context
         )
         span = scope.span
         span.domain_name = app_info.get("applicationDomainName")
@@ -65,12 +66,12 @@ class HandleSpan:
 
     @staticmethod
     def inject_scope(request, scope):
-        setattr(request, THUNDRA_SPAN, scope)
+        setattr(request, THUNDRA_SCOPE, scope)
 
 
     @staticmethod
     def extract_scope(request):
-        return getattr(request, THUNDRA_SPAN, None)
+        return getattr(request, THUNDRA_SCOPE, None)
 
 class PytestHelper:
 
@@ -83,14 +84,10 @@ class PytestHelper:
     TEST_SUITE_DOMAIN_NAME = "TestSuite"
     TEST_CLASS_NAME = "Pytest"
     TEST_OPERATION_NAME = "RunTest"
-    TEST_BEFORE_ALL_RULE_OPERATION_NAME = "beforeAllRule"
     TEST_BEFORE_ALL_OPERATION_NAME = "beforeAll"
-    TEST_BEFORE_EACH_RULE_OPERATION_NAME = "beforeEachRule"
+    TEST_AFTER_ALL_OPERATION_NAME = "afterAll"
     TEST_BEFORE_EACH_OPERATION_NAME = "beforeEach"
     TEST_AFTER_EACH_OPERATION_NAME = "afterEach"
-    TEST_AFTER_EACH_RULE_OPERATION_NAME = "afterEachRule"
-    TEST_AFTER_ALL_OPERATION_NAME = "afterAll"
-    TEST_AFTER_ALL_RULE_OPERATION_NAME = "afterAllRule"
     MAX_TEST_METHOD_NAME = 100
     TEST_SUITE_CONTEXT_PROP_NAME = "THUNDRA::TEST_SUITE_CONTEXT"
     TEST_OPERATION_NAME_INDEX = 2
@@ -116,12 +113,14 @@ class PytestHelper:
     @classmethod
     def get_test_application_info(cls, request):
         domain_name = None
+        application_id = None
         if request.scope == cls.TEST_SUITE:
             domain_name = cls.TEST_SUITE_DOMAIN_NAME
+            application_id = cls.get_test_application_id(request)
         if request.scope == cls.TEST_CASE:
             domain_name = cls.TEST_DOMAIN_NAME
         return ApplicationInfo(
-            cls.get_test_application_id(request),
+            application_id,
             cls.get_test_application_instance_id(request),
             domain_name,
             cls.TEST_CLASS_NAME,
@@ -151,7 +150,6 @@ class PytestHelper:
     @classmethod
     def get_test_fixture_application_info(cls, request):
         return ApplicationInfo(
-            cls.get_test_fixture_application_id(request),
             cls.get_test_fixture_application_id(request),
             cls.TEST_FIXTURE_DOMAIN_NAME,
             cls.TEST_CLASS_NAME,
@@ -237,13 +235,11 @@ class PytestHelper:
     @classmethod
     def start_test_span(cls, request):
         test_wrapper_utils = TestWrapperUtils.get_instance()
-        test_suite_name = request.node.location[0]
-        node_id = request.node.nodeid
         app_info = cls.get_test_application_info(request)
         test_wrapper_utils.change_app_info(app_info)
         current_context = ExecutionContextManager.get()
         parent_transaction_id = current_context.invocation_data.get("transactionId")
-        context = test_wrapper_utils.create_test_case_execution_context(test_suite_name, node_id, parent_transaction_id)   
+        context = test_wrapper_utils.create_test_case_execution_context(request, app_info, parent_transaction_id)   
         ExecutionContextManager.set(context)
         TestRunnerSupport.set_test_case_application_info(app_info)
         test_wrapper_utils.before_test_process(context)

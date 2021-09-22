@@ -28,12 +28,6 @@ def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
             res = wrapped(*args, **kwargs)
     except Exception as err:
         print("error occured while fixture_setup function wrapped", err) # TODO
-        if not "x_thundra" in request.fixturename:
-            handle_fixture_error(request, err)
-            if request.scope == "function":
-                PytestHelper.finish_before_each_span(request)
-            else:
-                PytestHelper.finish_before_all_span(request)
     if res:
         return res
 
@@ -56,12 +50,7 @@ def _wrapper_teardown_fixture(wrapped, instance, args, kwargs):
             wrapped(*args, **kwargs)
     except Exception as err:
         print("error occured while fixture_teardown function wrapped", err) # TODO
-        if not "x_thundra" in kwargs["request"].fixturename:
-            handle_fixture_error(request, err)
-            if request.scope == "function":
-                PytestHelper.finish_after_each_span(request)
-            else:
-                PytestHelper.finish_after_all_span(request)
+
 
 def patch():
     '''
