@@ -72,11 +72,11 @@ class TestWrapperUtils(BaseWrapper):
     def create_test_case_execution_context(self, request, app_info, parent_transaction_id=None):
         transaction_id = str(uuid4())
         start_timestamp = utils.current_milli_time()
-        name = request.node.location[2]
+        name = request.location[2]
         method = "RunTest"
         test_class = app_info.application_class_name if app_info.application_class_name else None
-        test_suite_name = request.node.location[0]
-        test_case_id = request.node.nodeid
+        test_suite_name = request.location[0]
+        test_case_id = request.nodeid
         return TestCaseExecutionContext(
             transaction_id = transaction_id,
             start_timestamp = start_timestamp,

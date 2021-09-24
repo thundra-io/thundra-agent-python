@@ -1,3 +1,4 @@
+from thundra.foresight.context import test_suite_execution_context
 from thundra.application.application_info import ApplicationInfo
 from thundra.application.application_info_provider import ApplicationInfoProvider
 from thundra.opentracing.tracer import ThundraTracer
@@ -21,13 +22,11 @@ class HandleSpan:
     @staticmethod
     def create_span(request, operation_name, app_info={}):
         tracer = ThundraTracer().get_instance()
-        parent_span = tracer.get_active_span()
-        parent_transaction_id = parent_span.transaction_id if parent_span.transaction_id else None
-        trace_id = parent_span.trace_id if parent_span.trace_id else str(uuid.uuid4())
-        transaction_id = parent_transaction_id or str(uuid.uuid4())
         execution_context = ExecutionContextManager.get()
+        parent_transaction_id = execution_context.transaction_id if execution_context.transaction_id else None
+        trace_id = execution_context.trace_id if execution_context.trace_id else str(uuid.uuid4())
+        transaction_id = parent_transaction_id or str(uuid.uuid4())
         scope =  tracer.start_active_span(
-            child_of= parent_span,
             span_id=str(uuid.uuid4()),
             operation_name=operation_name,
             trace_id=trace_id,
@@ -97,7 +96,7 @@ class PytestHelper:
 
     @staticmethod
     def get_test_application_name(request):
-        return request.node.nodeid.replace("::", os.sep)
+        return request.nodeid.replace("::", os.sep)
 
 
     @classmethod
@@ -146,6 +145,7 @@ class PytestHelper:
     def get_test_fixture_application_info(cls, request):
         return ApplicationInfo(
             None,
+            cls.get_test_fixture_application_instance_id(request),
             cls.TEST_FIXTURE_DOMAIN_NAME,
             cls.TEST_CLASS_NAME,
             cls.get_test_fixture_application_name(request),
@@ -186,13 +186,13 @@ class PytestHelper:
 
 
     @classmethod
-    def start_test_suite_span(cls, request):
+    def start_test_suite_span(cls, item):
         if not TestRunnerSupport.test_suite_execution_context:
             test_wrapper_utils = TestWrapperUtils.get_instance()
-            test_suite_name = request.node.nodeid
+            test_suite_name = item.nodeid
             context = test_wrapper_utils.create_test_suite_execution_context(test_suite_name)
             ExecutionContextManager.set(context)
-            app_info = cls.get_test_application_info(request)
+            app_info = cls.get_test_application_info(item)
             test_wrapper_utils.change_app_info(app_info)
             TestRunnerSupport.set_test_suite_application_info(app_info)
             TestRunnerSupport.set_test_suite_execution_context(context)
@@ -213,6 +213,8 @@ class PytestHelper:
 
     @classmethod
     def start_after_all_span(cls, request):
+        context = TestRunnerSupport.test_suite_execution_context
+        ExecutionContextManager.set(context)
         app_info = cls.get_test_fixture_application_info(request).to_json()
         span = HandleSpan.create_span(request, cls.TEST_AFTER_ALL_OPERATION_NAME, app_info)
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.nodeid)
@@ -229,8 +231,8 @@ class PytestHelper:
         test_wrapper_utils = TestWrapperUtils.get_instance()
         context = ExecutionContextManager.get()
         context.completed = True
-        TestRunnerSupport.clear_state()
         test_wrapper_utils.after_test_process(context)
+        TestRunnerSupport.clear_state()
 
 
     @classmethod
@@ -270,7 +272,7 @@ class PytestHelper:
     def finish_after_each_span(cls, request):
         scope = HandleSpan.extract_scope(request)
         span = scope.span
-        span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request))
+        span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request.node))
         HandleSpan.finish_span(request, TestRunnerTags.TEST_AFTER_EACH_DURATION)
 
 

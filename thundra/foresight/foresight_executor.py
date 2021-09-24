@@ -49,5 +49,11 @@ def finish_invocation(execution_context):
 
     invocation_data["tags"].update(execution_context.get_additional_finish_tags())
 
+    error = execution_context.error
+    if error:
+        invocation_data['tags']['error.type'] = error.get('type')
+        invocation_data['tags']['error.message'] = error.get('message')
+        invocation_data['tags']['error.stack'] = error.get('traceback', None)
+
     EnvironmentSupport.set_invocation_tags(invocation_data)  
     test_wrapper_utils.finish_invocation(execution_context) 
