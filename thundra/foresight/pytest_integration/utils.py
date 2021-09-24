@@ -1,5 +1,8 @@
+from thundra.context.execution_context_manager import ExecutionContextManager
+from thundra.foresight.test_runner_support import TestRunnerSupport
 import wrapt
 from thundra.foresight.pytest_integration.pytest_helper import PytestHelper, HandleSpan
+from thundra.foresight.test_status import increase_actions, TestStatus
 """
     Refactor this file. It's been written rapidly.
 """
@@ -51,6 +54,50 @@ def _wrapper_teardown_fixture(wrapped, instance, args, kwargs):
     except Exception as err:
         print("error occured while fixture_teardown function wrapped", err) # TODO
 
+class TestSkipRequest:
+    def __init__(self, item):
+        self.node = self.Node(item.nodeid, item.location)
+        self.scope = "function"
+
+    class Node:
+        def __init__(self, nodeid, location):
+            self.nodeid = nodeid
+            self.location = location
+
+# Tests that are marked by skip or skipif
+def check_mark_skip_test(item, call): #TODO
+    request = TestSkipRequest(item)
+    marked_skipped = False
+    if call.when == "teardown":
+        check_skip_mark = getattr(item, "marked_as_skipped", None)
+        if check_skip_mark:
+            context = ExecutionContextManager.get()
+            test_status = TestStatus.SKIPPED
+            context.set_status(TestStatus.SKIPPED)
+            increase_actions[test_status]()
+            marked_skipped = True
+            PytestHelper.finish_test_span()
+    else:
+        own_markers = item.own_markers
+        check_marked_as_skipped = any("skip" in mark.name for mark in own_markers)
+        if check_marked_as_skipped:
+            setattr(item, "marked_as_skipped", check_marked_as_skipped)
+            marked_skipped = True
+            # check test suite started or not 
+            if not TestRunnerSupport.test_suite_execution_context:
+                node_id = request.node.nodeid
+                request.node.nodeid = request.node.location[0]
+                request.scope = "module"
+                PytestHelper.start_test_suite_span(request)
+                request.node.nodeid = node_id
+                request.scope = "function"
+            # start test case for skipped test and set skipped attr in item
+            if TestRunnerSupport.test_case_execution_context:
+                return
+            else:
+                PytestHelper.start_test_span(request)
+
+    return marked_skipped
 
 def patch():
     '''

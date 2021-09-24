@@ -104,6 +104,12 @@ class TestRunnerSupport:
     def clear_test_run(cls):
         cls.test_run_scope = None
 
+    @classmethod
+    def clear_state(cls):
+        cls.test_suite_execution_context = None
+        cls.test_suite_application_info = None
+        cls.test_case_application_info = None
+        cls.test_case_execution_context = None 
 
     @staticmethod
     def do_get_test_run_id():

@@ -1,6 +1,6 @@
 import pytest
 
-from thundra.foresight.pytest_integration.utils import patch, unpatch
+from thundra.foresight.pytest_integration.utils import patch, unpatch, check_mark_skip_test
 from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
 from thundra.foresight import foresight_executor
 from thundra.context.execution_context_manager import ExecutionContextManager
@@ -104,40 +104,40 @@ def pytest_runtest_protocol(item, nextitem):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-
+    # TODO Check skipped tests.
     is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
-    exception = call.excinfo #TODO 
-
-    if is_setup_or_teardown:
+    exception = call.excinfo #TODO
+    if is_setup_or_teardown and not exception and not hasattr(item, "marked_as_skipped"):
         return
-
-    # call.when == "call"
+    marked_as_skipped = check_mark_skip_test(item, call)
+    if marked_as_skipped:
+        return
     test_status = TestStatus.SUCCESSFUL
-    context = ExecutionContextManager.get()
-    if exception: # error occured on call.when == call
-        test_status = TestStatus.FAILED    
-        context.error = exception
-    else:
-        # After Function call report to get test status(success, failed, aborted, skipped , ignored)
-        result = outcome.get_result()
-        xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
-        has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif", "skipped"])
-        if result.skipped:
-            if xfail and not has_skip_keyword:
-                test_status = TestStatus.SUCCESSFUL
-            else:
-                test_status = TestStatus.SKIPPED
-        elif result.passed:
-            # Check XPASS TODO
+    execution_context = ExecutionContextManager.get()  
+    # After Function call report to get test status(success, failed, aborted, skipped , ignored)
+    result = outcome.get_result()
+    xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
+    has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif"])
+    if result.skipped:
+        if xfail and not has_skip_keyword:
             test_status = TestStatus.SUCCESSFUL
-        else: # failed
-            test_status = TestStatus.FAILED    
-            context.error = exception
+        else:
+            test_status = TestStatus.SKIPPED
+    elif result.passed:
+        # Check XPASS TODO
+        test_status = TestStatus.SUCCESSFUL
+    else: # failed
+        test_status = TestStatus.FAILED
+        import traceback
+        execution_context.error = {
+                        'type': type(exception).__name__,
+                        'message': result.longreprtext,
+                        'traceback': ''.join(traceback.format_tb(exception.tb))
+                    }
     increase_action = increase_actions[test_status]
-    context.set_status(test_status)
+    execution_context.set_status(test_status)
     if increase_action:
         increase_action()
-        increase_actions[TestStatus.TOTAL]()
 
 '''
     ignored paths in collection process
@@ -153,4 +153,15 @@ def pytest_ignore_collect(path, config):
 '''
 def pytest_deselected(items):
     # print("deselected items", items)
+    pass
+
+#### Exception and interruption hooks ####
+def pytest_internalerror(excrepr, excinfo):
+    pass
+
+def pytest_keyboard_interrupt(excinfo):
+    pass
+
+# not called when skip raised.
+def pytest_exception_interact(node, call, report):
     pass

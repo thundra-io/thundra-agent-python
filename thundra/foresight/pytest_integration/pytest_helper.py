@@ -23,7 +23,7 @@ class HandleSpan:
         tracer = ThundraTracer().get_instance()
         parent_span = tracer.get_active_span()
         parent_transaction_id = parent_span.transaction_id if parent_span.transaction_id else None
-        trace_id = str(uuid.uuid4())
+        trace_id = parent_span.trace_id if parent_span.trace_id else str(uuid.uuid4())
         transaction_id = parent_transaction_id or str(uuid.uuid4())
         execution_context = ExecutionContextManager.get()
         scope =  tracer.start_active_span(
@@ -40,7 +40,7 @@ class HandleSpan:
         span.class_name = app_info.get("applicationClassName")
         span.service_name = app_info.get("applicationName")
         HandleSpan.inject_scope(request, scope)
-        return scope.span
+        return span
 
 
     @staticmethod
@@ -138,11 +138,6 @@ class PytestHelper:
 
 
     @classmethod
-    def get_test_fixture_application_id(cls, request):
-        return cls.TEST_APP_ID_PREFIX + cls.get_test_fixture_application_name(request)
-
-
-    @classmethod
     def get_test_fixture_application_instance_id(cls, request):
         return cls.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_fixture_application_name(request)
 
@@ -150,7 +145,7 @@ class PytestHelper:
     @classmethod
     def get_test_fixture_application_info(cls, request):
         return ApplicationInfo(
-            cls.get_test_fixture_application_id(request),
+            None,
             cls.TEST_FIXTURE_DOMAIN_NAME,
             cls.TEST_CLASS_NAME,
             cls.get_test_fixture_application_name(request),
@@ -182,22 +177,26 @@ class PytestHelper:
         TestRunnerSupport.start_test_run()
 
 
-    @staticmethod
-    def session_teardown():
+    @classmethod
+    def session_teardown(cls):
+        if (TestRunnerSupport.test_suite_execution_context and 
+            not TestRunnerSupport.test_suite_execution_context.completed):
+            cls.finish_test_suite_span()
         TestRunnerSupport.finish_current_test_run()
 
 
     @classmethod
     def start_test_suite_span(cls, request):
-        test_wrapper_utils = TestWrapperUtils.get_instance()
-        test_suite_name = request.node.nodeid
-        context = test_wrapper_utils.create_test_suite_execution_context(test_suite_name)
-        ExecutionContextManager.set(context)
-        app_info = cls.get_test_application_info(request)
-        test_wrapper_utils.change_app_info(app_info)
-        TestRunnerSupport.set_test_suite_application_info(app_info)
-        TestRunnerSupport.set_test_suite_execution_context(context)
-        test_wrapper_utils.before_test_process(context)
+        if not TestRunnerSupport.test_suite_execution_context:
+            test_wrapper_utils = TestWrapperUtils.get_instance()
+            test_suite_name = request.node.nodeid
+            context = test_wrapper_utils.create_test_suite_execution_context(test_suite_name)
+            ExecutionContextManager.set(context)
+            app_info = cls.get_test_application_info(request)
+            test_wrapper_utils.change_app_info(app_info)
+            TestRunnerSupport.set_test_suite_application_info(app_info)
+            TestRunnerSupport.set_test_suite_execution_context(context)
+            test_wrapper_utils.before_test_process(context)
 
 
     @classmethod
@@ -229,6 +228,8 @@ class PytestHelper:
     def finish_test_suite_span():
         test_wrapper_utils = TestWrapperUtils.get_instance()
         context = ExecutionContextManager.get()
+        context.completed = True
+        TestRunnerSupport.clear_state()
         test_wrapper_utils.after_test_process(context)
 
 
@@ -241,6 +242,7 @@ class PytestHelper:
         parent_transaction_id = current_context.invocation_data.get("transactionId")
         context = test_wrapper_utils.create_test_case_execution_context(request, app_info, parent_transaction_id)   
         ExecutionContextManager.set(context)
+        TestRunnerSupport.set_test_case_execution_context(context)
         TestRunnerSupport.set_test_case_application_info(app_info)
         test_wrapper_utils.before_test_process(context)
 
