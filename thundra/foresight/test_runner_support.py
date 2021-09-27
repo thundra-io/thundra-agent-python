@@ -67,10 +67,15 @@ class TestRunnerSupport:
     PROJECT_ID = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID)
     STATUS_REPORT_FREQ_SECS = ConfigProvider.get(config_names.THUNDRA_TEST_STATUS_REPORT_FREQUENCY)
     LOG_TEST_ENABLE = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_ENABLE)
-    MAX_TEST_LOG_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_COUNT_MAX)
     MAX_TEST_SPAN_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_SPAN_COUNT_MAX) # TODO
     HOST_NAME = socket.gethostname()
 
+    # TODO 
+    '''
+        For now, this design not support the parallell execution. 
+        Test suite execution context and test case execution context may be 
+        stored in pytest item object.
+    '''
     test_suite_execution_context = None
     test_case_execution_context = None
     test_suite_application_info = None

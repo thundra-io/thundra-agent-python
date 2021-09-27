@@ -220,7 +220,6 @@ class PytestHelper:
         span.set_tag(TestRunnerTags.TEST_SUITE, request.node.nodeid)
         
 
-
     @staticmethod
     def finish_after_all_span(request):
         HandleSpan.finish_span(request, TestRunnerTags.TEST_AFTER_ALL_DURATION)

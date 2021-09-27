@@ -1,3 +1,4 @@
+from thundra.plugins.config.log_config import LogConfig
 from thundra.application.application_info_provider import ApplicationInfoProvider
 from thundra.wrappers.base_wrapper import BaseWrapper
 import thundra.wrappers.wrapper_utils as wrapper_utils
@@ -6,16 +7,17 @@ from thundra.application.global_application_info_provider import GlobalApplicati
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
 from thundra.foresight.context import (TestSuiteExecutionContext, TestCaseExecutionContext)
-import thundra.foresight.utils as utils
-from thundra.opentracing.tracer import ThundraTracer
-from thundra.plugins.invocation import invocation_support, invocation_trace_support
-from thundra import constants
+from thundra.foresight.sampler.max_count_aware_sampler import MaxCountAwareSampler 
+from thundra.config.config_provider import ConfigProvider
+from thundra.config import config_names
 from uuid import uuid4
+import thundra.foresight.utils as utils
 
 class TestWrapperUtils(BaseWrapper):
 
     __instance = None
-        
+    MAX_TEST_LOG_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_COUNT_MAX)
+
 
     @staticmethod
     def get_instance(*args, **kwargs):
@@ -32,6 +34,7 @@ class TestWrapperUtils(BaseWrapper):
                                             executor=plugin_executor,
                                             api_key=self.api_key
         )
+        self.config.log_config = LogConfig(sampler=MaxCountAwareSampler(self.MAX_TEST_LOG_COUNT))
         self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log,
                                                         config=self.config)
         TestWrapperUtils.__instance = self

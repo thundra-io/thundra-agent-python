@@ -89,7 +89,6 @@ def pytest_runtest_makereport(item, call):
         if not hasattr(item, TestTraceConstants.THUNDRA_TEST_STARTED):
             PytestHelper.start_test_span(item)
     outcome = yield
-    # TODO Check skipped tests.
     is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
     exception = call.excinfo #TODO
     if (is_setup_or_teardown and not exception) or hasattr(item, TestTraceConstants.THUNDRA_TEST_RESULTED):
