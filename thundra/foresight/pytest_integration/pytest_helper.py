@@ -6,9 +6,9 @@ from thundra.foresight.test_runner_tags import TestRunnerTags
 from thundra.foresight.utils.handler_utils import HandlerUtils
 import thundra.foresight.pytest_integration.constants as constants
 import thundra.foresight.utils.generic_utils as utils
-import os, pytest
+import os, pytest, logging
 
-
+logger = logging.getLogger(__name__)
 THUNDRA_SCOPE = "x-thundra-scope"
 
 
@@ -16,12 +16,19 @@ class SpanManager:
     
     @staticmethod
     def handle_fixture_and_inject_span(handler, app_info=None, span_tags=None, request=None):
-        scope = handler(app_info, span_tags)
-        setattr(request, THUNDRA_SCOPE, scope)
+        try:
+            scope = handler(app_info, span_tags)
+            setattr(request, THUNDRA_SCOPE, scope)
+        except Exception as err:
+            logger.error("Couldn't handle fixture and inject span for pytest", err)
+
 
     @staticmethod
     def extract_scope(request):
-        return getattr(request, THUNDRA_SCOPE, None)
+        try:
+            return getattr(request, THUNDRA_SCOPE, None)
+        except Exception as err:
+            logger.error("Couldn't extract span from request for pytest", err)
 
 
 class PytestHelper:
@@ -45,8 +52,11 @@ class PytestHelper:
 
     @staticmethod
     def get_test_application_name(request):
-        return request.nodeid.replace("::", os.sep)
-
+        try:
+            return request.nodeid.replace("::", os.sep)
+        except Exception as err:
+            logger.error("Couldn't get test application name for pytest", err)
+            return None
 
     @classmethod
     def get_test_application_id(cls, request):
@@ -60,31 +70,35 @@ class PytestHelper:
 
     @classmethod
     def get_test_application_info(cls, request):
-        domain_name = None
-        application_id = None
-        if request.scope == cls.TEST_SUITE:
-            domain_name = cls.TEST_SUITE_DOMAIN_NAME
-            application_id = cls.get_test_application_id(request)
-        if request.scope == cls.TEST_CASE:
-            domain_name = cls.TEST_DOMAIN_NAME
-        return ApplicationInfo(
-            application_id,
-            cls.get_test_application_instance_id(request),
-            domain_name,
-            cls.TEST_CLASS_NAME,
-            cls.get_test_application_name(request),
-            cls.TEST_APP_VERSION,
-            cls.TEST_APP_STAGE,
-            ApplicationInfoProvider.APPLICATION_RUNTIME,
-            ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
-            None,
-        )
-
+        try:
+            domain_name = None
+            application_id = None
+            if request.scope == cls.TEST_SUITE:
+                domain_name = cls.TEST_SUITE_DOMAIN_NAME
+                application_id = cls.get_test_application_id(request)
+            if request.scope == cls.TEST_CASE:
+                domain_name = cls.TEST_DOMAIN_NAME
+            return ApplicationInfo(
+                application_id,
+                cls.get_test_application_instance_id(request),
+                domain_name,
+                cls.TEST_CLASS_NAME,
+                cls.get_test_application_name(request),
+                cls.TEST_APP_VERSION,
+                cls.TEST_APP_STAGE,
+                ApplicationInfoProvider.APPLICATION_RUNTIME,
+                ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
+                None,
+            )
+        except Exception as err:
+            logger.error("Couldn't get application info for pytest", err)
 
     @staticmethod
     def get_test_fixture_application_name(request):
-        return request.fixturename
-
+        try:
+            return request.fixturename
+        except Exception as err:
+            logger.error("Couldn't get fixture application name for pytest", err)
 
     @classmethod
     def get_test_fixture_application_instance_id(cls, request):
@@ -109,110 +123,163 @@ class PytestHelper:
 
     @classmethod
     def get_test_method_name(cls, request):
-        nodeid = cls.get_test_application_name(request)
-        if len(nodeid) > cls.MAX_TEST_METHOD_NAME:
-            nodeid = "..." + nodeid[(len(nodeid)-cls.MAX_TEST_METHOD_NAME) + 3:]
-        return nodeid
-
+        try:
+            nodeid = cls.get_test_application_name(request)
+            if len(nodeid) > cls.MAX_TEST_METHOD_NAME:
+                nodeid = "..." + nodeid[(len(nodeid)-cls.MAX_TEST_METHOD_NAME) + 3:]
+            return nodeid
+        except Exception as err:
+            logger.error("Couldn't get method name for pytest", err)
+            return None 
 
     @classmethod
     def get_test_name(cls, request):
         return cls.get_test_method_name(request)
 
+
+    @classmethod
+    def check_pytest_started(cls):
+        return cls.PYTEST_STARTED
+
+
+    @classmethod
+    def set_pytest_started(cls):
+        cls.PYTEST_STARTED = True
     
+
     @staticmethod
     def session_setup(executor, api_key=None):
-        HandlerUtils.test_setup(executor, api_key)
+        try:
+            HandlerUtils.test_setup(executor, api_key)
+        except Exception as err:
+            logger.error("Couldn't setup the session for pytest", err)
 
 
     @classmethod
     def session_teardown(cls):
-        HandlerUtils.test_teardown()
+        try:
+            HandlerUtils.test_teardown()
+        except Exception as err:
+            logger.error("Error session teardown for pytest", err)
 
 
     @classmethod
     def start_test_suite_span(cls, item):
-        test_suite_id = item.nodeid
-        app_info = cls.get_test_application_info(item)
-        HandlerUtils.start_test_suite_span(test_suite_id, app_info)
+        try:
+            test_suite_id = item.nodeid
+            app_info = cls.get_test_application_info(item)
+            HandlerUtils.start_test_suite_span(test_suite_id, app_info)
+        except Exception as err:
+            logger.error("Couldn't start test suite span for pytest".format(item), err)
 
 
     @classmethod
     def start_before_all_span(cls, request):
-        app_info = cls.get_test_fixture_application_info(request).to_json()
-        span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
-        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_all_span, app_info, span_tags,
-            request)
+        try:
+            app_info = cls.get_test_fixture_application_info(request).to_json()
+            span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
+            SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_all_span, app_info, span_tags,
+                request)
+        except Exception as err:
+            logger.error("Couldn't start before all span for pytest".format(request), err)
 
 
     @staticmethod
     def finish_before_all_span(request):
-        scope = SpanManager.extract_scope(request)
-        HandlerUtils.finish_before_all_span(scope)
+        try:
+            scope = SpanManager.extract_scope(request)
+            HandlerUtils.finish_before_all_span(scope)
+        except Exception as err:
+            logger.error("Couldn't finish before all span for pytest".format(request), err)
 
 
     @classmethod
     def start_after_all_span(cls, request):
-        app_info = cls.get_test_fixture_application_info(request).to_json()
-        span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
-        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, app_info, span_tags,
-            request)
+        try:
+            app_info = cls.get_test_fixture_application_info(request).to_json()
+            span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
+            SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, app_info, span_tags,
+                request)
+        except Exception as err:
+            logger.error("Couldn't start after all span for pytest".format(request), err)
 
 
     @staticmethod
     def finish_after_all_span(request):
-        scope = SpanManager.extract_scope(request)
-        HandlerUtils.finish_after_all_span(scope)
+        try:
+            scope = SpanManager.extract_scope(request)
+            HandlerUtils.finish_after_all_span(scope)
+        except Exception as err:
+            logger.error("Couldn't finish after all span for pytest".format(request), err)
 
 
     @staticmethod
     def finish_test_suite_span():
-        HandlerUtils.finish_test_suite_span()
+        try:
+            HandlerUtils.finish_test_suite_span()
+        except Exception as err:
+            logger.error("Couldn't finish test suite span for pytest", err)
 
 
     @classmethod
     def start_test_span(cls, item):
-        if not hasattr(item, constants.THUNDRA_TEST_STARTED):
-            setattr(item, constants.THUNDRA_TEST_STARTED, True)
-            name = item.location[2]
-            test_suite_name = item.location[0]
-            test_case_id = item.nodeid
-            app_info = cls.get_test_application_info(item)
-            HandlerUtils.start_test_span(name, test_suite_name, test_case_id, app_info)
+        try:
+            if not hasattr(item, constants.THUNDRA_TEST_STARTED):
+                setattr(item, constants.THUNDRA_TEST_STARTED, True)
+                name = item.location[2]
+                test_suite_name = item.location[0]
+                test_case_id = item.nodeid
+                app_info = cls.get_test_application_info(item)
+                HandlerUtils.start_test_span(name, test_suite_name, test_case_id, app_info)
+        except Exception as err:
+            logger.error("Couldn't start test span {} for pytest".format(item), err)
 
 
     @classmethod
     def start_before_each_span(cls, request):
-        app_info = cls.get_test_fixture_application_info(request).to_json()
-        span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
-        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_each_span, app_info, span_tags,
-            request)
+        try:
+            app_info = cls.get_test_fixture_application_info(request).to_json()
+            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
+            SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_each_span, app_info, span_tags,
+                request)
+        except Exception as err:
+            logger.error("Couldn't start before each span {} for pytest".format(request), err)
 
 
     @staticmethod
     def finish_before_each_span(request):
-        scope = SpanManager.extract_scope(request)
-        HandlerUtils.finish_before_each_span(scope)
-
+        try:
+            scope = SpanManager.extract_scope(request)
+            HandlerUtils.finish_before_each_span(scope)
+        except Exception as err:
+            logger.error("Couldn't finish before each span {} for pytest".format(request), err)
 
     @classmethod
     def start_after_each_span(cls, request):
-        app_info = cls.get_test_fixture_application_info(request).to_json()
-        span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
-        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_each_span, app_info, span_tags,
-            request)  
-
+        try:
+            app_info = cls.get_test_fixture_application_info(request).to_json()
+            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
+            SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_each_span, app_info, span_tags,
+                request)  
+        except Exception as err:
+            logger.error("Couldn't start after each span {} for pytest".format(request), err)
 
     @classmethod
     def finish_after_each_span(cls, request):
-        scope = SpanManager.extract_scope(request)
-        span = scope.span
-        span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request.node))
-        HandlerUtils.finish_after_each_span(scope)
+        try:
+            scope = SpanManager.extract_scope(request)
+            span = scope.span
+            span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request.node))
+            HandlerUtils.finish_after_each_span(scope)
+        except Exception as err:
+            logger.error("Couldn't finish after each span {} for pytest".format(request), err)
 
 
     @staticmethod
     def finish_test_span(item):
-        if not hasattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED):
-            setattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED, True)
-            HandlerUtils.finish_test_span()
+        try:
+            if not hasattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED):
+                setattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED, True)
+                HandlerUtils.finish_test_span()
+        except Exception as err:
+            logger.error("Couldn't finish test span {} for pytest".format(item), err)

@@ -9,7 +9,6 @@ from thundra.foresight.environment.circleci.circleci_environment_info_provider i
 from thundra.foresight.environment.bitbucket.bitbucket_environment_info_provider import BitbucketEnvironmentInfoProvider
 from thundra.foresight.test_runner_tags import TestRunnerTags
 
-
 LOGGER = logging.getLogger(__name__)
 
 class EnvironmentSupport:

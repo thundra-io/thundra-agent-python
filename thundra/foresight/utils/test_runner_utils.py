@@ -41,4 +41,8 @@ class TestRunnerUtils:
 
     @staticmethod
     def string_concat_by_underscore(str_list):
-        return "_".join(str_list)
+        try:
+            return "_".join(str_list)
+        except Exception as err:
+            LOGGER.error("test runner utils string concat error", err)
+            return ""

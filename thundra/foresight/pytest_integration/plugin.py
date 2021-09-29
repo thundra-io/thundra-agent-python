@@ -1,10 +1,12 @@
-import pytest
+import pytest, logging
 
 from thundra.foresight.pytest_integration.utils import (patch, check_test_case_result, 
-    handle_test_status, set_attributes_test_item, check_test_status_state)
+    update_test_status, set_attributes_test_item, check_test_status_state)
 from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
 from thundra.foresight import foresight_executor
 from thundra.context.execution_context_manager import ExecutionContextManager
+
+logger = logging.getLogger(__name__)
 
 # Register argparse-style options and ini-style config values, called once at the beginning of a test run.
 def pytest_addoption(parser):
@@ -24,21 +26,24 @@ def pytest_addoption(parser):
 # Called after the Session object has been created and before performing collection and entering the run test loop.
 def pytest_sessionstart(session):
     if session.config.getoption("thundra") or session.config.getini("thundra"):
-        PytestHelper.PYTEST_STARTED = True
+        PytestHelper.set_pytest_started()
         patch()
-        import thundra
+        try:
+            import thundra
+        except Exception as err:
+            logger.error("Thundra can not be imported", err)
         PytestHelper.session_setup(executor=foresight_executor)
     
 
 # Called after whole test run finished, right before returning the exit status to the system.
 def pytest_sessionfinish(session, exitstatus):
-    if PytestHelper.PYTEST_STARTED:
+    if PytestHelper.check_pytest_started():
         PytestHelper.session_teardown()
 
 
 @pytest.fixture(scope="function", autouse=True)
 def x_thundra_finish_test(request):
-    if PytestHelper.PYTEST_STARTED:
+    if PytestHelper.check_pytest_started():
         yield
         PytestHelper.finish_test_span(request.node)
     else:
@@ -48,14 +53,14 @@ def x_thundra_finish_test(request):
 # Perform the runtest protocol for a single test item
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_protocol(item, nextitem):    
-    if not PytestHelper.PYTEST_STARTED:
+    if not PytestHelper.check_pytest_started():
         yield
         return
     set_attributes_test_item(item)
     PytestHelper.start_test_suite_span(item.parent)
     yield
     PytestHelper.finish_test_span(item)
-    if  not nextitem or item.module.__name__ != nextitem.module.__name__:
+    if not nextitem or item.module.__name__ != nextitem.module.__name__:
         PytestHelper.finish_test_suite_span()
 
 
@@ -63,7 +68,7 @@ def pytest_runtest_protocol(item, nextitem):
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
-    if not PytestHelper.PYTEST_STARTED:
+    if not PytestHelper.check_pytest_started():
         return
     if call.when == "setup":
             PytestHelper.start_test_span(item)
@@ -74,7 +79,7 @@ def pytest_runtest_makereport(item, call):
     execution_context = ExecutionContextManager.get()  
     # After Function call report to get test status(success, failed, aborted, skipped , ignored)
     test_status = check_test_case_result(item, execution_context, result, exception)
-    handle_test_status(item, test_status, execution_context)
+    update_test_status(item, test_status, execution_context)
 
 
 '''
