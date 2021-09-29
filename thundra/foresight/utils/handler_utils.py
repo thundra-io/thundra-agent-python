@@ -1,12 +1,10 @@
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.foresight.test_runner_support import TestRunnerSupport
 from thundra.foresight.environment.environment_info_support import EnvironmentSupport
-from thundra.foresight.util.test_wrapper_utils import TestWrapperUtils
+from thundra.foresight.utils.test_wrapper_utils import TestWrapperUtils
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.foresight.test_runner_tags import TestRunnerTags
-import thundra.foresight.utils as utils
-import uuid
-
+import thundra.foresight.utils.generic_utils as utils
 
 class HandlerUtils:
 
@@ -21,10 +19,10 @@ class HandlerUtils:
         tracer = ThundraTracer().get_instance()
         execution_context = ExecutionContextManager.get()
         parent_transaction_id = execution_context.transaction_id if execution_context.transaction_id else None
-        trace_id = execution_context.trace_id if execution_context.trace_id else str(uuid.uuid4())
-        transaction_id = parent_transaction_id or str(uuid.uuid4())
+        trace_id = execution_context.trace_id if execution_context.trace_id else utils.create_uuid4()
+        transaction_id = parent_transaction_id or utils.create_uuid4()
         scope =  tracer.start_active_span(
-            span_id=str(uuid.uuid4()),
+            span_id=utils.create_uuid4(),
             operation_name=operation_name,
             trace_id=trace_id,
             transaction_id=transaction_id,
@@ -89,7 +87,7 @@ class HandlerUtils:
 
     @classmethod
     def start_before_all_span(cls, app_info, span_tags= None):
-        cls.create_span(cls.TEST_BEFORE_ALL_OPERATION_NAME, app_info, span_tags)
+        return cls.create_span(cls.TEST_BEFORE_ALL_OPERATION_NAME, app_info, span_tags)
 
 
     @classmethod
@@ -98,10 +96,10 @@ class HandlerUtils:
 
 
     @classmethod
-    def start_after_all_span(cls, test_suite_id, app_info, span_tags):
-        context = TestRunnerSupport.get_test_suite_info(test_suite_id)
+    def start_after_all_span(cls, app_info, span_tags):
+        context = TestRunnerSupport.test_suite_execution_context
         ExecutionContextManager.set(context)
-        cls.create_span(cls.TEST_AFTER_ALL_OPERATION_NAME, app_info, span_tags)
+        return cls.create_span(cls.TEST_AFTER_ALL_OPERATION_NAME, app_info, span_tags)
 
 
     @classmethod
@@ -131,7 +129,7 @@ class HandlerUtils:
 
     @classmethod
     def start_before_each_span(cls, app_info, span_tags=None):
-        cls.create_span(cls.TEST_BEFORE_EACH_OPERATION_NAME, app_info, span_tags)
+        return cls.create_span(cls.TEST_BEFORE_EACH_OPERATION_NAME, app_info, span_tags)
 
 
     @classmethod
@@ -141,7 +139,7 @@ class HandlerUtils:
 
     @classmethod
     def start_after_each_span(cls, app_info, span_tags=None):
-        cls.create_span(cls.TEST_AFTER_EACH_OPERATION_NAME, app_info, span_tags)
+        return cls.create_span(cls.TEST_AFTER_EACH_OPERATION_NAME, app_info, span_tags)
 
 
     @classmethod

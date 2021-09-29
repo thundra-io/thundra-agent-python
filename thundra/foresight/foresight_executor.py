@@ -1,8 +1,7 @@
 from thundra.foresight.test_runner_support import TestRunnerSupport
 from thundra.foresight.test_runner_tags import TestRunnerTags
 from thundra.foresight.environment.environment_info_support import EnvironmentSupport
-from thundra.foresight.util.test_wrapper_utils import TestWrapperUtils
-from uuid import uuid4
+from thundra.foresight.utils.test_wrapper_utils import TestWrapperUtils
 
 
 def start_trace(plugin_context, execution_context, tracer):

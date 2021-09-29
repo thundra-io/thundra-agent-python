@@ -10,8 +10,7 @@ from thundra.foresight.context import (TestSuiteExecutionContext, TestCaseExecut
 from thundra.foresight.sampler.max_count_aware_sampler import MaxCountAwareSampler 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
-from uuid import uuid4
-import thundra.foresight.utils as utils
+import thundra.foresight.utils.generic_utils as utils
 
 class TestWrapperUtils(BaseWrapper):
 
@@ -63,7 +62,7 @@ class TestWrapperUtils(BaseWrapper):
         
 
     def create_test_suite_execution_context(self, test_suite_name):
-        transaction_id = str(uuid4())
+        transaction_id = utils.create_uuid4()
         start_timestamp = utils.current_milli_time()
         return TestSuiteExecutionContext(
             transaction_id = transaction_id,
@@ -73,7 +72,7 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def create_test_case_execution_context(self, name, test_suite_name, test_case_id, app_info, parent_transaction_id=None):
-        transaction_id = str(uuid4())
+        transaction_id = utils.create_uuid4()
         start_timestamp = utils.current_milli_time()
         method = "RunTest"
         test_class = app_info.application_class_name if app_info.application_class_name else None
@@ -99,7 +98,7 @@ class TestWrapperUtils(BaseWrapper):
         #     parent_trace_id = parent_span.trace_id
         #     incoming_span_id = parent_span.span_id
         # trace_id = parent_trace_id or str(uuid4())
-        trace_id = str(uuid4())
+        trace_id = utils.create_uuid4()
         scope = tracer.start_active_span(
             operation_name=operation_name,
             start_time=execution_context.start_timestamp,

@@ -3,30 +3,31 @@ from thundra.application.application_info_provider import ApplicationInfoProvide
 from thundra.foresight.test_runner_support import TestRunnerSupport
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.foresight.test_runner_tags import TestRunnerTags
-from thundra.foresight.util.handler_utils import HandlerUtils
-from thundra.foresight.pytest_integration.utils import TestTraceConstants
-import uuid, os
-import pytest
+from thundra.foresight.utils.handler_utils import HandlerUtils
+import thundra.foresight.pytest_integration.constants as constants
+import thundra.foresight.utils.generic_utils as utils
+import os, pytest
 
 
 THUNDRA_SCOPE = "x-thundra-scope"
 
 
 class SpanManager:
-
+    
     @staticmethod
-    def create_span(request, operation_name, app_info={}, span_tags=None):
-        scope = HandlerUtils.create_span(operation_name, app_info, span_tags)
+    def handle_fixture_and_inject_span(handler, app_info=None, span_tags=None, request=None):
+        scope = handler(app_info, span_tags)
         setattr(request, THUNDRA_SCOPE, scope)
 
     @staticmethod
     def extract_scope(request):
         return getattr(request, THUNDRA_SCOPE, None)
 
+
 class PytestHelper:
 
     TEST_APP_ID_PREFIX = "python:test:pytest:"
-    TEST_APP_INSTANCE_ID_PREFIX = str(uuid.uuid4()) + ":"
+    TEST_APP_INSTANCE_ID_PREFIX = utils.create_uuid4() + ":"
     TEST_APP_STAGE = "test"
     TEST_APP_VERSION = pytest.__version__
     TEST_FIXTURE_DOMAIN_NAME = "TestFixture"
@@ -140,23 +141,23 @@ class PytestHelper:
     def start_before_all_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
         span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
-        SpanManager.create_span(request, cls.TEST_BEFORE_ALL_OPERATION_NAME, app_info, span_tags)
+        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_all_span, app_info, span_tags,
+            request)
 
 
     @staticmethod
     def finish_before_all_span(request):
         scope = SpanManager.extract_scope(request)
-        HandlerUtils.finish_span(scope)
+        HandlerUtils.finish_before_all_span(scope)
 
 
     @classmethod
     def start_after_all_span(cls, request):
-        context = TestRunnerSupport.test_suite_execution_context
-        ExecutionContextManager.set(context)
         app_info = cls.get_test_fixture_application_info(request).to_json()
         span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
-        SpanManager.create_span(request, cls.TEST_AFTER_ALL_OPERATION_NAME, app_info, span_tags)
-        
+        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, app_info, span_tags,
+            request)
+
 
     @staticmethod
     def finish_after_all_span(request):
@@ -171,8 +172,8 @@ class PytestHelper:
 
     @classmethod
     def start_test_span(cls, item):
-        if not hasattr(item, TestTraceConstants.THUNDRA_TEST_STARTED):
-            setattr(item, TestTraceConstants.THUNDRA_TEST_STARTED, True)
+        if not hasattr(item, constants.THUNDRA_TEST_STARTED):
+            setattr(item, constants.THUNDRA_TEST_STARTED, True)
             name = item.location[2]
             test_suite_name = item.location[0]
             test_case_id = item.nodeid
@@ -184,7 +185,8 @@ class PytestHelper:
     def start_before_each_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
         span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
-        SpanManager.create_span(request, cls.TEST_BEFORE_EACH_OPERATION_NAME, app_info, span_tags)
+        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_each_span, app_info, span_tags,
+            request)
 
 
     @staticmethod
@@ -197,7 +199,8 @@ class PytestHelper:
     def start_after_each_span(cls, request):
         app_info = cls.get_test_fixture_application_info(request).to_json()
         span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
-        SpanManager.create_span(request, cls.TEST_AFTER_EACH_OPERATION_NAME, app_info, span_tags)
+        SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_each_span, app_info, span_tags,
+            request)  
 
 
     @classmethod
@@ -210,6 +213,6 @@ class PytestHelper:
 
     @staticmethod
     def finish_test_span(item):
-        if not hasattr(item, TestTraceConstants.THUNDRA_TEST_ALREADY_FINISHED):
-            setattr(item, TestTraceConstants.THUNDRA_TEST_ALREADY_FINISHED, True)
+        if not hasattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED):
+            setattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED, True)
             HandlerUtils.finish_test_span()

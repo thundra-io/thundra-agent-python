@@ -1,5 +1,6 @@
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+import thundra.foresight.utils.generic_utils as utils
 import uuid, logging
 
 LOGGER = logging.getLogger(__name__) 
@@ -33,7 +34,7 @@ class TestRunnerUtils:
     def get_default_test_run_id(environment, repo_url, commit_hash):
         try:
             #TODO Find a way to generate uuid with parameters
-            return str(uuid.uuid4())
+            return utils.create_uuid4()
         except Exception as err:
             LOGGER.error("")
 

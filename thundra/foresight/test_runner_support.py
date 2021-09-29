@@ -6,9 +6,8 @@ from thundra.foresight.model.test_run_status import TestRunStatus
 from thundra.foresight.model.test_run_result import TestRunResult
 from thundra.foresight.model.test_run_finish import TestRunFinish
 from thundra.foresight.test_run_context import TestRunContext
-from uuid import uuid4
-from thundra.foresight.util.test_wrapper_utils import TestWrapperUtils
-import thundra.foresight.utils as utils
+from thundra.foresight.utils.test_wrapper_utils import TestWrapperUtils
+import thundra.foresight.utils.generic_utils as utils
 import logging, socket, threading
 
 LOGGER = logging.getLogger(__name__)
@@ -33,12 +32,14 @@ class _StatusReporter:
     def start(self):
         if not self.t:
             self.t = threading.Timer(self.delay, self.report_status)
+            self.t.daemon = True
             self.t.start()
 
 
     def stop(self):
         if self.t and self.t.is_alive():
             self.t.cancel()
+            self.t = None
 
 
     def report_status(self):
@@ -60,6 +61,8 @@ class _StatusReporter:
             # TODO tags
         )
         test_wrapper_utils.send_test_run_data(test_run_status) # TODO
+        self.stop()
+        self.start()
 
 
 class TestRunnerSupport:
@@ -109,7 +112,7 @@ class TestRunnerSupport:
         if not environment_info:
             test_run_id = environment_info.get_test_run_id()
         if not test_run_id:
-            test_run_id = str(uuid4())
+            test_run_id = utils.create_uuid4()
         return test_run_id
 
 
@@ -118,7 +121,7 @@ class TestRunnerSupport:
         test_wrapper_utils = TestWrapperUtils.get_instance()
         context = TestRunContext()
         id = cls.do_get_test_run_id()
-        task_id = str(uuid4())
+        task_id = utils.create_uuid4()
         current_time = utils.current_milli_time()
         cls.test_run_scope = _TestRunScope(id, task_id, current_time, context)
         #TODO Sampling
@@ -158,7 +161,6 @@ class TestRunnerSupport:
             test_wrapper_utils = TestWrapperUtils.get_instance()
             finish_time = utils.current_milli_time()
             if cls.test_run_scope:
-                #TODO Sampler reset
                 if cls.status_reporter:
                     try:
                         cls.status_reporter.stop()

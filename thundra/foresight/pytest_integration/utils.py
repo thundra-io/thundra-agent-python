@@ -1,14 +1,9 @@
-import wrapt
 from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
-import traceback
 from thundra.foresight.test_status import increase_actions, TestStatus
+import thundra.foresight.pytest_integration.constants as constants
+import traceback
+import wrapt
 
-
-class TestTraceConstants:
-    THUNDRA_MARKED_AS_SKIPPED = "thundra_marked_as_skipped"
-    THUNDRA_TEST_ALREADY_FINISHED = "thundra_test_already_finished"
-    THUNDRA_TEST_STARTED = "thundra_test_started"
-    THUNDRA_TEST_RESULTED = "thundra_test_resulted"
 
 
 def check_test_case_result(item, execution_context, result, exception):
@@ -16,8 +11,8 @@ def check_test_case_result(item, execution_context, result, exception):
     xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
     has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif"])
 
-    if hasattr(item, TestTraceConstants.THUNDRA_MARKED_AS_SKIPPED):
-        delattr(item, TestTraceConstants.THUNDRA_MARKED_AS_SKIPPED)
+    if hasattr(item, constants.THUNDRA_MARKED_AS_SKIPPED):
+        delattr(item, constants.THUNDRA_MARKED_AS_SKIPPED)
         test_status = TestStatus.SKIPPED
     elif (exception and hasattr(exception.value, "msg") and 
         "timeout" in exception.value.msg.lower()):
@@ -41,7 +36,7 @@ def handle_test_status(item, test_status, execution_context):
     increase_action = increase_actions[test_status]
     execution_context.set_status(test_status)
     if increase_action:
-        setattr(item, TestTraceConstants.THUNDRA_TEST_RESULTED, True)
+        setattr(item, constants.THUNDRA_TEST_RESULTED, True)
         increase_action()
 
 
@@ -59,14 +54,14 @@ def set_attributes_test_item(item):
     own_markers = item.own_markers
     check_marked_as_skipped = any("skip" in mark.name for mark in own_markers)
     if check_marked_as_skipped:
-        setattr(item, TestTraceConstants.THUNDRA_MARKED_AS_SKIPPED, True)
+        setattr(item, constants.THUNDRA_MARKED_AS_SKIPPED, True)
 
 
 def check_test_status_state(item, call):
     is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
     exception = call.excinfo
     status = True
-    if (is_setup_or_teardown and not exception) or hasattr(item, TestTraceConstants.THUNDRA_TEST_RESULTED):
+    if (is_setup_or_teardown and not exception) or hasattr(item, constants.THUNDRA_TEST_RESULTED):
         status = False
     return status, exception
 

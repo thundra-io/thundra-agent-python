@@ -1,7 +1,7 @@
 import logging
 from thundra.foresight.environment.git.git_helper import GitHelper
 from thundra.foresight.environment.environment_info import EnvironmentInfo
-from thundra.foresight.util.test_runner_utils import TestRunnerUtils
+from thundra.foresight.utils.test_runner_utils import TestRunnerUtils
 
 LOGGER = logging.getLogger(__name__)
 
