@@ -1,10 +1,8 @@
 import wrapt
-from thundra.foresight.pytest_integration.pytest_helper import PytestHelper, HandleSpan
+from thundra.foresight.pytest_integration.pytest_helper import PytestHelper
 import traceback
+from thundra.foresight.test_status import increase_actions, TestStatus
 
-"""
-    Refactor this file. It's been written rapidly.
-"""
 
 class TestTraceConstants:
     THUNDRA_MARKED_AS_SKIPPED = "thundra_marked_as_skipped"
@@ -12,21 +10,74 @@ class TestTraceConstants:
     THUNDRA_TEST_STARTED = "thundra_test_started"
     THUNDRA_TEST_RESULTED = "thundra_test_resulted"
 
-def handle_fixture_error(request, error):
-    scope = HandleSpan.extract_scope(request)
-    span = scope.span
-    span.set_error_to_tag(error)
 
-    
+def check_test_case_result(item, execution_context, result, exception):
+    test_status = TestStatus.SUCCESSFUL
+    xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
+    has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif"])
+
+    if hasattr(item, TestTraceConstants.THUNDRA_MARKED_AS_SKIPPED):
+        delattr(item, TestTraceConstants.THUNDRA_MARKED_AS_SKIPPED)
+        test_status = TestStatus.SKIPPED
+    elif (exception and hasattr(exception.value, "msg") and 
+        "timeout" in exception.value.msg.lower()):
+        test_status = TestStatus.ABORTED
+        handle_error(exception, result, execution_context)
+        execution_context.timeout = True
+    elif result.skipped:
+        if xfail and not has_skip_keyword:
+            test_status = TestStatus.SUCCESSFUL
+        else:
+            test_status = TestStatus.SKIPPED
+    elif result.passed:
+        test_status = TestStatus.SUCCESSFUL
+    else: # failed
+        test_status = TestStatus.FAILED
+        handle_error(exception, result, execution_context)
+    return test_status
+
+
+def handle_test_status(item, test_status, execution_context):
+    increase_action = increase_actions[test_status]
+    execution_context.set_status(test_status)
+    if increase_action:
+        setattr(item, TestTraceConstants.THUNDRA_TEST_RESULTED, True)
+        increase_action()
+
+
+def handle_error(exception, result, execution_context):
+    execution_context.error = {
+                    'type': type(exception).__name__,
+                    'message': result.longreprtext,
+                    'traceback': ''.join(traceback.format_tb(exception.tb))
+                }
+
+
+def set_attributes_test_item(item):
+    setattr(item, "scope", "function")  
+    setattr(item.parent, "scope", "module")
+    own_markers = item.own_markers
+    check_marked_as_skipped = any("skip" in mark.name for mark in own_markers)
+    if check_marked_as_skipped:
+        setattr(item, TestTraceConstants.THUNDRA_MARKED_AS_SKIPPED, True)
+
+
+def check_test_status_state(item, call):
+    is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
+    exception = call.excinfo
+    status = True
+    if (is_setup_or_teardown and not exception) or hasattr(item, TestTraceConstants.THUNDRA_TEST_RESULTED):
+        status = False
+    return status, exception
+
+
 def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
     res = None
     try:
         request = args[1]
         if not "x_thundra" in request.fixturename:
             if request.scope == "function":
-                if not hasattr(request.node, TestTraceConstants.THUNDRA_TEST_STARTED):
-                    setattr(request.node, TestTraceConstants.THUNDRA_TEST_STARTED, True)
-                    PytestHelper.start_test_span(request.node)
+                PytestHelper.start_test_span(request.node)
                 PytestHelper.start_before_each_span(request)
             else:
                 PytestHelper.start_before_all_span(request)
@@ -81,15 +132,3 @@ def patch():
             "FixtureDef.finish",
             _wrapper_teardown_fixture
         )
-
-
-def unpatch():
-    pass #TODO
-
-
-def handle_error(exception, result, execution_context):
-    execution_context.error = {
-                    'type': type(exception).__name__,
-                    'message': result.longreprtext,
-                    'traceback': ''.join(traceback.format_tb(exception.tb))
-                }

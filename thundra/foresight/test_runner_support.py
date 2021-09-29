@@ -66,7 +66,6 @@ class TestRunnerSupport:
 
     PROJECT_ID = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID)
     STATUS_REPORT_FREQ_SECS = ConfigProvider.get(config_names.THUNDRA_TEST_STATUS_REPORT_FREQUENCY)
-    LOG_TEST_ENABLE = ConfigProvider.get(config_names.THUNDRA_TEST_LOG_ENABLE)
     MAX_TEST_SPAN_COUNT = ConfigProvider.get(config_names.THUNDRA_TEST_SPAN_COUNT_MAX) # TODO
     HOST_NAME = socket.gethostname()
 
@@ -77,9 +76,7 @@ class TestRunnerSupport:
         stored in pytest item object.
     '''
     test_suite_execution_context = None
-    test_case_execution_context = None
     test_suite_application_info = None
-    test_case_application_info = None
     test_run_scope = None
     status_reporter = None
 
@@ -89,20 +86,10 @@ class TestRunnerSupport:
     def set_test_suite_execution_context(cls, execution_context):
         cls.test_suite_execution_context = execution_context
 
-       
-    @classmethod
-    def set_test_case_execution_context(cls, execution_context):
-        cls.test_case_execution_context = execution_context  
-
 
     @classmethod
     def set_test_suite_application_info(cls, application_info):
         cls.test_suite_application_info = application_info
-
-
-    @classmethod
-    def set_test_case_application_info(cls, application_info):
-        cls.test_case_application_info = application_info
 
 
     @classmethod
@@ -113,8 +100,7 @@ class TestRunnerSupport:
     def clear_state(cls):
         cls.test_suite_execution_context = None
         cls.test_suite_application_info = None
-        cls.test_case_application_info = None
-        cls.test_case_execution_context = None 
+
 
     @staticmethod
     def do_get_test_run_id():

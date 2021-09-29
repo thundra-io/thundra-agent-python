@@ -48,10 +48,10 @@ class EnvironmentSupport:
 
     @classmethod
     def set_span_tags(cls, span):
-        """Set span and invocation data tags corresponds to TestRunner
+        """Set span data tags corresponds to TestRunner
 
         Args:
-            obj (ThundraSpan | invocation): Span or invocation data
+            obj (ThundraSpan): Span or invocation data
         """
         if cls.environment_info:
             span.set_tag(TestRunnerTags.TEST_ENVIRONMENT, cls.environment_info.environment)
@@ -61,12 +61,13 @@ class EnvironmentSupport:
             span.set_tag(TestRunnerTags.SOURCE_CODE_COMMIT_HASH, cls.environment_info.commit_hash)
             span.set_tag(TestRunnerTags.SOURCE_CODE_COMMIT_MESSAGE, cls.environment_info.commit_message)
 
+
     @classmethod
     def set_invocation_tags(cls, invocation_data):
-        """Set span and invocation data tags corresponds to TestRunner
+        """Set invocation data tags corresponds to TestRunner
 
         Args:
-            obj (ThundraSpan | invocation): Span or invocation data
+            obj (invocation): Span or invocation data
         """
         if cls.environment_info:
             invocation_data[TestRunnerTags.TEST_ENVIRONMENT] =  cls.environment_info.environment

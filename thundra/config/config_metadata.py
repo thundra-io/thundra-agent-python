@@ -295,10 +295,6 @@ CONFIG_METADATA = {
         'type': 'int',
         'defaultValue': 10,
     },
-    config_names.THUNDRA_TEST_LOG_ENABLE: {
-        'type': 'boolean',
-        'defaultValue': True,
-    },
     config_names.THUNDRA_TEST_LOG_COUNT_MAX: {
         'type': 'int',
         'defaultValue': 100,

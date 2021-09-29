@@ -11,8 +11,6 @@ class ThundraLogHandler(logging.Handler):
 
     def emit(self, record):
         formatted_message = self.format(record)
-        if len(formatted_message) > 0 and formatted_message[-1] != "\n":
-            formatted_message += "\n"
         execution_context = ExecutionContextManager.get()
         if execution_context and execution_context.capture_log:
             log = {
