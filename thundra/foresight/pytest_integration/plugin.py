@@ -26,12 +26,9 @@ def pytest_addoption(parser):
 # Called after the Session object has been created and before performing collection and entering the run test loop.
 def pytest_sessionstart(session):
     if session.config.getoption("thundra") or session.config.getini("thundra"):
+        print("session started")
         PytestHelper.set_pytest_started()
         patch()
-        try:
-            import thundra
-        except Exception as err:
-            logger.error("Thundra can not be imported", err)
         PytestHelper.session_setup(executor=foresight_executor)
     
 
@@ -80,32 +77,3 @@ def pytest_runtest_makereport(item, call):
     # After Function call report to get test status(success, failed, aborted, skipped , ignored)
     test_status = check_test_case_result(item, execution_context, result, exception)
     update_test_status(item, test_status, execution_context)
-
-
-'''
-    ignored paths in collection process
-    -- ignore
-'''
-def pytest_ignore_collect(path, config): 
-    # print("ignored: ", path)
-    pass
-
-'''
-    Deselected items should be added into ignored test cases.
-    --deselect
-'''
-def pytest_deselected(items):
-    # print("deselected items", items)
-    pass
-
-
-#### Exception and interruption hooks ####
-def pytest_internalerror(excrepr, excinfo):
-    pass
-
-def pytest_keyboard_interrupt(excinfo):
-    pass
-
-# not called when skip raised.
-def pytest_exception_interact(node, call, report):
-    pass

@@ -150,6 +150,8 @@ class PytestHelper:
     @staticmethod
     def session_setup(executor, api_key=None):
         try:
+            import thundra
+            thundra.configure()
             HandlerUtils.test_setup(executor, api_key)
         except Exception as err:
             logger.error("Couldn't setup the session for pytest", err)

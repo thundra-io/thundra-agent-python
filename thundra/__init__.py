@@ -51,7 +51,7 @@ def _patch_modules():
                     logger.error("Couldn't patch module: %s", e)
 
 
-def configure(options):
+def configure(options=None):
     ConfigProvider.__init__(options)
 
 
