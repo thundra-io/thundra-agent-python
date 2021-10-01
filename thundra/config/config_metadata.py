@@ -302,5 +302,9 @@ CONFIG_METADATA = {
     config_names.THUNDRA_TEST_SPAN_COUNT_MAX: {
         'type': 'int',
         'defaultValue': 100,
+    },
+    config_names.THUNDRA_TEST_ACTIVE: {
+        'type': 'bool',
+        'defaultValue': False,
     }
 }

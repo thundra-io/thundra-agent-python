@@ -80,8 +80,17 @@ def tornado_wrapper(func):
     return _WrapperFactory.get_or_create(TornadoWrapper)(func)
 
 
+def _set_thundra_for_test_env(already_configured):
+    if not already_configured:
+        configure()
+    if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
+        _patch_modules()
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
-    _patch_modules()
+    if not ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE):
+        _patch_modules()
+
 
 __all__ = [
     'configure',

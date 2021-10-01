@@ -5,8 +5,8 @@ from thundra.constants import (TEST_RUN_EVENTS_DATA_VERSION,
 from thundra.config.config_provider import ConfigProvider
 from thundra.config.config_names import THUNDRA_APIKEY
 
-ABC = abc.ABCMeta('ABC', (object,), {})
 
+ABC = abc.ABCMeta('ABC', (object,), {})
 
 class TestRunMonitoring(ABC):
 

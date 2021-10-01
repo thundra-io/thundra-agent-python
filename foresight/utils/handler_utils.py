@@ -1,3 +1,4 @@
+from thundra.config.config_provider import ConfigProvider
 from thundra.opentracing.tracer import ThundraTracer
 from foresight.test_runner_support import TestRunnerSupport
 from foresight.environment.environment_info_support import EnvironmentSupport
@@ -63,7 +64,8 @@ class HandlerUtils:
     @staticmethod
     def test_setup(executor, api_key=None):
         import thundra
-        thundra.configure()
+        already_configured = True if ConfigProvider.configs else False
+        thundra._set_thundra_for_test_env(already_configured)
         EnvironmentSupport.init()
         TestWrapperUtils(api_key=api_key, plugin_executor = executor)
         TestRunnerSupport.start_test_run()

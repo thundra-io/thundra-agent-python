@@ -26,7 +26,6 @@ def pytest_addoption(parser):
 # Called after the Session object has been created and before performing collection and entering the run test loop.
 def pytest_sessionstart(session):
     if session.config.getoption("thundra") or session.config.getini("thundra"):
-        print("session started")
         PytestHelper.set_pytest_started()
         patch()
         PytestHelper.session_setup(executor=foresight_executor)
