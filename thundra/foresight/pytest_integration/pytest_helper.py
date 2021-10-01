@@ -1,7 +1,5 @@
 from thundra.application.application_info import ApplicationInfo
 from thundra.application.application_info_provider import ApplicationInfoProvider
-from thundra.foresight.test_runner_support import TestRunnerSupport
-from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.foresight.test_runner_tags import TestRunnerTags
 from thundra.foresight.utils.handler_utils import HandlerUtils
 import thundra.foresight.pytest_integration.constants as constants
@@ -150,8 +148,6 @@ class PytestHelper:
     @staticmethod
     def session_setup(executor, api_key=None):
         try:
-            import thundra
-            thundra.configure()
             HandlerUtils.test_setup(executor, api_key)
         except Exception as err:
             logger.error("Couldn't setup the session for pytest", err)
