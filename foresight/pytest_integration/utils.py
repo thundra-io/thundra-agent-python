@@ -77,7 +77,7 @@ def handle_error(exception, result, execution_context):
     try:
         execution_context.error = {
                         'type': type(exception).__name__,
-                        'message': result.longreprtext,
+                        'message': result.longreprtext, # TODO longreprtext can be empty. Search what can be used for it.
                         'traceback': ''.join(traceback.format_tb(exception.tb))
                     }
     except Exception as err:
