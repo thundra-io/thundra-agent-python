@@ -233,7 +233,7 @@ class TestWrapperUtils(BaseWrapper):
             execution_context (TestSuiteExecutionContext | TestCaseExecutionContext): Thundra test execution context
         """
         try:
-            self.prepare_and_send_reports(execution_context)
+            self.prepare_and_send_reports_async(execution_context)
         except Exception as err:
             logger.error("test wrapper after test process error", err)
 
