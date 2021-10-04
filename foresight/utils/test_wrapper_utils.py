@@ -1,3 +1,4 @@
+from foresight.constants.constants import ForesightConstants
 from thundra.plugins.config.log_config import LogConfig
 from thundra.wrappers.base_wrapper import BaseWrapper
 import thundra.wrappers.wrapper_utils as wrapper_utils
@@ -9,12 +10,18 @@ from foresight.context import (TestSuiteExecutionContext, TestCaseExecutionConte
 from foresight.sampler.max_count_aware_sampler import MaxCountAwareSampler 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
+from foresight.constants.constants import ForesightConstants
 import foresight.utils.generic_utils as utils
 import logging
 
 logger = logging.getLogger(__name__)
 
 class TestWrapperUtils(BaseWrapper):
+
+    """
+        Foresight wrapper util class. It keeps all the generic information for execution of test. 
+        Creating test suite and test case, change application info, start and finish trace and invocation plugins.
+    """
 
     __instance = None
 
@@ -67,6 +74,11 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def change_app_info(self, application_info):
+        """It shall be used for when changing flow form test suite to test case or vice-versa.
+
+        Args:
+            application_info (ApplicationInfo): Thundra application info
+        """
         try:
             self.application_info_provider.update(application_info.to_json())
         except Exception as err:
@@ -74,6 +86,14 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def create_test_suite_execution_context(self, test_suite_name=None):
+        """ Creating test suite execution context
+
+        Args:
+            test_suite_name (str, optional): Unique test suite name. Defaults to None.
+
+        Returns:
+            TestSuiteExecutionContext: [description]
+        """
         try:
             transaction_id = utils.create_uuid4()
             start_timestamp = utils.current_milli_time()
@@ -87,10 +107,21 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def create_test_case_execution_context(self, name, test_suite_name, test_case_id, app_info, parent_transaction_id=None):
+        """Creating test case execution context
+
+        Args:
+            name (str): Test case name
+            test_suite_name (str): unique test suite name
+            test_case_id (str): unique test case id
+            app_info (ApplicationInfo): Thundra application info
+            parent_transaction_id (str, optional): Parent span transaction id for Thundra apm. Defaults to None.
+
+        Returns:
+            TestCaseExecutionContext: Store execution context for test case.
+        """
         try:
             transaction_id = utils.create_uuid4()
             start_timestamp = utils.current_milli_time()
-            method = "RunTest"
             test_class = app_info.application_class_name if app_info.application_class_name else None
             return TestCaseExecutionContext(
                 transaction_id = transaction_id,
@@ -99,7 +130,7 @@ class TestWrapperUtils(BaseWrapper):
                 node_id = test_case_id,
                 parent_transaction_id = parent_transaction_id,
                 name = name,
-                method = method,
+                method = ForesightConstants.TEST_OPERATION_NAME,
                 test_class = test_class
             )
         except Exception as err:
@@ -107,6 +138,12 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def start_trace(self, execution_context, tracer):
+        """Calling after thundra trace pluging has been called by execute_hook. Create trace span.
+
+        Args:
+            execution_context (TestSuiteExecutionContext | TestSuiteExecutionContext): Execution context
+            tracer (ThundraTracer): Thundra Tracer
+        """
         try:
             operation_name = execution_context.get_operation_name()
             trace_id = utils.create_uuid4()
@@ -134,6 +171,11 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def finish_trace(self, execution_context):
+        """Finish trace.
+
+        Args:
+            execution_context (TestSuiteExecutionContext | TestSuiteExecutionContext): Execution context
+        """
         try:
             root_span = execution_context.root_span
             scope = execution_context.scope
@@ -149,6 +191,11 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def start_invocation(self, execution_context):
+        """Calling after thundra invocation pluging has been called by execute_hook. Create trace span.
+
+        Args:
+            execution_context (TestSuiteExecutionContext | TestSuiteExecutionContext): Execution context
+        """
         try:
             execution_context.invocation_data = wrapper_utils.create_invocation_data(self.plugin_context, execution_context)
         except Exception as err:
@@ -156,6 +203,11 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def finish_invocation(self, execution_context):
+        """Finish invocation.
+
+        Args:
+            execution_context (TestSuiteExecutionContext | TestSuiteExecutionContext): Execution context
+        """
         try:
             wrapper_utils.finish_invocation(execution_context)
         except Exception as err:
@@ -163,6 +215,11 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def before_test_process(self, execution_context):
+        """Invoke trace and invocation plugings before each test suite and test case.
+
+        Args:
+            execution_context (TestSuiteExecutionContext | TestCaseExecutionContext): Thundra test execution context
+        """
         try:
             self.execute_hook("before:invocation", execution_context)
         except Exception as err:
@@ -170,6 +227,11 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def after_test_process(self, execution_context):
+        """Send collected data about test suit or test case after each finish.
+
+        Args:
+            execution_context (TestSuiteExecutionContext | TestCaseExecutionContext): Thundra test execution context
+        """
         try:
             self.prepare_and_send_reports(execution_context)
         except Exception as err:
@@ -177,6 +239,12 @@ class TestWrapperUtils(BaseWrapper):
 
 
     def send_test_run_data(self, test_run_event):
+        """Send test run data. test_run_monitoring data has been updated by application info because
+         reporter has been used tih info whilst preparing composite data. 
+
+        Args:
+            test_run_event (TestRunStart, TestRunStatus, TestRunFinish): Tests event data
+        """
         try:
             test_run_monitoring_data = test_run_event.get_monitoring_data()
             app_info = self.application_info_provider.get_application_info()

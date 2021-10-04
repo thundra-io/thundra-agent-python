@@ -25,11 +25,11 @@ class EnvironmentSupport:
     }
     environment_info = None
 
-    '''
-        First check git provider, then iterate over ENVIRONMENTS_VARS dict.
-    '''
+
     @classmethod
     def init(cls):
+        """First check git provider, then iterate over ENVIRONMENTS_VARS dict.
+        """
         try:
             if GitHelper.get_repo_url():
                 GitEnvironmentInfoProvider.build_env_info()

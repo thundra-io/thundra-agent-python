@@ -2,21 +2,28 @@ from thundra.application.application_info import ApplicationInfo
 from thundra.application.application_info_provider import ApplicationInfoProvider
 from foresight.test_runner_tags import TestRunnerTags
 from foresight.utils.handler_utils import HandlerUtils
-import foresight.pytest_integration.constants as constants
-import foresight.utils.generic_utils as utils
+import foresight.pytest_integration.constants as pytest_constants
+from foresight.constants.constants import ForesightConstants
 import os, pytest, logging
 
-logger = logging.getLogger(__name__)
-THUNDRA_SCOPE = "x-thundra-scope"
 
+logger = logging.getLogger(__name__)
 
 class SpanManager:
     
     @staticmethod
     def handle_fixture_and_inject_span(handler, app_info=None, span_tags=None, request=None):
+        """Handle beforeeach,aftereach, beforeall and afterall functions. Created span has been moved into request obj.
+
+        Args:
+            handler (Function): Beforeeach,aftereach, beforeall and afterall functions in utils.handler_utils
+            app_info (ApplicationInfo, optional): Application Info. Defaults to None.
+            span_tags (Dict, optional): [description]. Defaults to None.
+            request (pytest.FixtureRequest, optional): Pytest FixtureRequest object that passed to wrapped fixture functions in pytest_integration.utils. Defaults to None.
+        """
         try:
             scope = handler(app_info, span_tags)
-            setattr(request, THUNDRA_SCOPE, scope)
+            setattr(request, pytest_constants.THUNDRA_SCOPE, scope)
         except Exception as err:
             logger.error("Couldn't handle fixture and inject span for pytest", err)
 
@@ -24,7 +31,7 @@ class SpanManager:
     @staticmethod
     def extract_scope(request):
         try:
-            return getattr(request, THUNDRA_SCOPE, None)
+            return getattr(request, pytest_constants.THUNDRA_SCOPE, None)
         except Exception as err:
             logger.error("Couldn't extract span from request for pytest", err)
 
@@ -32,16 +39,9 @@ class SpanManager:
 class PytestHelper:
 
     TEST_APP_ID_PREFIX = "python:test:pytest:"
-    TEST_APP_INSTANCE_ID_PREFIX = utils.create_uuid4() + ":"
-    TEST_APP_STAGE = "test"
     TEST_APP_VERSION = pytest.__version__
-    TEST_FIXTURE_DOMAIN_NAME = "TestFixture"
-    TEST_DOMAIN_NAME = "Test"
-    TEST_SUITE_DOMAIN_NAME = "TestSuite"
     TEST_CLASS_NAME = "Pytest"
-    TEST_OPERATION_NAME = "RunTest"
-    MAX_TEST_METHOD_NAME = 100
-    TEST_SUITE_CONTEXT_PROP_NAME = "THUNDRA::TEST_SUITE_CONTEXT"
+    TEST_SUITE_PATH = 0
     TEST_OPERATION_NAME_INDEX = 2
     TEST_SUITE = "module"
     TEST_CASE = "function"
@@ -63,7 +63,7 @@ class PytestHelper:
 
     @classmethod
     def get_test_application_instance_id(cls, request):
-        return cls.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_application_name(request)
+        return ForesightConstants.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_application_name(request)
 
 
     @classmethod
@@ -72,10 +72,10 @@ class PytestHelper:
             domain_name = None
             application_id = None
             if request.scope == cls.TEST_SUITE:
-                domain_name = cls.TEST_SUITE_DOMAIN_NAME
+                domain_name = ForesightConstants.TEST_SUITE_DOMAIN_NAME
                 application_id = cls.get_test_application_id(request)
             if request.scope == cls.TEST_CASE:
-                domain_name = cls.TEST_DOMAIN_NAME
+                domain_name = ForesightConstants.TEST_DOMAIN_NAME
             return ApplicationInfo(
                 application_id,
                 cls.get_test_application_instance_id(request),
@@ -83,7 +83,7 @@ class PytestHelper:
                 cls.TEST_CLASS_NAME,
                 cls.get_test_application_name(request),
                 cls.TEST_APP_VERSION,
-                cls.TEST_APP_STAGE,
+                ForesightConstants.TEST_APP_STAGE,
                 ApplicationInfoProvider.APPLICATION_RUNTIME,
                 ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
                 None,
@@ -100,7 +100,7 @@ class PytestHelper:
 
     @classmethod
     def get_test_fixture_application_instance_id(cls, request):
-        return cls.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_fixture_application_name(request)
+        return ForesightConstants.TEST_APP_INSTANCE_ID_PREFIX + cls.get_test_fixture_application_name(request)
 
 
     @classmethod
@@ -108,11 +108,11 @@ class PytestHelper:
         return ApplicationInfo(
             None,
             cls.get_test_fixture_application_instance_id(request),
-            cls.TEST_FIXTURE_DOMAIN_NAME,
+            ForesightConstants.TEST_FIXTURE_DOMAIN_NAME,
             cls.TEST_CLASS_NAME,
             cls.get_test_fixture_application_name(request),
             cls.TEST_APP_VERSION,
-            cls.TEST_APP_STAGE,
+            ForesightConstants.TEST_APP_STAGE,
             ApplicationInfoProvider.APPLICATION_RUNTIME,
             ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
             None,
@@ -123,12 +123,13 @@ class PytestHelper:
     def get_test_method_name(cls, request):
         try:
             nodeid = cls.get_test_application_name(request)
-            if len(nodeid) > cls.MAX_TEST_METHOD_NAME:
-                nodeid = "..." + nodeid[(len(nodeid)-cls.MAX_TEST_METHOD_NAME) + 3:]
+            if len(nodeid) > ForesightConstants.MAX_TEST_METHOD_NAME:
+                nodeid = "..." + nodeid[(len(nodeid)-ForesightConstants.MAX_TEST_METHOD_NAME) + 3:]
             return nodeid
         except Exception as err:
             logger.error("Couldn't get method name for pytest", err)
             return None 
+
 
     @classmethod
     def get_test_name(cls, request):
@@ -222,10 +223,10 @@ class PytestHelper:
     @classmethod
     def start_test_span(cls, item):
         try:
-            if not hasattr(item, constants.THUNDRA_TEST_STARTED):
-                setattr(item, constants.THUNDRA_TEST_STARTED, True)
-                name = item.location[2]
-                test_suite_name = item.location[0]
+            if not hasattr(item, pytest_constants.THUNDRA_TEST_STARTED):
+                setattr(item, pytest_constants.THUNDRA_TEST_STARTED, True)
+                name = item.location[cls.TEST_OPERATION_NAME_INDEX]
+                test_suite_name = item.location[cls.TEST_SUITE_PATH]
                 test_case_id = item.nodeid
                 app_info = cls.get_test_application_info(item)
                 HandlerUtils.start_test_span(name, test_suite_name, test_case_id, app_info)
@@ -237,7 +238,7 @@ class PytestHelper:
     def start_before_each_span(cls, request):
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
-            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
+            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[cls.TEST_SUITE_PATH] }
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_each_span, app_info, span_tags,
                 request)
         except Exception as err:
@@ -252,15 +253,17 @@ class PytestHelper:
         except Exception as err:
             logger.error("Couldn't finish before each span {} for pytest".format(request), err)
 
+
     @classmethod
     def start_after_each_span(cls, request):
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
-            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[0] }
+            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[cls.TEST_SUITE_PATH] }
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_each_span, app_info, span_tags,
                 request)  
         except Exception as err:
             logger.error("Couldn't start after each span {} for pytest".format(request), err)
+
 
     @classmethod
     def finish_after_each_span(cls, request):
@@ -276,8 +279,8 @@ class PytestHelper:
     @staticmethod
     def finish_test_span(item):
         try:
-            if not hasattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED):
-                setattr(item, constants.THUNDRA_TEST_ALREADY_FINISHED, True)
+            if not hasattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED):
+                setattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED, True)
                 HandlerUtils.finish_test_span()
         except Exception as err:
             logger.error("Couldn't finish test span {} for pytest".format(item), err)

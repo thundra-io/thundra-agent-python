@@ -7,6 +7,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 def start_trace(plugin_context, execution_context, tracer):
+    """Start trace plugin. It is executed by hook in BaseWrapper
+
+    Args:
+        plugin_context (PluginContext): Stores thundra plugins' contexts
+        execution_context (TestCaseExecutionContext | TestSuiteExecutionContext): Stores Execution context info
+        tracer (ThundraTracer): Thundra scope tracer
+    """
     try:
         test_wrapper_utils = TestWrapperUtils.get_instance()
         test_wrapper_utils.start_trace(execution_context, tracer)
@@ -25,6 +32,11 @@ def start_trace(plugin_context, execution_context, tracer):
 
 
 def finish_trace(execution_context):
+    """Finish trace plugin. It is executed by hook in BaseWrapper
+
+    Args:
+        execution_context (TestCaseExecutionContext | TestSuiteExecutionContext): Stores Execution context info
+    """
     try:
         test_wrapper_utils = TestWrapperUtils.get_instance()
         test_wrapper_utils.finish_trace(execution_context)
@@ -37,6 +49,12 @@ def finish_trace(execution_context):
 
 
 def start_invocation(plugin_context, execution_context):
+    """Start invocation for thundra invocation plugin.It is executed by hook in BaseWrapper
+
+    Args:
+        plugin_context (PluginContext): Stores thundra plugins' contexts
+        execution_context (TestCaseExecutionContext | TestSuiteExecutionContext): Stores Execution context info
+    """
     try:
         test_wrapper_utils = TestWrapperUtils.get_instance()
         test_wrapper_utils.start_invocation(execution_context)
@@ -46,7 +64,12 @@ def start_invocation(plugin_context, execution_context):
         logger.error("foresight executor start incovation error", err)
 
 
-def finish_invocation(execution_context):
+def finish_invocation(execution_context):    
+    """Finish invocation for thundra invocation plugin.It is executed by hook in BaseWrapper
+
+    Args:
+        execution_context (TestCaseExecutionContext | TestSuiteExecutionContext): Stores Execution context info
+    """
     try:
         invocation_data = execution_context.invocation_data
 

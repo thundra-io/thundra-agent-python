@@ -6,8 +6,9 @@ from foresight.utils.test_wrapper_utils import TestWrapperUtils
 from thundra.context.execution_context_manager import ExecutionContextManager
 from foresight.test_runner_tags import TestRunnerTags
 import foresight.utils.generic_utils as utils
-import os
+import logging
 
+logger = logging.getLogger(__name__)  
 
 class HandlerUtils:
 
@@ -49,7 +50,7 @@ class HandlerUtils:
         current_span.finish(f_time=utils.current_milli_time())
         scope.close()
         if not context or not context.invocation_data:
-            #TODO Add log
+            logger.error("Context or context's invocation data couldn't found for finishing trace.")
             return
         invocation_data = context.invocation_data
         if invocation_data:
@@ -63,6 +64,12 @@ class HandlerUtils:
 
     @staticmethod
     def test_setup(executor, api_key=None):
+        """Setup foresight environment. already_configured is used for Thundra config is already set or not.
+
+        Args:
+            executor (ForesightExecutor): Keeps functions for start and finish thundra plugins
+            api_key (str, optional): Thundra api key to send data rest collector. Defaults to None.
+        """
         import thundra
         already_configured = True if ConfigProvider.configs else False
         thundra._set_thundra_for_test_env(already_configured)
@@ -73,6 +80,9 @@ class HandlerUtils:
 
     @classmethod
     def test_teardown(cls):
+        """For now, TestRunnerSupport not support concurrency. Only one test suite info is kept there.
+        It should be changed for concurrent python test framework.
+        """
         if (TestRunnerSupport.test_suite_execution_context and 
             not TestRunnerSupport.test_suite_execution_context.completed):
             HandlerUtils.finish_test_suite_span()
@@ -81,6 +91,9 @@ class HandlerUtils:
 
     @classmethod
     def start_test_suite_span(cls, test_suite_id, app_info):
+        """For now, TestRunnerSupport not support concurrency. Only one test suite info is kept there.
+        It should be changed for concurrent python test framework.
+        """
         if not TestRunnerSupport.test_suite_execution_context:
             test_wrapper_utils = TestWrapperUtils.get_instance()
             context = test_wrapper_utils.create_test_suite_execution_context(test_suite_id)
@@ -103,6 +116,9 @@ class HandlerUtils:
 
     @classmethod
     def start_after_all_span(cls, app_info, span_tags):
+        """after all executed after test cases. That is why context should be getting from TestRunnerSupport and
+        set into ExecutionContextManager.
+        """
         context = TestRunnerSupport.test_suite_execution_context
         ExecutionContextManager.set(context)
         return cls.create_span(cls.TEST_AFTER_ALL_OPERATION_NAME, app_info, span_tags)
@@ -155,6 +171,9 @@ class HandlerUtils:
 
     @staticmethod
     def finish_test_span():
+        """Setup TestRunnerSupport for test suite. It's executed after all process has been done 
+        for test case such as before_each, after each etc.
+        """
         test_wrapper_utils = TestWrapperUtils.get_instance()
         context = ExecutionContextManager.get()
         test_wrapper_utils.after_test_process(context)

@@ -3,10 +3,22 @@ from foresight.test_status import increase_actions, TestStatus
 import foresight.pytest_integration.constants as constants
 import wrapt, logging, traceback
 
+
 logger = logging.getLogger(__name__)
 
 
 def check_test_case_result(item, execution_context, result, exception):
+    """ Handle test case result.
+
+    Args:
+        item (pytest.Item): Current running test case.
+        execution_context (TestCaseExecutionContext): Thundra execution context
+        result (pytest.Result): test case result
+        exception (pytest.ExceptionInfo): ExceptionInfo for test case if any. 
+
+    Returns:
+        str: One of the result in TestStatus class.
+    """
     test_status = TestStatus.SKIPPED
     try:
         xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
@@ -36,6 +48,14 @@ def check_test_case_result(item, execution_context, result, exception):
 
 
 def update_test_status(item, test_status, execution_context):
+    """update successful, skipped, aborted and total test status  w.r.t test case result calculated in 
+    check_test_case_result function.
+
+    Args:
+        item (pytest.Item): Current running test case
+        test_status (str): Current test case result
+        execution_context (TestCaseExecutionContext): Execution context for test case
+    """
     try:
         increase_action = increase_actions[test_status]
         execution_context.set_status(test_status)
@@ -47,6 +67,13 @@ def update_test_status(item, test_status, execution_context):
 
 
 def handle_error(exception, result, execution_context):
+    """Set exception into execution context if any.
+
+    Args:
+        exception (pytest.ExceptionInfo): Test case Exception info
+        result (pytest.Result): Test result 
+        execution_context (TestCaseExecutionContext): Execution context for test case
+    """
     try:
         execution_context.error = {
                         'type': type(exception).__name__,
@@ -58,6 +85,11 @@ def handle_error(exception, result, execution_context):
 
 
 def set_attributes_test_item(item):
+    """Set current test case item for thundra trace. 
+
+    Args:
+        item (pytest.Item): Current running test case.
+    """
     try:
         setattr(item, "scope", "function")  
         setattr(item.parent, "scope", "module")
@@ -70,6 +102,16 @@ def set_attributes_test_item(item):
 
 
 def check_test_status_state(item, call):
+    """Check current running test case state and return status and exception if any.
+
+    Args:
+        item (pytest.Item): Current running test case
+        call (pytest.CallInfo): Result/Exception info a function invocation.
+
+    Returns:
+        bool: True if test status should be calculated o.w False.
+        pytest.ExceptionInfo: Exception info if any else None
+    """
     try:
         is_setup_or_teardown = call.when == 'setup' or call.when == 'teardown'
         exception = call.excinfo
@@ -90,7 +132,14 @@ def _check_request_scope_function(request):
     return request.scope == "function"
 
 
-def fixture_closure(request, setup_or_teardown=None, start_or_finish=None):
+def fixture_closure(request, setup_or_teardown, start_or_finish):
+    """Handle beforeeach, aftereach, beforeall and afterall process for thundra.
+
+    Args:
+        request (pytest.FixtureRequest): The request fixture is a special fixture providing information of the requesting test function.
+        setup_or_teardown (bool, optional): To decide current state is fixture setup or teardown.
+        start_or_finish (bool, optional): To decide span should be started or finished. 
+    """
     def handle_fixture_setup():
         if start_or_finish:
             if _check_request_scope_function(request):
