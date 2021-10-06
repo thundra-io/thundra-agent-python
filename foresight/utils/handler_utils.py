@@ -71,11 +71,17 @@ class HandlerUtils:
             api_key (str, optional): Thundra api key to send data rest collector. Defaults to None.
         """
         import thundra
-        already_configured = True if ConfigProvider.configs else False
-        thundra._set_thundra_for_test_env(already_configured)
-        EnvironmentSupport.init()
-        TestWrapperUtils(api_key=api_key, plugin_executor = executor)
-        TestRunnerSupport.start_test_run()
+        try:
+            import thundra
+            # clear test start flag from thundra configs
+            del ConfigProvider.configs['thundra.agent.test.active'] 
+            already_configured = True if ConfigProvider.configs else False
+            thundra._set_thundra_for_test_env(already_configured)
+            EnvironmentSupport.init()
+            TestWrapperUtils(api_key=api_key, plugin_executor = executor)
+            TestRunnerSupport.start_test_run()
+        except Exception as e:
+            logger.error("Thundra couldn't initialized for test: ", e)
 
 
     @classmethod
