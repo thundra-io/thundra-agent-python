@@ -1,4 +1,3 @@
-from thundra import config
 from foresight.environment.git.git_helper import GitHelper
 from foresight.environment.environment_info import EnvironmentInfo
 from foresight.utils.test_runner_utils import TestRunnerUtils

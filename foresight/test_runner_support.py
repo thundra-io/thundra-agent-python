@@ -1,12 +1,8 @@
-from thundra.config import config_provider
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 from foresight.environment.environment_info_support import EnvironmentSupport
-from foresight.model.test_run_start import TestRunStart
-from foresight.model.test_run_status import TestRunStatus
-from foresight.model.test_run_result import TestRunResult
-from foresight.model.test_run_finish import TestRunFinish
-from foresight.test_run_context import TestRunContext
+from foresight.model import (TestRunStart , TestRunStatus, TestRunResult, 
+                                TestRunFinish, TestRunContext)
 from foresight.utils.test_wrapper_utils import TestWrapperUtils
 import foresight.utils.generic_utils as utils
 import logging, socket, threading

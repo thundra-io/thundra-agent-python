@@ -1,6 +1,6 @@
 from thundra.context.execution_context import ExecutionContext
 from foresight.test_runner_tags import TestRunnerTags
-from foresight.test_run_context import TestRunContext
+from foresight.model import TestRunContext
 
 
 class TestSuiteExecutionContext(TestRunContext, ExecutionContext):
