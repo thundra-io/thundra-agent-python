@@ -176,7 +176,7 @@ class PytestHelper:
     def start_before_all_span(cls, request):
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
-            span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
+            span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid, TestRunnerTags.TEST_FIXTURE: request.fixturename}
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_all_span, app_info, span_tags,
                 request)
         except Exception as err:
@@ -196,7 +196,7 @@ class PytestHelper:
     def start_after_all_span(cls, request):
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
-            span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid}
+            span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid, TestRunnerTags.TEST_FIXTURE: request.fixturename}
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, app_info, span_tags,
                 request)
         except Exception as err:
@@ -238,7 +238,7 @@ class PytestHelper:
     def start_before_each_span(cls, request):
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
-            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[cls.TEST_SUITE_PATH] }
+            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[cls.TEST_SUITE_PATH], TestRunnerTags.TEST_FIXTURE: request.fixturename}
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_each_span, app_info, span_tags,
                 request)
         except Exception as err:
@@ -258,7 +258,7 @@ class PytestHelper:
     def start_after_each_span(cls, request):
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
-            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[cls.TEST_SUITE_PATH] }
+            span_tags = { TestRunnerTags.TEST_SUITE: request.node.location[cls.TEST_SUITE_PATH], TestRunnerTags.TEST_FIXTURE: request.fixturename}
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_each_span, app_info, span_tags,
                 request)  
         except Exception as err:

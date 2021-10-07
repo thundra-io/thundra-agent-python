@@ -4,6 +4,7 @@ class TestRunnerTags:
     TEST_SUITE_TRANSACTION_ID = "test.suite.transaction.id"
     TEST_NAME = "test.name"
     TEST_SUITE = "test.suite"
+    TEST_FIXTURE = "test.fixture"
     TEST_STATUS = "test.status"
     TEST_SUITE_TOTAL_COUNT = "test.suite.total.count"
     TEST_SUITE_SUCCESSFUL_COUNT = "test.suite.successful.count"
