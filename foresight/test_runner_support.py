@@ -25,9 +25,12 @@ class _StatusReporter:
         self.t = None
 
 
-    def start(self):
+    def start(self, start_immediately=False):
         if not self.t:
-            self.t = threading.Timer(self.delay, self.report_status)
+            if start_immediately:
+                self.t = threading.Timer(0, self.report_status)
+            else:
+                self.t = threading.Timer(self.delay, self.report_status)
             self.t.daemon = True
             self.t.start()
 
@@ -147,7 +150,7 @@ class TestRunnerSupport:
                 cls.status_reporter.stop()
             else:
                 cls.status_reporter = _StatusReporter()
-            cls.status_reporter.start()
+            cls.status_reporter.start(start_immediately=True)
         except Exception as err:
             LOGGER.error("Couldn't start test run properly", err)
     
