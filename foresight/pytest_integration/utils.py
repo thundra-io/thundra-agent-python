@@ -198,10 +198,16 @@ def _wrapper_teardown_fixture(wrapped, instance, args, kwargs):
         request = kwargs["request"]
     except Exception as err:
         logger.error("Couldn't get request in wrapper_teardown function", err)
-    fixture_closure(request, setup_or_teardown=False, start_or_finish=True)
-    wrapped(*args, **kwargs)
-    fixture_closure(request, setup_or_teardown=False, start_or_finish=False)
-
+    '''
+        Pytest stores fixtures teardown functions in _finalizers list. If there is no 
+        teardown function no need to create span.
+    '''
+    if instance._finalizers:
+        fixture_closure(request, setup_or_teardown=False, start_or_finish=True)
+        wrapped(*args, **kwargs)
+        fixture_closure(request, setup_or_teardown=False, start_or_finish=False)
+    else:
+        wrapped(*args, **kwargs)
 
 def patch():
     '''
