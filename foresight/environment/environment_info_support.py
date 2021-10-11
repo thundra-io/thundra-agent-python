@@ -32,6 +32,7 @@ class EnvironmentSupport:
         """
         try:
             if GitHelper.get_repo_url():
+                LOGGER.error("GitHelper environment info: {}".format(GitHelper.get_repo_url()))
                 GitEnvironmentInfoProvider.build_env_info()
                 cls.environment_info = GitEnvironmentInfoProvider.environment_info
             else:
@@ -42,6 +43,7 @@ class EnvironmentSupport:
                         cls.environment_info = clz.environment_info
                         LOGGER.error("Environment info: {}".format(cls.environment_info))
                         break
+            LOGGER.error("environment info: {}".format(cls.environment_info))
         except Exception as err:
             LOGGER.error("Environment Support environment_info could not set: {}".format(err))
             cls.environment_info = None
