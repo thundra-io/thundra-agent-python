@@ -187,7 +187,7 @@ def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
     fixture_closure(request, setup_or_teardown=True, start_or_finish=True)
     res = wrapped(*args, **kwargs)
     fixture_closure(request, setup_or_teardown=True, start_or_finish=False)
-    if res:
+    if res != None:
         return res
 
 
