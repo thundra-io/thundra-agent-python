@@ -22,7 +22,7 @@ def check_test_case_result(item, execution_context, result, exception):
     test_status = TestStatus.SKIPPED
     try:
         xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
-        has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif"])
+        has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif", "skipped"])
 
         if hasattr(item, constants.THUNDRA_MARKED_AS_SKIPPED):
             delattr(item, constants.THUNDRA_MARKED_AS_SKIPPED)
