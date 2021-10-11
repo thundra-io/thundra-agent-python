@@ -43,7 +43,7 @@ def check_test_case_result(item, execution_context, result, exception):
             test_status = TestStatus.FAILED
             handle_error(exception, result, execution_context)
     except Exception as err:
-        logger.error("Couldn't set test status properly {} for pytest".format(item), err)
+        logger.error("Couldn't set test status properly for pytest: {}".format(err))
     return test_status
 
 
@@ -63,7 +63,7 @@ def update_test_status(item, test_status, execution_context):
             setattr(item, constants.THUNDRA_TEST_RESULTED, True)
             increase_action()
     except Exception as err:
-        logger.error("Couldn't update test status {} for pytest".format(item), err)
+        logger.error("Couldn't update test status for pytest: {}".format(err))
 
 
 def handle_error(exception, result, execution_context):
@@ -81,7 +81,7 @@ def handle_error(exception, result, execution_context):
                         'traceback': ''.join(traceback.format_tb(exception.tb))
                     }
     except Exception as err:
-        logger.error("Couldn't handle error for pytest", err)
+        logger.error("Couldn't handle error for pytest: {}".format(err))
 
 
 def set_attributes_test_item(item):
@@ -98,7 +98,7 @@ def set_attributes_test_item(item):
         if check_marked_as_skipped:
             setattr(item, constants.THUNDRA_MARKED_AS_SKIPPED, True)
     except Exception as err:
-        logger.error("Couldn't set attributets test item {} for pytest".format(item), err)
+        logger.error("Couldn't set attributets test item for pytest: {}".format(err))
 
 
 def check_test_status_state(item, call):
@@ -120,7 +120,7 @@ def check_test_status_state(item, call):
             status = False
         return status, exception
     except Exception as err:
-        logger.error("Couldn't check test status state", err)
+        logger.error("Couldn't check test status state: {}".format(err))
         return False, None
 
 

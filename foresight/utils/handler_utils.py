@@ -81,7 +81,7 @@ class HandlerUtils:
             TestWrapperUtils(api_key=api_key, plugin_executor = executor)
             TestRunnerSupport.start_test_run()
         except Exception as e:
-            logger.error("Thundra couldn't initialized for test: ", e)
+            logger.error("Thundra couldn't initialized for test: {}".format(e))
 
 
     @classmethod

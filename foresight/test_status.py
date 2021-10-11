@@ -19,7 +19,7 @@ def increase_successful_count():
         test_suite_context.increase_successful_count()
         _increase_total_count(test_run_context, test_suite_context)
     except Exception as err:
-        logger.error("increase_successful_count error", err)
+        logger.error("increase_successful_count error: {}".format(err))
 
 
 def increase_failed_count():
@@ -31,7 +31,7 @@ def increase_failed_count():
         test_suite_context.increase_failed_count()
         _increase_total_count(test_run_context, test_suite_context)
     except Exception as err:
-        logger.error("increase_failed_count error", err)
+        logger.error("increase_failed_count error: {}".format(err))
 
 def increase_aborted_count():
     try:
@@ -42,7 +42,7 @@ def increase_aborted_count():
         test_suite_context.increase_aborted_count()
         _increase_total_count(test_run_context, test_suite_context)
     except Exception as err:
-        logger.error("increase_aborted_count error", err)
+        logger.error("increase_aborted_count error: {}".format(err))
 
 
 def increase_skipped_count():
@@ -54,7 +54,7 @@ def increase_skipped_count():
         test_suite_context.increase_ignored_count() 
         _increase_total_count(test_run_context, test_suite_context)
     except Exception as err:
-        logger.error("increase_skipped_count error", err)
+        logger.error("increase_skipped_count error: {}".format(err))
 
 
 def _increase_total_count(test_run_context, test_suite_context):
@@ -62,7 +62,7 @@ def _increase_total_count(test_run_context, test_suite_context):
         test_run_context.context.increase_total_count()
         test_suite_context.increase_total_count()
     except Exception as err:
-        logger.error("_increase_total_count error", err)
+        logger.error("_increase_total_count error: {}".format(err))
 
 increase_actions = {
     TestStatus.SUCCESSFUL: increase_successful_count,

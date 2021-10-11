@@ -25,7 +25,7 @@ class SpanManager:
             scope = handler(app_info, span_tags)
             setattr(request, pytest_constants.THUNDRA_SCOPE, scope)
         except Exception as err:
-            logger.error("Couldn't handle fixture and inject span for pytest", err)
+            logger.error("Couldn't handle fixture and inject span for pytest: {}".format(err))
 
 
     @staticmethod
@@ -33,7 +33,7 @@ class SpanManager:
         try:
             return getattr(request, pytest_constants.THUNDRA_SCOPE, None)
         except Exception as err:
-            logger.error("Couldn't extract span from request for pytest", err)
+            logger.error("Couldn't extract span from request for pytest: {}".format(err))
 
 
 class PytestHelper:
@@ -53,7 +53,7 @@ class PytestHelper:
         try:
             return request.nodeid.replace("::", os.sep)
         except Exception as err:
-            logger.error("Couldn't get test application name for pytest", err)
+            logger.error("Couldn't get test application name for pytest: {}".format(err))
             return None
 
     @classmethod
@@ -89,14 +89,14 @@ class PytestHelper:
                 None,
             )
         except Exception as err:
-            logger.error("Couldn't get application info for pytest", err)
+            logger.error("Couldn't get application info for pytest: {}".format(err))
 
     @staticmethod
     def get_test_fixture_application_name(request):
         try:
             return request.fixturename
         except Exception as err:
-            logger.error("Couldn't get fixture application name for pytest", err)
+            logger.error("Couldn't get fixture application name for pytest: {}".format(err))
 
     @classmethod
     def get_test_fixture_application_instance_id(cls, request):
@@ -127,7 +127,7 @@ class PytestHelper:
                 nodeid = "..." + nodeid[(len(nodeid)-ForesightConstants.MAX_TEST_METHOD_NAME) + 3:]
             return nodeid
         except Exception as err:
-            logger.error("Couldn't get method name for pytest", err)
+            logger.error("Couldn't get method name for pytest: {}".format(err))
             return None 
 
 
@@ -151,7 +151,7 @@ class PytestHelper:
         try:
             HandlerUtils.test_setup(executor, api_key)
         except Exception as err:
-            logger.error("Couldn't setup the session for pytest", err)
+            logger.error("Couldn't setup the session for pytest: {}".format(err))
 
 
     @classmethod
@@ -159,7 +159,7 @@ class PytestHelper:
         try:
             HandlerUtils.test_teardown()
         except Exception as err:
-            logger.error("Error session teardown for pytest", err)
+            logger.error("Error session teardown for pytest: {}".format(err))
 
 
     @classmethod
@@ -169,7 +169,7 @@ class PytestHelper:
             app_info = cls.get_test_application_info(item)
             HandlerUtils.start_test_suite_span(test_suite_id, app_info)
         except Exception as err:
-            logger.error("Couldn't start test suite span for pytest".format(item), err)
+            logger.error("Couldn't start test suite span for pytest: {}".format(err))
 
 
     @classmethod
@@ -180,7 +180,7 @@ class PytestHelper:
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_all_span, app_info, span_tags,
                 request)
         except Exception as err:
-            logger.error("Couldn't start before all span for pytest".format(request), err)
+            logger.error("Couldn't start before all span for pytest: {}".format(err))
 
 
     @staticmethod
@@ -189,7 +189,7 @@ class PytestHelper:
             scope = SpanManager.extract_scope(request)
             HandlerUtils.finish_before_all_span(scope)
         except Exception as err:
-            logger.error("Couldn't finish before all span for pytest".format(request), err)
+            logger.error("Couldn't finish before all span for pytest: {}".format(err))
 
 
     @classmethod
@@ -200,7 +200,7 @@ class PytestHelper:
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, app_info, span_tags,
                 request)
         except Exception as err:
-            logger.error("Couldn't start after all span for pytest".format(request), err)
+            logger.error("Couldn't start after all span for pytest: {}".format(err), err)
 
 
     @staticmethod
@@ -209,7 +209,7 @@ class PytestHelper:
             scope = SpanManager.extract_scope(request)
             HandlerUtils.finish_after_all_span(scope)
         except Exception as err:
-            logger.error("Couldn't finish after all span for pytest".format(request), err)
+            logger.error("Couldn't finish after all span for pytest: {}".format(err))
 
 
     @staticmethod
@@ -217,7 +217,7 @@ class PytestHelper:
         try:
             HandlerUtils.finish_test_suite_span()
         except Exception as err:
-            logger.error("Couldn't finish test suite span for pytest", err)
+            logger.error("Couldn't finish test suite span for pytest: {}".format(err))
 
 
     @classmethod
@@ -231,7 +231,7 @@ class PytestHelper:
                 app_info = cls.get_test_application_info(item)
                 HandlerUtils.start_test_span(name, test_suite_name, test_case_id, app_info)
         except Exception as err:
-            logger.error("Couldn't start test span {} for pytest".format(item), err)
+            logger.error("Couldn't start test span {} for pytest: {}".format(err))
 
 
     @classmethod
@@ -242,7 +242,7 @@ class PytestHelper:
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_before_each_span, app_info, span_tags,
                 request)
         except Exception as err:
-            logger.error("Couldn't start before each span {} for pytest".format(request), err)
+            logger.error("Couldn't start before each span for pytest: {}".format(err))
 
 
     @staticmethod
@@ -251,7 +251,7 @@ class PytestHelper:
             scope = SpanManager.extract_scope(request)
             HandlerUtils.finish_before_each_span(scope)
         except Exception as err:
-            logger.error("Couldn't finish before each span {} for pytest".format(request), err)
+            logger.error("Couldn't finish before each span for pytest: {}".format(err))
 
 
     @classmethod
@@ -262,7 +262,7 @@ class PytestHelper:
             SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_each_span, app_info, span_tags,
                 request)  
         except Exception as err:
-            logger.error("Couldn't start after each span {} for pytest".format(request), err)
+            logger.error("Couldn't start after each span for pytest: {}".format(err))
 
 
     @classmethod
@@ -273,7 +273,7 @@ class PytestHelper:
             span.set_tag(TestRunnerTags.TEST_NAME, cls.get_test_method_name(request.node))
             HandlerUtils.finish_after_each_span(scope)
         except Exception as err:
-            logger.error("Couldn't finish after each span {} for pytest".format(request), err)
+            logger.error("Couldn't finish after each span for pytest: {}".format(err))
 
 
     @staticmethod
@@ -283,4 +283,4 @@ class PytestHelper:
                 setattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED, True)
                 HandlerUtils.finish_test_span()
         except Exception as err:
-            logger.error("Couldn't finish test span {} for pytest".format(item), err)
+            logger.error("Couldn't finish test span for pytest: {}".format(err))

@@ -28,7 +28,7 @@ def start_trace(plugin_context, execution_context, tracer):
 
         EnvironmentSupport.set_span_tags(root_span)
     except Exception as err:
-        logger.error("foresight executor start trace error", err)
+        logger.error("foresight executor start trace error {}".format(err))
 
 
 def finish_trace(execution_context):
@@ -45,7 +45,7 @@ def finish_trace(execution_context):
 
         root_span.tags.update(execution_context.get_additional_finish_tags())
     except Exception as err:
-        logger.error("foresight eecutor finish trace error", err)
+        logger.error("foresight eecutor finish trace error: {}".format(err))
 
 
 def start_invocation(plugin_context, execution_context):
@@ -61,7 +61,7 @@ def start_invocation(plugin_context, execution_context):
         
         execution_context.invocation_data["tags"].update(execution_context.get_additional_start_tags())
     except Exception as err:
-        logger.error("foresight executor start incovation error", err)
+        logger.error("foresight executor start incovation error: {}".format(err))
 
 
 def finish_invocation(execution_context):    
@@ -91,4 +91,4 @@ def finish_invocation(execution_context):
         EnvironmentSupport.set_invocation_tags(invocation_data)  
         test_wrapper_utils.finish_invocation(execution_context)
     except Exception as err:
-        logger.error("foresight executor finish invocation error", err)
+        logger.error("foresight executor finish invocation error: {}".format(err))
