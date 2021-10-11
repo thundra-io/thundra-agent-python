@@ -49,6 +49,7 @@ class GitHelper:
         if not git_folder_path:
             LOGGER.error("Could not locate " + cls.USER_DIR + " starting from user.dir: " + cls.GIT_FOLDER_NAME)
             cls.git_info_map = {}
+            return
         try:
             git_repo = Repo(git_folder_path)
             active_branch = git_repo.active_branch
