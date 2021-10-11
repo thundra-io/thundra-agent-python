@@ -24,7 +24,7 @@ class TestRunnerUtils:
             # https://stackoverflow.com/questions/27939281/reproduce-uuid-from-java-code-in-python
             return str(uuid.uuid3(NULL_NAMESPACE, test_run_id_seed))
         except Exception as err:
-            LOGGER.err("Test run id could not be created by uuid", err)
+            LOGGER.err("Test run id could not be created by uuid: {}".format(err))
 
 
     @staticmethod
@@ -41,5 +41,5 @@ class TestRunnerUtils:
         try:
             return "_".join(str_list)
         except Exception as err:
-            LOGGER.error("test runner utils string concat error", err)
+            LOGGER.error("test runner utils string concat error: {}".format(err))
             return ""

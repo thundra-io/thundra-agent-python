@@ -56,5 +56,5 @@ class TravisCIEnvironmentInfoProvider:
             cls.environment_info = EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, 
                 repo_name, branch, commit_hash, commit_message)
         except Exception as err:
-            LOGGER.error("Unable to build environment info", err)
+            LOGGER.error("Unable to build environment info: {}".format(err))
             cls.environment_info = None

@@ -62,7 +62,7 @@ class _StatusReporter:
             )
             test_wrapper_utils.send_test_run_data(test_run_status) # TODO
         except Exception as err:
-            LOGGER.error("Couldn't send test run status", err)
+            LOGGER.error("Couldn't send test run status: ".format(err))
         finally:
             self.stop()
             self.start()
@@ -123,7 +123,7 @@ class TestRunnerSupport:
             if not test_run_id:
                 test_run_id = utils.create_uuid4()
         except Exception as err:
-            LOGGER.error("Couldn't get test run id", err)
+            LOGGER.error("Couldn't get test run id: {}".format(err))
         finally:
             return test_run_id
 
@@ -152,7 +152,7 @@ class TestRunnerSupport:
                 cls.status_reporter = _StatusReporter()
             cls.status_reporter.start(start_immediately=True)
         except Exception as err:
-            LOGGER.error("Couldn't start test run properly", err)
+            LOGGER.error("Couldn't start test run properly: {}".format(err))
     
 
     @classmethod
@@ -169,7 +169,7 @@ class TestRunnerSupport:
                 ) 
                 cls.finish_test_run(test_run_result)
         except Exception as err:
-            LOGGER.error("Couldn't finish test run properly", err)
+            LOGGER.error("Couldn't finish test run properly: {}".format(err))
 
 
     @classmethod
@@ -201,7 +201,7 @@ class TestRunnerSupport:
                 )
                 test_wrapper_utils.send_test_run_data(test_run_finish) # TODO ASK
         except Exception as err:
-            LOGGER.error("Thundra foresight finist test run error", err)
+            LOGGER.error("Thundra foresight finist test run error: {}".format(err))
         finally:
             cls.test_run_scope = None
 

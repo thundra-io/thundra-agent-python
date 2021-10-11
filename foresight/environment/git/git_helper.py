@@ -75,6 +75,6 @@ class GitHelper:
         try:
             return os.path.splitext(os.path.basename(repo_url))[0]
         except Exception as err:
-            LOGGER.error("Couldn't extract Repo Name", err)
+            LOGGER.error("Couldn't extract Repo Name: {}".format(err))
 
 GitHelper.populate_git_info_map()

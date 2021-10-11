@@ -51,5 +51,5 @@ class BitbucketEnvironmentInfoProvider:
                 branch, commit_hash, commit_message)
 
         except Exception as err:
-            LOGGER.error("Unable to build environment info", err)
+            LOGGER.error("Unable to build environment info: {}".format(err))
             cls.environment_info = None

@@ -43,7 +43,7 @@ class EnvironmentSupport:
                         LOGGER.error("Environment info: {}".format(cls.environment_info))
                         break
         except Exception as err:
-            LOGGER.error("Environment Support environment_info could not set", err)
+            LOGGER.error("Environment Support environment_info could not set: {}".format(err))
             cls.environment_info = None
 
 
