@@ -48,7 +48,7 @@ class GitHelper:
         git_folder_path = backward_search_for_file(cls.USER_DIR, cls.GIT_FOLDER_NAME)
         if not git_folder_path:
             LOGGER.error("Could not locate " + cls.USER_DIR + " starting from user.dir: " + cls.GIT_FOLDER_NAME)
-            return {}
+            cls.git_info_map = {}
         try:
             git_repo = Repo(git_folder_path)
             active_branch = git_repo.active_branch
@@ -67,7 +67,7 @@ class GitHelper:
             cls.git_info_map[GitHelper.COMMIT_HASH] = "dummy_commit_hash"
             cls.git_info_map[GitHelper.COMMIT_MESSAGE] = "dummy_commit_message"
             cls.git_info_map[GitHelper.REPOSITORY_URL] = "dummy_repo_url"
-            LOGGER.error("Couldn't set git_info_map so dummy data will be used", err)
+            LOGGER.error("Couldn't set git_info_map so dummy data will be used: {}: ".format(err))
 
     @staticmethod
     def extractRepoName(repo_url):
