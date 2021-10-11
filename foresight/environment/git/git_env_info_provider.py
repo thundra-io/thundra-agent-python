@@ -28,8 +28,8 @@ class GitEnvironmentInfoProvider:
             commit_hash = GitHelper.get_commit_hash()
             commit_message = GitHelper.get_commit_message()
             test_run_id = cls.get_test_run_id(repo_url, commit_hash)
-            cls.environment_info = EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name,
+            return EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name,
                 branch, commit_hash, commit_message)
         except Exception as err:
             LOGGER.error("Unable to build environment info: {}".format(err))
-            cls.environment_info = None
+        return {}

@@ -13,8 +13,6 @@ class BitbucketEnvironmentInfoProvider:
     BITBUCKET_BRANCH_ENV_VAR_NAME = "BITBUCKET_BRANCH"
     BITBUCKET_COMMIT_ENV_VAR_NAME = "BITBUCKET_COMMIT"
     BITBUCKET_BUILD_NUMBER_ENV_VAR_NAME = "BITBUCKET_BUILD_NUMBER"
-    environment_info = None
-
 
     @classmethod
     def get_test_run_id(cls, repo_url, commit_hash):
@@ -47,9 +45,9 @@ class BitbucketEnvironmentInfoProvider:
 
             test_run_id = cls.get_test_run_id(repo_url, commit_hash)
 
-            cls.environment_info = EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, 
+            return EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, 
                 branch, commit_hash, commit_message)
 
         except Exception as err:
             LOGGER.error("Unable to build environment info: {}".format(err))
-            cls.environment_info = None
+        return {}

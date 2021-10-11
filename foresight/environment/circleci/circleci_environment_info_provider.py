@@ -12,7 +12,6 @@ class CircleCIEnvironmentInfoProvider:
     CIRCLE_SHA1_ENV_VAR_NAME = "CIRCLE_SHA1"
     CIRCLE_BUILD_URL_ENV_VAR_NAME = "CIRCLE_BUILD_URL"
     CIRCLE_BUILD_NUM_ENV_VAR_NAME = "CIRCLE_BUILD_NUM"
-    environment_info = None
 
     @classmethod
     def get_test_run_id(cls, repo_url, commit_hash):
@@ -45,8 +44,8 @@ class CircleCIEnvironmentInfoProvider:
 
             test_run_id = cls.get_test_run_id(repo_url, commit_hash)
 
-            cls.environment_info = EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, branch, 
+            return EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, branch, 
                 commit_hash, commit_message)
         except Exception as err:
             LOGGER.error("Unable to build environment info: {}".format(err))
-            cls.environment_info = None
+        return {}
