@@ -39,6 +39,8 @@ class BaseIntegration(ABC):
             # Call original
             response = self.actual_call(wrapped, args, kwargs)
         except Exception as e:
+            print("wrapped, args, kwargs",wrapped, args, kwargs)
+            print("actual_call exception error: ", e)
             exception = e
 
         # Inject after span tags 
@@ -57,6 +59,7 @@ class BaseIntegration(ABC):
             scope.span.finish()
         except Exception as e:
             if exception is None:
+                print("baseintegration scope span finish error: ", e)
                 exception = e
             else:
                 logger.error(e)

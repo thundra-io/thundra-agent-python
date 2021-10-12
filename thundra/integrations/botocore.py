@@ -824,9 +824,11 @@ class AWSEventBridgeIntegration(BaseIntegration):
 
     def get_operation_name(self, wrapped, instance, args, kwargs):
         _, request_data = args
+        import json
+        print("AWSEventBridgeIntegration.get_operation_name request_data: ", json.loads(request_data)) # TODO
         operation_name = constants.AwsEventBridgeTags['SERVICE_REQUEST']
         entries = request_data.get('Entries', [])
-
+        print("AWSEventBridgeIntegration.get_operation_name entries: ", json.loads(entries)) #TODO
         eventbus_map = {entry['EventBusName'] for entry in entries}
         if len(eventbus_map) == 1:
             operation_name = eventbus_map.pop()
