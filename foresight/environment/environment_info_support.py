@@ -36,7 +36,7 @@ class EnvironmentSupport:
                 cls.environment_info = GitEnvironmentInfoProvider.build_env_info()
             else:
                 LOGGER.error("Couldn't find .git file.")
-                LOGGER.error("Os env variables: ", os.environ)
+                print("os environ: ", os.environ)
                 for key, clz in cls.ENVIRONMENTS_VARS.items():
                     LOGGER.error("Current key, clz: {}, {}".format(key,clz))
                     if os.getenv(key):
