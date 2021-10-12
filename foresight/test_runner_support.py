@@ -118,7 +118,7 @@ class TestRunnerSupport:
         test_run_id = None
         try:
             environment_info = EnvironmentSupport.environment_info
-            if not environment_info:
+            if environment_info:
                 test_run_id = environment_info.get_test_run_id()
             if not test_run_id:
                 test_run_id = utils.create_uuid4()
