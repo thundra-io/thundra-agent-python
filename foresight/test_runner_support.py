@@ -118,14 +118,13 @@ class TestRunnerSupport:
         test_run_id = None
         try:
             environment_info = EnvironmentSupport.environment_info
-            if environment_info:
-                test_run_id = environment_info.get_test_run_id()
-            if not test_run_id:
+            if environment_info != None:
+                test_run_id = environment_info.test_run_id
+            if test_run_id == None:
                 test_run_id = utils.create_uuid4()
         except Exception as err:
             LOGGER.error("Couldn't get test run id: {}".format(err))
-        finally:
-            return test_run_id
+        return test_run_id
 
 
     @classmethod
