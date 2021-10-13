@@ -60,7 +60,7 @@ class _StatusReporter:
                 environment_info= EnvironmentSupport.environment_info,
                 # TODO tags
             )
-            test_wrapper_utils.send_test_run_data(test_run_status) # TODO
+            test_wrapper_utils.send_test_run_data(test_run_status)
         except Exception as err:
             LOGGER.error("Couldn't send test run status: ".format(err))
         finally:
@@ -145,7 +145,7 @@ class TestRunnerSupport:
                 cls.HOST_NAME,
                 environment
             )
-            test_wrapper_utils.send_test_run_data(test_run_start) #TODO
+            test_wrapper_utils.send_test_run_data(test_run_start)
             if cls.status_reporter:
                 cls.status_reporter.stop()
             else:
@@ -199,7 +199,7 @@ class TestRunnerSupport:
                     environment_info= EnvironmentSupport.environment_info,
                     # TODO tags
                 )
-                test_wrapper_utils.send_test_run_data(test_run_finish) # TODO ASK
+                test_wrapper_utils.send_test_run_data(test_run_finish)
         except Exception as err:
             LOGGER.error("Thundra foresight finist test run error: {}".format(err))
         finally:

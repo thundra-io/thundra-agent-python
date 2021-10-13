@@ -822,19 +822,13 @@ class AWSEventBridgeIntegration(BaseIntegration):
     def __init__(self):
         pass
 
-    def get_operation_name(self, wrapped, instance, args, kwargs): #TODO
-        operation_name = "unknown_operation"
-        try:
-            _, request_data = args
-            print("AWSEventBridgeIntegration.get_operation_name request_data: ", request_data)
-            operation_name = constants.AwsEventBridgeTags['SERVICE_REQUEST']
-            entries = request_data.get('Entries', [])
-            print("AWSEventBridgeIntegration.get_operation_name entries: ", entries)
-            eventbus_map = {entry['EventBusName'] for entry in entries}
-            if len(eventbus_map) == 1:
-                operation_name = eventbus_map.pop()
-        except Exception as e:
-            print("get_operation_name error: ", e)
+    def get_operation_name(self, wrapped, instance, args, kwargs):
+        _, request_data = args
+        operation_name = constants.AwsEventBridgeTags['SERVICE_REQUEST']
+        entries = request_data.get('Entries', [])
+        eventbus_map = {entry['EventBusName'] for entry in entries}
+        if len(eventbus_map) == 1:
+            operation_name = eventbus_map.pop()
         return operation_name
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
