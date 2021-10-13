@@ -136,13 +136,14 @@ class TestRunnerSupport:
             task_id = utils.create_uuid4()
             current_time = utils.current_milli_time()
             cls.test_run_scope = _TestRunScope(id, task_id, current_time, context)
+            environment = None if EnvironmentSupport.environment_info != None else EnvironmentSupport.environment_info
             test_run_start = TestRunStart(
                 cls.test_run_scope.id,
                 cls.get_project_id_from_config(),
                 cls.test_run_scope.task_id,
                 cls.test_run_scope.start_timestamp,
                 cls.HOST_NAME,
-                EnvironmentSupport.environment_info
+                environment
             )
             test_wrapper_utils.send_test_run_data(test_run_start) #TODO
             if cls.status_reporter:
