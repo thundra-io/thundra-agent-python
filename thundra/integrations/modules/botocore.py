@@ -32,21 +32,20 @@ def _wrapper(wrapped, instance, args, kwargs):
     )
 
 
-def patch(): #TODO
-    pass
-    # if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DISABLE):
-    #     wrapt.wrap_function_wrapper(
-    #         'botocore.client',
-    #         'BaseClient._make_api_call',
-    #         _wrapper
-    #     )
-    # if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE):
-    #     try:
-    #         wrapt.wrap_function_wrapper(
-    #             'botocore.vendored.requests',
-    #             'Session.send',
-    #             request_wrapper
-    #         )
-    #     except Exception:
-    #         # Vendored version of requests is removed from botocore
-    #         pass
+def patch():
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DISABLE):
+        wrapt.wrap_function_wrapper(
+            'botocore.client',
+            'BaseClient._make_api_call',
+            _wrapper
+        )
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE):
+        try:
+            wrapt.wrap_function_wrapper(
+                'botocore.vendored.requests',
+                'Session.send',
+                request_wrapper
+            )
+        except Exception:
+            # Vendored version of requests is removed from botocore
+            pass
