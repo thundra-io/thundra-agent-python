@@ -81,21 +81,15 @@ def tornado_wrapper(func):
 
 
 def _set_thundra_for_test_env(already_configured):
-    print("-------- _set_thundra_for_test_env entered... ----------")
     if not already_configured:
-        print("-------- _set_thundra_for_test_env configuration... ----------")
         configure()
     if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
-        print("-------- _set_thundra_for_test_env thundra patch... ----------")
         _patch_modules()
 
 
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
-    print("-------- Thundra patched automatically after THUNDRA_DISABLE... ----------")
     test_active = ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE)
-    print("----- ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE) ---------", test_active)
     if not test_active:
-        print("-------- Thundra patched automatically after THUNDRA_TEST_ACTIVE... ----------")
         _patch_modules()
 
 

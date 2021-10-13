@@ -35,7 +35,6 @@ def pytest_sessionstart(session):
         session (pytest.Session): Pytest session class
     """
     if session.config.getoption("thundra") or session.config.getini("thundra"):
-        logger.info("Thundra plugin has been setup...")
         PytestHelper.set_pytest_started()
         patch()
         PytestHelper.session_setup(executor=foresight_executor)
