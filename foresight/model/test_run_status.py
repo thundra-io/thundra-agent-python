@@ -16,12 +16,20 @@ class TestRunStatus(TestRunResult, TestRunMonitoring):
         self.start_timestamp = start_timestamp
         self.status_timestamp = status_timestamp
         self.host_name = host_name
-        self.environment = environment_info.environment if environment_info.environment else None
-        self.repo_url = environment_info.repo_url if environment_info.repo_url else None
-        self.repo_name = environment_info.repo_name if environment_info.repo_name else None
-        self.branch = environment_info.branch if environment_info.branch else None
-        self.commit_hash = environment_info.commit_hash if environment_info.commit_hash else None
-        self.commit_message = environment_info.commit_message if environment_info.commit_message else None
+        if environment_info != None:
+            self.environment = environment_info.environment if environment_info.environment else None
+            self.repo_url = environment_info.repo_url if environment_info.repo_url else None
+            self.repo_name = environment_info.repo_name if environment_info.repo_name else None
+            self.branch = environment_info.branch if environment_info.branch else None
+            self.commit_hash = environment_info.commit_hash if environment_info.commit_hash else None
+            self.commit_message = environment_info.commit_message if environment_info.commit_message else None
+        else:
+            self.environment = None
+            self.repo_url = None
+            self.repo_name = None
+            self.branch = None
+            self.commit_hash = None
+            self.commit_message = None
         self.tags = tags
 
     def to_json(self):
