@@ -136,7 +136,7 @@ class TestRunnerSupport:
             task_id = utils.create_uuid4()
             current_time = utils.current_milli_time()
             cls.test_run_scope = _TestRunScope(id, task_id, current_time, context)
-            environment = None if EnvironmentSupport.environment_info != None else EnvironmentSupport.environment_info
+            environment = EnvironmentSupport.environment_info if EnvironmentSupport.environment_info != None else None
             test_run_start = TestRunStart(
                 cls.test_run_scope.id,
                 cls.get_project_id_from_config(),
