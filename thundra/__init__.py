@@ -91,8 +91,11 @@ def _set_thundra_for_test_env(already_configured):
 
 
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
-    if not ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE):
-        print("-------- Thundra patched automatically... ----------")
+    print("-------- Thundra patched automatically after THUNDRA_DISABLE... ----------")
+    test_active = ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE)
+    print("----- ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE) ---------", test_active)
+    if not test_active:
+        print("-------- Thundra patched automatically after THUNDRA_TEST_ACTIVE... ----------")
         _patch_modules()
 
 
