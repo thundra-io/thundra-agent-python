@@ -6,12 +6,17 @@ from thundra.wrappers import wrapper_utils, web_wrapper_utils
 def start_trace(plugin_context, execution_context, tracer):
     request = execution_context.platform_data['request']
     request_route_path = str(request.url_rule) if request.url_rule else None
+    '''
+        request data read as stream. This function cache the read data and serve from cache.
+        According to function comment in Flask, content length should be checked before read!!! 
+    '''
+    req_data = request.get_data()
 
     _request = {
         'method': request.method,
         'host': request.host.split(':')[0],
         'query_params': request.query_string,
-        'body': request.data,
+        'body': req_data,
         'headers': request.headers,
         'path': request.path
     }
