@@ -39,8 +39,6 @@ class BaseIntegration(ABC):
             # Call original
             response = self.actual_call(wrapped, args, kwargs)
         except Exception as e:
-            print("wrapped, args, kwargs",wrapped, args, kwargs)
-            print("actual_call exception error: ", e)
             exception = e
 
         # Inject after span tags 
