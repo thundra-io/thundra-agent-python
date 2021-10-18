@@ -86,6 +86,7 @@ def pytest_runtest_protocol(item, nextitem):
     PytestHelper.start_test_suite_span(module_item)
     yield
     PytestHelper.finish_test_span(item)
+    PytestHelper.clear_test_case_state_for_thundra(item)
     if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
         PytestHelper.finish_test_suite_span()
 
