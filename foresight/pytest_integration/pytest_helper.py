@@ -150,6 +150,7 @@ class PytestHelper:
         delattr(item, pytest_constants.THUNDRA_TEST_RESULTED)
         delattr(item, pytest_constants.THUNDRA_TEST_STARTED)
         delattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED)
+        setattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER, True)
     
 
     @staticmethod
@@ -288,5 +289,6 @@ class PytestHelper:
             if not hasattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED):
                 setattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED, True)
                 HandlerUtils.finish_test_span()
+                cls.clear_test_case_state_for_thundra(item)
         except Exception as err:
             logger.error("Couldn't finish test span for pytest: {}".format(err))
