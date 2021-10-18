@@ -118,6 +118,12 @@ def check_test_status_state(item, call):
         status = True
         if (is_setup_or_teardown and not exception) or hasattr(item, constants.THUNDRA_TEST_RESULTED):
             status = False
+        '''
+            Pytest not run call when function skipped. So, if function has THUNDRA_MARKED_AS_SKIPPED and
+            call.when is call state, then condition for skipif returns false and just evalute result with default.
+        '''
+        if call.when == "call" and hasattr(item, constants.THUNDRA_MARKED_AS_SKIPPED):
+            delattr(item, constants.THUNDRA_MARKED_AS_SKIPPED)
         return status, exception
     except Exception as err:
         logger.error("Couldn't check test status state: {}".format(err))
