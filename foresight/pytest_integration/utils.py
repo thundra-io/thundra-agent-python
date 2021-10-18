@@ -84,7 +84,7 @@ def handle_error(exception, result, execution_context):
         logger.error("Couldn't handle error for pytest: {}".format(err))
 
 
-def set_attributes_test_item(item):
+def set_attributes_test_item(item, module_item):
     """Set current test case item for thundra trace. 
 
     Args:
@@ -92,7 +92,7 @@ def set_attributes_test_item(item):
     """
     try:
         setattr(item, "scope", "function")  
-        setattr(item.parent, "scope", "module")
+        setattr(module_item, "scope", "module")
         own_markers = item.own_markers
         check_marked_as_skipped = any("skip" in mark.name for mark in own_markers)
         if check_marked_as_skipped:
@@ -130,6 +130,10 @@ def _check_thundra_fixture(request):
 
 def _check_request_scope_function(request):
     return request.scope == "function"
+
+
+def _check_request_scope_fixture(request): #TODO for now, class fixture do not support!!!
+    return request.scope == "function" or request.scope == "module"
 
 
 def fixture_closure(request, setup_or_teardown, start_or_finish):
@@ -184,9 +188,12 @@ def _wrapper_setup_fixture(wrapped, instance, args, kwargs):
         request = args[1]
     except Exception as err:
         logger.error("Couldn't get request in wrapper_setup function: {}".format(err))
-    fixture_closure(request, setup_or_teardown=True, start_or_finish=True)
-    res = wrapped(*args, **kwargs)
-    fixture_closure(request, setup_or_teardown=True, start_or_finish=False)
+    if _check_request_scope_fixture(request):
+        fixture_closure(request, setup_or_teardown=True, start_or_finish=True)
+        res = wrapped(*args, **kwargs)
+        fixture_closure(request, setup_or_teardown=True, start_or_finish=False)
+    else:
+        res = wrapped(*args, **kwargs)
     if res != None:
         return res
 
@@ -202,7 +209,7 @@ def _wrapper_teardown_fixture(wrapped, instance, args, kwargs):
         Pytest stores fixtures teardown functions in _finalizers list. If there is no 
         teardown function no need to create span.
     '''
-    if instance._finalizers:
+    if instance._finalizers and _check_request_scope_fixture(request):
         fixture_closure(request, setup_or_teardown=False, start_or_finish=True)
         wrapped(*args, **kwargs)
         fixture_closure(request, setup_or_teardown=False, start_or_finish=False)

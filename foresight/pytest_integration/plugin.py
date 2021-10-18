@@ -80,12 +80,13 @@ def pytest_runtest_protocol(item, nextitem):
     """
     if not PytestHelper.check_pytest_started():
         yield
-        return
-    set_attributes_test_item(item)
-    PytestHelper.start_test_suite_span(item.parent)
+        return    
+    module_item = item.getparent(pytest.Module)
+    set_attributes_test_item(module_item)
+    PytestHelper.start_test_suite_span(module_item)
     yield
     PytestHelper.finish_test_span(item)
-    if not nextitem or item.module.__name__ != nextitem.module.__name__:
+    if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
         PytestHelper.finish_test_suite_span()
 
 
