@@ -1,4 +1,6 @@
 from thundra import constants
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
 
 from thundra.wrappers import wrapper_utils, web_wrapper_utils
 
@@ -10,12 +12,13 @@ def start_trace(plugin_context, execution_context, tracer):
         request data read as stream. This function cache the read data and serve from cache.
         According to function comment in Flask, content length should be checked before read!!! 
     '''
-    cl = request.content_length
     req_data = None
-    if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
-        req_data = request.get_data()
-    else:
-        req_data = "THUNDRA_INFO: Request data size is over 200KB!"
+    if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, False):
+        cl = request.content_length
+        if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
+            req_data = request.get_data()
+        else:
+            req_data = request.get_data()[:constants.THUNDRA_MAX_STREAM_REQUEST_BODY]
 
     _request = {
         'method': request.method,
