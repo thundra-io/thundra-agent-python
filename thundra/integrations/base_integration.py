@@ -57,7 +57,6 @@ class BaseIntegration(ABC):
             scope.span.finish()
         except Exception as e:
             if exception is None:
-                print("baseintegration scope span finish error: ", e)
                 exception = e
             else:
                 logger.error(e)
