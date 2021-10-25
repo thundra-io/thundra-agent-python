@@ -61,6 +61,7 @@ class TestWrapperUtils(BaseWrapper):
             })
         except Exception as err:
             logger.error("Test wrapper utils application info set error: {}".format(err))
+            pass
 
 
     def _get_default_application_id(self):
@@ -70,7 +71,8 @@ class TestWrapperUtils(BaseWrapper):
             return application_id.lower()
         except Exception as err:
             logger.error("get default application id error: {}".format(err))
-            return "python:test:pytest:dummy_application_id:{}".format(utils.create_uuid4())
+            pass
+        return "python:test:pytest:dummy_application_id:{}".format(utils.create_uuid4())
 
 
     def change_app_info(self, application_info):
@@ -83,6 +85,7 @@ class TestWrapperUtils(BaseWrapper):
             self.application_info_provider.update(application_info.to_json())
         except Exception as err:
             logger.error("Test wrapper application info change error: {}".format(err))
+            pass
 
 
     def create_test_suite_execution_context(self, test_suite_name=None):
@@ -103,7 +106,8 @@ class TestWrapperUtils(BaseWrapper):
                 node_id = test_suite_name
             )
         except Exception as err:
-            logger.error("create test suite execution context error: {}".format(err)) 
+            logger.error("create test suite execution context error: {}".format(err))
+            pass
 
 
     def create_test_case_execution_context(self, name, test_suite_name, test_case_id, app_info, parent_transaction_id=None):
@@ -135,6 +139,7 @@ class TestWrapperUtils(BaseWrapper):
             )
         except Exception as err:
             logger.error("create test case execution context error: {}".format(err))
+            pass
 
 
     def start_trace(self, execution_context, tracer):
@@ -168,6 +173,7 @@ class TestWrapperUtils(BaseWrapper):
             root_span = execution_context.root_span
         except Exception as err:
             logger.error("Test wrapper start trace error: {}".format(err))
+            pass
 
 
     def finish_trace(self, execution_context):
@@ -188,6 +194,7 @@ class TestWrapperUtils(BaseWrapper):
                 scope.close()
         except Exception as err:
             logger.error("test wrapper finish trace error: {}".format(err))
+            pass
 
 
     def start_invocation(self, execution_context):
@@ -200,6 +207,7 @@ class TestWrapperUtils(BaseWrapper):
             execution_context.invocation_data = wrapper_utils.create_invocation_data(self.plugin_context, execution_context)
         except Exception as err:
             logger.error("test wrapper start invocation error: {}".format(err))
+            pass
 
 
     def finish_invocation(self, execution_context):
@@ -212,6 +220,7 @@ class TestWrapperUtils(BaseWrapper):
             wrapper_utils.finish_invocation(execution_context)
         except Exception as err:
             logger.error("finish invocation error: {}".format(err))
+            pass
 
 
     def before_test_process(self, execution_context):
@@ -224,6 +233,7 @@ class TestWrapperUtils(BaseWrapper):
             self.execute_hook("before:invocation", execution_context)
         except Exception as err:
             logger.error("test wrapper before test process: {}".format(err))
+            pass
 
 
     def after_test_process(self, execution_context):
@@ -236,6 +246,7 @@ class TestWrapperUtils(BaseWrapper):
             self.prepare_and_send_reports_async(execution_context)
         except Exception as err:
             logger.error("test wrapper after test process error: {}".format(err))
+            pass
 
 
     def send_test_run_data(self, test_run_event):
@@ -252,3 +263,4 @@ class TestWrapperUtils(BaseWrapper):
             self.reporter.send_reports([test_run_monitoring_data], test_run_event = True)
         except Exception as err:
             logger.error("test wrapper send test run data error: {}".format(err))
+            pass

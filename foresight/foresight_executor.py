@@ -19,17 +19,13 @@ def start_trace(plugin_context, execution_context, tracer):
         test_wrapper_utils.start_trace(execution_context, tracer)
         
         root_span = execution_context.root_span
-        test_run_scope = TestRunnerSupport.test_run_scope
-
-        root_span.set_tag(TestRunnerTags.TEST_RUN_ID, test_run_scope.id)
-        root_span.set_tag(TestRunnerTags.TEST_RUN_TASK_ID, test_run_scope.task_id)
 
         root_span.tags.update(execution_context.get_additional_start_tags())
 
         EnvironmentSupport.set_span_tags(root_span)
     except Exception as err:
-        logger.error("foresight executor start trace error {}".format(err))
-
+        logger.error("Foresight executor start trace error {}".format(err))
+        pass
 
 def finish_trace(execution_context):
     """Finish trace plugin. It is executed by hook in BaseWrapper
@@ -46,7 +42,7 @@ def finish_trace(execution_context):
         root_span.tags.update(execution_context.get_additional_finish_tags())
     except Exception as err:
         logger.error("foresight eecutor finish trace error: {}".format(err))
-
+        pass
 
 def start_invocation(plugin_context, execution_context):
     """Start invocation for thundra invocation plugin.It is executed by hook in BaseWrapper
@@ -62,7 +58,7 @@ def start_invocation(plugin_context, execution_context):
         execution_context.invocation_data["tags"].update(execution_context.get_additional_start_tags())
     except Exception as err:
         logger.error("foresight executor start incovation error: {}".format(err))
-
+        pass
 
 def finish_invocation(execution_context):    
     """Finish invocation for thundra invocation plugin.It is executed by hook in BaseWrapper
@@ -74,11 +70,6 @@ def finish_invocation(execution_context):
         invocation_data = execution_context.invocation_data
 
         test_wrapper_utils = TestWrapperUtils.get_instance()
-        
-        test_run_scope = TestRunnerSupport.test_run_scope 
-
-        invocation_data["tags"][TestRunnerTags.TEST_RUN_ID] = test_run_scope.id
-        invocation_data["tags"][TestRunnerTags.TEST_RUN_TASK_ID] = test_run_scope.task_id
 
         invocation_data["tags"].update(execution_context.get_additional_finish_tags())
 
@@ -91,4 +82,5 @@ def finish_invocation(execution_context):
         EnvironmentSupport.set_invocation_tags(invocation_data)  
         test_wrapper_utils.finish_invocation(execution_context)
     except Exception as err:
-        logger.error("foresight executor finish invocation error: {}".format(err))
+        logger.error("Foresight executor finish invocation error: {}".format(err))
+        pass

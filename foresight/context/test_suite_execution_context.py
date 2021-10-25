@@ -1,5 +1,6 @@
 from thundra.context.execution_context import ExecutionContext
 from foresight.test_runner_tags import TestRunnerTags
+from foresight.test_runner_support import TestRunnerSupport
 from foresight.model import TestRunContext
 
 
@@ -17,7 +18,10 @@ class TestSuiteExecutionContext(TestRunContext, ExecutionContext):
 
 
     def get_additional_start_tags(self):
+        test_run_scope = TestRunnerSupport.test_run_scope
         return {
+            TestRunnerTags.TEST_RUN_ID: test_run_scope.id,
+            TestRunnerTags.TEST_RUN_TASK_ID: test_run_scope.task_id,
             TestRunnerTags.TEST_SUITE: self.test_suite_name
         }
 

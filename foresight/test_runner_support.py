@@ -124,6 +124,7 @@ class TestRunnerSupport:
                 test_run_id = utils.create_uuid4()
         except Exception as err:
             LOGGER.error("Couldn't get test run id: {}".format(err))
+            pass
         return test_run_id
 
 
@@ -153,6 +154,7 @@ class TestRunnerSupport:
             cls.status_reporter.start(start_immediately=True)
         except Exception as err:
             LOGGER.error("Couldn't start test run properly: {}".format(err))
+            pass
     
 
     @classmethod
@@ -170,6 +172,7 @@ class TestRunnerSupport:
                 cls.finish_test_run(test_run_result)
         except Exception as err:
             LOGGER.error("Couldn't finish test run properly: {}".format(err))
+            pass
 
 
     @classmethod
@@ -202,6 +205,7 @@ class TestRunnerSupport:
                 test_wrapper_utils.send_test_run_data(test_run_finish)
         except Exception as err:
             LOGGER.error("Thundra foresight finist test run error: {}".format(err))
+            pass
         finally:
             cls.test_run_scope = None
 

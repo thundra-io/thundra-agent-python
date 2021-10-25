@@ -58,6 +58,7 @@ class GithubEnvironmentInfoProvider:
                                 LOGGER.error("Unable to get json data from  GitHub event file " + github_event_path);
                 except Exception as err:
                     LOGGER.error("Unable to read GitHub event from file " + github_event_path)
+                    pass
 
             if not branch:
                 branch = os.getenv(cls.GITHUB_REF_ENV_VAR_NAME)
@@ -74,4 +75,5 @@ class GithubEnvironmentInfoProvider:
             return EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, branch, commit_hash, commit_message)
         except Exception as err:
             LOGGER.error("Unable to build environment info: {}".format(err))
+            pass
         return {}

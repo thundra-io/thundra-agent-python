@@ -387,7 +387,7 @@ logger.removeHandler(handler)
 
 ## Thundra Foresight
 
-Foresight is a project powered by thundra agent to show every detail for test runs. For know, it only supports pytest.  
+Foresight is a project powered by Thundra agent to show every detail for test runs. For know, it only supports pytest.  
 
 ### Activating Thundra Foresight
 
@@ -417,7 +417,7 @@ Foresight is a project powered by thundra agent to show every detail for test ru
         load_dotenv(dotenv_path=env_path)
     ```
 
-    3. Importing thundra in conftest file and configure it.
+    3. Importing Thundra in conftest file and configure it.
 
     ```conftest.py
         import thundra
@@ -433,7 +433,7 @@ Foresight is a project powered by thundra agent to show every detail for test ru
     ```
 
 
-- There are two ways to activate thundra foresight for pytest:
+- There are two ways to activate Thundra Foresight for pytest:
 
     1. Run pytest with --thundra command on terminal.
     ```sh
@@ -449,7 +449,7 @@ Foresight is a project powered by thundra agent to show every detail for test ru
 
 **NOTES**
 
-- All thundra agent features are valid in foresight. It's default enabled. If you see more information about your test cases, you can visit Thundra APM. If you want to disable thundra agent for tracing, you can set "THUNDRA_DISABLE"  as environment variable, "thundra_disable" in .env file or "thundra.disable" into thundra.configure() to True as describing above.
+- All Thundra agent features are valid in foresight. It's default enabled. If you see more information about your test cases, you can visit Thundra APM. If you want to disable thundra agent for tracing, you can set "THUNDRA_DISABLE"  as environment variable, "thundra_disable" in .env file or "thundra.disable" into thundra.configure() to True as describing above.
 
 ## Getting Help
 

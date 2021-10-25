@@ -50,4 +50,5 @@ class BitbucketEnvironmentInfoProvider:
 
         except Exception as err:
             LOGGER.error("Unable to build environment info: {}".format(err))
+            pass
         return {}

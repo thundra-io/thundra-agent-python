@@ -20,4 +20,5 @@ def backward_search_for_file(starting_path, filename_to_search):
             return backward_search_for_file(starting_path, filename_to_search)
     except Exception as e:
         logger.error("backward_search_for_file error: {}".format(e))
+        pass
     return None

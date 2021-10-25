@@ -5,8 +5,8 @@ class TestRunStatus(TestRunResult, TestRunMonitoring):
 
     EVENT_NAME="TestRunStatus"
 
-    def __init__(self, id=None, project_id=None, task_id=None, total_count=None, successful_count=None, 
-        failed_count=None, ignored_count=None, aborted_count=None, start_timestamp=None, status_timestamp=None,
+    def __init__(self, id=None, project_id=None, task_id=None, total_count=0, successful_count=0, 
+        failed_count=0, ignored_count=0, aborted_count=0, start_timestamp=None, status_timestamp=None,
         host_name=None, environment_info=None, tags=None):
         super(TestRunStatus, self).__init__(total_count, successful_count, failed_count,
             ignored_count, aborted_count)

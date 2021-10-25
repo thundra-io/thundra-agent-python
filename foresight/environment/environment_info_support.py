@@ -32,21 +32,21 @@ class EnvironmentSupport:
         """
         try:
             if GitHelper.get_repo_url():
-                LOGGER.error("GitHelper environment info: {}".format(GitHelper.get_repo_url()))
+                LOGGER.debug("GitHelper environment info: {}".format(GitHelper.get_repo_url()))
                 cls.environment_info = GitEnvironmentInfoProvider.build_env_info()
             else:
-                LOGGER.error("Couldn't find .git file.")
-                print("os environ: ", os.environ)
+                LOGGER.debug("Couldn't find .git file.")
                 for key, clz in cls.ENVIRONMENTS_VARS.items():
-                    LOGGER.error("Current key, clz: {}, {}".format(key,clz))
+                    LOGGER.debug("Current key, clz: {}, {}".format(key,clz))
                     if os.getenv(key):
                         cls.environment_info = clz.build_env_info()
-                        LOGGER.error("Environment info: {}".format(cls.environment_info.to_json()))
-                        LOGGER.error("Founded key and class: {}, {}".format(key, clz))
+                        LOGGER.debug("Environment info: {}".format(cls.environment_info.to_json()))
+                        LOGGER.debug("Founded key and class: {}, {}".format(key, clz))
                         break
         except Exception as err:
             LOGGER.error("Environment Support environment_info could not set: {}".format(err))
             cls.environment_info = {}
+            pass
 
 
     @classmethod

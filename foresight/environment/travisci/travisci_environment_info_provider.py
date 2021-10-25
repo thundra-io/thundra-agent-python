@@ -56,4 +56,5 @@ class TravisCIEnvironmentInfoProvider:
                 repo_name, branch, commit_hash, commit_message)
         except Exception as err:
             LOGGER.error("Unable to build environment info: {}".format(err))
+            pass
         return {}

@@ -70,7 +70,6 @@ class HandlerUtils:
             executor (ForesightExecutor): Keeps functions for start and finish thundra plugins
             api_key (str, optional): Thundra api key to send data rest collector. Defaults to None.
         """
-        import thundra
         try:
             import thundra
             # clear test start flag from thundra configs
@@ -82,6 +81,7 @@ class HandlerUtils:
             TestRunnerSupport.start_test_run()
         except Exception as e:
             logger.error("Thundra couldn't initialized for test: {}".format(e))
+            pass
 
 
     @classmethod

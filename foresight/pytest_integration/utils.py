@@ -44,6 +44,7 @@ def check_test_case_result(item, execution_context, result, exception):
             handle_error(exception, result, execution_context)
     except Exception as err:
         logger.error("Couldn't set test status properly for pytest: {}".format(err))
+        pass
     return test_status
 
 
@@ -64,6 +65,7 @@ def update_test_status(item, test_status, execution_context):
             increase_action()
     except Exception as err:
         logger.error("Couldn't update test status for pytest: {}".format(err))
+        pass
 
 
 def handle_error(exception, result, execution_context):
@@ -82,6 +84,7 @@ def handle_error(exception, result, execution_context):
                     }
     except Exception as err:
         logger.error("Couldn't handle error for pytest: {}".format(err))
+        pass
 
 
 def set_attributes_test_item(item, module_item):
@@ -99,6 +102,7 @@ def set_attributes_test_item(item, module_item):
             setattr(item, constants.THUNDRA_MARKED_AS_SKIPPED, True)
     except Exception as err:
         logger.error("Couldn't set attributets test item for pytest: {}".format(err))
+        pass
 
 
 def check_test_status_state(item, call):
@@ -127,7 +131,8 @@ def check_test_status_state(item, call):
         return status, exception
     except Exception as err:
         logger.error("Couldn't check test status state: {}".format(err))
-        return False, None
+        pass
+    return False, None
 
 
 def _check_thundra_fixture(request):

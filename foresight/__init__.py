@@ -1,2 +1,2 @@
 import os
-os.environ["thundra_agent_test_active"] = "True"
+os.environ["THUNDRA_AGENT_TEST_ACTIVE"] = "True"

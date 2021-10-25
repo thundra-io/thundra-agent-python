@@ -25,6 +25,8 @@ class TestRunnerUtils:
             return str(uuid.uuid3(NULL_NAMESPACE, test_run_id_seed))
         except Exception as err:
             LOGGER.err("Test run id could not be created by uuid: {}".format(err))
+            pass
+        return str(uuid.uuid4())
 
 
     @staticmethod
@@ -33,7 +35,8 @@ class TestRunnerUtils:
             #TODO Find a way to generate uuid with parameters
             return utils.create_uuid4()
         except Exception as err:
-            LOGGER.error("")
+            LOGGER.error("get_default_test_run_id couldn't created")
+            pass
 
 
     @staticmethod
@@ -42,4 +45,5 @@ class TestRunnerUtils:
             return "_".join(str_list)
         except Exception as err:
             LOGGER.error("test runner utils string concat error: {}".format(err))
-            return ""
+            pass
+        return ""
