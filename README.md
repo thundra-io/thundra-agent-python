@@ -571,4 +571,5 @@ Following table shows all environment variables of [No-Code Change Tracing](#no-
 | THUNDRA_AGENT_TEST_RUN_ID                 | thundra.agent.test.run.id                                  |
 | THUNDRA_AGENT_TEST_PROJECT_ID             | thundra.agent.test.project.id                                  | 
 | THUNDRA_AGENT_TEST_STATUS_REPORT_FREQUENCY                               | thundra.agent.test.status.report.freq                                  | 
-| THUNDRA_AGENT_TEST_LOG_COUNT_MAX                               | thundra.agent.test.log.count.max                                  |
+| THUNDRA_AGENT_TEST_LOG_COUNT_MAX                               | thundra.agent.test.log.count.max                                  || 
+THUNDRA_AGENT_TEST_DISABLE                               | thundra.agent.test.disable                                  |
