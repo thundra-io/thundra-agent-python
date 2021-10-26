@@ -83,8 +83,8 @@ def pytest_sessionstart(session):
     """
     from thundra.config.config_provider import ConfigProvider
     from thundra.config import config_names
-    if (session.config.getoption("disable_thundra") or 
-        session.config.getini("disable_thundra") or 
+    if (session.config.getoption("thundra_disable") or 
+        session.config.getini("thundra_disable") or 
         check_thundra_test_disabled() or 
         ConfigProvider.get(config_names.THUNDRA_TEST_DISABLE, False)):
         return
