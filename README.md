@@ -436,7 +436,7 @@ Foresight is a project powered by Thundra agent to show every detail for test ru
 
 - There are two ways to deactivate Thundra Foresight for pytest:
 
-    1. Run pytest with --thundra command on terminal.
+    1. Run pytest with --thundra_disable command on terminal for specific pytest run.
     ```sh
         pytest --thundra_disable <your_tests_path>
     ```
@@ -452,6 +452,8 @@ Foresight is a project powered by Thundra agent to show every detail for test ru
         [tool.pytest.ini_options]
         thundra_disable = 1
     ```
+    
+    3. Setting THUNDRA_AGENT_TEST_DISABLE=True as environment variable.
 
 **NOTES**
 
