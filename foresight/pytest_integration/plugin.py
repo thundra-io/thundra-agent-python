@@ -1,10 +1,11 @@
-import pytest, logging
+import pytest, logging, os
 
 from foresight.pytest_integration.utils import (patch, check_test_case_result, 
     update_test_status, set_attributes_test_item, check_test_status_state)
 from foresight.pytest_integration.pytest_helper import PytestHelper
 from foresight import foresight_executor
 import foresight.pytest_integration.constants as pytest_constants
+from thundra import config
 from thundra.context.execution_context_manager import ExecutionContextManager
 
 logger = logging.getLogger(__name__)
@@ -20,14 +21,59 @@ def pytest_addoption(parser):
 
     # config.getoption(markerName) 
     group.addoption(
-        "--thundra",
+        "--thundra_disable",
         action="store_true",
-        dest="thundra",
+        dest="thundra_disable",
         default=False,
-        help='Default "name" for thundra.',
+        help='THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID should be set as environment variables. \
+            Disable thundra by --thundra_disable argument. ',
     )
-    parser.addini("thundra", 'Enable tracing of pytest functions by --thundra argument', type="bool")
+    parser.addini("thundra_disable", 'Disable tracing of pytest functions by --thundra_disable argument', type="bool")
 
+
+def check_thundra_from_env():
+    check_thundra_api_key = None
+    check_thundra_project_id = None
+    for key in os.environ.keys():
+        lower_key = key.lower()
+        if lower_key.startswith("thundra_"):
+            if lower_key == "thundra_apikey":
+                check_thundra_api_key = True
+            elif lower_key == "thundra_agent_test_project_id":
+                check_thundra_project_id = True
+            if check_thundra_api_key and check_thundra_project_id:
+                break
+    return check_thundra_api_key, check_thundra_project_id
+
+def check_thundra_test_disabled():
+    check_thundra_test_disabled = False
+    for key in os.environ.keys():
+        lower_key = key.lower()
+        if lower_key.startswith("thundra_"):
+            if lower_key == "thundra_agent_test_disable":
+                check_thundra_test_disabled = True
+                break
+    return check_thundra_test_disabled
+
+'''
+    if thundra is imported in conftest!!!
+    example:
+        import thundra
+        thundra.configure(
+        options={
+            "config": {
+                "thundra.apikey": <test_id>,
+                "thundra.agent.test.project.id": <project_id>,
+            }
+        }
+)
+'''
+def check_thundra_from_conf():
+    from thundra.config.config_provider import ConfigProvider
+    from thundra.config import config_names
+    api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, None)
+    project_id = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID, None)
+    return api_key, project_id
 
 def pytest_sessionstart(session):
     """ Check thundra has been activated. If it has been, then start session.
@@ -35,10 +81,24 @@ def pytest_sessionstart(session):
     Args:
         session (pytest.Session): Pytest session class
     """
-    if session.config.getoption("thundra") or session.config.getini("thundra"):
-        PytestHelper.set_pytest_started()
-        patch()
-        PytestHelper.session_setup(executor=foresight_executor)
+    from thundra.config.config_provider import ConfigProvider
+    from thundra.config import config_names
+    if (session.config.getoption("disable_thundra") or 
+        session.config.getini("disable_thundra") or 
+        check_thundra_test_disabled() or 
+        ConfigProvider.get(config_names.THUNDRA_TEST_DISABLE, False)):
+        return
+    else:
+        api_key_env, project_id_env = check_thundra_from_env()
+        api_key_conf, project_id_conf = check_thundra_from_conf()
+        check_thundra_project_id = project_id_env or project_id_conf
+        check_thundra_api_key = api_key_env or api_key_conf
+        if check_thundra_project_id and check_thundra_api_key:
+            PytestHelper.set_pytest_started()
+            patch()
+            PytestHelper.session_setup(executor=foresight_executor)
+        else:
+            print("[THUNDRA] Please make sure setting THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as environment variables!")
     
 
 def pytest_sessionfinish(session, exitstatus):

@@ -306,5 +306,9 @@ CONFIG_METADATA = {
     config_names.THUNDRA_TEST_ACTIVE: {
         'type': 'bool',
         'defaultValue': False,
+    },
+    config_names.THUNDRA_TEST_DISABLE: {
+        'type': 'bool',
+        'defaultValue': False,
     }
 }

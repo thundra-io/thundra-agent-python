@@ -71,9 +71,7 @@ class HandlerUtils:
             api_key (str, optional): Thundra api key to send data rest collector. Defaults to None.
         """
         try:
-            import thundra
-            # clear test start flag from thundra configs
-            del ConfigProvider.configs['thundra.agent.test.active'] 
+            import thundra 
             already_configured = True if ConfigProvider.configs else False
             thundra._set_thundra_for_test_env(already_configured)
             EnvironmentSupport.init()

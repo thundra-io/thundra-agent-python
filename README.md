@@ -387,7 +387,7 @@ logger.removeHandler(handler)
 
 ## Thundra Foresight
 
-Foresight is a project powered by Thundra agent to show every detail for test runs. For know, it only supports pytest.  
+Foresight is a project powered by Thundra agent to show every detail for test runs. For know, it only supports pytest. Although Its automatically enabled after installing Thundra as 'pip install thundra', you need to set THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as described below. 
 
 ### Activating Thundra Foresight
 
@@ -432,24 +432,30 @@ Foresight is a project powered by Thundra agent to show every detail for test ru
         )
     ```
 
+### Deactivating Thundra Foresight
 
-- There are two ways to activate Thundra Foresight for pytest:
+- There are two ways to deactivate Thundra Foresight for pytest:
 
     1. Run pytest with --thundra command on terminal.
     ```sh
-        pytest --thundra <your_tests_path>
+        pytest --thundra_disable <your_tests_path>
     ```
 
     2. Modifying any configuration file read by pytest(pytest.ini, setup.cfg, pyproject.toml etc.) 
     Please read carefully pytest official documentation for configuration files.
     ```pytest.ini
         [pytest]
-        thundra = 1
+        thundra_disable = 1
+    ```
+    or
+    ```project.toml
+        [tool.pytest.ini_options]
+        thundra_disable = 1
     ```
 
 **NOTES**
 
-- All Thundra agent features are valid in foresight. It's default enabled. If you see more information about your test cases, you can visit Thundra APM. If you want to disable thundra agent for tracing, you can set "THUNDRA_DISABLE"  as environment variable, "thundra_disable" in .env file or "thundra.disable" into thundra.configure() to True as describing above.
+- All Thundra agent features are valid in Foresight. It's default enabled. If you see more information about your test cases, you can visit Thundra APM. If you want to disable thundra agent for tracing, you can set "THUNDRA_AGENT_DISABLE"  as environment variable, "thundra_agent_disable" in .env file or "thundra.agent.disable" into thundra.configure() to True as describing above.
 
 ## Getting Help
 
