@@ -6,6 +6,9 @@ import wrapt, logging, traceback
 
 logger = logging.getLogger(__name__)
 
+class XPassedException(Exception):
+    pass
+
 
 def check_test_case_result(item, execution_context, result, exception):
     """ Handle test case result.
@@ -38,7 +41,13 @@ def check_test_case_result(item, execution_context, result, exception):
             else:
                 test_status = TestStatus.SKIPPED
         elif result.passed:
-            test_status = TestStatus.SUCCESSFUL
+            if xfail and not has_skip_keyword:
+                if exception == None:
+                    exception = XPassedException(f"{result.nodeid} test result has been passed while expecting to get xfail!")
+                test_status = TestStatus.FAILED
+                handle_xpass(exception, result, execution_context)
+            else:
+                test_status = TestStatus.SUCCESSFUL
         else: # failed
             test_status = TestStatus.FAILED
             handle_error(exception, result, execution_context)
@@ -68,6 +77,24 @@ def update_test_status(item, test_status, execution_context):
         pass
 
 
+def handle_xpass(exception, result, execution_context):
+    """Set exception into execution context if any.
+
+    Args:
+        exception (pytest.ExceptionInfo): Test case Exception info
+        result (pytest.Result): Test result 
+        execution_context (TestCaseExecutionContext): Execution context for test case
+    """
+    try:
+        execution_context.error = {
+                        'type': type(exception).__name__,
+                        'message': result.longreprtext or str(exception), # TODO longreprtext can be empty. Search what can be used for it.
+                        'traceback': ''
+                    }
+    except Exception as err:
+        logger.error("Couldn't handle error for pytest: {}".format(err))
+        pass
+
 def handle_error(exception, result, execution_context):
     """Set exception into execution context if any.
 
@@ -79,7 +106,7 @@ def handle_error(exception, result, execution_context):
     try:
         execution_context.error = {
                         'type': type(exception).__name__,
-                        'message': result.longreprtext, # TODO longreprtext can be empty. Search what can be used for it.
+                        'message': result.longreprtext or str(exception), # TODO longreprtext can be empty. Search what can be used for it.
                         'traceback': ''.join(traceback.format_tb(exception.tb))
                     }
     except Exception as err:
