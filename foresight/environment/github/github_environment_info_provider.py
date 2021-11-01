@@ -63,7 +63,7 @@ class GithubEnvironmentInfoProvider:
             if not branch:
                 branch = os.getenv(cls.GITHUB_REF_ENV_VAR_NAME)
                 if branch and branch.startswith(cls.REFS_HEADS_PREFIX):
-                    branch = branch[:len(cls.REFS_HEADS_PREFIX)]
+                    branch = branch[len(cls.REFS_HEADS_PREFIX):]
 
             if not branch:
                 branch = GitHelper.get_branch()
