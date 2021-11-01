@@ -16,7 +16,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class TestWrapperUtils(BaseWrapper):
+class TestWrapper(BaseWrapper):
 
     """
         Foresight wrapper util class. It keeps all the generic information for execution of test. 
@@ -27,11 +27,11 @@ class TestWrapperUtils(BaseWrapper):
 
     @staticmethod
     def get_instance(*args, **kwargs):
-        return TestWrapperUtils.__instance if TestWrapperUtils.__instance else TestWrapperUtils(*args, **kwargs) 
+        return TestWrapper.__instance if TestWrapper.__instance else TestWrapper(*args, **kwargs) 
 
 
     def __init__(self, *, plugin_executor=None, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None, **ignored):
-        super(TestWrapperUtils, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
+        super(TestWrapper, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
         ExecutionContextManager.set_provider(TracingExecutionContextProvider()) #TODO
         self.application_info_provider = GlobalApplicationInfoProvider()
         self._set_application_info("Foresight", "TestSuite", "TestSuite")
@@ -44,7 +44,7 @@ class TestWrapperUtils(BaseWrapper):
         self.config.log_config = LogConfig(sampler=MaxCountAwareSampler(max_test_log_count))
         self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log,
                                                         config=self.config)
-        TestWrapperUtils.__instance = self
+        TestWrapper.__instance = self
 
 
     def _set_application_info(self, application_class_name, application_domain_name, application_name):
@@ -72,7 +72,7 @@ class TestWrapperUtils(BaseWrapper):
         except Exception as err:
             logger.error("get default application id error: {}".format(err))
             pass
-        return "python:test:pytest:dummy_application_id:{}".format(utils.create_uuid4())
+        return "python:test:pytest:{}".format(utils.create_uuid4())
 
 
     def change_app_info(self, application_info):

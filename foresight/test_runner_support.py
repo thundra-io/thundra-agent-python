@@ -3,7 +3,7 @@ from thundra.config import config_names
 from foresight.environment.environment_info_support import EnvironmentSupport
 from foresight.model import (TestRunStart , TestRunStatus, TestRunResult, 
                                 TestRunFinish, TestRunContext)
-from foresight.utils.test_wrapper_utils import TestWrapperUtils
+from foresight.utils.test_wrapper_utils import TestWrapper
 import foresight.utils.generic_utils as utils
 import logging, socket, threading
 
@@ -43,7 +43,7 @@ class _StatusReporter:
 
     def report_status(self):
         try:
-            test_wrapper_utils = TestWrapperUtils.get_instance()
+            test_wrapper_utils = TestWrapper.get_instance()
             status_time = utils.current_milli_time()
             test_run_status = TestRunStatus(
                 id = TestRunnerSupport.test_run_scope.id,
@@ -131,7 +131,7 @@ class TestRunnerSupport:
     @classmethod
     def start_test_run(cls):
         try:
-            test_wrapper_utils = TestWrapperUtils.get_instance()
+            test_wrapper_utils = TestWrapper.get_instance()
             context = TestRunContext()
             id = cls.do_get_test_run_id()
             task_id = utils.create_uuid4()
@@ -178,7 +178,7 @@ class TestRunnerSupport:
     @classmethod
     def finish_test_run(cls, test_run_result):
         try:
-            test_wrapper_utils = TestWrapperUtils.get_instance()
+            test_wrapper_utils = TestWrapper.get_instance()
             finish_time = utils.current_milli_time()
             if cls.test_run_scope:
                 if cls.status_reporter:
