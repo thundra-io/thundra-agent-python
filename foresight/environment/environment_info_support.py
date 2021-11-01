@@ -31,18 +31,20 @@ class EnvironmentSupport:
         """First check git provider, then iterate over ENVIRONMENTS_VARS dict.
         """
         try:
-            if GitHelper.get_repo_url():
-                LOGGER.debug("GitHelper environment info: {}".format(GitHelper.get_repo_url()))
-                cls.environment_info = GitEnvironmentInfoProvider.build_env_info()
-            else:
-                LOGGER.debug("Couldn't find .git file.")
-                for key, clz in cls.ENVIRONMENTS_VARS.items():
-                    LOGGER.debug("Current key, clz: {}, {}".format(key,clz))
-                    if os.getenv(key):
-                        cls.environment_info = clz.build_env_info()
-                        LOGGER.debug("Environment info: {}".format(cls.environment_info.to_json()))
-                        LOGGER.debug("Founded key and class: {}, {}".format(key, clz))
-                        break
+            LOGGER.debug("Checking ci environments...")
+            for key, clz in cls.ENVIRONMENTS_VARS.items():
+                LOGGER.debug("Current key, clz: {}, {}".format(key,clz))
+                if os.getenv(key):
+                    cls.environment_info = clz.build_env_info()
+                    LOGGER.debug("Environment info: {}".format(cls.environment_info.to_json()))
+                    LOGGER.debug("Founded key and class: {}, {}".format(key, clz))
+                    break
+            if cls.environment_info == None:
+                if GitHelper.get_repo_url():
+                    LOGGER.debug("GitHelper environment info: {}".format(GitHelper.get_repo_url()))
+                    cls.environment_info = GitEnvironmentInfoProvider.build_env_info()
+                else:
+                    LOGGER.debug("Couldn't find .git file!")
         except Exception as err:
             LOGGER.error("Environment Support environment_info could not set: {}".format(err))
             cls.environment_info = {}
