@@ -14,14 +14,14 @@ LOGGER = logging.getLogger(__name__)
 class EnvironmentSupport:
 
     ENVIRONMENTS_VARS = {
-        "GITHUB_REPOSITORY": GithubEnvironmentInfoProvider,
-        "GITLAB_CI": GitlabEnvironmentInfoProvider,
-        "JENKINS_HOME": JenkinsEnvironmentInfoProvider,
-        "JENKINS_URL": JenkinsEnvironmentInfoProvider,
-        "TRAVIS": TravisCIEnvironmentInfoProvider,
-        "CIRCLECI": CircleCIEnvironmentInfoProvider,
-        "BITBUCKET_GIT_HTTP_ORIGIN": BitbucketEnvironmentInfoProvider,
-        "BITBUCKET_GIT_SSH_ORIGIN": BitbucketEnvironmentInfoProvider
+        "GITHUB_ENV": GithubEnvironmentInfoProvider, # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+        "CI_PROJECT_ID": GitlabEnvironmentInfoProvider, # https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+        "JENKINS_HOME": JenkinsEnvironmentInfoProvider, # https://e.printstacktrace.blog/jenkins-pipeline-environment-variables-the-definitive-guide/
+        "JENKINS_URL": JenkinsEnvironmentInfoProvider, # https://e.printstacktrace.blog/jenkins-pipeline-environment-variables-the-definitive-guide/
+        "TRAVIS": TravisCIEnvironmentInfoProvider, # https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
+        "CIRCLECI": CircleCIEnvironmentInfoProvider, # https://circleci.com/docs/2.0/env-vars/#built-in-environment-variables
+        "BITBUCKET_GIT_HTTP_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
+        "BITBUCKET_GIT_SSH_ORIGIN": BitbucketEnvironmentInfoProvider # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
     }
     environment_info = None
 

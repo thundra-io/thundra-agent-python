@@ -8,7 +8,6 @@ LOGGER = logging.getLogger(__name__)
 class GitEnvironmentInfoProvider:
     
     ENVIRONMENT = "Git"
-    environment_info = None
 
     @classmethod
     def get_test_run_id(cls, repo_url, commit_hash):

@@ -17,8 +17,6 @@ class GitlabEnvironmentInfoProvider:
     CI_JOB_ID_ENV_VAR_NAME = "CI_JOB_ID"
     CI_JOB_URL_ENV_VAR_NAME = "CI_JOB_URL"
 
-    environment_info = None
-
 
     @classmethod
     def get_test_run_id(cls, repo_url, commit_hash):

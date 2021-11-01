@@ -15,8 +15,6 @@ class JenkinsEnvironmentInfoProvider:
     GIT_COMMIT_ENV_VAR_NAME = "GIT_COMMIT"
     JOB_NAME_ENV_VAR_NAME = "JOB_NAME"
     BUILD_ID_ENV_VAR_NAME = "BUILD_ID"
-    environment_info = None
-
 
     @classmethod
     def get_test_run_id(cls, repo_url, commit_hash):

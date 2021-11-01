@@ -17,8 +17,6 @@ class GithubEnvironmentInfoProvider:
     GITHUB_RUN_ID_ENV_VAR_NAME = "GITHUB_RUN_ID"
     INVOCATION_ID_ENV_VAR_NAME = "INVOCATION_ID"
     REFS_HEADS_PREFIX = "refs/heads/"
-    environment_info = None
-
 
     @classmethod
     def get_test_run_id(cls, repo_url, commit_hash):
