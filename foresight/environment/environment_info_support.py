@@ -37,7 +37,7 @@ class EnvironmentSupport:
                 LOGGER.debug("Current key, clz: {}, {}".format(key,clz))
                 if os.getenv(key):
                     ei = clz.build_env_info()
-                    if ei != {}: 
+                    if ei: 
                         cls.environment_info = ei
                         print_debug_message_to_console("Environment info: {}".format(cls.environment_info.to_json()))
                         print_debug_message_to_console("Founded key and class: {}, {}".format(key, clz))
@@ -51,7 +51,7 @@ class EnvironmentSupport:
                     print_debug_message_to_console("Couldn't find .git file!")
         except Exception as err:
             LOGGER.error("Environment Support environment_info could not set: {}".format(err))
-            cls.environment_info = {}
+            cls.environment_info = None
             print_debug_message_to_console("environment_info is None!")
             pass
 
@@ -64,7 +64,7 @@ class EnvironmentSupport:
             obj (ThundraSpan): Span or invocation data
         """
         try:
-            if cls.environment_info != {}:
+            if cls.environment_info:
                 span.set_tag(TestRunnerTags.TEST_ENVIRONMENT, cls.environment_info.environment)
                 span.set_tag(TestRunnerTags.SOURCE_CODE_REPO_URL, cls.environment_info.repo_url)
                 span.set_tag(TestRunnerTags.SOURCE_CODE_REPO_NAME, cls.environment_info.repo_name)
@@ -84,7 +84,7 @@ class EnvironmentSupport:
             obj (invocation): Span or invocation data
         """
         try:
-            if cls.environment_info != {}:
+            if cls.environment_info:
                 invocation_data[TestRunnerTags.TEST_ENVIRONMENT] =  cls.environment_info.environment
                 invocation_data[TestRunnerTags.SOURCE_CODE_REPO_URL] =  cls.environment_info.repo_url
                 invocation_data[TestRunnerTags.SOURCE_CODE_REPO_NAME] =  cls.environment_info.repo_name

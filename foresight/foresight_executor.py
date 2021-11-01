@@ -41,7 +41,7 @@ def finish_trace(execution_context):
 
         root_span.tags.update(execution_context.get_additional_finish_tags())
     except Exception as err:
-        logger.error("foresight eecutor finish trace error: {}".format(err))
+        logger.error("Foresight executor finish trace error: {}".format(err))
         pass
 
 def start_invocation(plugin_context, execution_context):
@@ -57,7 +57,7 @@ def start_invocation(plugin_context, execution_context):
         
         execution_context.invocation_data["tags"].update(execution_context.get_additional_start_tags())
     except Exception as err:
-        logger.error("foresight executor start incovation error: {}".format(err))
+        logger.error("Foresight executor start incovation error: {}".format(err))
         pass
 
 def finish_invocation(execution_context):    

@@ -3,6 +3,7 @@ from foresight.environment.git.git_helper import GitHelper
 from foresight.utils.test_runner_utils import TestRunnerUtils
 import os
 import logging
+from foresight.utils.generic_utils import print_debug_message_to_console
 
 LOGGER = logging.getLogger(__name__)
 
@@ -50,10 +51,13 @@ class JenkinsEnvironmentInfoProvider:
 
             test_run_id = cls.get_test_run_id(repo_url, commit_hash)
 
-            return EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, 
+            env_info = EnvironmentInfo(test_run_id, cls.ENVIRONMENT, repo_url, repo_name, 
                 branch, commit_hash, commit_message)
+            print_debug_message_to_console("Jenkins Environment info: {}".format(env_info.to_json()))
+            return env_info
         except Exception as err:
+            print_debug_message_to_console("Unable to build environment info: {}".format(err))
             LOGGER.error("Unable to build environment info: {}".format(err))
             pass
-        return {}
+        return None
 

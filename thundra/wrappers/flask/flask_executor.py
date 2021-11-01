@@ -18,7 +18,7 @@ def start_trace(plugin_context, execution_context, tracer):
         if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
             req_data = request.get_data()
         else:
-            req_data = request.get_data()[:constants.THUNDRA_MAX_STREAM_REQUEST_BODY]
+            req_data = None
 
     _request = {
         'method': request.method,
