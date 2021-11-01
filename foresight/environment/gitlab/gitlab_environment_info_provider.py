@@ -59,7 +59,7 @@ class GitlabEnvironmentInfoProvider:
             print_debug_message_to_console("Gitlab Environment info: {}".format(env_info.to_json()))
             return env_info
         except Exception as err:
-            print_debug_message_to_console("Unable to build environment info: {}".format(err))
-            LOGGER.error("Unable to build environment info: {}".format(err))
+            print_debug_message_to_console("Gitlab Unable to build environment info: {}".format(err))
+            LOGGER.error("Gitlab Unable to build environment info: {}".format(err))
             pass
         return None

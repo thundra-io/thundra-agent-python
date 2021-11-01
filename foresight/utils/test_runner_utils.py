@@ -40,7 +40,7 @@ class TestRunnerUtils:
 
 
     @staticmethod
-    def string_concat_by_underscore(str_list):
+    def string_concat_by_underscore(*str_list):
         try:
             return "_".join(str_list)
         except Exception as err:

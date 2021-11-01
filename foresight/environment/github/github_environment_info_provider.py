@@ -54,10 +54,10 @@ class GithubEnvironmentInfoProvider:
                                 match = jsonpath_expression.find(event_data)
                                 commit_hash = match[0].value
                             except Exception as err:
-                                LOGGER.error("Unable to get json data from  GitHub event file " + github_event_path);
+                                LOGGER.error("Github Unable to get json data from  GitHub event file " + github_event_path);
                 except Exception as err:
                     print_debug_message_to_console("Unable to read GitHub event from file " + github_event_path)
-                    LOGGER.error("Unable to read GitHub event from file " + github_event_path)
+                    LOGGER.error("Github Unable to read GitHub event from file " + github_event_path)
                     pass
 
             if not branch:
@@ -76,7 +76,7 @@ class GithubEnvironmentInfoProvider:
             print_debug_message_to_console("Github Environment info: {}".format(env_info.to_json()))
             return env_info
         except Exception as err:
-            print_debug_message_to_console("Unable to build environment info: {}".format(err))
-            LOGGER.error("Unable to build environment info: {}".format(err))
+            print_debug_message_to_console("Github Unable to build environment info: {}".format(err))
+            LOGGER.error("Github Unable to build environment info: {}".format(err))
             pass
         return None
