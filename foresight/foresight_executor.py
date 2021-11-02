@@ -1,5 +1,5 @@
 from foresight.environment.environment_info_support import EnvironmentSupport
-from foresight.utils.test_wrapper_utils import TestWrapper
+from foresight.utils.test_wrapper import TestWrapper
 import logging
 
 logger = logging.getLogger(__name__)
@@ -13,8 +13,8 @@ def start_trace(plugin_context, execution_context, tracer):
         tracer (ThundraTracer): Thundra scope tracer
     """
     try:
-        test_wrapper_utils = TestWrapper.get_instance()
-        test_wrapper_utils.start_trace(execution_context, tracer)
+        test_wrapper = TestWrapper.get_instance()
+        test_wrapper.start_trace(execution_context, tracer)
         
         root_span = execution_context.root_span
 
@@ -32,8 +32,8 @@ def finish_trace(execution_context):
         execution_context (TestCaseExecutionContext | TestSuiteExecutionContext): Stores Execution context info
     """
     try:
-        test_wrapper_utils = TestWrapper.get_instance()
-        test_wrapper_utils.finish_trace(execution_context)
+        test_wrapper = TestWrapper.get_instance()
+        test_wrapper.finish_trace(execution_context)
 
         root_span = execution_context
 
@@ -50,8 +50,8 @@ def start_invocation(plugin_context, execution_context):
         execution_context (TestCaseExecutionContext | TestSuiteExecutionContext): Stores Execution context info
     """
     try:
-        test_wrapper_utils = TestWrapper.get_instance()
-        test_wrapper_utils.start_invocation(execution_context)
+        test_wrapper = TestWrapper.get_instance()
+        test_wrapper.start_invocation(execution_context)
         
         execution_context.invocation_data["tags"].update(execution_context.get_additional_start_tags())
     except Exception as err:
@@ -67,7 +67,7 @@ def finish_invocation(execution_context):
     try:
         invocation_data = execution_context.invocation_data
 
-        test_wrapper_utils = TestWrapper.get_instance()
+        test_wrapper = TestWrapper.get_instance()
 
         invocation_data["tags"].update(execution_context.get_additional_finish_tags())
 
@@ -78,7 +78,7 @@ def finish_invocation(execution_context):
             invocation_data['tags']['error.stack'] = error.get('traceback', None)
 
         EnvironmentSupport.set_invocation_tags(invocation_data)  
-        test_wrapper_utils.finish_invocation(execution_context)
+        test_wrapper.finish_invocation(execution_context)
     except Exception as err:
         logger.error("Foresight executor finish invocation error: {}".format(err))
         pass

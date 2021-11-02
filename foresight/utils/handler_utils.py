@@ -2,7 +2,7 @@ from thundra.config.config_provider import ConfigProvider
 from thundra.opentracing.tracer import ThundraTracer
 from foresight.test_runner_support import TestRunnerSupport
 from foresight.environment.environment_info_support import EnvironmentSupport
-from foresight.utils.test_wrapper_utils import TestWrapper
+from foresight.utils.test_wrapper import TestWrapper
 from thundra.context.execution_context_manager import ExecutionContextManager
 from foresight.test_runner_tags import TestRunnerTags
 import foresight.utils.generic_utils as utils
@@ -99,13 +99,13 @@ class HandlerUtils:
         It should be changed for concurrent python test framework.
         """
         if not TestRunnerSupport.test_suite_execution_context:
-            test_wrapper_utils = TestWrapper.get_instance()
-            context = test_wrapper_utils.create_test_suite_execution_context(test_suite_id)
+            test_wrapper = TestWrapper.get_instance()
+            context = test_wrapper.create_test_suite_execution_context(test_suite_id)
             ExecutionContextManager.set(context)
-            test_wrapper_utils.change_app_info(app_info)
+            test_wrapper.change_app_info(app_info)
             TestRunnerSupport.set_test_suite_application_info(app_info)
             TestRunnerSupport.set_test_suite_execution_context(context)
-            test_wrapper_utils.before_test_process(context)
+            test_wrapper.before_test_process(context)
 
 
     @classmethod
@@ -135,22 +135,22 @@ class HandlerUtils:
 
     @staticmethod
     def finish_test_suite_span():
-        test_wrapper_utils = TestWrapper.get_instance()
+        test_wrapper = TestWrapper.get_instance()
         context = ExecutionContextManager.get()
         context.completed = True
-        test_wrapper_utils.after_test_process(context)
+        test_wrapper.after_test_process(context)
         TestRunnerSupport.clear_state()
 
 
     @classmethod
     def start_test_span(cls, name, test_suite_name, test_case_id, app_info):
-        test_wrapper_utils = TestWrapper.get_instance()
-        test_wrapper_utils.change_app_info(app_info)
+        test_wrapper = TestWrapper.get_instance()
+        test_wrapper.change_app_info(app_info)
         current_context = ExecutionContextManager.get()
         parent_transaction_id = current_context.invocation_data.get("transactionId")
-        context = test_wrapper_utils.create_test_case_execution_context(name, test_suite_name, test_case_id, app_info, parent_transaction_id)   
+        context = test_wrapper.create_test_case_execution_context(name, test_suite_name, test_case_id, app_info, parent_transaction_id)   
         ExecutionContextManager.set(context)
-        test_wrapper_utils.before_test_process(context)
+        test_wrapper.before_test_process(context)
 
 
     @classmethod
@@ -178,10 +178,10 @@ class HandlerUtils:
         """Setup TestRunnerSupport for test suite. It's executed after all process has been done 
         for test case such as before_each, after each etc.
         """
-        test_wrapper_utils = TestWrapper.get_instance()
+        test_wrapper = TestWrapper.get_instance()
         context = ExecutionContextManager.get()
-        test_wrapper_utils.after_test_process(context)
+        test_wrapper.after_test_process(context)
         app_info = TestRunnerSupport.test_suite_application_info
         context = TestRunnerSupport.test_suite_execution_context
-        test_wrapper_utils.change_app_info(app_info)
+        test_wrapper.change_app_info(app_info)
         ExecutionContextManager.set(context)

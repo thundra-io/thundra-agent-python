@@ -41,15 +41,21 @@ class Reporter:
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
         }
+        test_run_event = opts.get("test_run_event", False)
         rest_composite_data_enabled = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, True)
-        path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
-
+        if not test_run_event:
+            path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
+        else:
+            path = constants.PATH
         base_url = self.get_collector_url()
         request_url = base_url + path
 
         if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
             if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE, True):
-                reports_json = self.prepare_composite_report_json(reports)
+                if not test_run_event:
+                    reports_json = self.prepare_composite_report_json(reports)
+                else:
+                    reports_json = self.prepare_report_json(reports)
                 for report in reports_json:
                     print(report)
             else:
@@ -61,8 +67,8 @@ class Reporter:
                                       "probably it contains a byte array").format(report.get('type')))
 
             return []
-        if rest_composite_data_enabled:
-            reports_json = self.prepare_composite_report_json(reports, **opts)
+        if not test_run_event and rest_composite_data_enabled:
+            reports_json = self.prepare_composite_report_json(reports)
         else:
             reports_json = self.prepare_report_json(reports)
         responses = []
@@ -102,12 +108,10 @@ class Reporter:
             batched_reports.append(json_string)
         return batched_reports
 
-    def prepare_composite_report_json(self, reports, **opts):
+    def prepare_composite_report_json(self, reports):
         invocation_report = None
         for report in reports:
             if report["type"] == "Invocation":
-                invocation_report = report
-            elif opts.get("test_run_event", False):
                 invocation_report = report
 
         if not invocation_report:

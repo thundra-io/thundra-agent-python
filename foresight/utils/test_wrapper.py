@@ -258,8 +258,6 @@ class TestWrapper(BaseWrapper):
         """
         try:
             test_run_monitoring_data = test_run_event.get_monitoring_data()
-            app_info = self.application_info_provider.get_application_info()
-            test_run_monitoring_data["data"].update(app_info)
             self.reporter.send_reports([test_run_monitoring_data], test_run_event = True)
         except Exception as err:
             logger.error("test wrapper send test run data error: {}".format(err))
