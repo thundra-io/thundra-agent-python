@@ -36,9 +36,15 @@ class _StatusReporter:
 
 
     def stop(self):
-        if self.t and self.t.is_alive():
-            self.t.cancel()
-            self.t = None
+        if self.t:
+            try:
+                if self.t.is_alive():
+                    self.t.cancel()
+            except Exception as e:
+                utils.print_debug_message_to_console("Error occured while canceling Status Reporter")
+                pass
+            finally:
+                self.t = None
 
 
     def report_status(self):
