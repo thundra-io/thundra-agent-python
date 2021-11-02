@@ -24,7 +24,7 @@ class TestRunnerUtils:
             # https://stackoverflow.com/questions/27939281/reproduce-uuid-from-java-code-in-python
             return str(uuid.uuid3(NULL_NAMESPACE, test_run_id_seed))
         except Exception as err:
-            LOGGER.err("Test run id could not be created by uuid: {}".format(err))
+            LOGGER.error("Test run id could not be created by uuid: {}".format(err))
             pass
         return str(uuid.uuid4())
 
