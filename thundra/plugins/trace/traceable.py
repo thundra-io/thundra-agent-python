@@ -72,29 +72,28 @@ def trace_lines(frame, event, arg):
     method_lines_list.append(method_line)
     _scope.span.set_tag(constants.LineByLineTracingTags['lines'], method_lines_list)
 
-def trace_non_calls(frame, event, arg):
-    return
 
 def trace_calls(frame, event, arg):
     global TRACE_INTO, COUNTER, TRACE_CALL_FUNC
-    _func_name = frame.f_code.co_name
-    if event != 'call' and _func_name not in TRACE_INTO:
+    if event != 'call':
         return
+
+
+    _func_name = frame.f_code.co_name
+    if _func_name == 'write' or _func_name == '___thundra_trace___' or _func_name not in TRACE_INTO:
+        # Ignore write() calls from print statements
+        return
+    
     COUNTER += 1
 
     TRACE_CALL_FUNC.append(_func_name)
-    if _func_name == 'write' or _func_name == '___thundra_trace___':
-        # Ignore write() calls from print statements
-        return
     _traceable = frame.f_back.f_locals.get('self', None)
-    if _traceable and _traceable.trace_line_by_line and _traceable._tracing:
-        sys.settrace(trace_non_calls)
+    if _traceable and isinstance(_traceable, Traceable) and _traceable.trace_line_by_line and _traceable._tracing:
         return trace_lines
 
 # To keep track of the active line-by-line traced Tracable count
 _lock = Lock()
 _line_traced_count = 0
-
 
 class Traceable:
 
@@ -236,8 +235,9 @@ class Traceable:
                         debug_logger("Cannot get source code in traceable: " + str(e))
                     with _lock:
                         if _line_traced_count == 0:
-                            TRACE_INTO.add(original_func.__name__)
                             sys.settrace(trace_calls)
+                        print("TRACE_INTO: ", TRACE_INTO)
+                        TRACE_INTO.add(original_func.__name__)
                         _line_traced_count += 1
 
                 # Call original func
@@ -262,8 +262,9 @@ class Traceable:
                     with _lock:
                         _line_traced_count -= 1
                         if _line_traced_count == 0:
-                            TRACE_INTO.discard(original_func.__name__)
                             sys.settrace(None)
+                        print("TRACE_INTO: ", TRACE_INTO)
+                        TRACE_INTO.discard(original_func.__name__)
 
                 try:
                     # Since span's finish method calls listeners, it can raise an error
