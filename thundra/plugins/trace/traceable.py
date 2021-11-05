@@ -180,7 +180,7 @@ class Traceable:
 
     def __serialize_value__(self, value):
         global DATA_LIMIT
-        if asizeof(value, code=True) > DATA_LIMIT:
+        if asizeof.asizeof(value, code=True) > DATA_LIMIT:
             return "[THUNDRA] Data is over 1KB!"
         if self.__is_serializable__(value):
             return value
