@@ -10,7 +10,9 @@ from thundra import constants
 from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.serializable import Serializable
+from pympler import asizeof
 
+DATA_LIMIT = 1 * 1024 # 1KB
 
 def __get_traceable_from_back_frame(frame):
     _back_frame = frame.f_back
@@ -177,6 +179,9 @@ class Traceable:
         return value is None or isinstance(value, (str, int, float, bool))
 
     def __serialize_value__(self, value):
+        global DATA_LIMIT
+        if asizeof(value) > DATA_LIMIT:
+            return "[THUNDRA] Data is over 1KB!"
         if self.__is_serializable__(value):
             return value
         elif isinstance(value, Serializable):
