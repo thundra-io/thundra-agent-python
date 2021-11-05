@@ -12,62 +12,50 @@ from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.serializable import Serializable
 from pympler import asizeof
 
-DATA_LIMIT = 1 * 1024 # 1KB
-
-def __get_traceable_from_back_frame(frame):
-    _back_frame = frame.f_back
-    if _back_frame and 'self' in _back_frame.f_locals:
-        _self = _back_frame.f_locals['self']
-        if isinstance(_self, Traceable):
-            return _self
-    return None
-
-
-def __get_funcname_from_back_frame(frame):
-    _back_frame = frame.f_back
-    if _back_frame and 'original_func' in _back_frame.f_locals:
-        _func = _back_frame.f_locals['original_func']
-        return _func.__name__
-    return None
-
-
-def __get_scope_from_back_frame(frame):
-    _back_frame = frame.f_back
-    if _back_frame and 'scope' in _back_frame.f_locals:
-        _scope = _back_frame.f_locals['scope']
-        if isinstance(_scope, Scope):
-            return _scope
-    return None
-
+DATA_LIMIT = 5 * 1024 # 1KB
+TRACE_INTO = set()
+COUNTER = 0
+COUNTER_LINES = 0
+TRACE_LINE_FUNC = list()
+TRACE_CALL_FUNC = list()
 
 def trace_lines(frame, event, arg):
+    global COUNTER_LINES, TRACE_LINE_FUNC
+    COUNTER_LINES += 1
     if event != 'line':
         return
-
     _line_no = frame.f_lineno
 
     _trace_local_variables_ = False
     _trace_lines_with_source = False
-    _traceable = __get_traceable_from_back_frame(frame)
-    _scope = __get_scope_from_back_frame(frame)
+    _scope = frame.f_back.f_locals['scope']
 
     if not _scope or not _scope.span:
         return
 
-    if _traceable:
-        _trace_local_variables_ = _traceable._trace_local_variables
-        _trace_lines_with_source = _traceable._trace_lines_with_source
+    _traceable = frame.f_back.f_locals.get('self', None)
+    if _traceable == None:
+        return
+    _trace_local_variables_ = _traceable._trace_local_variables
+    _trace_lines_with_source = _traceable._trace_lines_with_source
 
+    method_lines_list = _scope.span.get_tag(constants.LineByLineTracingTags['lines'])
+    if method_lines_list != None and len(method_lines_list) >= 100:
+        return
+    TRACE_LINE_FUNC.append(frame.f_code.co_name)
     _local_vars = []
     if _trace_local_variables_:
         pickler = jsonpickle.pickler.Pickler(max_depth=3)
         for l in frame.f_locals:
             _local_var_value = frame.f_locals[l]
             _local_var_type = type(_local_var_value).__name__
-            try:
-                _local_var_value = pickler.flatten(_local_var_value, reset=True)
-            except Exception as e:
-                _local_var_value = '<not-json-serializable-object>'
+            if asizeof.asizeof(_local_var_value) > DATA_LIMIT:
+                _local_var_value = "[THUNDRA] Data is over 5KB"
+            else:
+                try:
+                    _local_var_value = pickler.flatten(_local_var_value, reset=True)
+                except Exception as e:
+                    _local_var_value = '<not-json-serializable-object>'
             _local_var = {
                 'name': l,
                 'value': _local_var_value,
@@ -79,31 +67,29 @@ def trace_lines(frame, event, arg):
         'line': _line_no,
         'localVars': _local_vars
     }
-    method_lines_list = _scope.span.get_tag(constants.LineByLineTracingTags['lines'])
     if not method_lines_list:
         method_lines_list = []
     method_lines_list.append(method_line)
     _scope.span.set_tag(constants.LineByLineTracingTags['lines'], method_lines_list)
 
+def trace_non_calls(frame, event, arg):
+    return
 
 def trace_calls(frame, event, arg):
-    if event != 'call':
-        return
-
+    global TRACE_INTO, COUNTER, TRACE_CALL_FUNC
     _func_name = frame.f_code.co_name
+    if event != 'call' and _func_name not in TRACE_INTO:
+        return
+    COUNTER += 1
+
+    TRACE_CALL_FUNC.append(_func_name)
     if _func_name == 'write' or _func_name == '___thundra_trace___':
         # Ignore write() calls from print statements
         return
-
-    _traceable = None
-    try:
-        _traceable = __get_traceable_from_back_frame(frame)
-    except ValueError:
-        pass
-    orig_func_name = __get_funcname_from_back_frame(frame)
-    if _traceable and _traceable.trace_line_by_line and _traceable._tracing and _func_name == orig_func_name:
+    _traceable = frame.f_back.f_locals.get('self', None)
+    if _traceable and _traceable.trace_line_by_line and _traceable._tracing:
+        sys.settrace(trace_non_calls)
         return trace_lines
-
 
 # To keep track of the active line-by-line traced Tracable count
 _lock = Lock()
@@ -180,18 +166,20 @@ class Traceable:
 
     def __serialize_value__(self, value):
         global DATA_LIMIT
-        if asizeof.asizeof(value, code=True) > DATA_LIMIT:
-            return "[THUNDRA] Data is over 1KB!"
+        value_size = asizeof.asizeof(value)
+        print("[THUNDRA] value and value_size", str(value), value_size)
+        if value_size > DATA_LIMIT:
+            return "[THUNDRA] Data is over 5KB!", type(value).__name__
         if self.__is_serializable__(value):
-            return value
+            return value, type(value).__name__
         elif isinstance(value, Serializable):
-            return value.serialize()
+            return value.serialize(), type(value).__name__
         try:
             pickler = jsonpickle.pickler.Pickler(max_depth=3)
             value_dict = pickler.flatten(value, reset=True)
-            return value_dict
+            return value_dict, type(value_dict).__name__
         except:
-            return '<not-json-serializable-object>'
+            return '<not-json-serializable-object>', type(value).__name__
 
     def __call__(self, original_func):
         @wraps(original_func)
@@ -205,27 +193,33 @@ class Traceable:
             scope.span.class_name = 'Method'
             traced_err = None
             global _line_traced_count
+            global DATA_LIMIT
+            global TRACE_INTO
+            
             try:
                 # Add argument related tags to the span before calling original method
                 if self._trace_args is True:
                     function_args_list = []
                     count = 0
                     for arg in args:
+                        value, value_type = self.__serialize_value__(arg)
                         function_args_dict = {
                             'name': 'arg-' + str(count),
-                            'type': type(arg).__name__,
-                            'value': self.__serialize_value__(arg)
+                            'type': value_type,
+                            'value': value
                         }
                         count += 1
                         function_args_list.append(function_args_dict)
                     if kwargs is not None:
                         for key, value in kwargs.items():
+                            value, value_type = self.__serialize_value__(arg)
                             function_args_dict = {
                                 'name': key,
-                                'type': type(value).__name__,
-                                'value': self.__serialize_value__(value)
+                                'type': value_type,
+                                'value': value
                             }
                             function_args_list.append(function_args_dict)
+                    print("[THUNDRA] function_args_list: ", function_args_list)
                     scope.span.set_tag(constants.LineByLineTracingTags['args'], function_args_list)
                 # Inform that span is initalized
                 scope.span.on_started()
@@ -235,12 +229,14 @@ class Traceable:
                     try:
                         if self.trace_lines_with_source:
                             source_lines, start_line = inspect.getsourcelines(original_func)
+                            print("[THUNDRA] source_lines and start_line: ", source_lines, start_line)
                             scope.span.set_tag(constants.LineByLineTracingTags['source'], ''.join(source_lines))
                             scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
                         debug_logger("Cannot get source code in traceable: " + str(e))
                     with _lock:
                         if _line_traced_count == 0:
+                            TRACE_INTO.add(original_func.__name__)
                             sys.settrace(trace_calls)
                         _line_traced_count += 1
 
@@ -249,9 +245,10 @@ class Traceable:
                 self._tracing = False
                 # Add return value related tags after having called the original func
                 if self._trace_return_value is True and response is not None:
+                    value, value_type = self.__serialize_value__(response)
                     return_value = {
-                        'type': type(response).__name__,
-                        'value': self.__serialize_value__(response)
+                        'type': value_type,
+                        'value': value
                     }
                     scope.span.set_tag('method.return_value', return_value)
             except Exception as e:
@@ -265,10 +262,16 @@ class Traceable:
                     with _lock:
                         _line_traced_count -= 1
                         if _line_traced_count == 0:
+                            TRACE_INTO.discard(original_func.__name__)
                             sys.settrace(None)
 
                 try:
                     # Since span's finish method calls listeners, it can raise an error
+                    global COUNTER, COUNTER_LINES, TRACE_CALL_FUNC, TRACE_LINE_FUNC
+                    print("trace_calls counter: ", COUNTER)
+                    print("trace_calls func: ", TRACE_CALL_FUNC)
+                    print("trace_lines counter: ", COUNTER_LINES)
+                    print("trace_lines func: ", TRACE_LINE_FUNC)
                     scope.span.finish()
                 except Exception as injected_err:
                     if traced_err is None:
