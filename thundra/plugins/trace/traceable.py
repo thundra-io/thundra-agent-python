@@ -11,24 +11,47 @@ from thundra.opentracing.tracer import ThundraTracer
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.serializable import Serializable
 from pympler import asizeof
+import threading
+trace_local = threading.local()
 
-DATA_LIMIT = 5 * 1024 # 1KB
-TRACE_INTO = set()
-COUNTER = 0
-COUNTER_LINES = 0
-TRACE_LINE_FUNC = list()
-TRACE_CALL_FUNC = list()
+DATA_LIMIT = 5 * 1024 # 5KB
+DATA_LIMIT_RETURN_STR = "[THUNDRA] Data is over {} KB".format(DATA_LIMIT / 1024)
+METHOD_LINES_LIMIT = 100
+
+def __get_traceable_from_back_frame(frame):
+    _back_frame = frame.f_back
+    if _back_frame and 'self' in _back_frame.f_locals:
+        _self = _back_frame.f_locals['self']
+        if isinstance(_self, Traceable):
+            return _self
+    return None
+
+
+def __get_funcname_from_back_frame(frame):
+    _back_frame = frame.f_back
+    if _back_frame and 'original_func' in _back_frame.f_locals:
+        _func = _back_frame.f_locals['original_func']
+        return _func.__name__
+    return None
+
+
+def __get_scope_from_back_frame(frame):
+    _back_frame = frame.f_back
+    if _back_frame and 'scope' in _back_frame.f_locals:
+        _scope = _back_frame.f_locals['scope']
+        if isinstance(_scope, Scope):
+            return _scope
+    return None
+
 
 def trace_lines(frame, event, arg):
-    global COUNTER_LINES, TRACE_LINE_FUNC
-    COUNTER_LINES += 1
     if event != 'line':
         return
     _line_no = frame.f_lineno
 
     _trace_local_variables_ = False
     _trace_lines_with_source = False
-    _scope = frame.f_back.f_locals['scope']
+    _scope = __get_scope_from_back_frame(frame)
 
     if not _scope or not _scope.span:
         return
@@ -40,17 +63,17 @@ def trace_lines(frame, event, arg):
     _trace_lines_with_source = _traceable._trace_lines_with_source
 
     method_lines_list = _scope.span.get_tag(constants.LineByLineTracingTags['lines'])
-    if method_lines_list != None and len(method_lines_list) >= 100:
+    if method_lines_list != None and len(method_lines_list) >= METHOD_LINES_LIMIT:
         return
-    TRACE_LINE_FUNC.append(frame.f_code.co_name)
     _local_vars = []
+    global DATA_LIMIT, DATA_LIMIT_RETURN_STR
     if _trace_local_variables_:
         pickler = jsonpickle.pickler.Pickler(max_depth=3)
         for l in frame.f_locals:
             _local_var_value = frame.f_locals[l]
             _local_var_type = type(_local_var_value).__name__
             if asizeof.asizeof(_local_var_value) > DATA_LIMIT:
-                _local_var_value = "[THUNDRA] Data is over 5KB"
+                _local_var_value = DATA_LIMIT_RETURN_STR
             else:
                 try:
                     _local_var_value = pickler.flatten(_local_var_value, reset=True)
@@ -71,25 +94,48 @@ def trace_lines(frame, event, arg):
         method_lines_list = []
     method_lines_list.append(method_line)
     _scope.span.set_tag(constants.LineByLineTracingTags['lines'], method_lines_list)
-
+    
 
 def trace_calls(frame, event, arg):
-    global TRACE_INTO, COUNTER, TRACE_CALL_FUNC
+    if not trace_local.trace_call_active:
+        return
+
+    trace_local.trace_call_active = False
+
+    # First check whether current call is wrapped
+    wrapped_by_thundra = frame.f_back and frame.f_back.f_code.co_name == '___thundra_trace___'
+    if not wrapped_by_thundra:
+        return
+
+    # Note that "is Thundra wrapped check" is applied before "is event call" check.
+    # Because most of the time "is Thundra wrapped check" is false but "is event call" is true.
+    # And since most of the time 'trace_calls' will return 'None',
+    # it is better to detect false case with less comparison.
+
+    # Only handle 'call' events
     if event != 'call':
         return
 
-
     _func_name = frame.f_code.co_name
-    if _func_name == 'write' or _func_name == '___thundra_trace___' or _func_name not in TRACE_INTO:
-        # Ignore write() calls from print statements
+    # Ignore
+    # - 'write()' calls from print statements
+    # - Thundra trace decorator calls
+    ignored = _func_name == 'write' or _func_name == '___thundra_trace___'
+    if ignored:
         return
-    
-    COUNTER += 1
 
-    TRACE_CALL_FUNC.append(_func_name)
-    _traceable = frame.f_back.f_locals.get('self', None)
-    if _traceable and isinstance(_traceable, Traceable) and _traceable.trace_line_by_line and _traceable._tracing:
+    _traceable = None
+    try:
+        _traceable = __get_traceable_from_back_frame(frame)
+    except ValueError:
+        pass
+    if not _traceable or not _traceable.trace_line_by_line:
+        return
+
+    orig_func_name = __get_funcname_from_back_frame(frame)
+    if _func_name == orig_func_name:
         return trace_lines
+
 
 # To keep track of the active line-by-line traced Tracable count
 _lock = Lock()
@@ -164,11 +210,10 @@ class Traceable:
         return value is None or isinstance(value, (str, int, float, bool))
 
     def __serialize_value__(self, value):
-        global DATA_LIMIT
+        global DATA_LIMIT, DATA_LIMIT_RETURN_STR
         value_size = asizeof.asizeof(value)
-        print("[THUNDRA] value and value_size", str(value), value_size)
         if value_size > DATA_LIMIT:
-            return "[THUNDRA] Data is over 5KB!", type(value).__name__
+            return DATA_LIMIT_RETURN_STR, type(value).__name__
         if self.__is_serializable__(value):
             return value, type(value).__name__
         elif isinstance(value, Serializable):
@@ -193,7 +238,6 @@ class Traceable:
             traced_err = None
             global _line_traced_count
             global DATA_LIMIT
-            global TRACE_INTO
             
             try:
                 # Add argument related tags to the span before calling original method
@@ -218,7 +262,6 @@ class Traceable:
                                 'value': value
                             }
                             function_args_list.append(function_args_dict)
-                    print("[THUNDRA] function_args_list: ", function_args_list)
                     scope.span.set_tag(constants.LineByLineTracingTags['args'], function_args_list)
                 # Inform that span is initalized
                 scope.span.on_started()
@@ -228,7 +271,6 @@ class Traceable:
                     try:
                         if self.trace_lines_with_source:
                             source_lines, start_line = inspect.getsourcelines(original_func)
-                            print("[THUNDRA] source_lines and start_line: ", source_lines, start_line)
                             scope.span.set_tag(constants.LineByLineTracingTags['source'], ''.join(source_lines))
                             scope.span.set_tag(constants.LineByLineTracingTags['start_line'], start_line)
                     except Exception as e:
@@ -236,8 +278,7 @@ class Traceable:
                     with _lock:
                         if _line_traced_count == 0:
                             sys.settrace(trace_calls)
-                        print("TRACE_INTO: ", TRACE_INTO)
-                        TRACE_INTO.add(original_func.__name__)
+                            trace_local.trace_call_active = True
                         _line_traced_count += 1
 
                 # Call original func
@@ -263,16 +304,9 @@ class Traceable:
                         _line_traced_count -= 1
                         if _line_traced_count == 0:
                             sys.settrace(None)
-                        print("TRACE_INTO: ", TRACE_INTO)
-                        TRACE_INTO.discard(original_func.__name__)
 
                 try:
                     # Since span's finish method calls listeners, it can raise an error
-                    global COUNTER, COUNTER_LINES, TRACE_CALL_FUNC, TRACE_LINE_FUNC
-                    print("trace_calls counter: ", COUNTER)
-                    print("trace_calls func: ", TRACE_CALL_FUNC)
-                    print("trace_lines counter: ", COUNTER_LINES)
-                    print("trace_lines func: ", TRACE_LINE_FUNC)
                     scope.span.finish()
                 except Exception as injected_err:
                     if traced_err is None:
