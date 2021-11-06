@@ -255,7 +255,7 @@ class Traceable:
                         function_args_list.append(function_args_dict)
                     if kwargs is not None:
                         for key, value in kwargs.items():
-                            value, value_type = self.__serialize_value__(arg)
+                            value, value_type = self.__serialize_value__(value)
                             function_args_dict = {
                                 'name': key,
                                 'type': value_type,
