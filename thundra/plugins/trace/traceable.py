@@ -56,7 +56,7 @@ def trace_lines(frame, event, arg):
     if not _scope or not _scope.span:
         return
 
-    _traceable = frame.f_back.f_locals.get('self', None)
+    _traceable = __get_traceable_from_back_frame(frame)
     if _traceable == None:
         return
     _trace_local_variables_ = _traceable._trace_local_variables
@@ -221,7 +221,7 @@ class Traceable:
         try:
             pickler = jsonpickle.pickler.Pickler(max_depth=3)
             value_dict = pickler.flatten(value, reset=True)
-            return value_dict, type(value_dict).__name__
+            return value_dict, type(value).__name__
         except:
             return '<not-json-serializable-object>', type(value).__name__
 
@@ -278,9 +278,9 @@ class Traceable:
                     with _lock:
                         if _line_traced_count == 0:
                             sys.settrace(trace_calls)
-                            trace_local.trace_call_active = True
                         _line_traced_count += 1
 
+                trace_local.trace_call_active = True
                 # Call original func
                 response = original_func(*args, **kwargs)
                 self._tracing = False
