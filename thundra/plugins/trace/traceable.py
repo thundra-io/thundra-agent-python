@@ -14,9 +14,10 @@ from pympler import asizeof
 import threading
 trace_local = threading.local()
 
-DATA_LIMIT = 5 * 1024 # 5KB
+DATA_LIMIT = 8 * 1024 # 8KB
 DATA_LIMIT_RETURN_STR = "[THUNDRA] Data is over {} KB".format(DATA_LIMIT / 1024)
 METHOD_LINES_LIMIT = 100
+SERIALIZATION_DEPTH=1
 
 def __get_traceable_from_back_frame(frame):
     _back_frame = frame.f_back
@@ -66,13 +67,13 @@ def trace_lines(frame, event, arg):
     if method_lines_list != None and len(method_lines_list) >= METHOD_LINES_LIMIT:
         return
     _local_vars = []
-    global DATA_LIMIT, DATA_LIMIT_RETURN_STR
+    global DATA_LIMIT, DATA_LIMIT_RETURN_STR, SERIALIZATION_DEPTH
     if _trace_local_variables_:
-        pickler = jsonpickle.pickler.Pickler(max_depth=3)
+        pickler = jsonpickle.pickler.Pickler(max_depth=SERIALIZATION_DEPTH)
         for l in frame.f_locals:
             _local_var_value = frame.f_locals[l]
             _local_var_type = type(_local_var_value).__name__
-            if asizeof.asizeof(_local_var_value) > DATA_LIMIT:
+            if asizeof.asizeof(_local_var_value, limit=SERIALIZATION_DEPTH) > DATA_LIMIT:
                 _local_var_value = DATA_LIMIT_RETURN_STR
             else:
                 try:
@@ -210,8 +211,8 @@ class Traceable:
         return value is None or isinstance(value, (str, int, float, bool))
 
     def __serialize_value__(self, value):
-        global DATA_LIMIT, DATA_LIMIT_RETURN_STR
-        value_size = asizeof.asizeof(value)
+        global DATA_LIMIT, DATA_LIMIT_RETURN_STR, SERIALIZATION_DEPTH
+        value_size = asizeof.asizeof(value, limit=SERIALIZATION_DEPTH)
         if value_size > DATA_LIMIT:
             return DATA_LIMIT_RETURN_STR, type(value).__name__
         if self.__is_serializable__(value):
@@ -219,7 +220,7 @@ class Traceable:
         elif isinstance(value, Serializable):
             return value.serialize(), type(value).__name__
         try:
-            pickler = jsonpickle.pickler.Pickler(max_depth=3)
+            pickler = jsonpickle.pickler.Pickler(max_depth=SERIALIZATION_DEPTH)
             value_dict = pickler.flatten(value, reset=True)
             return value_dict, type(value).__name__
         except:
