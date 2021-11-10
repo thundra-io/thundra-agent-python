@@ -148,6 +148,7 @@ def pytest_runtest_protocol(item, nextitem):
     yield
     if not hasattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER):
         PytestHelper.finish_test_span(item)
+    else:
         delattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER)
     if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
         PytestHelper.finish_test_suite_span()
