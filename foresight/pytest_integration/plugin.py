@@ -17,18 +17,21 @@ def pytest_addoption(parser):
     Args:
         parser (pytest.Parser): Parser for command line arguments and ini-file values
     """
-    group = parser.getgroup("thundra")
+    try:
+        group = parser.getgroup("thundra")
 
-    # config.getoption(markerName) 
-    group.addoption(
-        "--thundra_disable",
-        action="store_true",
-        dest="thundra_disable",
-        default=False,
-        help='THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID should be set as environment variables. \
-            Disable thundra by --thundra_disable argument. ',
-    )
-    parser.addini("thundra_disable", 'Disable tracing of pytest functions by --thundra_disable argument', type="bool")
+        # config.getoption(markerName) 
+        group.addoption(
+            "--thundra_disable",
+            action="store_true",
+            dest="thundra_disable",
+            default=False,
+            help='THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID should be set as environment variables. \
+                Disable thundra by --thundra_disable argument. ',
+        )
+        parser.addini("thundra_disable", 'Disable tracing of pytest functions by --thundra_disable argument', type="bool")
+    except Exception as e:
+        logger.error("Pytest addoption error: {}".format(e))
 
 
 def check_thundra_from_env():
@@ -81,25 +84,28 @@ def pytest_sessionstart(session):
     Args:
         session (pytest.Session): Pytest session class
     """
-    from thundra.config.config_provider import ConfigProvider
-    from thundra.config import config_names
-    if (session.config.getoption("thundra_disable") or 
-        session.config.getini("thundra_disable") or 
-        check_thundra_test_disabled() or 
-        ConfigProvider.get(config_names.THUNDRA_TEST_DISABLE, False)):
-        return
-    else:
-        api_key_env, project_id_env = check_thundra_from_env()
-        api_key_conf, project_id_conf = check_thundra_from_conf()
-        check_thundra_project_id = project_id_env or project_id_conf
-        check_thundra_api_key = api_key_env or api_key_conf
-        if check_thundra_project_id and check_thundra_api_key:
-            PytestHelper.set_pytest_started()
-            patch()
-            PytestHelper.session_setup(executor=foresight_executor)
+    try:
+        from thundra.config.config_provider import ConfigProvider
+        from thundra.config import config_names
+        if (session.config.getoption("thundra_disable") or 
+            session.config.getini("thundra_disable") or 
+            check_thundra_test_disabled() or 
+            ConfigProvider.get(config_names.THUNDRA_TEST_DISABLE, False)):
+            return
         else:
-            print("[THUNDRA] Please make sure setting THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as environment variables!")
-    
+            api_key_env, project_id_env = check_thundra_from_env()
+            api_key_conf, project_id_conf = check_thundra_from_conf()
+            check_thundra_project_id = project_id_env or project_id_conf
+            check_thundra_api_key = api_key_env or api_key_conf
+            if check_thundra_project_id and check_thundra_api_key:
+                PytestHelper.set_pytest_started()
+                patch()
+                PytestHelper.session_setup(executor=foresight_executor)
+            else:
+                print("[THUNDRA] Please make sure setting THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as environment variables!")
+    except Exception as e:
+        logger.error("Pytest pytest_sessionstart error: {}".format(e))
+        pass
 
 def pytest_sessionfinish(session, exitstatus):
     """ Finish session for thundra
@@ -108,9 +114,12 @@ def pytest_sessionfinish(session, exitstatus):
         session (pytest.Session): Pytest session class
         exitstatus (int): The status which pytest will return to the system
     """
-    if PytestHelper.check_pytest_started():
-        PytestHelper.session_teardown()
-
+    try:
+        if PytestHelper.check_pytest_started():
+            PytestHelper.session_teardown()
+    except Exception as e:
+        logger.error("Pytest sessionfinish error: {}".format(e))
+        pass
 
 @pytest.fixture(scope="function", autouse=True)
 def x_thundra_finish_test(request):
@@ -120,12 +129,15 @@ def x_thundra_finish_test(request):
     Args:
         request ([type]): [description]
     """
-    if PytestHelper.check_pytest_started():
-        yield
-        PytestHelper.finish_test_span(request.node)
-    else:
-        yield
-
+    try:
+        if PytestHelper.check_pytest_started():
+            yield
+            PytestHelper.finish_test_span(request.node)
+        else:
+            yield
+    except Exception as e:
+        logger.error("Pytest x_thundra_finish_test error: {}".format(e))
+        pass
 
 # Perform the runtest protocol for a single test item
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
@@ -139,20 +151,23 @@ def pytest_runtest_protocol(item, nextitem):
         item (pytest.Item): Test item for which the runtest protocol is performed.
         nextitem (pytest.Item | None):  The scheduled-to-be-next test item (or None if this is the end my friend).
     """
-    if not PytestHelper.check_pytest_started():
+    try:
+        if not PytestHelper.check_pytest_started():
+            yield
+            return
+        module_item = item.getparent(pytest.Module)
+        set_attributes_test_item(item, module_item)
+        PytestHelper.start_test_suite_span(module_item)
         yield
-        return
-    module_item = item.getparent(pytest.Module)
-    set_attributes_test_item(item, module_item)
-    PytestHelper.start_test_suite_span(module_item)
-    yield
-    if not hasattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER):
-        PytestHelper.finish_test_span(item)
-    else:
-        delattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER)
-    if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
-        PytestHelper.finish_test_suite_span()
-
+        if not hasattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER):
+            PytestHelper.finish_test_span(item)
+        else:
+            delattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER)
+        if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
+            PytestHelper.finish_test_suite_span()
+    except Exception as e:
+        logger.error("Pytest runtest_protocol error: {}".format(e))
+        pass
 
 # Called to create a _pytest.reports.TestReport for each of the setup, call and teardown runtest phases of a test item
 @pytest.hookimpl(hookwrapper=True)
@@ -165,16 +180,20 @@ def pytest_runtest_makereport(item, call):
         item (pytest.Item): Current running item(test case).
         call (pytest.CallInfo): The CallInfo for the phase.
     """
-    outcome = yield
-    if not PytestHelper.check_pytest_started():
-        return
-    if call.when == "setup":
-            PytestHelper.start_test_span(item)
-    status, exception = check_test_status_state(item, call)
-    if not status:
-        return
-    result = outcome.get_result()
-    execution_context = ExecutionContextManager.get()  
-    # After Function call report to get test status(success, failed, aborted, skipped , ignored)
-    test_status = check_test_case_result(item, execution_context, result, exception)
-    update_test_status(item, test_status, execution_context)
+    try:
+        outcome = yield
+        if not PytestHelper.check_pytest_started():
+            return
+        if call.when == "setup":
+                PytestHelper.start_test_span(item)
+        status, exception = check_test_status_state(item, call)
+        if not status:
+            return
+        result = outcome.get_result()
+        execution_context = ExecutionContextManager.get()  
+        # After Function call report to get test status(success, failed, aborted, skipped , ignored)
+        test_status = check_test_case_result(item, execution_context, result, exception)
+        update_test_status(item, test_status, execution_context)
+    except Exception as e:
+        logger.error("Pytest runtest_makereport error: {}".format(e))
+        pass
