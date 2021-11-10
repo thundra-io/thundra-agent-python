@@ -253,7 +253,7 @@ class PytestHelper:
                 app_info = cls.get_test_application_info(item)
                 HandlerUtils.start_test_span(name, test_suite_name, test_case_id, app_info)
         except Exception as err:
-            logger.error("Couldn't start test span {} for pytest: {}".format(err))
+            logger.error("Couldn't start test span for pytest: {}".format(err))
             pass
 
 
