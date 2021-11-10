@@ -91,6 +91,9 @@ def pytest_sessionstart(session):
             session.config.getini("thundra_disable") or 
             check_thundra_test_disabled() or 
             ConfigProvider.get(config_names.THUNDRA_TEST_DISABLE, False)):
+            import thundra 
+            already_configured = True if ConfigProvider.configs else False
+            thundra._set_thundra_for_test_env(already_configured)
             return
         else:
             api_key_env, project_id_env = check_thundra_from_env()
