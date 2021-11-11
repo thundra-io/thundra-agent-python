@@ -54,7 +54,7 @@ def check_thundra_test_disabled():
         lower_key = key.lower()
         if lower_key.startswith("thundra_"):
             if lower_key == "thundra_agent_test_disable":
-                check_thundra_test_disabled = os.getenv(key)
+                check_thundra_test_disabled = False if os.getenv(key).lower() == "false" else True
                 break
     return check_thundra_test_disabled
 
