@@ -7,15 +7,11 @@ logger = logging.getLogger(__name__)
 class ThreadExecutorTerminator(threading.Thread):
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self)
-
+        self.event = threading.Event()
+        
     def run(self):
         terminator = Terminator()
         terminator.wait()
-
-    def _stop(self):
-        if self.isAlive():
-            threading.Thread._Thread__stop(self)
-
 
 class Terminator(Singleton):
     def __init__(self):

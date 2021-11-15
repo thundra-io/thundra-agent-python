@@ -103,8 +103,12 @@ class HandlerUtils:
             terminator_thread = ThreadExecutorTerminator()
             terminator_thread.start()
             terminator_thread.join(30)
-            if terminator_thread.isAlive():
-                terminator_thread._stop()
+            if terminator_thread.is_alive():
+                logger.debug("Thread is killed by event!")
+                terminator_thread.event.set()
+            else:
+                logger.debug("Thread has already finished!")
+            terminator_thread.join()
         except Exception as e:
             logger.error("Handler_utils test_teardown error: {}".format(e))
             pass
