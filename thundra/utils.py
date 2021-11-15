@@ -114,13 +114,15 @@ def system_cpu_usage():
 #####################################################################
 
 
-class Singleton(object):
+class _Singleton(type):
+    """ A metaclass that creates a Singleton base class when called. """
     _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(_Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-    def __new__(class_, *args, **kwargs):
-        if class_ not in class_._instances:
-            class_._instances[class_] = super(Singleton, class_).__new__(class_, *args, **kwargs)
-        return class_._instances[class_]
+class Singleton(_Singleton('SingletonMeta', (object,), {})): pass
 
 def get_all_env_variables():
     return os.environ

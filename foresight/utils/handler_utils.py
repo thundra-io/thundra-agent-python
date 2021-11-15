@@ -6,6 +6,7 @@ from foresight.utils.test_wrapper import TestWrapper
 from thundra.context.execution_context_manager import ExecutionContextManager
 from foresight.test_runner_tags import TestRunnerTags
 import foresight.utils.generic_utils as utils
+from foresight.model import ThreadExecutorTerminator
 import logging
 
 logger = logging.getLogger(__name__)  
@@ -99,6 +100,11 @@ class HandlerUtils:
                 not TestRunnerSupport.test_suite_execution_context.completed):
                 HandlerUtils.finish_test_suite_span()
             TestRunnerSupport.finish_current_test_run()
+            terminator_thread = ThreadExecutorTerminator()
+            terminator_thread.start()
+            terminator_thread.join(30)
+            if terminator_thread.isAlive():
+                terminator_thread._stop()
         except Exception as e:
             logger.error("Handler_utils test_teardown error: {}".format(e))
             pass

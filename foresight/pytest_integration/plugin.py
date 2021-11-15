@@ -5,7 +5,6 @@ from foresight.pytest_integration.utils import (patch, check_test_case_result,
 from foresight.pytest_integration.pytest_helper import PytestHelper
 from foresight import foresight_executor
 import foresight.pytest_integration.constants as pytest_constants
-from thundra import config
 from thundra.context.execution_context_manager import ExecutionContextManager
 
 logger = logging.getLogger(__name__)
