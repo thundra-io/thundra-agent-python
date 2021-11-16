@@ -77,13 +77,16 @@ def check_thundra_from_conf():
     project_id = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID, None)
     return api_key, project_id
 
-def pytest_sessionstart(session):
-    """ Check thundra has been activated. If it has been, then start session.
+def pytest_collection_finish(session):
+    """ Check thundra has been activated. If it has been, then start session after tests' items are collected.
+    Collected tests' items are stored into session.items. Check it in order not to send any empty test run data.
 
     Args:
         session (pytest.Session): Pytest session class
     """
     try:
+        if len(session.items) == 0:
+            return
         from thundra.config.config_provider import ConfigProvider
         from thundra.config import config_names
         if (session.config.getoption("thundra_disable") or 
