@@ -1,3 +1,4 @@
+from foresight.model.terminator import Terminator
 from thundra.config.config_provider import ConfigProvider
 from thundra.opentracing.tracer import ThundraTracer
 from foresight.test_runner_support import TestRunnerSupport
@@ -100,15 +101,8 @@ class HandlerUtils:
                 not TestRunnerSupport.test_suite_execution_context.completed):
                 HandlerUtils.finish_test_suite_span()
             TestRunnerSupport.finish_current_test_run()
-            terminator_thread = ThreadExecutorTerminator()
-            terminator_thread.start()
-            terminator_thread.join(30)
-            if terminator_thread.is_alive():
-                logger.debug("Thread is killed by event!")
-                terminator_thread.event.set()
-            else:
-                logger.debug("Thread has already finished!")
-            terminator_thread.join()
+            terminator = Terminator()
+            terminator.wait(timeout=30)
         except Exception as e:
             logger.error("Handler_utils test_teardown error: {}".format(e))
             pass
