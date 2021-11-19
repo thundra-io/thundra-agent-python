@@ -116,7 +116,7 @@ def pytest_sessionstart(session):
                 patch()
                 PytestHelper.session_setup(executor=foresight_executor)
             else:
-                print("[THUNDRA] Please make sure setting THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as environment variables!")
+                print("[THUNDRA] Please make sure setting THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as environment variables and pytest --collect-only args ain't activated!")
     except Exception as e:
         logger.error("Pytest pytest_sessionstart error: {}".format(e))
         pass
