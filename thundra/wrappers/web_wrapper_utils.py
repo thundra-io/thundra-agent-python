@@ -1,3 +1,4 @@
+from logging import Logger
 import uuid
 
 from opentracing import Format
@@ -96,4 +97,8 @@ def finish_trace(execution_context):
         # TODO: handle root span finish errors
         pass
     finally:
-        scope.close()
+        try:
+            scope.close()
+        except Exception as e:
+            Logger.debug("Error occured while closing scope: {}".format(e))
+            pass
