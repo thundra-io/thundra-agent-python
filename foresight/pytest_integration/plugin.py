@@ -77,6 +77,18 @@ def check_thundra_from_conf():
     project_id = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID, None)
     return api_key, project_id
 
+def pytest_load_initial_conftests(early_config, parser, args):
+    """Check --collect-only args set by user. If it's set, then there will no any test run. 
+    Therefore, no need to start Thundra.
+
+    Args:
+        early_config (Config): Pytest Config Object
+        parser (Parser): Pytest Parser Object
+        args (List[str]): Pytest command line args
+    """
+    if "--collect-only" in args:
+        PytestHelper.set_pytest_started(value=False)
+
 def pytest_sessionstart(session):
     """ Check thundra has been activated. If it has been, then start session after tests' items are collected.
     Collected tests' items are stored into session.items. Check it in order not to send any empty test run data.
