@@ -13,7 +13,6 @@ from thundra.context.tracing_execution_context_provider import TracingExecutionC
 from thundra.wrappers.fastapi import fastapi_executor
 from thundra.config import config_names
 from thundra.wrappers import wrapper_utils, web_wrapper_utils
-import thundra.utils as utils
 
 import traceback
 
@@ -21,7 +20,12 @@ import traceback
 logger = logging.getLogger(__name__)
 
 
-class FastapiWrapper(BaseWrapper):
+class FastapiWrapper(BaseWrapper):    
+    __instance = None
+    
+    @staticmethod
+    def get_instance():
+        return FastapiWrapper() if FastapiWrapper.__instance is None else FastapiWrapper.__instance
 
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
         super(FastapiWrapper, self).__init__(api_key, disable_trace, disable_metric, disable_log, opts)
@@ -38,6 +42,7 @@ class FastapiWrapper(BaseWrapper):
         web_wrapper_utils.update_application_info(self.application_info_provider, self.plugin_context.application_info,
                                                   constants.ClassNames['FASTAPI'])
 
+        FastapiWrapper.__instance = self
 
     def before_request(self, request, req_body):
         execution_context = wrapper_utils.create_execution_context()

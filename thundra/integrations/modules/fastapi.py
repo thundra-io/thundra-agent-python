@@ -21,8 +21,9 @@ def _wrapper(wrapped, instance, args, kwargs):
     """
     from fastapi.middleware import Middleware
     from thundra.wrappers.fastapi.middleware import ThundraMiddleware
+    from thundra.wrappers.fastapi.fastapi_wrapper import FastapiWrapper
     middlewares = kwargs.pop("middleware", [])
-    middlewares.insert(0, Middleware(ThundraMiddleware))
+    middlewares.insert(0, Middleware(ThundraMiddleware, wrapper=FastapiWrapper.get_instance()))
     kwargs.update({"middleware": middlewares})
     wrapped(*args, **kwargs)
 
