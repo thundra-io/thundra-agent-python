@@ -77,6 +77,7 @@ def check_thundra_from_conf():
     project_id = ConfigProvider.get(config_names.THUNDRA_TEST_PROJECT_ID, None)
     return api_key, project_id
 
+
 def pytest_load_initial_conftests(early_config, parser, args):
     """Check --collect-only args set by user. If it's set, then there will no any test run. 
     Therefore, no need to start Thundra.
@@ -87,11 +88,10 @@ def pytest_load_initial_conftests(early_config, parser, args):
         args (List[str]): Pytest command line args
     """
     if "--collect-only" in args:
-        PytestHelper.set_pytest_started(value=False)
+        PytestHelper.set_pytest_collect_only()
 
 def pytest_sessionstart(session):
-    """ Check thundra has been activated. If it has been, then start session after tests' items are collected.
-    Collected tests' items are stored into session.items. Check it in order not to send any empty test run data.
+    """ Check thundra has been activated. If it has been, then start session.
 
     Args:
         session (pytest.Session): Pytest session class
@@ -106,13 +106,12 @@ def pytest_sessionstart(session):
             import thundra 
             already_configured = True if ConfigProvider.configs else False
             thundra._set_thundra_for_test_env(already_configured)
-            return
         else:
             api_key_env, project_id_env = check_thundra_from_env()
             api_key_conf, project_id_conf = check_thundra_from_conf()
             check_thundra_project_id = project_id_env or project_id_conf
             check_thundra_api_key = api_key_env or api_key_conf
-            if check_thundra_project_id and check_thundra_api_key:
+            if check_thundra_project_id and check_thundra_api_key and not PytestHelper.check_pytest_collect_only():
                 PytestHelper.set_pytest_started()
                 patch()
                 PytestHelper.session_setup(executor=foresight_executor)

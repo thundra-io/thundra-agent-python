@@ -49,6 +49,7 @@ class PytestHelper:
     TEST_SUITE = "module"
     TEST_CASE = "function"
     PYTEST_STARTED = False
+    PYTEST_COLLECT_ONLY = False
 
 
     @staticmethod
@@ -151,6 +152,15 @@ class PytestHelper:
     @classmethod
     def set_pytest_started(cls):
         cls.PYTEST_STARTED = True
+
+    @classmethod
+    def check_pytest_collect_only(cls):
+        return cls.PYTEST_COLLECT_ONLY
+
+
+    @classmethod
+    def set_pytest_collect_only(cls):
+        cls.PYTEST_COLLECT_ONLY = True
 
     @staticmethod
     def clear_test_case_state_for_thundra(item):
