@@ -24,7 +24,7 @@ def check_test_case_result(item, execution_context, result, exception):
     """
     test_status = TestStatus.SKIPPED
     try:
-        xfail = hasattr(result, "wasxfail") or "xfail" in result.keywords
+        xfail = (hasattr(result, "wasxfail") or "xfail" in result.keywords) and check_and_get_xfail_condition(item)
         has_skip_keyword = any(x in result.keywords for x in ["skip", "skipif", "skipped"])
 
         if hasattr(item, constants.THUNDRA_MARKED_AS_SKIPPED):
@@ -55,6 +55,38 @@ def check_test_case_result(item, execution_context, result, exception):
         logger.error("Couldn't set test status properly for pytest: {}".format(err))
         pass
     return test_status
+
+def check_and_get_xfail_condition(item):
+    """Check test item that marked as xfail and get its xfail condition if it exists.
+
+    Args:
+        item (pytest.Item): Test case item that contains all info about current test.
+
+    Returns:
+        bool: If condition is string, then first evaluate and return result. If condition is bool, return
+            immediately the bool. If there is an exception, always returns True.
+    """
+    try:
+        own_markers = item.own_markers
+        for i in own_markers:
+            if i.name == "xfail" and len(i.args) > 0:
+                condition_xfail = i.args[0]
+                if isinstance(condition_xfail, str):
+                    from argparse import Namespace
+                    import os, sys
+                    result = eval(condition_xfail, Namespace(globals=globals(), os=os, sys=sys, config=item.config).__dict__)
+                    return result
+                elif isinstance(condition_xfail, bool):
+                    if condition_xfail == False:
+                        return False
+                    else:
+                        return True
+                else:
+                    break
+    except Exception as e:
+        logger.error("Check and get xfail condition error: {}".format(e))
+        pass
+    return True
 
 
 def update_test_status(item, test_status, execution_context):
