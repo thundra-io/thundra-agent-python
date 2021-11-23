@@ -26,9 +26,10 @@ class TravisCIEnvironmentInfoProvider:
             return configured_test_run_id
         build_web_url = os.getenv(cls.TRAVIS_BUILD_WEB_URL_ENV_VAR_NAME)
         build_id = os.getenv(cls.TRAVIS_BUILD_ID_ENV_VAR_NAME)
-        if build_web_url or build_id:
+        test_run_key = TestRunnerUtils.string_concat_by_underscore(build_web_url, build_id)
+        if test_run_key != "":
             return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
-                TestRunnerUtils.string_concat_by_underscore(build_web_url, build_id))
+                test_run_key)
         else:
             return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
 

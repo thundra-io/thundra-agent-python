@@ -24,9 +24,10 @@ class JenkinsEnvironmentInfoProvider:
             return configured_test_run_id
         job_name = os.getenv(cls.JOB_NAME_ENV_VAR_NAME)
         build_id = os.getenv(cls.BUILD_ID_ENV_VAR_NAME)
-        if job_name or build_id:
+        test_run_key = TestRunnerUtils.string_concat_by_underscore(job_name, build_id)
+        if test_run_key != "":
             return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
-                TestRunnerUtils.string_concat_by_underscore(job_name, build_id))
+                test_run_key)
         else:
             return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
 

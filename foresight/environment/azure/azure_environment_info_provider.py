@@ -1,3 +1,4 @@
+from uuid import uuid4
 from foresight.environment.git.git_helper import GitHelper
 from foresight.environment.environment_info import EnvironmentInfo
 from foresight.utils.test_runner_utils import TestRunnerUtils
@@ -25,11 +26,23 @@ class AzureEnvironmentInfoProvider:
             return configured_test_run_id
         build_number = os.getenv(cls.BUILD_BUILDID_ENV_VAR_NAME)
         invocation_id = os.getenv(cls.INVOCATION_ID_ENV_VAR_NAME)
-        if build_number or invocation_id:
-            return TestRunnerUtils.get_test_run_id(environment, repo_url, commit_hash, invocation_id + "-" + build_number)
+        test_run_key = cls.generate_test_run_key(invocation_id, build_number)
+        if test_run_key:
+            return TestRunnerUtils.get_test_run_id(environment, repo_url, commit_hash, test_run_key)
         else:
             return TestRunnerUtils.get_default_test_run_id(environment, repo_url, commit_hash)
 
+
+    @staticmethod
+    def generate_test_run_key(invocation_id=None, build_number=None):
+        if invocation_id and build_number:
+            return invocation_id + "-" + build_number
+        elif invocation_id:
+            return invocation_id
+        elif build_number:
+            return build_number
+        else:
+            return None
 
     @classmethod
     def build_env_info(cls):

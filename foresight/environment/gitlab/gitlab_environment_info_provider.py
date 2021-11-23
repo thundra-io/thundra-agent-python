@@ -26,9 +26,10 @@ class GitlabEnvironmentInfoProvider:
             return configured_test_run_id
         job_id = os.getenv(cls.CI_JOB_ID_ENV_VAR_NAME)
         job_url = os.getenv(cls.CI_JOB_URL_ENV_VAR_NAME)
-        if job_id or job_url:
+        test_run_key = TestRunnerUtils.string_concat_by_underscore(job_id, job_url)
+        if test_run_key != "":
             return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
-                TestRunnerUtils.string_concat_by_underscore(job_id, job_url))
+                test_run_key)
         else:
             return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
 

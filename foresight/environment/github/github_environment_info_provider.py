@@ -26,9 +26,12 @@ class GithubEnvironmentInfoProvider:
             return configured_test_run_id
         run_id = os.getenv(cls.GITHUB_RUN_ID_ENV_VAR_NAME)
         if run_id:
+            test_run_key = run_id
             invocation_id = os.getenv(cls.INVOCATION_ID_ENV_VAR_NAME)
+            if invocation_id:
+                test_run_key = TestRunnerUtils.string_concat_by_underscore(run_id, invocation_id)
             return TestRunnerUtils.get_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash, 
-                TestRunnerUtils.string_concat_by_underscore(run_id, invocation_id))
+                test_run_key)
         else:
             return TestRunnerUtils.get_default_test_run_id(cls.ENVIRONMENT, repo_url, commit_hash)
 
