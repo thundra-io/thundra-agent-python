@@ -7,6 +7,7 @@ from foresight.environment.jenkins.jenkins_environment_info_provider import Jenk
 from foresight.environment.travisci.travisci_environment_info_provider import TravisCIEnvironmentInfoProvider
 from foresight.environment.circleci.circleci_environment_info_provider import CircleCIEnvironmentInfoProvider
 from foresight.environment.bitbucket.bitbucket_environment_info_provider import BitbucketEnvironmentInfoProvider
+from foresight.environment.azure.azure_environment_info_provider import AzureEnvironmentInfoProvider
 from foresight.test_runner_tags import TestRunnerTags
 from foresight.utils.generic_utils import print_debug_message_to_console
 
@@ -22,7 +23,8 @@ class EnvironmentSupport:
         "TRAVIS": TravisCIEnvironmentInfoProvider, # https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
         "CIRCLECI": CircleCIEnvironmentInfoProvider, # https://circleci.com/docs/2.0/env-vars/#built-in-environment-variables
         "BITBUCKET_GIT_HTTP_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
-        "BITBUCKET_GIT_SSH_ORIGIN": BitbucketEnvironmentInfoProvider # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
+        "BITBUCKET_GIT_SSH_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
+        "TF_BUILD": AzureEnvironmentInfoProvider # https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
     }
     environment_info = None
 
