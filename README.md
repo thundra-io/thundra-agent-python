@@ -199,6 +199,9 @@ Tracing Lambda functions:
 - For decorator tracing method:
     1. Disable thundra django instrumentation by using `` or its corresponding in-code configuration. 
     2. Change `@thundra.<framework_wrapper>` by `@thundra.lambda_wrapper`.
+- In order to activate AWS_STEP_FUNCTIONS trace, THUNDRA_AGENT_LAMBDA_AWS_STEPFUNCTIONS environment variable should be set true.
+- In order to activate AWS_APPSYNC trace, THUNDRA_AGENT_LAMBDA_AWS_APPSYNC environment variable should be set true.
+- For other integrations' configuration, please take a look environment variables table at the end.
 
 ### Django
 
@@ -439,6 +442,7 @@ Following table shows all environment variables of [No-Code Change Tracing](#no-
 | THUNDRA_AGENT_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE                     | thundra.agent.lambda.trace.firehose.request.enable                        |
 | THUNDRA_AGENT_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE                | thundra.agent.lambda.trace.cloudwatchlog.request.enable                   |
 | THUNDRA_AGENT_LAMBDA_AWS_STEPFUNCTIONS                                 | thundra.agent.lambda.aws.stepfunctions                                    |
+| THUNDRA_AGENT_LAMBDA_AWS_APPSYNC                                       | thundra.agent.lambda.aws.appsync                                          |
 | THUNDRA_AGENT_TRACE_INSTRUMENT_DISABLE                                 | thundra.agent.trace.instrument.disable                                    |
 | THUNDRA_AGENT_TRACE_INSTRUMENT_TRACEABLECONFIG                         | thundra.agent.trace.instrument.traceableconfig                            |
 | THUNDRA_AGENT_TRACE_SPAN_LISTENERCONFIG                                | thundra.agent.trace.span.listenerconfig                                   |
