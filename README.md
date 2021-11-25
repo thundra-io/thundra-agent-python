@@ -197,7 +197,7 @@ Tracing Lambda functions:
 
 - Make sure to choose just one of the methods.
 - For decorator tracing method:
-    1. Disable thundra django instrumentation by using `` or its corresponding in-code configuration. 
+    1. Disable thundra aws lambda instrumentation by using `THUNDRA_AGENT_TRACE_INSTRUMENT_DISABLE` or its corresponding in-code configuration. 
     2. Change `@thundra.<framework_wrapper>` by `@thundra.lambda_wrapper`.
 - In order to activate *AWS Step Functions* trace, `THUNDRA_AGENT_LAMBDA_AWS_STEPFUNCTIONS` environment variable should be set `true`.
 - In order to activate *AWS AppSync* trace, `THUNDRA_AGENT_LAMBDA_AWS_APPSYNC` environment variable should be set `true`.
