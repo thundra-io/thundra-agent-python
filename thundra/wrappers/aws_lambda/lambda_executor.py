@@ -173,7 +173,6 @@ def inject_appsync_function_info(execution_context, outgoing_trace_links):
                 response['_thundra'] = {
                     'trace_id': trace_id,
                 }
-            outgoing_trace_links["outgoingTraceLinks"].append(trace_id)
     except Exception as e:
         print(e)
 
