@@ -29,8 +29,8 @@ def finish_trace(execution_context):
         if execution_context.trigger_operation_name:
             if isinstance(execution_context.response, dict):
                 if execution_context.response.get('headers'):
-                    execution_context.response.get("headers").append((
-                        constants.TRIGGER_RESOURCE_NAME_TAG, execution_context.trigger_operation_name))
+                    execution_context.response.get('headers')[
+                        constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
             else:
                 if hasattr(execution_context.response, 'headers'):
                     execution_context.response.headers[

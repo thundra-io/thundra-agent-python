@@ -1,4 +1,4 @@
-from logging import Logger
+import logging
 import uuid
 
 from opentracing import Format
@@ -9,6 +9,7 @@ from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 from thundra.utils import get_normalized_path
 
+Logger = logging.getLogger(__name__)
 
 def start_trace(execution_context, tracer, class_name, domain_name, request, request_route_path=None):
     propagated_span_context = tracer.extract(Format.HTTP_HEADERS, request.get('headers'))
