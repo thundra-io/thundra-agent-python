@@ -16,7 +16,7 @@ def start_trace(plugin_context, execution_context, tracer):
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, False):
         cl = request.content_length
         if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
-            req_data = request.get_data()
+            req_data = request.get_data(parse_form_data=True)
         else:
             req_data = None
 
