@@ -10,7 +10,9 @@ from thundra.compat import PY2
 
 if not PY2:
         from thundra.plugins.trace.patcher import ImportPatcher
+        import pytest
 
+        @pytest.mark.skip(reason="This functionality not in use!")
         def test_retrieving_function_prefix():
                 ConfigProvider.set(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG, \
                         "{}.{}*{}".format(target_module_name ,target_function_prefix, target_trace_arguments))
@@ -19,6 +21,7 @@ if not PY2:
                 assert patcher.get_module_function_prefix(target_module_name) == target_function_prefix
 
 
+        @pytest.mark.skip(reason="This functionality not in use!")
         def test_retrieving_trace_args():
                 ConfigProvider.set(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG, \
                         "{}.{}*{}".format(target_module_name ,target_function_prefix, target_trace_arguments))
