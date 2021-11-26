@@ -163,6 +163,19 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
     except Exception as e:
         print(e)
 
+def inject_appsync_function_info(execution_context, outgoing_trace_links):
+    try:
+        response = execution_context.response
+        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_AWS_APPSYNC):
+            trace_id = execution_context.trace_id
+
+            if isinstance(response, dict):
+                response['_thundra'] = {
+                    'trace_id': trace_id,
+                }
+    except Exception as e:
+        print(e)
+
 
 def finish_invocation(execution_context):
     wrapper_utils.finish_invocation(execution_context)
@@ -179,8 +192,10 @@ def finish_invocation(execution_context):
     # Get outgoing trace links
     outgoing_trace_links = invocation_trace_support.get_outgoing_trace_links()
 
-    # Inject trace link to response and add it to outgoing trace links
+    # Inject trace link to response and add it to outgoing trace links for STEPFUNCTIONS
     inject_step_function_info(execution_context, outgoing_trace_links)
+    # Inject trace link to response and add it to outgoing trace links for APPSYNC
+    inject_appsync_function_info(execution_context, outgoing_trace_links)
     invocation_data.update(outgoing_trace_links)
 
     invocation_data['timeout'] = execution_context.timeout

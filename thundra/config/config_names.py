@@ -48,6 +48,7 @@ THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE = 'thundra.agent.lambda.trace.fireh
 THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE = 'thundra.agent.lambda.trace.cloudwatchlog.request.enable'
 
 THUNDRA_LAMBDA_AWS_STEPFUNCTIONS = 'thundra.agent.lambda.aws.stepfunctions'
+THUNDRA_LAMBDA_AWS_APPSYNC = 'thundra.agent.lambda.aws.appsync'
 
 #############################################################################
 
