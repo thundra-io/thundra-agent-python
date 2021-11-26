@@ -58,7 +58,7 @@ class TestRunFinish(TestRunResult, TestRunMonitoring):
         }
 
     def get_monitoring_data(self):
-        dummy_monitoring_data = super().get_monitoring_data()
-        dummy_monitoring_data["type"] = self.EVENT_NAME
-        dummy_monitoring_data["data"] = self.to_json()
-        return dummy_monitoring_data   
+        monitoring_data = super().get_monitoring_data()
+        monitoring_data["type"] = self.EVENT_NAME
+        monitoring_data["data"] = self.to_json()
+        return monitoring_data   
