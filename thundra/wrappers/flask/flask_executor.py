@@ -20,6 +20,7 @@ def start_trace(plugin_context, execution_context, tracer):
         'host': request.host.split(':')[0],
         'query_params': request.query_string,
         'headers': request.headers,
+        'body': None,
         'path': request.path
     }
 
