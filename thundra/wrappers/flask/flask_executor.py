@@ -3,6 +3,9 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 
 from thundra.wrappers import wrapper_utils, web_wrapper_utils
+import logging
+
+Logger = logging.getLogger(__name__)
 
 
 def start_trace(plugin_context, execution_context, tracer):
@@ -12,19 +15,10 @@ def start_trace(plugin_context, execution_context, tracer):
         request data read as stream. This function cache the read data and serve from cache.
         According to function comment in Flask, content length should be checked before read!!! 
     '''
-    req_data = None
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, False):
-        cl = request.content_length
-        if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
-            req_data = request.get_data(parse_form_data=True)
-        else:
-            req_data = None
-
     _request = {
         'method': request.method,
         'host': request.host.split(':')[0],
         'query_params': request.query_string,
-        'body': req_data,
         'headers': request.headers,
         'path': request.path
     }
@@ -34,6 +28,19 @@ def start_trace(plugin_context, execution_context, tracer):
 
 def finish_trace(execution_context):
     root_span = execution_context.root_span
+    try:
+        _request = execution_context.platform_data['request']
+        req_data = None
+        if _request and not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, False):
+            cl = _request.content_length
+            if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
+                req_data = _request.get_data()
+            else:
+                req_data = None
+            root_span.set_tag(constants.HttpTags['BODY'], req_data)
+    except Exception as e:
+        Logger.error("Error occured whilst setting request body to root span tag: {}".format(e))
+        pass
     if execution_context.response:
         status_code = get_response_status(execution_context)
         if status_code:
