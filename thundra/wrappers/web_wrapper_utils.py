@@ -43,8 +43,6 @@ def start_trace(execution_context, tracer, class_name, domain_name, request, req
     root_span.set_tag(constants.HttpTags['HTTP_HOST'], request.get('host', ''))
     root_span.set_tag(constants.HttpTags['QUERY_PARAMS'], request.get('query_params'))
     root_span.set_tag(constants.HttpTags['HTTP_PATH'], request.get('path'))
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, True):
-        root_span.set_tag(constants.HttpTags['BODY'], request.get('body'))
     execution_context.root_span = root_span
     execution_context.scope = scope
     execution_context.trace_id = trace_id
