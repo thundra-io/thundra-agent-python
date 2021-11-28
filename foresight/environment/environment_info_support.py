@@ -10,7 +10,6 @@ from foresight.environment.bitbucket.bitbucket_environment_info_provider import 
 from foresight.environment.azure.azure_environment_info_provider import AzureEnvironmentInfoProvider
 from foresight.test_runner_tags import TestRunnerTags
 from foresight.utils.generic_utils import print_debug_message_to_console
-from foresight.utils.test_runner_utils import TestRunnerUtils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,9 +50,6 @@ class EnvironmentSupport:
                     cls.environment_info = GitEnvironmentInfoProvider.build_env_info()
                     print_debug_message_to_console("Environment info: {}".format(cls.environment_info.to_json()))
                 else:
-                    from foresight.environment.environment_info import EnvironmentInfo
-                    test_run_id = TestRunnerUtils.get_configured_test_run_id() or TestRunnerUtils.get_default_test_run_id()
-                    cls.environment_info = EnvironmentInfo(test_run_id = test_run_id)
                     print_debug_message_to_console("Couldn't find .git file!")
         except Exception as err:
             LOGGER.error("Environment Support environment_info could not set: {}".format(err))
