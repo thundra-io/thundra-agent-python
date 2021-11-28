@@ -30,7 +30,7 @@ class TestRunnerUtils:
 
 
     @staticmethod
-    def get_default_test_run_id(environment, repo_url, commit_hash):
+    def get_default_test_run_id(environment=None, repo_url=None, commit_hash=None):
         try:
             #TODO Find a way to generate uuid with parameters
             return utils.create_uuid4()

@@ -1,7 +1,7 @@
 class EnvironmentInfo:
 
-    def __init__(self, test_run_id, environment, repo_url, repo_name, 
-        branch, commit_hash, commit_message):
+    def __init__(self, test_run_id, environment=None, repo_url=None, repo_name=None, 
+        branch=None, commit_hash=None, commit_message=None):
         
         self.test_run_id = test_run_id
         self.environment = environment
