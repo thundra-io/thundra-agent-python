@@ -29,6 +29,11 @@ def start_trace(plugin_context, execution_context, tracer):
 
 def finish_trace(execution_context):
     root_span = execution_context.root_span
+    """
+        Getting request data into start trace occurs unexpected bugs into application process.
+        After whole process finish for request data into appşication flow, getting request data and
+        set the request_body for root_span as tag.
+    """
     try:
         _request = execution_context.platform_data['request']
         req_data = None
