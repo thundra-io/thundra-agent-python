@@ -43,3 +43,12 @@ class ExecutionContext:
                 self.reports.append(report)
         else:
             self.reports.append(data)
+
+    def get_operation_name(self):
+        return ''
+
+    def get_additional_start_tags(self):
+        return {}
+
+    def get_additional_finish_tags(self):
+        return {}

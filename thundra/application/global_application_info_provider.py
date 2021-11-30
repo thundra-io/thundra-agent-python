@@ -1,5 +1,3 @@
-import sys
-
 from thundra.application.application_info_provider import ApplicationInfoProvider
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
@@ -33,8 +31,8 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
             'applicationVersion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_VERSION, ''),
             'applicationStage': ConfigProvider.get(config_names.THUNDRA_APPLICATION_STAGE, ''),
             'applicationRegion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_REGION, ''),
-            'applicationRuntime': 'python',
-            'applicationRuntimeVersion': str(sys.version_info[0]),
+            'applicationRuntime': ApplicationInfoProvider.APPLICATION_RUNTIME,
+            'applicationRuntimeVersion': ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
             'applicationTags': ApplicationInfoProvider.parse_application_tags()
         }
 

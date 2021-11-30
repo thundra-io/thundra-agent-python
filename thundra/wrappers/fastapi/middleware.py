@@ -6,9 +6,7 @@ from thundra.wrappers.fastapi.fastapi_utils import extract_headers
 from thundra.config.config_provider import ConfigProvider
 from thundra import constants
 
-import traceback, json, time
-
-import asyncio
+import traceback
 
 RESPONSE_REDIRECT_STATUS_CODE = 307
 
@@ -21,10 +19,9 @@ def handle_error(exception, exception_handler, execution_context = None):
     exception_handler(error, execution_context)
 
 class ThundraMiddleware(object):
-    def __init__(self, app, opts=None):
+    def __init__(self, app, wrapper):
         self.app = app
-        self.opts = opts
-        self._wrapper = FastapiWrapper()
+        self._wrapper = wrapper
 
     async def __call__(self, scope, receive, send):
         """ASGI Middleware

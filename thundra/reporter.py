@@ -32,7 +32,7 @@ class Reporter:
         self.session = session
         self.pool = futures.ThreadPoolExecutor(max_workers=20)
 
-    def send_reports(self, reports):
+    def send_reports(self, reports, **opts):
         if not self.api_key:
             debug_logger("API key not set, not sending report to Thundra.")
             return []
@@ -41,15 +41,21 @@ class Reporter:
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
         }
+        test_run_event = opts.get("test_run_event", False)
         rest_composite_data_enabled = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, True)
-        path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
-
+        if not test_run_event:
+            path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
+        else:
+            path = constants.PATH
         base_url = self.get_collector_url()
         request_url = base_url + path
 
         if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
             if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE, True):
-                reports_json = self.prepare_composite_report_json(reports)
+                if not test_run_event:
+                    reports_json = self.prepare_composite_report_json(reports)
+                else:
+                    reports_json = self.prepare_report_json(reports)
                 for report in reports_json:
                     print(report)
             else:
@@ -61,8 +67,7 @@ class Reporter:
                                       "probably it contains a byte array").format(report.get('type')))
 
             return []
-
-        if rest_composite_data_enabled:
+        if not test_run_event and rest_composite_data_enabled:
             reports_json = self.prepare_composite_report_json(reports)
         else:
             reports_json = self.prepare_report_json(reports)
@@ -86,6 +91,7 @@ class Reporter:
 
         batches = [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
         return batches
+
 
     def prepare_report_json(self, reports):
         batches = self.get_report_batches(reports)

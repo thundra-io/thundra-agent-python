@@ -1,13 +1,14 @@
 from thundra.wrappers.flask.flask_wrapper import FlaskWrapper, logger
+from thundra.utils import Singleton
 
-
-class ThundraMiddleware(object):
-    def __init__(self, app):
+class ThundraMiddleware(Singleton):
+    def __init__(self):
         self._wrapper = FlaskWrapper()
-        self.app = app
-        self.app.before_request(self.before_request)
-        self.app.after_request(self.after_request)
-        self.app.teardown_request(self.teardown_request)
+
+    def set_app(self, app):
+        app.before_request(self.before_request)
+        app.after_request(self.after_request)
+        app.teardown_request(self.teardown_request)
 
     def before_request(self):
         try:

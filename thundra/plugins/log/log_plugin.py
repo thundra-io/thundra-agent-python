@@ -56,6 +56,7 @@ class LogPlugin:
             handler.setLevel(logging.INFO)
             self.logger.propagate = False
 
+
     def _wrapper(self, wrapped, instance, args, kwargs):
         try:
             wrapped(*args, **kwargs)
@@ -63,8 +64,10 @@ class LogPlugin:
         except:
             pass
 
+
     def before_invocation(self, execution_context):
         execution_context.capture_log = True
+
 
     def after_invocation(self, execution_context):
         execution_context.capture_log = False
@@ -89,6 +92,7 @@ class LogPlugin:
                     'dataModelVersion': constants.DATA_FORMAT_VERSION
                 }
                 execution_context.report(log_report)
+
 
     def check_sampled(self, log):
         sampler = log_support.get_sampler()

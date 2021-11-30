@@ -45,6 +45,7 @@ def create_invocation_data(plugin_context, execution_context):
         'erroneous': False,
         'errorType': '',
         'errorMessage': '',
+        'errorStack': '',
         'errorCode': -1,
         'coldStart': plugin_context.request_count == 1,
         'timeout': False,
@@ -65,7 +66,7 @@ def finish_invocation(execution_context):
     invocation_data['userTags'] = execution_context.user_tags
 
     # Add agent tags
-    invocation_data['tags'] = execution_context.tags
+    invocation_data['tags'].update(execution_context.tags)
 
     # Get resources
     resources = invocation_trace_support.get_resources()
@@ -106,6 +107,7 @@ def set_error(invocation_data, error):
     elif isinstance(error, dict):
         invocation_data['errorType'] = error.get('type')
         invocation_data['errorMessage'] = error.get('message')
+        invocation_data['errorStack'] = error.get('traceback', None)
 
 
 def create_execution_context():

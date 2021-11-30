@@ -9,7 +9,8 @@ from thundra.wrappers.flask.middleware import ThundraMiddleware
 def _wrapper(wrapped, instance, args, kwargs):
     response = wrapped(*args, **kwargs)
     try:
-        ThundraMiddleware(instance)
+        thundra_middleware = ThundraMiddleware()
+        thundra_middleware.set_app(instance)
     except:
         pass
     return response

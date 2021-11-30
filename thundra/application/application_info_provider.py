@@ -1,4 +1,4 @@
-import abc
+import abc, sys
 
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
@@ -7,6 +7,9 @@ ABC = abc.ABCMeta('ABC', (object,), {})
 
 
 class ApplicationInfoProvider(ABC):
+    
+    APPLICATION_RUNTIME = "python"
+    APPLICATION_RUNTIME_VERSION = str(sys.version_info[0])
 
     @abc.abstractmethod
     def get_application_info(self):

@@ -11,6 +11,9 @@ simplejson = "*"
 enum-compat = "*"
 jsonpickle = "*"
 websocket-client = "*"
+jsonpath-ng = "*"
+fastcounter = "*"
+GitPython = "*"
 pympler = "*"
 
 [dev-packages]

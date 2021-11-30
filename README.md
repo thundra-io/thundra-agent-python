@@ -23,6 +23,8 @@ Instead, you can [setup async monitoring](https://apm.docs.thundra.io/performanc
 - [Frameworks](#frameworks)
 - [Integrations](#integrations)
 - [Log Plugin](#log-plugin)
+- [Thundra Foresight](#thundra-foresight)
+    - [Activating Thundra Foresight](#activating-thundra-foresight)
 - [Getting Help](#getting-help)
 - [Opening Issues](#opening-issues)
 - [All Environment Variables](#all-environment-variables)
@@ -44,9 +46,9 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 
 #### 1. Most Useful Environment variables
 
-| Name                                          | Type   |          Default Value           |
-|:----------------------------------------------|:------:|:--------------------------------:|
-| THUNDRA_APIKEY                                | string |                -                 |
+| Name                                                | Type   |          Default Value           |
+|:----------------------------------------------------|:------:|:--------------------------------:|
+| THUNDRA_APIKEY                                      | string |                -                 |
 | THUNDRA_AGENT_APPLICATION_NAME                      | string |                -                 |
 | THUNDRA_AGENT_APPLICATION_STAGE                     | string |                -                 |
 | THUNDRA_AGENT_TRACE_DISABLE                         |  bool  |              false               |
@@ -55,8 +57,12 @@ Check out the [configuration part](https://docs.thundra.io/python/configuration-
 | THUNDRA_AGENT_TRACE_REQUEST_SKIP                    |  bool  |              false               |
 | THUNDRA_AGENT_TRACE_RESPONSE_SKIP                   |  bool  |              false               |
 | THUNDRA_AGENT_LAMBDA_TIMEOUT_MARGIN                 |  int   |               200                |
-| THUNDRA_AGENT_REPORT_REST_BASEURL                   | string |     https://collector.thundra.io/v1    |
-| THUNDRA_AGENT_REPORT_CLOUDWATCH_ENABLE              |  bool  |              false               |
+| THUNDRA_AGENT_REPORT_REST_BASEURL                   | string | https://collector.thundra.io/v1  |
+| THUNDRA_AGENT_TEST_RUN_ID                           | string |                -                 |
+| THUNDRA_AGENT_TEST_PROJECT_ID                       | string |                -                 |
+| THUNDRA_AGENT_TEST_STATUS_REPORT_FREQUENCY          |  int   |              30sec               |
+| THUNDRA_AGENT_TEST_LOG_COUNT_MAX                    |  int   |               100                |
+
 
 
 #### 2. Object initialization parameters
@@ -382,6 +388,80 @@ logger.addHandler(handler)
 logger.removeHandler(handler)
 ```
 
+## Thundra Foresight
+
+Foresight is a project powered by Thundra agent to show every detail for test runs. For know, it only supports pytest. Although Its automatically enabled after installing Thundra as 'pip install thundra', you need to set THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as described below. 
+
+### Activating Thundra Foresight
+
+- Firstly, setting up environment for Thundra. There are three ways to do it.
+
+    1. Setting THUNDRA_APIKEY and THUNDRA_AGENT_TEST_PROJECT_ID as environment variable.
+
+    ```sh
+    export THUNDRA_APIKEY=<your_apikey>
+    export THUNDRA_AGENT_TEST_PROJECT_ID=<your_test_project_id>
+    ```
+
+    2.  "thundra_apikey " and "thundra_agent_test_project_id" in you .env file. Then, loaded them in conftest.py file like:
+
+    ```.env
+        thundra_apikey =<your_apikey>
+        thundra_agent_test_project_id = <your_test_project_id>
+    ```
+
+    ```conftest.py
+        # This method requires python >= 3.5
+        from pathlib import Path
+
+        from dotenv import load_dotenv
+
+        env_path = Path(<your_env_file_name>)
+        load_dotenv(dotenv_path=env_path)
+    ```
+
+    3. Importing Thundra in conftest file and configure it.
+
+    ```conftest.py
+        import thundra
+
+        thundra.configure(
+            options={
+                "config": {
+                    "thundra.apikey": <your_apikey>,
+                    "thundra.agent.test.project.id": <your_test_project_id>
+                }
+            }
+        )
+    ```
+
+### Deactivating Thundra Foresight
+
+- There are three ways to deactivate Thundra Foresight for pytest:
+
+    1. Run pytest with --thundra_disable command on terminal for specific pytest run.
+    ```sh
+        pytest --thundra_disable <your_tests_path>
+    ```
+
+    2. Modifying any configuration file read by pytest(pytest.ini, setup.cfg, pyproject.toml etc.) 
+    Please read carefully pytest official documentation for configuration files.
+    ```pytest.ini
+        [pytest]
+        thundra_disable = 1
+    ```
+    or
+    ```project.toml
+        [tool.pytest.ini_options]
+        thundra_disable = 1
+    ```
+    
+    3. Setting THUNDRA_AGENT_TEST_DISABLE=True as environment variable.
+
+**NOTES**
+
+- All Thundra agent features are valid in Foresight. It's default enabled. If you see more information about your test cases, you can visit Thundra APM. If you want to disable thundra agent for tracing, you can set "THUNDRA_AGENT_DISABLE"  as environment variable, "thundra_agent_disable" in .env file or "thundra.agent.disable" into thundra.configure() to True as describing above.
+
 ## Getting Help
 
 If you have any issue around using the library or the product, please don't hesitate to:
@@ -492,3 +572,8 @@ Following table shows all environment variables of [No-Code Change Tracing](#no-
 | THUNDRA_AGENT_LAMBDA_DEBUGGER_BROKER_HOST                              | thundra.agent.lambda.debugger.broker.host                                 |
 | THUNDRA_AGENT_LAMBDA_DEBUGGER_SESSION_NAME                             | thundra.agent.lambda.debugger.session.name                                |
 | THUNDRA_AGENT_LAMBDA_DEBUGGER_AUTH_TOKEN                               | thundra.agent.lambda.debugger.auth.token                                  |
+| THUNDRA_AGENT_TEST_RUN_ID                 | thundra.agent.test.run.id                                  |
+| THUNDRA_AGENT_TEST_PROJECT_ID             | thundra.agent.test.project.id                                  | 
+| THUNDRA_AGENT_TEST_STATUS_REPORT_FREQUENCY                               | thundra.agent.test.status.report.freq                                  | 
+| THUNDRA_AGENT_TEST_LOG_COUNT_MAX                               | thundra.agent.test.log.count.max                                  || 
+THUNDRA_AGENT_TEST_DISABLE                               | thundra.agent.test.disable                                  |

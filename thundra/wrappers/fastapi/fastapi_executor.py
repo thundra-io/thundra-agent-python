@@ -26,10 +26,15 @@ def finish_trace(execution_context):
         status_code = get_response_status(execution_context)
         if status_code:
             root_span.set_tag(constants.HttpTags['HTTP_STATUS'], status_code)
-        if execution_context.trigger_operation_name and hasattr(
-                execution_context.response, 'headers'):
-            execution_context.response.headers[
-                constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
+        if execution_context.trigger_operation_name:
+            if isinstance(execution_context.response, dict):
+                if execution_context.response.get('headers'):
+                    execution_context.response.get('headers')[
+                        constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
+            else:
+                if hasattr(execution_context.response, 'headers'):
+                    execution_context.response.headers[
+                        constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
     web_wrapper_utils.finish_trace(execution_context)
     
 
@@ -45,7 +50,7 @@ def finish_invocation(execution_context):
 
 def get_response_status(execution_context):
     try:
-        status_code = execution_context.response.status_code
+        status_code = execution_context.response.get("status_code") or execution_context.response.get("status")
     except:
         return None
     return status_code

@@ -51,7 +51,7 @@ def _patch_modules():
                     logger.error("Couldn't patch module: %s", e)
 
 
-def configure(options):
+def configure(options=None):
     ConfigProvider.__init__(options)
 
 
@@ -80,8 +80,18 @@ def tornado_wrapper(func):
     return _WrapperFactory.get_or_create(TornadoWrapper)(func)
 
 
+def _set_thundra_for_test_env(already_configured):
+    if not already_configured:
+        configure()
+    if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
+        _patch_modules()
+
+
 if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
-    _patch_modules()
+    test_active = ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE)
+    if not test_active:
+        _patch_modules()
+
 
 __all__ = [
     'configure',

@@ -26,8 +26,12 @@ class HTTPPropagator(TextMapPropagator):
         # Extract baggage items
         baggage = {}
         for key in carrier:
-            if key.startswith(constants.THUNDRA_BAGGAGE_PREFIX):
-                baggage[key[len(constants.THUNDRA_BAGGAGE_PREFIX):]] = carrier[key]
+            if isinstance(key, str):
+                if key.startswith(constants.THUNDRA_BAGGAGE_PREFIX):
+                    baggage[key[len(constants.THUNDRA_BAGGAGE_PREFIX):]] = carrier[key]
+            elif isinstance(key, tuple):
+                if key[0].startswith(constants.THUNDRA_BAGGAGE_PREFIX):
+                    baggage[key[0][len(constants.THUNDRA_BAGGAGE_PREFIX):]] = key[1]
 
         span_context = ThundraSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
                                           baggage=baggage)

@@ -128,3 +128,13 @@ THUNDRA_LAMBDA_DEBUGGER_BROKER_PORT = 'thundra.agent.lambda.debugger.broker.port
 THUNDRA_LAMBDA_DEBUGGER_BROKER_HOST = 'thundra.agent.lambda.debugger.broker.host'
 THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME = 'thundra.agent.lambda.debugger.session.name'
 THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN = 'thundra.agent.lambda.debugger.auth.token'
+
+
+#############################################################################
+THUNDRA_TEST_RUN_ID = "thundra.agent.test.run.id"
+THUNDRA_TEST_PROJECT_ID = "thundra.agent.test.project.id"
+THUNDRA_TEST_STATUS_REPORT_FREQUENCY = "thundra.agent.test.status.report.freq"
+THUNDRA_TEST_LOG_COUNT_MAX = "thundra.agent.test.log.count.max"
+THUNDRA_TEST_SPAN_COUNT_MAX = "thundra.agent.test.span.count.max" #TODO it has been not added to README.md
+THUNDRA_TEST_ACTIVE = "thundra.agent.test.active"
+THUNDRA_TEST_DISABLE = "thundra.agent.test.disable"
