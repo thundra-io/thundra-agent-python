@@ -7,7 +7,7 @@ from foresight.utils.generic_utils import print_debug_message_to_console
 LOGGER = logging.getLogger(__name__)
 
 class CodebuildEnvironmentInfoProvider:
-    ENVIRONMENT = "Codebuild"
+    ENVIRONMENT = "CircleCI" # TODO Change it CodeBuild after foresight backend fixed.
     CODEBUILD_GITHUB_REPOSITORY_URL_ENV_VAR_NAME = "CODEBUILD_SOURCE_REPO_URL"
     CODEBUILD_REPOSITORY_URL_ENV_VAR_NAME = "CODEBUILD_SRC_DIR"
     CODEBUILD_BRANCH_ENV_VAR_NAME = "CODEBUILD_SOURCE_VERSION"
