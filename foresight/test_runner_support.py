@@ -84,8 +84,9 @@ class TestRunnerSupport:
         Test suite execution context and test case execution context may be 
         stored in pytest item object.
     '''
-    test_suite_execution_context = None
-    test_suite_application_info = None
+    CONTEXT_INDEX = 0
+    APP_INFO_INDEX = 1
+    test_suite_contexts = {} # test_suite_node_id : [context, app_info]
     test_run_scope = None
     status_reporter = None
     
@@ -99,13 +100,27 @@ class TestRunnerSupport:
 
 
     @classmethod
-    def set_test_suite_execution_context(cls, execution_context):
-        cls.test_suite_execution_context = execution_context
+    def set_test_suite_contexts(cls, test_suite_id, execution_context, app_info):
+        cls.test_suite_contexts[test_suite_id] = [ execution_context, app_info ]
 
 
     @classmethod
-    def set_test_suite_application_info(cls, application_info):
-        cls.test_suite_application_info = application_info
+    def get_test_suite_context(cls, test_suite_id):
+        if test_suite_id in cls.test_suite_contexts:
+            return cls.test_suite_contexts[test_suite_id][cls.CONTEXT_INDEX]
+        return
+    
+    @classmethod
+    def get_test_suite_app_info(cls, test_suite_id):
+        if test_suite_id in cls.test_suite_contexts:
+            return cls.test_suite_contexts[test_suite_id][cls.APP_INFO_INDEX]
+        return
+
+    @classmethod
+    def complete_test_suite_contexts(cls, finish_test_suite_func):
+        for key, value in cls.test_suite_contexts.items():
+            if value[cls.CONTEXT_INDEX].completed == False:
+                finish_test_suite_func(value[cls.CONTEXT_INDEX])
 
 
     @classmethod
@@ -115,8 +130,7 @@ class TestRunnerSupport:
 
     @classmethod
     def clear_state(cls):
-        cls.test_suite_execution_context = None
-        cls.test_suite_application_info = None
+        cls.test_suite_contexts = {}
 
 
     @staticmethod

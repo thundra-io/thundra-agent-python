@@ -153,6 +153,18 @@ def x_thundra_finish_test(request):
         logger.error("Pytest x_thundra_finish_test error: {}".format(e))
         pass
 
+"""
+    Create a dict that stores module: tests
+"""
+def pytest_collection_finish(session):
+    if session.config.pluginmanager.has_plugin("parallel"):
+        for item in session.items:
+            current_count = PytestHelper.PYTEST_TEST_MODULES_TEST_COUNTER.get(
+                item.getparent(pytest.Module).nodeid, 0
+            )
+            PytestHelper.PYTEST_TEST_MODULES_TEST_COUNTER[item.getparent(pytest.Module).nodeid] = current_count + 1
+
+
 # Perform the runtest protocol for a single test item
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_protocol(item, nextitem):    
@@ -178,7 +190,7 @@ def pytest_runtest_protocol(item, nextitem):
         else:
             delattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER)
         if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
-            PytestHelper.finish_test_suite_span()
+            PytestHelper.finish_test_suite_span(item.getparent(pytest.Module).nodeid)
     except Exception as e:
         logger.error("Pytest runtest_protocol error: {}".format(e))
         pass
@@ -204,7 +216,7 @@ def pytest_runtest_makereport(item, call):
         if not status:
             return
         result = outcome.get_result()
-        execution_context = ExecutionContextManager.get()  
+        execution_context = getattr(item, pytest_constants.THUNDRA_TEST_CASE_CONTEXT)
         # After Function call report to get test status(success, failed, aborted, skipped , ignored)
         test_status = check_test_case_result(item, execution_context, result, exception)
         update_test_status(item, test_status, execution_context)

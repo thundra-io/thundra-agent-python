@@ -103,7 +103,9 @@ def update_test_status(item, test_status, execution_context):
         execution_context.set_status(test_status)
         if increase_action:
             setattr(item, constants.THUNDRA_TEST_RESULTED, True)
-            increase_action()
+            import pytest
+            module_item = item.getparent(pytest.Module)
+            increase_action(module_item.nodeid)
     except Exception as err:
         logger.error("Couldn't update test status for pytest: {}".format(err))
         pass

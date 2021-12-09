@@ -1,3 +1,4 @@
+from foresight.test_runner_support import TestRunnerSupport
 from thundra.application.application_info import ApplicationInfo
 from thundra.application.application_info_provider import ApplicationInfoProvider
 from foresight.test_runner_tags import TestRunnerTags
@@ -50,7 +51,7 @@ class PytestHelper:
     TEST_CASE = "function"
     PYTEST_STARTED = False
     PYTEST_COLLECT_ONLY = False
-
+    PYTEST_TEST_MODULES_TEST_COUNTER = {} # module_id: count
 
     @staticmethod
     def get_test_application_name(request):
@@ -167,6 +168,7 @@ class PytestHelper:
         delattr(item, pytest_constants.THUNDRA_TEST_RESULTED)
         delattr(item, pytest_constants.THUNDRA_TEST_STARTED)
         delattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED)
+        delattr(item, pytest_constants.THUNDRA_TEST_CASE_CONTEXT)
         setattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER, True)
     
 
@@ -226,7 +228,7 @@ class PytestHelper:
         try:
             app_info = cls.get_test_fixture_application_info(request).to_json()
             span_tags = {TestRunnerTags.TEST_SUITE: request.node.nodeid, TestRunnerTags.TEST_FIXTURE: request.fixturename}
-            SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, app_info, span_tags,
+            SpanManager.handle_fixture_and_inject_span(HandlerUtils.start_after_all_span, request.node.nodeid, app_info, span_tags,
                 request)
         except Exception as err:
             logger.error("Couldn't start after all span for pytest: {}".format(err), err)
@@ -244,9 +246,10 @@ class PytestHelper:
 
 
     @staticmethod
-    def finish_test_suite_span():
+    def finish_test_suite_span(test_suite_id):
         try:
-            HandlerUtils.finish_test_suite_span()
+            context = TestRunnerSupport.get_test_suite_context(test_suite_id)
+            HandlerUtils.finish_test_suite_span(context)
         except Exception as err:
             logger.error("Couldn't finish test suite span for pytest: {}".format(err))
             pass
@@ -259,9 +262,11 @@ class PytestHelper:
                 setattr(item, pytest_constants.THUNDRA_TEST_STARTED, True)
                 name = item.location[cls.TEST_OPERATION_NAME_INDEX]
                 test_suite_name = item.location[cls.TEST_SUITE_PATH]
+                test_suite_id = item.getparent(pytest.Module).nodeid
                 test_case_id = item.nodeid
                 app_info = cls.get_test_application_info(item)
-                HandlerUtils.start_test_span(name, test_suite_name, test_case_id, app_info)
+                test_case_context = HandlerUtils.start_test_span(name, test_suite_id, test_suite_name, test_case_id, app_info)
+                setattr(item, pytest_constants.THUNDRA_TEST_CASE_CONTEXT, test_case_context)
         except Exception as err:
             logger.error("Couldn't start test span for pytest: {}".format(err))
             pass
@@ -318,7 +323,8 @@ class PytestHelper:
         try:
             if not hasattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED):
                 setattr(item, pytest_constants.THUNDRA_TEST_ALREADY_FINISHED, True)
-                HandlerUtils.finish_test_span()
+                module_item = item.getparent(pytest.Module)
+                HandlerUtils.finish_test_span(module_item.nodeid)
                 cls.clear_test_case_state_for_thundra(item)
         except Exception as err:
             logger.error("Couldn't finish test span for pytest: {}".format(err))

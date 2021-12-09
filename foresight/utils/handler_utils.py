@@ -97,9 +97,7 @@ class HandlerUtils:
         It should be changed for concurrent python test framework.
         """
         try:
-            if (TestRunnerSupport.test_suite_execution_context and 
-                not TestRunnerSupport.test_suite_execution_context.completed):
-                HandlerUtils.finish_test_suite_span()
+            TestRunnerSupport.complete_test_suite_contexts(HandlerUtils.finish_test_suite_span)
             TestRunnerSupport.finish_current_test_run()
             terminator = Terminator()
             terminator.wait(timeout=30)
@@ -113,13 +111,12 @@ class HandlerUtils:
         It should be changed for concurrent python test framework.
         """
         try:
-            if not TestRunnerSupport.test_suite_execution_context:
+            if not TestRunnerSupport.get_test_suite_context(test_suite_id):
                 test_wrapper = TestWrapper.get_instance()
                 context = test_wrapper.create_test_suite_execution_context(test_suite_id)
                 ExecutionContextManager.set(context)
                 test_wrapper.change_app_info(app_info)
-                TestRunnerSupport.set_test_suite_application_info(app_info)
-                TestRunnerSupport.set_test_suite_execution_context(context)
+                TestRunnerSupport.set_test_suite_contexts(test_suite_id, context, app_info)
                 test_wrapper.before_test_process(context)
         except Exception as e:
             logger.error("Handler_utils start_test_suite_span error: {}".format(e))
@@ -143,12 +140,12 @@ class HandlerUtils:
             pass
 
     @classmethod
-    def start_after_all_span(cls, app_info, span_tags):
+    def start_after_all_span(cls, test_suite_id, app_info, span_tags):
         """after all executed after test cases. That is why context should be getting from TestRunnerSupport and
         set into ExecutionContextManager.
         """
         try:
-            context = TestRunnerSupport.test_suite_execution_context
+            context = TestRunnerSupport.get_test_suite_context(test_suite_id)
             ExecutionContextManager.set(context)
             return cls.create_span(cls.TEST_AFTER_ALL_OPERATION_NAME, app_info, span_tags)
         except Exception as e:
@@ -165,10 +162,9 @@ class HandlerUtils:
             pass
 
     @staticmethod
-    def finish_test_suite_span():
+    def finish_test_suite_span(context):
         try:
             test_wrapper = TestWrapper.get_instance()
-            context = ExecutionContextManager.get()
             context.completed = True
             test_wrapper.after_test_process(context)
             TestRunnerSupport.clear_state()
@@ -177,15 +173,16 @@ class HandlerUtils:
             pass
 
     @classmethod
-    def start_test_span(cls, name, test_suite_name, test_case_id, app_info):
+    def start_test_span(cls, test_suite_id, name, test_suite_name, test_case_id, app_info):
         try:
             test_wrapper = TestWrapper.get_instance()
             test_wrapper.change_app_info(app_info)
-            current_context = ExecutionContextManager.get()
+            current_context = TestRunnerSupport.get_test_suite_context(test_suite_id)
             parent_transaction_id = current_context.invocation_data.get("transactionId")
             context = test_wrapper.create_test_case_execution_context(name, test_suite_name, test_case_id, app_info, parent_transaction_id)   
             ExecutionContextManager.set(context)
             test_wrapper.before_test_process(context)
+            return context
         except Exception as e:
             logger.error("Handler_utils start_test_span error: {}".format(e))
             pass
@@ -225,7 +222,7 @@ class HandlerUtils:
             pass
 
     @staticmethod
-    def finish_test_span():
+    def finish_test_span(test_suite_id):
         """Setup TestRunnerSupport for test suite. It's executed after all process has been done 
         for test case such as before_each, after each etc.
         """
@@ -233,8 +230,8 @@ class HandlerUtils:
             test_wrapper = TestWrapper.get_instance()
             context = ExecutionContextManager.get()
             test_wrapper.after_test_process(context)
-            app_info = TestRunnerSupport.test_suite_application_info
-            context = TestRunnerSupport.test_suite_execution_context
+            app_info = TestRunnerSupport.get_test_suite_app_info(test_suite_id)
+            context = TestRunnerSupport.get_test_suite_context(test_suite_id)
             test_wrapper.change_app_info(app_info)
             ExecutionContextManager.set(context)
         except Exception as e:
