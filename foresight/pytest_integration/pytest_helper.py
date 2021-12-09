@@ -1,3 +1,4 @@
+import threading
 from foresight.test_runner_support import TestRunnerSupport
 from thundra.application.application_info import ApplicationInfo
 from thundra.application.application_info_provider import ApplicationInfoProvider
@@ -52,6 +53,7 @@ class PytestHelper:
     PYTEST_STARTED = False
     PYTEST_COLLECT_ONLY = False
     PYTEST_TEST_MODULES_TEST_COUNTER = {} # module_id: count
+    PYTEST_COUNTER_LOCK = threading.Lock()
 
     @staticmethod
     def get_test_application_name(request):

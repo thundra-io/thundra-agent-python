@@ -1,11 +1,9 @@
 import pytest, logging, os
-
 from foresight.pytest_integration.utils import (patch, check_test_case_result, 
     update_test_status, set_attributes_test_item, check_test_status_state)
 from foresight.pytest_integration.pytest_helper import PytestHelper
 from foresight import foresight_executor
 import foresight.pytest_integration.constants as pytest_constants
-from thundra.context.execution_context_manager import ExecutionContextManager
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +188,13 @@ def pytest_runtest_protocol(item, nextitem):
         else:
             delattr(item, pytest_constants.THUNDRA_TEST_FINISH_IN_HELPER)
         if not nextitem or item.getparent(pytest.Module).nodeid != nextitem.getparent(pytest.Module).nodeid:
-            PytestHelper.finish_test_suite_span(item.getparent(pytest.Module).nodeid)
+            with PytestHelper.PYTEST_COUNTER_LOCK:
+                test_suite_id = item.getparent(pytest.Module).nodeid
+                if test_suite_id in PytestHelper.PYTEST_TEST_MODULES_TEST_COUNTER:
+                    PytestHelper.PYTEST_TEST_MODULES_TEST_COUNTER[test_suite_id] -= 1
+                    if PytestHelper.PYTEST_TEST_MODULES_TEST_COUNTER[test_suite_id] == 0:
+                        del PytestHelper.PYTEST_TEST_MODULES_TEST_COUNTER[test_suite_id]
+                        PytestHelper.finish_test_suite_span(test_suite_id)
     except Exception as e:
         logger.error("Pytest runtest_protocol error: {}".format(e))
         pass

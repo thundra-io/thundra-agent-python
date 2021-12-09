@@ -173,7 +173,7 @@ class HandlerUtils:
             pass
 
     @classmethod
-    def start_test_span(cls, test_suite_id, name, test_suite_name, test_case_id, app_info):
+    def start_test_span(cls, name, test_suite_id, test_suite_name, test_case_id, app_info):
         try:
             test_wrapper = TestWrapper.get_instance()
             test_wrapper.change_app_info(app_info)
