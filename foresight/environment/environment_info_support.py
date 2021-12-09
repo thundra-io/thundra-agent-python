@@ -8,6 +8,7 @@ from foresight.environment.travisci.travisci_environment_info_provider import Tr
 from foresight.environment.circleci.circleci_environment_info_provider import CircleCIEnvironmentInfoProvider
 from foresight.environment.bitbucket.bitbucket_environment_info_provider import BitbucketEnvironmentInfoProvider
 from foresight.environment.azure.azure_environment_info_provider import AzureEnvironmentInfoProvider
+from foresight.environment.codebuild.codebuild_environment_info_provider import CodebuildEnvironmentInfoProvider
 from foresight.test_runner_tags import TestRunnerTags
 from foresight.utils.generic_utils import print_debug_message_to_console
 
@@ -24,7 +25,8 @@ class EnvironmentSupport:
         "CIRCLECI": CircleCIEnvironmentInfoProvider, # https://circleci.com/docs/2.0/env-vars/#built-in-environment-variables
         "BITBUCKET_GIT_HTTP_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
         "BITBUCKET_GIT_SSH_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
-        "TF_BUILD": AzureEnvironmentInfoProvider # https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml
+        "TF_BUILD": AzureEnvironmentInfoProvider, # https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml,
+        "CODEBUILD_SOURCE_REPO_URL": CodebuildEnvironmentInfoProvider #https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
     }
     environment_info = None
 
