@@ -26,7 +26,7 @@ class EnvironmentSupport:
         "BITBUCKET_GIT_HTTP_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
         "BITBUCKET_GIT_SSH_ORIGIN": BitbucketEnvironmentInfoProvider, # https://support.atlassian.com/bitbucket-cloud/docs/variables-and-secrets/
         "TF_BUILD": AzureEnvironmentInfoProvider, # https://docs.microsoft.com/en-us/azure/devops/pipelines/build/variables?view=azure-devops&tabs=yaml,
-        "CODEBUILD_SOURCE_REPO_URL": CodebuildEnvironmentInfoProvider #https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
+        "CODEBUILD_CI": CodebuildEnvironmentInfoProvider #https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-env-vars.html
     }
     environment_info = None
 

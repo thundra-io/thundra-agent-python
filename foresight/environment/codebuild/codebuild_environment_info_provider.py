@@ -8,7 +8,8 @@ LOGGER = logging.getLogger(__name__)
 
 class CodebuildEnvironmentInfoProvider:
     ENVIRONMENT = "Codebuild"
-    CODEBUILD_REPOSITORY_URL_ENV_VAR_NAME = "CODEBUILD_SOURCE_REPO_URL"
+    CODEBUILD_GITHUB_REPOSITORY_URL_ENV_VAR_NAME = "CODEBUILD_SOURCE_REPO_URL"
+    CODEBUILD_REPOSITORY_URL_ENV_VAR_NAME = "CODEBUILD_SRC_DIR"
     CODEBUILD_BRANCH_ENV_VAR_NAME = "CODEBUILD_SOURCE_VERSION"
     CODEBUILD_RESOLVED_SOURCE_VERSION_ENV_VAR_NAME = "CODEBUILD_RESOLVED_SOURCE_VERSION"
     CODEBUILD_BUILD_ID_ENV_VAR_NAME = "CODEBUILD_BUILD_ID"
@@ -37,7 +38,7 @@ class CodebuildEnvironmentInfoProvider:
     @classmethod
     def build_env_info(cls):
         try:
-            repo_url = os.getenv(cls.CODEBUILD_REPOSITORY_URL_ENV_VAR_NAME)
+            repo_url = os.getenv(cls.CODEBUILD_GITHUB_REPOSITORY_URL_ENV_VAR_NAME) or os.getenv(cls.CODEBUILD_REPOSITORY_URL_ENV_VAR_NAME)
             if repo_url == None or repo_url.startswith('s3://'):
                 LOGGER.info("Unsupported repo_url for Codebuild: {}".format(repo_url))
                 return
