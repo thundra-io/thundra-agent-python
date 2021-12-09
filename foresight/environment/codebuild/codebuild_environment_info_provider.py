@@ -14,7 +14,7 @@ class CodebuildEnvironmentInfoProvider:
     CODEBUILD_BUILD_ID_ENV_VAR_NAME = "CODEBUILD_BUILD_ID"
     CODEBUILD_BUILD_NUM_ENV_VAR_NAME = "CODEBUILD_BUILD_NUMBER"
     CODEBUILD_COMMIT_MESSAGE_ENV_VAR_NAME = "CODEBUILD_COMMIT_MESSAGE"
-    CODEBUILD_COMMIT_MESSAGE_ENV_VAR_NAME = "CODEBUILD_GIT_MESSAGE" # https://github.com/thii/aws-codebuild-extras
+    CODEBUILD_GIT_COMMIT_MESSAGE_ENV_VAR_NAME = "CODEBUILD_GIT_MESSAGE" # https://github.com/thii/aws-codebuild-extras
     CODEBUILD_GIT_HASH_ENV_VAR_NAME = "CODEBUILD_GIT_COMMIT"
     CODEBUILD_GIT_BRANCH_ENV_VAR_NAME = "CODEBUILD_GIT_BRANCH"
 
@@ -44,7 +44,7 @@ class CodebuildEnvironmentInfoProvider:
             repo_name = GitHelper.extractRepoName(repo_url)
             branch = os.getenv(cls.CODEBUILD_GIT_BRANCH_ENV_VAR_NAME) or os.getenv(cls.CODEBUILD_BRANCH_ENV_VAR_NAME)
             commit_hash = os.getenv(cls.CODEBUILD_GIT_HASH_ENV_VAR_NAME) or os.getenv(cls.CODEBUILD_RESOLVED_SOURCE_VERSION_ENV_VAR_NAME)
-            commit_message = os.getenv(cls.CODEBUILD_COMMIT_MESSAGE_ENV_VAR_NAME) or os.getenv(cls.CODEBUILD_COMMIT_MESSAGE_ENV_VAR_NAME)
+            commit_message = os.getenv(cls.CODEBUILD_COMMIT_MESSAGE_ENV_VAR_NAME) or os.getenv(cls.CODEBUILD_GIT_COMMIT_MESSAGE_ENV_VAR_NAME)
 
             if not branch:
                 branch = GitHelper.get_branch()
