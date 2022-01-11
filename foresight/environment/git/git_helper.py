@@ -2,7 +2,6 @@ import __future__
 import os
 import logging
 from foresight.environment.git.utils import backward_search_for_file
-from git import Repo
 
 LOGGER = logging.getLogger(__name__)
 
@@ -51,6 +50,7 @@ class GitHelper:
             cls.git_info_map = {}
             return
         try:
+            from git import Repo
             git_repo = Repo(git_folder_path)
             active_branch = git_repo.active_branch
             commit_hash = str(active_branch.commit)
