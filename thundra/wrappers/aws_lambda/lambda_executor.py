@@ -113,10 +113,18 @@ def finish_trace(execution_context):
         root_span.set_tag('aws.lambda.invocation.request', execution_context.platform_data['originalEvent'])
     if not ConfigProvider.get(config_names.THUNDRA_TRACE_RESPONSE_SKIP):
         root_span.set_tag('aws.lambda.invocation.response', execution_context.response)
-
-    if trigger_class_name == constants.ClassNames['APIGATEWAY']:
+        
+    original_event = execution_context.platform_data["originalEvent"]
+    if not check_lambda_authorizer(original_event) and trigger_class_name == constants.ClassNames['APIGATEWAY']:
         process_api_gw_response(execution_context)
 
+
+def check_lambda_authorizer(original_event):
+    if "type" not in original_event:
+        return False
+    elif original_event["type"] in {"REQUEST", "TOKEN", "COGNITO_USER_POOLS"}:
+        return True
+    return False
 
 def process_api_gw_response(execution_context):
     try:
