@@ -276,7 +276,7 @@ CONFIG_METADATA = {
     },
     config_names.THUNDRA_LAMBDA_DEBUGGER_BROKER_HOST: {
         'type': 'string',
-        'defaultValue': 'debug.thundra.io',
+        'defaultValue': 'broker.service.serverlessdebugger.com',
     },
     config_names.THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME: {
         'type': 'string',
