@@ -11,6 +11,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Collect Workflow Telemetry
+        uses: thundra-io/workflow-telemetry-action@feature/proc-tracer
       - uses: actions/checkout@v2
       - name: Use Python 3.6.13
         uses: actions/setup-python@v2
