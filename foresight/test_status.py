@@ -10,10 +10,10 @@ class TestStatus:
     SKIPPED = "SKIPPED"
     TOTAL = "TOTAL"
 
-def increase_successful_count():
+def increase_successful_count(test_suite_id):
     try:
         test_run_context = TestRunnerSupport.test_run_scope
-        test_suite_context = TestRunnerSupport.test_suite_execution_context
+        test_suite_context = TestRunnerSupport.get_test_suite_context(test_suite_id)
 
         test_run_context.context.increase_successful_count()
         test_suite_context.increase_successful_count()
@@ -23,10 +23,10 @@ def increase_successful_count():
         pass
 
 
-def increase_failed_count():
+def increase_failed_count(test_suite_id):
     try:
         test_run_context = TestRunnerSupport.test_run_scope
-        test_suite_context = TestRunnerSupport.test_suite_execution_context
+        test_suite_context = TestRunnerSupport.get_test_suite_context(test_suite_id)
 
         test_run_context.context.increase_failed_count()
         test_suite_context.increase_failed_count()
@@ -35,10 +35,10 @@ def increase_failed_count():
         logger.error("increase_failed_count error: {}".format(err))
         pass
 
-def increase_aborted_count():
+def increase_aborted_count(test_suite_id):
     try:
         test_run_context = TestRunnerSupport.test_run_scope
-        test_suite_context = TestRunnerSupport.test_suite_execution_context
+        test_suite_context = TestRunnerSupport.get_test_suite_context(test_suite_id)
 
         test_run_context.context.increase_aborted_count()
         test_suite_context.increase_aborted_count()
@@ -48,10 +48,10 @@ def increase_aborted_count():
         pass
 
 
-def increase_skipped_count():
+def increase_skipped_count(test_suite_id):
     try:
         test_run_context = TestRunnerSupport.test_run_scope
-        test_suite_context = TestRunnerSupport.test_suite_execution_context
+        test_suite_context = TestRunnerSupport.get_test_suite_context(test_suite_id)
 
         test_run_context.context.increase_ignored_count()
         test_suite_context.increase_ignored_count() 
