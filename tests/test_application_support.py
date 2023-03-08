@@ -5,7 +5,7 @@ from thundra.config.config_provider import ConfigProvider
 
 def test_if_can_get_integer_tag():
     tag_name = 'integerField'
-    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 3773)
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + '.' + tag_name, 3773)
     ConfigProvider.set(env_key, str(env_val))
 
     application_tags = ApplicationInfoProvider.parse_application_tags()
@@ -15,7 +15,7 @@ def test_if_can_get_integer_tag():
 
 def test_if_can_get_float_tag():
     tag_name = 'floatField'
-    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 12.3221)
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + '.' + tag_name, 12.3221)
     ConfigProvider.set(env_key, str(env_val))
 
     application_tags = ApplicationInfoProvider.parse_application_tags()
@@ -25,7 +25,7 @@ def test_if_can_get_float_tag():
 
 def test_if_can_get_string_tag():
     tag_name = 'stringField'
-    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, 'fooBar')
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + '.' + tag_name, 'fooBar')
     ConfigProvider.set(env_key, str(env_val))
 
     application_tags = ApplicationInfoProvider.parse_application_tags()
@@ -35,7 +35,7 @@ def test_if_can_get_string_tag():
 
 def test_if_can_get_bool_tag():
     tag_name = 'boolField'
-    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + tag_name, True)
+    (env_key, env_val) = (config_names.THUNDRA_APPLICATION_TAG_PREFIX + '.' + tag_name, True)
     ConfigProvider.set(env_key, str(env_val))
 
     application_tags = ApplicationInfoProvider.parse_application_tags()
