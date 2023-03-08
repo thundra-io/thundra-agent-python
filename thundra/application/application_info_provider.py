@@ -18,9 +18,9 @@ class ApplicationInfoProvider(ABC):
     @staticmethod
     def parse_application_tags():
         application_tags = {}
-        prefix_length = len(config_names.THUNDRA_APPLICATION_TAG_PREFIX)
+        prefix_length = len(config_names.THUNDRA_APPLICATION_TAG_PREFIX) + 1
         for key in ConfigProvider.configs:
-            if key.startswith(config_names.THUNDRA_APPLICATION_TAG_PREFIX):
+            if key.startswith(config_names.THUNDRA_APPLICATION_TAG_PREFIX) and len(key) >= prefix_length:
                 app_tag_key = key[prefix_length:]
                 val = ConfigProvider.get(key)
                 application_tags[app_tag_key] = val
