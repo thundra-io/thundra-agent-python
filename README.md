@@ -503,7 +503,7 @@ Following table shows all environment variables of [No-Code Change Tracing](#no-
 | THUNDRA_AGENT_APPLICATION_DOMAIN_NAME                                  | thundra.agent.application.domainname                                      |
 | THUNDRA_AGENT_APPLICATION_CLASS_NAME                                   | thundra.agent.application.classname                                       |
 | THUNDRA_AGENT_APPLICATION_VERSION                                      | thundra.agent.application.version                                         |
-| THUNDRA_AGENT_APPLICATION_TAG_PREFIX                                   | thundra.agent.application.tag.prefix                                      |
+| THUNDRA_AGENT_APPLICATION_TAG_PREFIX                                   | thundra.agent.application.tag                                      |
 | THUNDRA_AGENT_APPLICATION_REGION                                       | thundra.agent.application.region                                          |
 | THUNDRA_AGENT_REPORT_REST_BASEURL                                      | thundra.agent.report.rest.baseurl                                         |
 | THUNDRA_AGENT_REPORT_CLOUDWATCH_ENABLE                                 | thundra.agent.report.cloudwatch.enable                                    |
