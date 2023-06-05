@@ -64,8 +64,8 @@ class RequestsIntegration(BaseIntegration):
             if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
                 scope.span.class_name = constants.ClassNames['APIGATEWAY']
 
-            if response.headers and response.headers.get("x-thundra-resource-name"):
-                resource_name = response.headers.get("x-thundra-resource-name")
+            if response.headers and response.headers.get(constants.TRIGGER_RESOURCE_NAME_TAG):
+                resource_name = response.headers.get(constants.TRIGGER_RESOURCE_NAME_TAG)
                 scope.span.operation_name = resource_name
 
             if (response.status_code and \

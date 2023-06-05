@@ -242,7 +242,7 @@ def test_apigw_call(mock_actual_call):
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
 def test_apigw_call_v2(mock_actual_call):
     mock_actual_call.return_value = requests.Response()
-    mock_actual_call.return_value.headers = {"apigw-requestid": "test_id", "x-thundra-resource-name": "test"}
+    mock_actual_call.return_value.headers = {"apigw-requestid": "test_id", constants.TRIGGER_RESOURCE_NAME_TAG: "test"}
     try:
         url = 'https://1a23bcdefg.execute-api.us-west-2.amazonaws.com/dev/test'
         parsed_url = urlparse(url)

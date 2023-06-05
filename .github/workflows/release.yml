@@ -1,0 +1,15 @@
+name: publish-python-agent
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-n-publish:
+    name: Build and publish Python agent to TestPyPI
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.6.13"

@@ -15,15 +15,15 @@ LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
 LAMBDA_APPLICATION_PLATFORM = 'AWS Lambda'
 
-TRIGGER_OPERATION_NAME_TAG = 'x-thundra-trigger-operation-name'
-TRIGGER_CLASS_NAME_TAG = 'x-thundra-trigger-class-name'
-TRIGGER_DOMAIN_NAME_TAG = 'x-thundra-trigger-domain-name'
-TRIGGER_RESOURCE_NAME_TAG = 'x-thundra-resource-name'
+TRIGGER_OPERATION_NAME_TAG = 'x-catchpoint-trigger-operation-name'
+TRIGGER_CLASS_NAME_TAG = 'x-catchpoint-trigger-class-name'
+TRIGGER_DOMAIN_NAME_TAG = 'x-catchpoint-trigger-domain-name'
+TRIGGER_RESOURCE_NAME_TAG = 'x-catchpoint-resource-name'
 
-THUNDRA_TRACE_ID_KEY = 'x-thundra-trace-id'
-THUNDRA_TRANSACTION_ID_KEY = 'x-thundra-transaction-id'
-THUNDRA_SPAN_ID_KEY = 'x-thundra-span-id'
-THUNDRA_BAGGAGE_PREFIX = 'x-thundra-baggage-'
+THUNDRA_TRACE_ID_KEY = 'x-catchpoint-trace-id'
+THUNDRA_TRANSACTION_ID_KEY = 'x-catchpoint-transaction-id'
+THUNDRA_SPAN_ID_KEY = 'x-catchpoint-span-id'
+THUNDRA_BAGGAGE_PREFIX = 'x-catchpoint-baggage-'
 
 DEFAULT_METRIC_SAMPLING_TIME_FREQ = 5 * 60 * 1000
 DEFAULT_METRIC_SAMPLING_COUNT_FREQ = 100
