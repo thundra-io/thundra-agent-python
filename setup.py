@@ -22,6 +22,7 @@ def get_version(rel_path):
 setup(name='thundra',
       version=get_version('thundra/_version.py'),
       description='Thundra Python agent',
+      long_description='Thundra Python agent',
       url='https://github.com/thundra-agent-python',
       author='Thundra',
       author_email='python@thundra.io',
