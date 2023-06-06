@@ -50,7 +50,7 @@ class RequestsIntegration(BaseIntegration):
         try:
             tracer = ThundraTracer.get_instance()
             tracer.inject(span.context, Format.HTTP_HEADERS, prepared_request.headers)
-            prepared_request.headers[constants.TRIGGER_RESOURCE_NAME_TAG] = url_dict.get('operation_name')
+            prepared_request.headers[constants.TRIGGER_RESOURCE_NAME_KEY] = url_dict.get('operation_name')
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], [span.span_id])
         except Exception as e:
@@ -64,8 +64,8 @@ class RequestsIntegration(BaseIntegration):
             if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
                 scope.span.class_name = constants.ClassNames['APIGATEWAY']
 
-            if response.headers and response.headers.get("x-thundra-resource-name"):
-                resource_name = response.headers.get("x-thundra-resource-name")
+            if response.headers and response.headers.get(constants.TRIGGER_RESOURCE_NAME_KEY):
+                resource_name = response.headers.get(constants.TRIGGER_RESOURCE_NAME_KEY)
                 scope.span.operation_name = resource_name
 
             if (response.status_code and \

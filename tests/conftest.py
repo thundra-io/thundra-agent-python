@@ -1,6 +1,7 @@
 import mock
 import pytest
 
+import thundra.constants as constants
 from thundra.config.config_provider import ConfigProvider
 from thundra.context.execution_context import ExecutionContext
 from thundra.context.execution_context_manager import ExecutionContextManager
@@ -46,7 +47,7 @@ class LambdaTriggeredMockContext:
         self.function_version = 'function_version'
         self.client_context = type('', (), {})()
         self.client_context.custom = {
-            'x-thundra-trigger-operation-name': 'Sample Context'
+            constants.TRIGGER_OPERATION_NAME_KEY: 'Sample Context'
         }
 
 
@@ -448,7 +449,7 @@ def mock_dynamodb_event_trace_injected():
                         "Id": {
                             "N": "101"
                         },
-                        "x-thundra-span-id": {
+                        constants.THUNDRA_SPAN_ID_KEY: {
                             "S": "test_id1"
                         }
                     },
@@ -488,7 +489,7 @@ def mock_dynamodb_event_trace_injected():
                         "Id": {
                             "N": "101"
                         },
-                        "x-thundra-span-id": {
+                        constants.THUNDRA_SPAN_ID_KEY: {
                             "S": "test_id2"
                         }
                     },
@@ -519,7 +520,7 @@ def mock_dynamodb_event_trace_injected():
                         "Id": {
                             "N": "101"
                         },
-                        "x-thundra-span-id": {
+                        constants.THUNDRA_SPAN_ID_KEY: {
                             "S": "test_id3"
                         }
                     },

@@ -36,7 +36,7 @@ def finish_trace(execution_context):
         root_span.set_tag(constants.HttpTags['HTTP_STATUS'], execution_context.response.status_code)
         if execution_context.trigger_operation_name:
             execution_context.response[
-                constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
+                constants.TRIGGER_RESOURCE_NAME_KEY] = execution_context.trigger_operation_name
     web_wrapper_utils.finish_trace(execution_context)
 
 

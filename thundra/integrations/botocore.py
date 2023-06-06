@@ -129,7 +129,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
             elif operation_name == 'DeleteItem':
                 if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE) and \
                         'Attributes' in response:
-                    span_id = response['Attributes'].get("x-thundra-span-id")
+                    span_id = response['Attributes'].get(constants.THUNDRA_SPAN_ID_KEY)
                     if span_id and span_id.get('S'):
                         trace_links = ['DELETE:' + span_id.get('S')]
 
@@ -184,9 +184,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         try:
             if 'Item' in request_data:
-                request_data['Item']['x-thundra-span-id'] = thundra_span
+                request_data['Item'][constants.THUNDRA_SPAN_ID_KEY] = thundra_span
             else:
-                request_data['Item'] = {'x-thundra-span-id': thundra_span}
+                request_data['Item'] = {constants.THUNDRA_SPAN_ID_KEY: thundra_span}
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
         except:
@@ -209,9 +209,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         try:
             if 'AttributeUpdates' in request_data:
-                request_data['AttributeUpdates']['x-thundra-span-id'] = thundra_attr
+                request_data['AttributeUpdates'][constants.THUNDRA_SPAN_ID_KEY] = thundra_attr
             else:
-                request_data['AttributeUpdates'] = {'x-thundra-span-id': thundra_attr}
+                request_data['AttributeUpdates'] = {constants.THUNDRA_SPAN_ID_KEY: thundra_attr}
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
         except:

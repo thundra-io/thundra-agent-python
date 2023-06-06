@@ -16,11 +16,11 @@ except ImportError:
 OPCODE_BINARY = 0x2
 PROTOCOL_VER = 1.0
 BROKER_HANDSHAKE_HEADERS = {
-    "AUTH_TOKEN": "x-thundra-auth-token",
-    "SESSION_NAME": "x-thundra-session-name",
-    "PROTOCOL_VER": "x-thundra-protocol-version",
-    "RUNTIME": "x-thundra-runtime",
-    "SESSION_TIMEOUT": "x-thundra-session-timeout"
+    "AUTH_TOKEN": "x-catchpoint-auth-token",
+    "SESSION_NAME": "x-catchpoint-session-name",
+    "PROTOCOL_VER": "x-catchpoint-protocol-version",
+    "RUNTIME": "x-catchpoint-runtime",
+    "SESSION_TIMEOUT": "x-catchpoint-session-timeout"
 }
 
 BROKER_WS_HTTP_ERR_CODE_TO_MSG = {

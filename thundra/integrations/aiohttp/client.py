@@ -36,7 +36,7 @@ async def on_request_start(session, trace_config_ctx, params):
     try:
         scope.span.on_started()
         try:
-            params.headers.update({'x-thundra-span-id': scope.span.span_id})
+            params.headers.update({constants.THUNDRA_SPAN_ID_KEY: scope.span.span_id})
             scope.span.set_tag(constants.SpanTags['TRACE_LINKS'], [scope.span.span_id])
         except Exception as e:
             pass
@@ -68,8 +68,8 @@ async def on_request_end(session, trace_config_ctx, params):
         if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
             scope.span.class_name = constants.ClassNames['APIGATEWAY']
 
-        if response.headers and response.headers.get("x-thundra-resource-name"):
-            resource_name = response.headers.get("x-thundra-resource-name")
+        if response.headers and response.headers.get(constants.TRIGGER_RESOURCE_NAME_KEY):
+            resource_name = response.headers.get(constants.TRIGGER_RESOURCE_NAME_KEY)
             scope.span.operation_name = resource_name
 
         if (status_code and ConfigProvider.get(

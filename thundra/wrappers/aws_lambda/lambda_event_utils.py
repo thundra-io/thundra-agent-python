@@ -142,15 +142,15 @@ def inject_trigger_tags_for_dynamodb(span, original_event):
         trace_link_found = False
         if record['eventName'] == "INSERT" or record['eventName'] == "MODIFY":
             new_image = record['dynamodb'].get('NewImage')
-            if new_image and new_image.get('x-thundra-span-id'):
-                span_id = new_image.get('x-thundra-span-id').get('S')
+            if new_image and new_image.get(constants.THUNDRA_SPAN_ID_KEY):
+                span_id = new_image.get(constants.THUNDRA_SPAN_ID_KEY).get('S')
                 trace_link_found = True
                 trace_links.append("SAVE:" + span_id)
 
         elif record['eventName'] == "REMOVE":
             old_image = record['dynamodb'].get('OldImage')
-            if old_image and old_image.get('x-thundra-span-id'):
-                span_id = old_image.get('x-thundra-span-id').get('S')
+            if old_image and old_image.get(constants.THUNDRA_SPAN_ID_KEY):
+                span_id = old_image.get(constants.THUNDRA_SPAN_ID_KEY).get('S')
                 trace_link_found = True
                 trace_links.append("DELETE:" + span_id)
 
@@ -304,8 +304,8 @@ def inject_trigger_tags_for_api_gateway_proxy(span, original_event):
         operation_names.append(resource)
         invocation_support.set_application_resource_name(resource)
 
-    if original_event.get('headers') and 'x-thundra-span-id' in original_event['headers']:
-        invocation_trace_support.add_incoming_trace_links([original_event['headers']['x-thundra-span-id']])
+    if original_event.get('headers') and constants.THUNDRA_SPAN_ID_KEY in original_event['headers']:
+        invocation_trace_support.add_incoming_trace_links([original_event['headers'][constants.THUNDRA_SPAN_ID_KEY]])
 
     inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
     inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
@@ -330,7 +330,7 @@ def inject_trigger_tags_for_lambda(span, original_context):
                     if original_context.client_context.custom:
                         domain_name = constants.DomainNames['API']
                         class_name = constants.ClassNames['LAMBDA']
-                        operation_names = [original_context.client_context.custom[constants.TRIGGER_OPERATION_NAME_TAG]]
+                        operation_names = [original_context.client_context.custom[constants.TRIGGER_OPERATION_NAME_KEY]]
 
                         inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
                         inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)
