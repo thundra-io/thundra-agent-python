@@ -47,7 +47,7 @@ class LambdaTriggeredMockContext:
         self.function_version = 'function_version'
         self.client_context = type('', (), {})()
         self.client_context.custom = {
-            constants.TRIGGER_OPERATION_NAME_TAG: 'Sample Context'
+            constants.TRIGGER_OPERATION_NAME_KEY: 'Sample Context'
         }
 
 

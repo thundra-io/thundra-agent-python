@@ -68,8 +68,8 @@ async def on_request_end(session, trace_config_ctx, params):
         if response.headers and (response.headers.get("x-amz-apigw-id") or response.headers.get("apigw-requestid")):
             scope.span.class_name = constants.ClassNames['APIGATEWAY']
 
-        if response.headers and response.headers.get(constants.TRIGGER_RESOURCE_NAME_TAG):
-            resource_name = response.headers.get(constants.TRIGGER_RESOURCE_NAME_TAG)
+        if response.headers and response.headers.get(constants.TRIGGER_RESOURCE_NAME_KEY):
+            resource_name = response.headers.get(constants.TRIGGER_RESOURCE_NAME_KEY)
             scope.span.operation_name = resource_name
 
         if (status_code and ConfigProvider.get(

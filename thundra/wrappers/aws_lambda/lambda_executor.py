@@ -134,7 +134,7 @@ def process_api_gw_response(execution_context):
                 response['headers'] = {}
             resource_path = utils.extract_api_gw_resource_name(execution_context.platform_data['originalEvent'])
             if resource_path:
-                response['headers'][constants.TRIGGER_RESOURCE_NAME_TAG] = resource_path
+                response['headers'][constants.TRIGGER_RESOURCE_NAME_KEY] = resource_path
     except:
         pass
 

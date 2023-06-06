@@ -330,7 +330,7 @@ def inject_trigger_tags_for_lambda(span, original_context):
                     if original_context.client_context.custom:
                         domain_name = constants.DomainNames['API']
                         class_name = constants.ClassNames['LAMBDA']
-                        operation_names = [original_context.client_context.custom[constants.TRIGGER_OPERATION_NAME_TAG]]
+                        operation_names = [original_context.client_context.custom[constants.TRIGGER_OPERATION_NAME_KEY]]
 
                         inject_trigger_tags_to_span(span, domain_name, class_name, operation_names)
                         inject_trigger_tags_to_invocation(domain_name, class_name, operation_names)

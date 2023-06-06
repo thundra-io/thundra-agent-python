@@ -30,11 +30,11 @@ def finish_trace(execution_context):
             if isinstance(execution_context.response, dict):
                 if execution_context.response.get('headers'):
                     execution_context.response.get('headers')[
-                        constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
+                        constants.TRIGGER_RESOURCE_NAME_KEY] = execution_context.trigger_operation_name
             else:
                 if hasattr(execution_context.response, 'headers'):
                     execution_context.response.headers[
-                        constants.TRIGGER_RESOURCE_NAME_TAG] = execution_context.trigger_operation_name
+                        constants.TRIGGER_RESOURCE_NAME_KEY] = execution_context.trigger_operation_name
     web_wrapper_utils.finish_trace(execution_context)
     
 
