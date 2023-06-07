@@ -111,6 +111,8 @@ def create_catchpoint_request_span(application_info, root_span, resource, region
         span_data = {
             'id': span_id,
             'type': 'Span',
+            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'domainName': constants.CatchpointProperties.get('HTTP_REQUEST_DOMAIN_NAME'),
             'className': constants.CatchpointProperties.get('HTTP_REQUEST_CLASS_NAME'),
             'serviceName': application_info.get('applicationName'),
