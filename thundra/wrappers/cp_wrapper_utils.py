@@ -1,0 +1,204 @@
+import uuid
+import json
+import logging
+
+from thundra import constants, utils
+from thundra.application.application_info_provider import ApplicationInfoProvider
+from thundra.encoder import to_json
+from thundra.config import config_names
+from thundra.config.config_provider import ConfigProvider
+import thundra.wrappers.wrapper_utils as wrapper_utils
+
+logger = logging.getLogger(__name__)
+
+
+def on_finish(execution_context, request, response, span):
+    try:
+        if is_triggered_from_catchpoint(request):
+            on_catchpoint_request_finish(execution_context, request, response, span)
+    except Exception as e:
+        logger.error('ERROR: {}'.format(e))
+
+
+def is_triggered_from_catchpoint(request):
+    if request and request.headers:
+        headers = request.headers
+        user_agent = headers.get(constants.HTTPHeaders['USER_AGENT'])
+        return 'Catchpoint' in user_agent if user_agent else False
+    return True
+
+
+def on_catchpoint_request_finish(execution_context, request, response, span):
+    api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, None)
+    headers = request.headers if request and request.headers else {}
+    region_name = headers.get(constants.CatchpointHeaders.get('REGION_NAME'))
+    country_name = headers.get(constants.CatchpointHeaders.get('COUNTRY_NAME'))
+    city_name = headers.get(constants.CatchpointHeaders.get('CITY_NAME'))
+    test_id = headers.get(constants.CatchpointHeaders.get('TEST_ID'))
+    application_name = generate_catchpoint_application_name(region_name, country_name, city_name)
+    application_region = region_name if region_name else ''
+    trace_id = span.context.trace_id
+    transaction_id = utils.generate_id()
+    span_id = utils.generate_id()
+    start_timestamp = span.start_time
+    finish_timestamp = span.finish_time
+    duration = finish_timestamp - start_timestamp
+    application_info = get_catchpoint_application_info(application_name, application_region)
+
+    # create catchpoint invocation data
+    resource = get_catchpoint_request_resource(execution_context, request, span, duration)
+    invocation_data = create_catchpoint_request_invocation(execution_context, application_info, region_name,
+                                                           country_name, city_name, test_id, trace_id, transaction_id,
+                                                           span_id, start_timestamp, finish_timestamp, resource)
+    execution_context.report(create_report_data(api_key, 'Invocation', invocation_data))
+
+    # create catchpoint span data
+    span_data = create_catchpoint_request_span(application_info, span, resource, region_name, country_name, city_name, 
+                                               test_id, trace_id, transaction_id, span_id, start_timestamp, finish_timestamp)
+    execution_context.report(create_report_data(api_key, 'Span', span_data))
+
+    if response and hasattr(response, 'headers'):
+        response.headers[constants.THUNDRA_TRACE_ID_KEY] = span.context.trace_id
+
+
+def create_catchpoint_request_invocation(execution_context, application_info, region_name, country_name, city_name,
+                                         test_id, trace_id, transaction_id, span_id, start_timestamp, finish_timestamp,
+                                         resource):
+    if not execution_context.transaction_id:
+        execution_context.transaction_id = str(uuid.uuid4())
+    invocation_data = {
+        'id': str(uuid.uuid4()),
+        'type': 'Invocation',
+        'agentVersion': constants.THUNDRA_AGENT_VERSION,
+        'dataModelVersion': constants.DATA_FORMAT_VERSION,
+        'traceId': trace_id,
+        'transactionId': transaction_id,
+        'spanId': span_id,
+        'applicationPlatform': '',
+        'applicationRegion': region_name if region_name else '',
+        'duration': finish_timestamp - start_timestamp,
+        'startTimestamp': start_timestamp,
+        'finishTimestamp': finish_timestamp,
+        'coldStart': False,
+        'timeout': False,
+        'tags': {
+            constants.CatchpointTags.get('REGION_NAME'): region_name,
+            constants.CatchpointTags.get('COUNTRY_NAME'): country_name,
+            constants.CatchpointTags.get('CITY_NAME'): city_name,
+            constants.CatchpointTags.get('TEST_ID'): test_id
+        },
+        'resources': [resource],
+        'userTags': {},
+        'incomingTraceLinks': [],
+        'outgoingTraceLinks': []
+    }
+
+    inject_application_info(invocation_data, application_info)
+    if execution_context.error:
+        wrapper_utils.set_error(invocation_data, execution_context.error)
+    else:
+        invocation_data['erroneous'] = False
+        invocation_data['errorType'] = ''
+        invocation_data['errorMessage'] = ''
+        invocation_data['errorStack'] = ''
+        invocation_data['errorCode'] = -1
+    return invocation_data
+
+
+def create_catchpoint_request_span(application_info, root_span, resource, region_name, country_name,
+                                   city_name, test_id, trace_id, transaction_id, span_id, start_timestamp,
+                                   finish_timestamp):
+        span_data = {
+            'id': span_id,
+            'type': 'Span',
+            'domainName': constants.CatchpointProperties.get('HTTP_REQUEST_DOMAIN_NAME'),
+            'className': constants.CatchpointProperties.get('HTTP_REQUEST_CLASS_NAME'),
+            'serviceName': application_info.get('applicationName'),
+            'traceId': trace_id,
+            'transactionId': transaction_id,
+            'spanOrder': 0,
+            'operationName': resource.get('resourceName'),
+            'duration': finish_timestamp - start_timestamp,
+            'startTimestamp': start_timestamp,
+            'finishTimestamp': finish_timestamp,
+            'tags': {
+                constants.HttpTags.get('HTTP_URL'): root_span.get_tag(constants.HttpTags.get('HTTP_URL')),
+                constants.HttpTags.get('HTTP_HOST'): root_span.get_tag(constants.HttpTags.get('HTTP_HOST')),
+                constants.HttpTags.get('HTTP_PATH'): root_span.get_tag(constants.HttpTags.get('HTTP_PATH')),
+                constants.HttpTags.get('HTTP_METHOD'): root_span.get_tag(constants.HttpTags.get('HTTP_METHOD')),
+                constants.HttpTags.get('QUERY_PARAMS'): root_span.get_tag(constants.HttpTags.get('QUERY_PARAMS')),
+                constants.HttpTags.get('HTTP_STATUS'): root_span.get_tag(constants.HttpTags.get('HTTP_STATUS')),
+                constants.CatchpointTags.get('REGION_NAME'): region_name,
+                constants.CatchpointTags.get('COUNTRY_NAME'): country_name,
+                constants.CatchpointTags.get('CITY_NAME'): city_name,
+                constants.CatchpointTags.get('TEST_ID'): test_id
+            }
+        }
+        inject_application_info(span_data, application_info)
+        return span_data
+
+
+def inject_application_info(data, application_info):
+    data.update(application_info)
+    data['applicationRuntime'] = ApplicationInfoProvider.APPLICATION_RUNTIME
+    data['applicationRuntimeVersion'] = ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION
+
+
+def get_catchpoint_application_info(application_name, application_region):
+    application_id = constants.CatchpointProperties.get('APP_ID_TEMPLATE')
+    application_id = application_id.replace(constants.CatchpointProperties.get('APP_NAME_PLACEHOLDER'),
+                                                application_name)
+    application_id = application_id.replace(constants.CatchpointProperties.get('APP_REGION_PLACEHOLDER'),
+                                                application_region)
+    return {
+        'applicationId': application_id,
+        'applicationInstanceId': utils.generate_id_from(application_id),
+        'applicationName': application_name,
+        'applicationClassName': constants.CatchpointProperties.get('APP_CLASS_NAME'),
+        'applicationDomainName': constants.CatchpointProperties.get('APP_DOMAIN_NAME'),
+        'applicationRegion': application_region,
+        'applicationVersion': '',
+        'applicationRuntime': None,
+        'applicationRuntimeVersion': None,
+        'applicationStage': '',
+        'applicationTags': {},
+    }
+
+
+def get_catchpoint_request_resource(execution_context, request, span, duration):
+    error = execution_context.error
+    operation_name = execution_context.trigger_operation_name
+    if operation_name is None:
+        operation_name = span.operation_name
+    return {
+        'resourceType': constants.CatchpointProperties.get('HTTP_REQUEST_CLASS_NAME'),
+        'resourceName': operation_name,
+        'resourceOperation': request.method,
+        'resourceCount': 1,
+        'resourceErrorCount': 1 if error else 0,
+        'resourceErrors': error.get('type') if error and 'type' in error else None,
+        'resourceDuration': duration,
+        'resourceMaxDuration': duration,
+        'resourceAvgDuration': duration
+    }
+
+
+def generate_catchpoint_application_name(region_name, country_name, city_name):
+    if city_name:
+        return city_name
+    elif country_name:
+        return country_name
+    elif region_name:
+        return region_name
+    else:
+        return constants.DEFAULT_APPLICATION_NAME
+
+
+def create_report_data(api_key, data_type, data):
+    report_data = {
+        'apiKey': api_key,
+        'type': data_type,
+        'dataModelVersion': constants.DATA_FORMAT_VERSION,
+        'data': data
+    }
+    return json.loads(to_json(report_data))

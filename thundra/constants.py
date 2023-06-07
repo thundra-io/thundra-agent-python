@@ -11,6 +11,7 @@ COMPOSITE_DATA_PATH = "/composite-monitoring-data"
 THUNDRA_AGENT_VERSION = __version__
 TEST_RUN_EVENTS_DATA_VERSION = "1.0"
 
+DEFAULT_APPLICATION_NAME = 'catchpoint-app'
 LAMBDA_APPLICATION_DOMAIN_NAME = 'API'
 LAMBDA_APPLICATION_CLASS_NAME = 'AWS-Lambda'
 LAMBDA_APPLICATION_PLATFORM = 'AWS Lambda'
@@ -724,3 +725,39 @@ AwsEventBridgeTags = {
     'SERVICE_REQUEST': 'AWSEventBridgeRequest',
     'ENTRIES': 'aws.eventbridge.entries'
 }
+
+CatchpointTags = {
+    'REGION_NAME': 'catchpoint.region.name',
+    'COUNTRY_NAME': 'catchpoint.country.name',
+    'CITY_NAME': 'catchpoint.city.name',
+    'TEST_ID': 'catchpoint.test.id'
+}
+
+HTTPHeaders = {
+    'USER_AGENT': 'User-Agent',
+    'CONTENT_TYPE': 'Content-Type',
+    'AUTHORIZATION': 'Authorization'
+}
+
+CatchpointHeaders = {
+    'REGION_NAME': 'x-catchpoint-region-name',
+    'COUNTRY_NAME': 'x-catchpoint-country-name',
+    'CITY_NAME': 'x-catchpoint-city-name',
+    'TEST_ID': 'x-catchpoint-test-id',
+    'TIME': 'x-catchpoint-time'
+}
+
+CatchpointProperties = {
+    'DEFAULT_APP_NAME': 'Catchpoint',
+    'APP_DOMAIN_NAME': 'Monitoring',
+    'APP_CLASS_NAME': 'Catchpoint',
+    'APP_REGION_PLACEHOLDER': '${cp-app-region}',
+    'APP_NAME_PLACEHOLDER': '${cp-app-name}',
+    'APP_ID_TEMPLATE': ':catchpoint:${cp-app-region}:${cp-app-name}',
+    'HTTP_REQUEST_DOMAIN_NAME': 'API',
+    'HTTP_REQUEST_CLASS_NAME': 'HTTP',
+    'TIME_MAX_DIFF': 30000,
+    'AGENT_VERSION': 'Catchpoint'
+}
+
+
