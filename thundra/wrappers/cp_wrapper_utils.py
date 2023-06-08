@@ -25,7 +25,7 @@ def is_triggered_from_catchpoint(request):
         headers = request.headers
         user_agent = headers.get(constants.HTTPHeaders['USER_AGENT'])
         return 'Catchpoint' in user_agent if user_agent else False
-    return True
+    return False
 
 
 def on_catchpoint_request_finish(execution_context, request, response, span):
@@ -58,6 +58,8 @@ def on_catchpoint_request_finish(execution_context, request, response, span):
     execution_context.report(create_report_data(api_key, 'Span', span_data))
 
     if response and hasattr(response, 'headers'):
+        if response.headers is None:
+            response.headers = {}
         response.headers[constants.THUNDRA_TRACE_ID_KEY] = span.context.trace_id
 
 
@@ -69,7 +71,7 @@ def create_catchpoint_request_invocation(execution_context, application_info, re
     invocation_data = {
         'id': str(uuid.uuid4()),
         'type': 'Invocation',
-        'agentVersion': constants.THUNDRA_AGENT_VERSION,
+        'agentVersion': constants.CatchpointProperties.get('AGENT_VERSION'),
         'dataModelVersion': constants.DATA_FORMAT_VERSION,
         'traceId': trace_id,
         'transactionId': transaction_id,
@@ -111,7 +113,7 @@ def create_catchpoint_request_span(application_info, root_span, resource, region
         span_data = {
             'id': span_id,
             'type': 'Span',
-            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'agentVersion': constants.CatchpointProperties.get('AGENT_VERSION'),
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'domainName': constants.CatchpointProperties.get('HTTP_REQUEST_DOMAIN_NAME'),
             'className': constants.CatchpointProperties.get('HTTP_REQUEST_CLASS_NAME'),
@@ -193,7 +195,7 @@ def generate_catchpoint_application_name(region_name, country_name, city_name):
     elif region_name:
         return region_name
     else:
-        return constants.DEFAULT_APPLICATION_NAME
+        return constants.CatchpointProperties.get('DEFAULT_APP_NAME')
 
 
 def create_report_data(api_key, data_type, data):
