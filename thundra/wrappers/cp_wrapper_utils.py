@@ -144,8 +144,8 @@ def create_catchpoint_request_span(application_info, root_span, resource, region
 
 def inject_application_info(data, application_info):
     data.update(application_info)
-    data['applicationRuntime'] = ApplicationInfoProvider.APPLICATION_RUNTIME
-    data['applicationRuntimeVersion'] = ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION
+    data['applicationRuntime'] = ""
+    data['applicationRuntimeVersion'] = ""
 
 
 def get_catchpoint_application_info(application_name, application_region):
