@@ -2,12 +2,21 @@ from __future__ import absolute_import
 import logging
 import os
 import re
+import uuid
 
 from thundra import constants
 from thundra.compat import urlparse
 from opentracing.scope_managers import ThreadLocalScopeManager
 
 logger = logging.getLogger(__name__)
+
+
+def generate_id():
+    return str(uuid.uuid4())
+
+
+def generate_id_from(value):
+    return str(uuid.uuid5(uuid.NAMESPACE_OID, value))
 
 
 def get_env_variable(key, default=None):

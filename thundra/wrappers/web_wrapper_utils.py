@@ -8,6 +8,7 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.invocation import invocation_support, invocation_trace_support
 from thundra.utils import get_normalized_path
+import thundra.wrappers.cp_wrapper_utils as cp_wrapper_utils
 
 Logger = logging.getLogger(__name__)
 
@@ -94,6 +95,8 @@ def finish_trace(execution_context):
     scope = execution_context.scope
     try:
         root_span.finish(f_time=execution_context.finish_timestamp)
+        cp_wrapper_utils.on_finish(execution_context, execution_context.platform_data["request"],
+                                   execution_context.response, root_span)
     except Exception:
         # TODO: handle root span finish errors
         pass

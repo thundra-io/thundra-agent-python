@@ -2,7 +2,7 @@ import logging
 import concurrent.futures as futures
 
 from thundra.plugins.log.thundra_logger import debug_logger
-from thundra import constants, composite, utils
+from thundra import constants, utils
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 from thundra.encoder import to_json
@@ -41,36 +41,11 @@ class Reporter:
             'Content-Type': 'application/json',
             'Authorization': 'ApiKey ' + self.api_key
         }
-        test_run_event = opts.get("test_run_event", False)
-        rest_composite_data_enabled = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, True)
-        if not test_run_event:
-            path = constants.COMPOSITE_DATA_PATH if rest_composite_data_enabled else constants.PATH
-        else:
-            path = constants.PATH
+
         base_url = self.get_collector_url()
-        request_url = base_url + path
+        request_url = base_url + constants.PATH
 
-        if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
-            if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_ENABLE, True):
-                if not test_run_event:
-                    reports_json = self.prepare_composite_report_json(reports)
-                else:
-                    reports_json = self.prepare_report_json(reports)
-                for report in reports_json:
-                    print(report)
-            else:
-                for report in reports:
-                    try:
-                        print(to_json(report, separators=(',', ':')))
-                    except TypeError:
-                        logger.error(("Couldn't dump report with type {} to json string, "
-                                      "probably it contains a byte array").format(report.get('type')))
-
-            return []
-        if not test_run_event and rest_composite_data_enabled:
-            reports_json = self.prepare_composite_report_json(reports)
-        else:
-            reports_json = self.prepare_report_json(reports)
+        reports_json = self.prepare_report_json(reports)
         responses = []
         if len(reports_json) > 0:
             _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
@@ -86,9 +61,6 @@ class Reporter:
 
     def get_report_batches(self, reports):
         batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE)
-        if ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_ENABLE):
-            batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE)
-
         batches = [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
         return batches
 
@@ -108,31 +80,6 @@ class Reporter:
             batched_reports.append(json_string)
         return batched_reports
 
-    def prepare_composite_report_json(self, reports):
-        invocation_report = None
-        for report in reports:
-            if report["type"] == "Invocation":
-                invocation_report = report
-
-        if not invocation_report:
-            return []
-
-        common_fields = composite.init_composite_data_common_fields(invocation_report["data"])
-
-        batches = self.get_report_batches(reports)
-        batched_reports = []
-
-        for batch in batches:
-            all_monitoring_data = [composite.remove_common_fields(report["data"]) for report in batch]
-            composite_data = composite.get_composite_data(all_monitoring_data, self.api_key, common_fields)
-            try:
-                batched_reports.append(to_json(composite_data, separators=(',', ':')))
-
-            except TypeError:
-                logger.error("Couldn't dump report with type Composite to json string, "
-                             "probably it contains a byte array")
-
-        return batched_reports
 
     @staticmethod
     def get_collector_url():
