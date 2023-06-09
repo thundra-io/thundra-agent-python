@@ -24,7 +24,9 @@ def is_triggered_from_catchpoint(request):
     if request and request.headers:
         headers = request.headers
         user_agent = headers.get(constants.HTTPHeaders['USER_AGENT'])
-        return 'Catchpoint' in user_agent if user_agent else False
+        if user_agent is None:
+            user_agent = headers.get(constants.HTTPHeaders['USER_AGENT'].lower())
+        return 'catchpoint' in user_agent.lower() if user_agent else False
     return False
 
 
@@ -83,6 +85,11 @@ def create_catchpoint_request_invocation(execution_context, application_info, re
         'finishTimestamp': finish_timestamp,
         'coldStart': False,
         'timeout': False,
+        'erroneous': False,
+        'errorType': '',
+        'errorCode': -1,
+        'errorMessage': '',
+        'errorStack': None,
         'tags': {
             constants.CatchpointTags.get('REGION_NAME'): region_name,
             constants.CatchpointTags.get('COUNTRY_NAME'): country_name,
@@ -98,12 +105,6 @@ def create_catchpoint_request_invocation(execution_context, application_info, re
     inject_application_info(invocation_data, application_info)
     if execution_context.error:
         wrapper_utils.set_error(invocation_data, execution_context.error)
-    else:
-        invocation_data['erroneous'] = False
-        invocation_data['errorType'] = ''
-        invocation_data['errorMessage'] = ''
-        invocation_data['errorStack'] = ''
-        invocation_data['errorCode'] = -1
     return invocation_data
 
 
@@ -170,21 +171,34 @@ def get_catchpoint_application_info(application_name, application_region):
 
 
 def get_catchpoint_request_resource(execution_context, request, span, duration):
-    error = execution_context.error
     operation_name = execution_context.trigger_operation_name
     if operation_name is None:
         operation_name = span.operation_name
+    error_type = get_error_type(execution_context.error)
+    resource_errors = [error_type] if error_type else None
     return {
         'resourceType': constants.CatchpointProperties.get('HTTP_REQUEST_CLASS_NAME'),
         'resourceName': operation_name,
         'resourceOperation': request.method,
         'resourceCount': 1,
-        'resourceErrorCount': 1 if error else 0,
-        'resourceErrors': error.get('type') if error and 'type' in error else None,
+        'resourceErrorCount': 1 if execution_context.error else 0,
+        'resourceErrors': resource_errors,
         'resourceDuration': duration,
         'resourceMaxDuration': duration,
         'resourceAvgDuration': duration
     }
+
+
+def get_error_type(error):
+    try:
+        if isinstance(error, Exception):
+            error_type = type(error)
+            return error_type.__name__
+        elif isinstance(error, dict):
+            return error.get('type')
+        return None
+    except Exception:
+        return None
 
 
 def generate_catchpoint_application_name(region_name, country_name, city_name):
