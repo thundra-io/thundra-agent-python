@@ -33,8 +33,8 @@ class ConfigProvider:
     @staticmethod
     def traverse_config_object(obj, path):
         if not isinstance(obj, dict):
-            if not path.startswith('thundra.agent.'):
-                path = 'thundra.agent.' + path
+            if not path.startswith('catchpoint.'):
+                path = 'catchpoint.' + path
             path = path.lower()
             prop_type = ConfigProvider.get_config_type(path)
             ConfigProvider.configs[path] = ConfigProvider.parse(obj, prop_type)
@@ -48,9 +48,9 @@ class ConfigProvider:
     def add_non_lambda_aliases():
         alias_configs = {}
         for config_name in ConfigProvider.configs:
-            if config_name.startswith('thundra.agent.lambda'):
+            if config_name.startswith('catchpoint.lambda'):
                 value = ConfigProvider.configs[config_name]
-                alias_configs[config_name.replace('thundra.agent.lambda', 'thundra.agent', 1)] = value
+                alias_configs[config_name.replace('catchpoint.lambda', 'catchpoint', 1)] = value
         ConfigProvider.configs.update(alias_configs)
 
     @staticmethod
@@ -70,8 +70,8 @@ class ConfigProvider:
         if config_metadata:
             return config_metadata.get('type')
         else:
-            if config_name.startswith('thundra.agent.lambda.'):
-                config_name = config_name.replace('thundra.agent.lambda.', 'thundra.agent.', 1)
+            if config_name.startswith('catchpoint.lambda.'):
+                config_name = config_name.replace('catchpoint.lambda.', 'catchpoint.', 1)
                 config_metadata = CONFIG_METADATA.get(config_name)
                 if config_metadata:
                     return config_metadata.get('type')

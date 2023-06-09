@@ -64,7 +64,7 @@ class ErrorInjectorSpanListener(ThundraSpanListener):
                 'inject_on_finish': self.inject_on_finish,
                 'inject_count_freq': self.inject_count_freq,
             }
-            span.set_tag(constants.THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
+            span.set_tag(constants.CATCHPOINT_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
         except Exception as e:
             logger.error("error while adding ErrorInjectorSpanListener info tags: %s", e)
 

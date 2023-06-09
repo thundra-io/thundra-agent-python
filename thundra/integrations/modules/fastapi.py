@@ -29,7 +29,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_FASTAPI_DISABLE) and \
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_FASTAPI_DISABLE) and \
         not utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_NAME):
         wrapt.wrap_function_wrapper(
             "fastapi.applications",

@@ -61,7 +61,7 @@ def _parse_span_listeners():
     # Add span listeners configured using environment variables
     for env_k in ConfigProvider.configs:
         env_v = ConfigProvider.get(env_k)
-        if env_k.startswith(config_names.THUNDRA_TRACE_SPAN_LISTENERCONFIG):
+        if env_k.startswith(config_names.CATCHPOINT_TRACE_SPAN_LISTENERCONFIG):
             try:
                 # Not in JSON format. Should be zipped + encoded. Decode + unzip it
                 if not env_v.startswith('{'):

@@ -18,7 +18,7 @@ class ElasticsearchIntegration(BaseIntegration):
             return []
 
     def get_normalized_path(self, es_uri):
-        path_depth = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH)
+        path_depth = ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_ELASTICSEARCH_PATH_DEPTH)
 
         path_seperator_count = 0
         normalized_path = ''
@@ -63,7 +63,7 @@ class ElasticsearchIntegration(BaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK):
             tags[constants.ESTags['ES_BODY']] = es_body
 
         scope.span.tags = tags

@@ -98,20 +98,20 @@ def finish_trace(execution_context):
     enable_request_data = True
     if (
             trigger_class_name == constants.ClassNames['CLOUDWATCHLOG'] and
-            not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE)) or (
+            not ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_TRACE_CLOUDWATCHLOG_REQUEST_ENABLE)) or (
 
             trigger_class_name == constants.ClassNames['FIREHOSE'] and
-            not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE)) or (
+            not ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_TRACE_FIREHOSE_REQUEST_ENABLE)) or (
 
             trigger_class_name == constants.ClassNames['KINESIS'] and
-            not ConfigProvider.get(config_names.THUNDRA_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE)
+            not ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_TRACE_KINESIS_REQUEST_ENABLE)
     ):
         enable_request_data = False
 
     # ADDING TAGS #
-    if (not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP)) and enable_request_data:
+    if (not ConfigProvider.get(config_names.CATCHPOINT_TRACE_REQUEST_SKIP)) and enable_request_data:
         root_span.set_tag('aws.lambda.invocation.request', execution_context.platform_data['originalEvent'])
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_RESPONSE_SKIP):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_RESPONSE_SKIP):
         root_span.set_tag('aws.lambda.invocation.response', execution_context.response)
         
     original_event = execution_context.platform_data["originalEvent"]
@@ -156,7 +156,7 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
     try:
         response = execution_context.response
         event = execution_context.platform_data['originalEvent']
-        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS):
+        if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_AWS_STEPFUNCTIONS):
             trace_link = str(uuid.uuid4())
             step = 0
             if '_thundra' in event:
@@ -174,7 +174,7 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
 def inject_appsync_function_info(execution_context, outgoing_trace_links):
     try:
         response = execution_context.response
-        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_AWS_APPSYNC):
+        if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_AWS_APPSYNC):
             trace_id = execution_context.trace_id
 
             if isinstance(response, dict):

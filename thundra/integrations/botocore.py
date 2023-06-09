@@ -75,12 +75,12 @@ class AWSDynamoDBIntegration(BaseIntegration):
             self.escape_byte_fields(self.request_data['Item'])
 
         # DB statement tags should not be set on span if masked
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK):
             self.OPERATION.get(operation_name, dummy_func)(scope)
 
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE):
+        if ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE):
             if operation_name == 'PutItem':
                 self.inject_trace_link_on_put(scope.span, request_data, instance)
 
@@ -127,9 +127,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
                                                         params['Key'])
 
             elif operation_name == 'DeleteItem':
-                if ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE) and \
+                if ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE) and \
                         'Attributes' in response:
-                    span_id = response['Attributes'].get(constants.THUNDRA_SPAN_ID_KEY)
+                    span_id = response['Attributes'].get(constants.CATCHPOINT_SPAN_ID_KEY)
                     if span_id and span_id.get('S'):
                         trace_links = ['DELETE:' + span_id.get('S')]
 
@@ -184,9 +184,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         try:
             if 'Item' in request_data:
-                request_data['Item'][constants.THUNDRA_SPAN_ID_KEY] = thundra_span
+                request_data['Item'][constants.CATCHPOINT_SPAN_ID_KEY] = thundra_span
             else:
-                request_data['Item'] = {constants.THUNDRA_SPAN_ID_KEY: thundra_span}
+                request_data['Item'] = {constants.CATCHPOINT_SPAN_ID_KEY: thundra_span}
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
         except:
@@ -209,9 +209,9 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
         try:
             if 'AttributeUpdates' in request_data:
-                request_data['AttributeUpdates'][constants.THUNDRA_SPAN_ID_KEY] = thundra_attr
+                request_data['AttributeUpdates'][constants.CATCHPOINT_SPAN_ID_KEY] = thundra_attr
             else:
-                request_data['AttributeUpdates'] = {constants.THUNDRA_SPAN_ID_KEY: thundra_attr}
+                request_data['AttributeUpdates'] = {constants.CATCHPOINT_SPAN_ID_KEY: thundra_attr}
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
         except:
@@ -298,7 +298,7 @@ class AWSSQSIntegration(BaseIntegration):
         scope.span.tags = tags
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK):
             if operation_name == "SendMessage":
                 message = request_data.get("MessageBody", "")
                 scope.span.set_tag(constants.AwsSQSTags['MESSAGE'], message)
@@ -375,7 +375,7 @@ class AWSSNSIntegration(BaseIntegration):
         scope.span.tags = tags
         scope.span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK):
             scope.span.set_tag(constants.AwsSNSTags['MESSAGE'], self.message)
 
     def after_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -587,7 +587,7 @@ class AWSLambdaIntegration(BaseIntegration):
             constants.AwsLambdaTags['FUNCTION_QUALIFIER']: lambda_function.get('qualifier')
         }
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK) and \
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK) and \
                 'Payload' in request_data:
             tags[constants.AwsLambdaTags['INVOCATION_PAYLOAD']] = str(request_data['Payload'],
                                                                       encoding='utf-8') if type(
@@ -682,7 +682,7 @@ class AWSStepFunctionIntegration(BaseIntegration):
 
         try:
             orig_input = request_data.get('input', None)
-            if orig_input != None and ConfigProvider.get(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS):
+            if orig_input != None and ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_AWS_STEPFUNCTIONS):
                 parsed_input = json.loads(orig_input)
                 trace_link = str(uuid.uuid4())
                 parsed_input['_thundra'] = {
@@ -793,7 +793,7 @@ class AWSAthenaIntegration(BaseIntegration):
         if output_location:
             scope.span.set_tag(constants.AthenaTags['S3_OUTPUT_LOCATION'], output_location)
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK):
             scope.span.set_tag(constants.DBTags['DB_STATEMENT'], self.get_query(args))
 
         if query_execution_ids:
@@ -855,7 +855,7 @@ class AWSEventBridgeIntegration(BaseIntegration):
         for entry in request_data.get('Entries', []):
             new_entry = {
                 'Detail': None if ConfigProvider.get(
-                    config_names.THUNDRA_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK) else entry.get('Detail'),
+                    config_names.CATCHPOINT_TRACE_INTEGRATIONS_EVENTBRIDGE_DETAIL_MASK) else entry.get('Detail'),
                 'DetailType': entry.get('DetailType'),
                 'EventBusName': entry.get('EventBusName'),
                 'Resources': entry.get('Resources'),
@@ -908,8 +908,8 @@ class AWSSESIntegration(BaseIntegration):
         scope.span.domain_name = constants.DomainNames['MESSAGING']
         scope.span.class_name = constants.ClassNames['SES']
 
-        mask_mail = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_MASK)
-        mask_destination = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SES_MAIL_DESTINATION_MASK)
+        mask_mail = ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SES_MAIL_MASK)
+        mask_destination = ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SES_MAIL_DESTINATION_MASK)
 
         source = request_data.get('Source', '')
         destination = request_data.get('Destinations', request_data.get('Destination', []))

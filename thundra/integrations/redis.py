@@ -36,7 +36,7 @@ class RedisIntegration(BaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK):
             tags[constants.DBTags['DB_STATEMENT']] = command
             tags[constants.RedisTags['REDIS_COMMAND']] = command
 

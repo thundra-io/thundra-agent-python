@@ -11,7 +11,7 @@ from thundra.config import config_names
 class TimeAwareSampler(BaseSampler):
 
     def __init__(self, time_freq=None):
-        freq_from_env = ConfigProvider.get(config_names.THUNDRA_SAMPLER_TIMEAWARE_TIMEFREQ, -1)
+        freq_from_env = ConfigProvider.get(config_names.CATCHPOINT_SAMPLER_TIMEAWARE_TIMEFREQ, -1)
         if freq_from_env > 0:
             self.time_freq = freq_from_env
         elif time_freq is not None:

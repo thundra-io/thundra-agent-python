@@ -51,7 +51,7 @@ class Reporter:
             _futures = [self.pool.submit(self.send_batch, (request_url, headers, data)) for data in reports_json]
             responses = [future.result() for future in futures.as_completed(_futures)]
 
-        if ConfigProvider.get(config_names.THUNDRA_DEBUG_ENABLE):
+        if ConfigProvider.get(config_names.CATCHPOINT_DEBUG_ENABLE):
             debug_logger("Thundra API responses: " + str(responses))
         return responses
 
@@ -60,7 +60,7 @@ class Reporter:
         return self.session.post(url, data=data, headers=headers, timeout=constants.DEFAULT_REPORT_TIMEOUT)
 
     def get_report_batches(self, reports):
-        batch_size = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE)
+        batch_size = ConfigProvider.get(config_names.CATCHPOINT_REPORT_REST_COMPOSITE_BATCH_SIZE)
         batches = [reports[i:i + batch_size] for i in range(0, len(reports), batch_size)]
         return batches
 
@@ -83,9 +83,9 @@ class Reporter:
 
     @staticmethod
     def get_collector_url():
-        use_local = ConfigProvider.get(config_names.THUNDRA_REPORT_REST_LOCAL)
+        use_local = ConfigProvider.get(config_names.CATCHPOINT_REPORT_REST_LOCAL)
 
         if use_local:
             return 'http://' + constants.LOCAL_COLLECTOR_ENDPOINT + '/v1'
-        return ConfigProvider.get(config_names.THUNDRA_REPORT_REST_BASEURL, 'https://' + utils.get_nearest_collector() + '/v1')
+        return ConfigProvider.get(config_names.CATCHPOINT_REPORT_REST_BASEURL, 'https://' + utils.get_nearest_collector() + '/v1')
 

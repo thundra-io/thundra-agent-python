@@ -55,7 +55,7 @@ class LatencyInjectorSpanListener(ThundraSpanListener):
                 'sigma': self.sigma,
                 'distribution': self.distribution,
             }
-            span.set_tag(constants.THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
+            span.set_tag(constants.CATCHPOINT_LAMBDA_SPAN_LISTENER_INFO_TAG, info_dict)
         except Exception as e:
             logger.error("error while adding LatencyInjectorSpanListener info tags: %s", e)
 

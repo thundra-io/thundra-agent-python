@@ -23,14 +23,14 @@ class GlobalApplicationInfoProvider(ApplicationInfoProvider):
     @staticmethod
     def get_application_info_from_config():
         return {
-            'applicationId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_ID),
-            'applicationInstanceId': ConfigProvider.get(config_names.THUNDRA_APPLICATION_INSTANCE_ID),
-            'applicationDomainName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_DOMAIN_NAME),
-            'applicationClassName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_CLASS_NAME),
-            'applicationName': ConfigProvider.get(config_names.THUNDRA_APPLICATION_NAME),
-            'applicationVersion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_VERSION, ''),
-            'applicationStage': ConfigProvider.get(config_names.THUNDRA_APPLICATION_STAGE, ''),
-            'applicationRegion': ConfigProvider.get(config_names.THUNDRA_APPLICATION_REGION, ''),
+            'applicationId': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_ID),
+            'applicationInstanceId': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_INSTANCE_ID),
+            'applicationDomainName': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_DOMAIN_NAME),
+            'applicationClassName': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_CLASS_NAME),
+            'applicationName': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_NAME),
+            'applicationVersion': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_VERSION, ''),
+            'applicationStage': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_STAGE, ''),
+            'applicationRegion': ConfigProvider.get(config_names.CATCHPOINT_APPLICATION_REGION, ''),
             'applicationRuntime': ApplicationInfoProvider.APPLICATION_RUNTIME,
             'applicationRuntimeVersion': ApplicationInfoProvider.APPLICATION_RUNTIME_VERSION,
             'applicationTags': ApplicationInfoProvider.parse_application_tags()

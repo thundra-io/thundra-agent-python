@@ -23,7 +23,7 @@ class ImportPatcher(utils.Singleton):
         modules = {}
         for variable in ConfigProvider.configs:
             value = ConfigProvider.get(variable)
-            if variable.startswith(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG):
+            if variable.startswith(config_names.CATCHPOINT_TRACE_INSTRUMENT_TRACEABLECONFIG):
                 try:
                     module_path, function_prefix, arguments = utils.process_trace_def_var(value)
                     if module_path is not None:

@@ -21,7 +21,7 @@ def start_trace(execution_context, tracer, class_name, domain_name, request, req
         incoming_span_id = propagated_span_context.span_id
 
     # Start root span
-    url_path_depth = ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH)
+    url_path_depth = ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH)
     normalized_path = get_normalized_path(request.get('path'), url_path_depth)
     operation_name = request_route_path or normalized_path
     scope = tracer.start_active_span(operation_name=operation_name,
@@ -44,7 +44,7 @@ def start_trace(execution_context, tracer, class_name, domain_name, request, req
     root_span.set_tag(constants.HttpTags['HTTP_HOST'], request.get('host', ''))
     root_span.set_tag(constants.HttpTags['QUERY_PARAMS'], request.get('query_params'))
     root_span.set_tag(constants.HttpTags['HTTP_PATH'], request.get('path'))
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, True):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_REQUEST_SKIP, True):
         root_span.set_tag(constants.HttpTags['BODY'], request.get('body'))
     execution_context.root_span = root_span
     execution_context.scope = scope

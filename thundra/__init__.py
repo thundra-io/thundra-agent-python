@@ -83,12 +83,12 @@ def tornado_wrapper(func):
 def _set_thundra_for_test_env(already_configured):
     if not already_configured:
         configure()
-    if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
+    if not ConfigProvider.get(config_names.CATCHPOINT_DISABLE):
         _patch_modules()
 
 
-if not ConfigProvider.get(config_names.THUNDRA_DISABLE):
-    test_active = ConfigProvider.get(config_names.THUNDRA_TEST_ACTIVE)
+if not ConfigProvider.get(config_names.CATCHPOINT_DISABLE):
+    test_active = ConfigProvider.get(config_names.CATCHPOINT_TEST_ACTIVE)
     if not test_active:
         _patch_modules()
 

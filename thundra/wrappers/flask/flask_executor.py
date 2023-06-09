@@ -37,9 +37,9 @@ def finish_trace(execution_context):
     try:
         _request = execution_context.platform_data['request']
         req_data = None
-        if _request and not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, False):
+        if _request and not ConfigProvider.get(config_names.CATCHPOINT_TRACE_REQUEST_SKIP, False):
             cl = _request.content_length
-            if cl == None or cl <= constants.THUNDRA_MAX_STREAM_REQUEST_BODY:
+            if cl == None or cl <= constants.CATCHPOINT_MAX_STREAM_REQUEST_BODY:
                 req_data = _request.get_data()
             else:
                 req_data = None

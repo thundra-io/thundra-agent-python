@@ -41,7 +41,7 @@ class MetricPlugin:
 
         self.metric_data = {
             'type': "Metric",
-            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'agentVersion': constants.CATCHPOINT_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': active_span.trace_id if active_span is not None else '',
             'transactionId': execution_context.transaction_id,

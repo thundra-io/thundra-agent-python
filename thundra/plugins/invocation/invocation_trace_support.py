@@ -131,7 +131,7 @@ def get_resources():
 
 
 def get_incoming_trace_links():
-    if ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
+    if ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
         return {}
 
     execution_context = ExecutionContextManager.get()
@@ -140,7 +140,7 @@ def get_incoming_trace_links():
 
 
 def get_outgoing_trace_links():
-    if ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
+    if ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
         return {}
 
     execution_context = ExecutionContextManager.get()

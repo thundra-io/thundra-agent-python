@@ -24,8 +24,8 @@ BROKER_HANDSHAKE_HEADERS = {
 }
 
 BROKER_WS_HTTP_ERR_CODE_TO_MSG = {
-    429: "Reached the concurrent session limit, couldn't start Thundra debugger.",
-    401: "Authentication is failed, check your Thundra debugger authentication token.",
+    429: "Reached the concurrent session limit, couldn't start Catchpoint debugger.",
+    401: "Authentication is failed, check your Catchpoint debugger authentication token.",
     409: "Another session with the same session name exists, connection closed.",
 }
 
@@ -43,11 +43,11 @@ def handle_error_message(error):
 
 def handle_close_message(code, message):
     if code is None and message is None:
-        print("Thundra debug broker connection is closed")
+        print("Catchpoint debug broker connection is closed")
     elif code:
-        print("Thundra debug broker closed with code:{}".format(code))
+        print("Catchpoint debug broker closed with code:{}".format(code))
     else:
-        print("Thundra debug broker closed with code:{}, message:{}".format(code, message))
+        print("Catchpoint debug broker closed with code:{}, message:{}".format(code, message))
 
 
 def on_open(ws):

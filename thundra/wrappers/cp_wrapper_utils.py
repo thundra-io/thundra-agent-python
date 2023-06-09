@@ -31,7 +31,7 @@ def is_triggered_from_catchpoint(request):
 
 
 def on_catchpoint_request_finish(execution_context, request, response, span):
-    api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, None)
+    api_key = ConfigProvider.get(config_names.CATCHPOINT_APIKEY, None)
     headers = request.headers if request and request.headers else {}
     region_name = headers.get(constants.CatchpointHeaders.get('REGION_NAME'))
     country_name = headers.get(constants.CatchpointHeaders.get('COUNTRY_NAME'))
@@ -62,7 +62,7 @@ def on_catchpoint_request_finish(execution_context, request, response, span):
     if response and hasattr(response, 'headers'):
         if response.headers is None:
             response.headers = {}
-        response.headers[constants.THUNDRA_TRACE_ID_KEY] = span.context.trace_id
+        response.headers[constants.CATCHPOINT_TRACE_ID_KEY] = span.context.trace_id
 
 
 def create_catchpoint_request_invocation(execution_context, application_info, region_name, country_name, city_name,

@@ -14,9 +14,9 @@ class HTTPPropagator(TextMapPropagator):
 
     def extract(self, carrier):
         try:
-            trace_id = HTTPPropagator.extract_value_from_header(constants.THUNDRA_TRACE_ID_KEY, carrier)
-            span_id = HTTPPropagator.extract_value_from_header(constants.THUNDRA_SPAN_ID_KEY, carrier)
-            transaction_id = HTTPPropagator.extract_value_from_header(constants.THUNDRA_TRANSACTION_ID_KEY, carrier)
+            trace_id = HTTPPropagator.extract_value_from_header(constants.CATCHPOINT_TRACE_ID_KEY, carrier)
+            span_id = HTTPPropagator.extract_value_from_header(constants.CATCHPOINT_SPAN_ID_KEY, carrier)
+            transaction_id = HTTPPropagator.extract_value_from_header(constants.CATCHPOINT_TRANSACTION_ID_KEY, carrier)
         except:
             return None
 
@@ -27,11 +27,11 @@ class HTTPPropagator(TextMapPropagator):
         baggage = {}
         for key in carrier:
             if isinstance(key, str):
-                if key.startswith(constants.THUNDRA_BAGGAGE_PREFIX):
-                    baggage[key[len(constants.THUNDRA_BAGGAGE_PREFIX):]] = carrier[key]
+                if key.startswith(constants.CATCHPOINT_BAGGAGE_PREFIX):
+                    baggage[key[len(constants.CATCHPOINT_BAGGAGE_PREFIX):]] = carrier[key]
             elif isinstance(key, tuple):
-                if key[0].startswith(constants.THUNDRA_BAGGAGE_PREFIX):
-                    baggage[key[0][len(constants.THUNDRA_BAGGAGE_PREFIX):]] = key[1]
+                if key[0].startswith(constants.CATCHPOINT_BAGGAGE_PREFIX):
+                    baggage[key[0][len(constants.CATCHPOINT_BAGGAGE_PREFIX):]] = key[1]
 
         span_context = ThundraSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
                                           baggage=baggage)

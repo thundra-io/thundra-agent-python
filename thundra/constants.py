@@ -4,11 +4,11 @@ from thundra._version import __version__
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S.%f %z"
 
-HOST = "https://api.thundra.io/v1"
+HOST = "https://collector.tracing.catchpoint.com/v1"
 PATH = "/monitoring-data"
 COMPOSITE_DATA_PATH = "/composite-monitoring-data"
 
-THUNDRA_AGENT_VERSION = __version__
+CATCHPOINT_AGENT_VERSION = __version__
 TEST_RUN_EVENTS_DATA_VERSION = "1.0"
 
 DEFAULT_APPLICATION_NAME = 'catchpoint-app'
@@ -21,10 +21,10 @@ TRIGGER_CLASS_NAME_KEY = 'x-catchpoint-trigger-class-name'
 TRIGGER_DOMAIN_NAME_KEY = 'x-catchpoint-trigger-domain-name'
 TRIGGER_RESOURCE_NAME_KEY = 'x-catchpoint-resource-name'
 
-THUNDRA_TRACE_ID_KEY = 'x-catchpoint-trace-id'
-THUNDRA_TRANSACTION_ID_KEY = 'x-catchpoint-transaction-id'
-THUNDRA_SPAN_ID_KEY = 'x-catchpoint-span-id'
-THUNDRA_BAGGAGE_PREFIX = 'x-catchpoint-baggage-'
+CATCHPOINT_TRACE_ID_KEY = 'x-catchpoint-trace-id'
+CATCHPOINT_TRANSACTION_ID_KEY = 'x-catchpoint-transaction-id'
+CATCHPOINT_SPAN_ID_KEY = 'x-catchpoint-span-id'
+CATCHPOINT_BAGGAGE_PREFIX = 'x-catchpoint-baggage-'
 
 DEFAULT_METRIC_SAMPLING_TIME_FREQ = 5 * 60 * 1000
 DEFAULT_METRIC_SAMPLING_COUNT_FREQ = 100
@@ -61,14 +61,14 @@ LIST_SEPARATOR = ','
 DEFAULT_LAMBDA_TIMEOUT_MARGIN = 200
 DATA_FORMAT_VERSION = '2.0'
 
-THUNDRA_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
+CATCHPOINT_LAMBDA_SPAN_LISTENER_INFO_TAG = 'thundra.span_listener.info'
 
 DEFAULT_REPORT_REST_COMPOSITE_BATCH_SIZE = 100
 DEFAULT_REPORT_CLOUDWATCH_COMPOSITE_BATCH_SIZE = 10
 
 #### INTEGRATIONS ####
 
-THUNDRA_MAX_STREAM_REQUEST_BODY = 200 * 1024
+CATCHPOINT_MAX_STREAM_REQUEST_BODY = 200 * 1024
 DEFAULT_MONGO_COMMAND_SIZE_LIMIT = 128 * 1024
 DEFAULT_REPORT_TIMEOUT = 5
 
@@ -400,7 +400,7 @@ ESTags = {
 
 AwsXrayConstants = {
     'DEFAULT_OPERATION_NAME': 'AWS X-Ray',
-    'XRAY_SUBSEGMENTED_TAG_NAME': 'THUNDRA::XRAY_SUBSEGMENTED',
+    'XRAY_SUBSEGMENTED_TAG_NAME': 'CATCHPOINT::XRAY_SUBSEGMENTED',
 }
 
 MongoDBTags = {

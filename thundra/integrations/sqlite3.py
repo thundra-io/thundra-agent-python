@@ -37,7 +37,7 @@ class SQLiteIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK):
             tags[constants.DBTags['DB_STATEMENT']] = query
 
         span.tags = tags

@@ -14,14 +14,14 @@ from thundra.plugins.trace.trace_plugin import TracePlugin
 
 def initialize_plugins(plugin_context, disable_trace, disable_metric, disable_log, config):
     plugins = []
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_DISABLE, disable_trace):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_DISABLE, disable_trace):
         plugins.append(TracePlugin(plugin_context=plugin_context, config=config.trace_config))
     plugins.append(InvocationPlugin(plugin_context=plugin_context))
 
-    if not ConfigProvider.get(config_names.THUNDRA_METRIC_DISABLE, disable_metric):
+    if not ConfigProvider.get(config_names.CATCHPOINT_METRIC_DISABLE, disable_metric):
         plugins.append(MetricPlugin(plugin_context=plugin_context, config=config.metric_config))
 
-    if not ConfigProvider.get(config_names.THUNDRA_LOG_DISABLE, disable_log):
+    if not ConfigProvider.get(config_names.CATCHPOINT_LOG_DISABLE, disable_log):
         plugins.append(LogPlugin(plugin_context=plugin_context, config=config.log_config))
     return plugins
 
@@ -32,7 +32,7 @@ def create_invocation_data(plugin_context, execution_context):
     invocation_data = {
         'id': str(uuid.uuid4()),
         'type': "Invocation",
-        'agentVersion': constants.THUNDRA_AGENT_VERSION,
+        'agentVersion': constants.CATCHPOINT_AGENT_VERSION,
         'dataModelVersion': constants.DATA_FORMAT_VERSION,
         'traceId': execution_context.trace_id,
         'transactionId': execution_context.transaction_id,

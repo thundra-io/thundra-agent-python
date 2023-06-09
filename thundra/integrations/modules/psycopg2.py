@@ -77,7 +77,7 @@ def patch_extensions():
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_DISABLE):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_RDB_DISABLE):
         patch_extensions()
         wrapt.wrap_function_wrapper(
             'psycopg2',

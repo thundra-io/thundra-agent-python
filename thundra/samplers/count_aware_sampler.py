@@ -9,7 +9,7 @@ from thundra.samplers.base_sampler import BaseSampler
 class CountAwareSampler(BaseSampler):
 
     def __init__(self, count_freq=None):
-        freq_from_env = ConfigProvider.get(config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ, -1)
+        freq_from_env = ConfigProvider.get(config_names.CATCHPOINT_SAMPLER_COUNTAWARE_COUNTFREQ, -1)
         if freq_from_env > 0:
             self.count_freq = freq_from_env
         elif count_freq is not None:

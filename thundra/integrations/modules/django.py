@@ -58,7 +58,7 @@ def install_db_execute_wrapper(connection, **kwargs):
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_DJANGO_DISABLE) and (
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_DJANGO_DISABLE) and (
             not utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_NAME)):
         wrapt.wrap_function_wrapper(
             'django.core.handlers.base',
@@ -66,7 +66,7 @@ def patch():
             _wrapper
         )
 
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_DJANGO_ORM_DISABLE):
         try:
             from django import VERSION
             from django.db import connections

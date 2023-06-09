@@ -51,7 +51,7 @@ class TornadoWrapper(BaseWrapper):
         self.prepare_and_send_reports_async(execution_context)
 
     def __call__(self, original_func):
-        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
+        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
             return original_func
 
         @wraps(original_func)

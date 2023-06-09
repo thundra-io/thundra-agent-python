@@ -39,20 +39,20 @@ class LambdaWrapper(BaseWrapper):
         self.plugins = wrapper_utils.initialize_plugins(self.plugin_context, disable_trace, disable_metric, disable_log,
                                                         self.config)
 
-        self.timeout_margin = ConfigProvider.get(config_names.THUNDRA_LAMBDA_TIMEOUT_MARGIN,
+        self.timeout_margin = ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_TIMEOUT_MARGIN,
                                                  constants.DEFAULT_LAMBDA_TIMEOUT_MARGIN)
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INSTRUMENT_DISABLE):
             # Pass thundra instance to integration for wrapping handler wrappers
             handler_wrappers.patch_modules(self)
 
         self.ptvsd_imported = False
-        if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
-                              ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN)):
+        if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_ENABLE,
+                              ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_AUTH_TOKEN)):
             self.initialize_debugger()
 
     def __call__(self, original_func):
-        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.THUNDRA_DISABLE, False):
+        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
             return original_func
 
         @wraps(original_func)
@@ -74,7 +74,7 @@ class LambdaWrapper(BaseWrapper):
 
             # Before running user's handler
             try:
-                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_WARMUP_WARMUPAWARE,
+                if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_WARMUP_WARMUPAWARE,
                                       False) and self.check_and_handle_warmup_request(event):
                     return None
 
@@ -90,9 +90,9 @@ class LambdaWrapper(BaseWrapper):
             try:
                 response = None
                 with Timeout(timeout_duration, self.timeout_handler, execution_context):
-                    if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
+                    if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_ENABLE,
                                           ConfigProvider.get(
-                                              config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN)) and self.ptvsd_imported:
+                                              config_names.CATCHPOINT_LAMBDA_DEBUGGER_AUTH_TOKEN)) and self.ptvsd_imported:
                         self.start_debugger_tracing(context)
 
                     response = original_func(event, context)
@@ -110,9 +110,9 @@ class LambdaWrapper(BaseWrapper):
                     pass
                 raise e
             finally:
-                if ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_ENABLE,
+                if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_ENABLE,
                                       ConfigProvider.get(
-                                          config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN)) and self.ptvsd_imported:
+                                          config_names.CATCHPOINT_LAMBDA_DEBUGGER_AUTH_TOKEN)) and self.ptvsd_imported:
                     self.stop_debugger_tracing()
 
             # After having run the user's handler
@@ -144,14 +144,14 @@ class LambdaWrapper(BaseWrapper):
             import ptvsd
             ptvsd.tracing(True)
 
-            ptvsd.enable_attach(address=("localhost", ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT)))
+            ptvsd.enable_attach(address=("localhost", ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_PORT)))
             if not self.debugger_process:
                 env = os.environ.copy()
-                env['BROKER_HOST'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_BROKER_HOST))
-                env['BROKER_PORT'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_BROKER_PORT))
-                env['DEBUGGER_PORT'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_PORT))
-                env['AUTH_TOKEN'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_AUTH_TOKEN))
-                env['SESSION_NAME'] = str(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_SESSION_NAME))
+                env['BROKER_HOST'] = str(ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_BROKER_HOST))
+                env['BROKER_PORT'] = str(ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_BROKER_PORT))
+                env['DEBUGGER_PORT'] = str(ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_PORT))
+                env['AUTH_TOKEN'] = str(ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_AUTH_TOKEN))
+                env['SESSION_NAME'] = str(ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_SESSION_NAME))
 
                 if hasattr(context, 'get_remaining_time_in_millis'):
                     env['SESSION_TIMEOUT'] = str(context.get_remaining_time_in_millis() + int(time.time() * 1000.0))
@@ -162,7 +162,7 @@ class LambdaWrapper(BaseWrapper):
 
             start_time = time.time()
             debug_process_running = True
-            while time.time() < (start_time + ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX) / 1000) \
+            while time.time() < (start_time + ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_WAIT_MAX) / 1000) \
                     and not ptvsd.is_attached():
                 if self.debugger_process.poll() is None:
                     ptvsd.wait_for_attach(0.01)
@@ -173,7 +173,7 @@ class LambdaWrapper(BaseWrapper):
             if not ptvsd.is_attached():
                 if debug_process_running:
                     logger.error('Couldn\'t complete debugger handshake in {} milliseconds.' \
-                                 .format(ConfigProvider.get(config_names.THUNDRA_LAMBDA_DEBUGGER_WAIT_MAX)))
+                                 .format(ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_DEBUGGER_WAIT_MAX)))
                 ptvsd.tracing(False)
             else:
                 ptvsd.tracing(True)

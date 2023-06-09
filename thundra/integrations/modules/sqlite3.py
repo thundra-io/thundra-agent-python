@@ -51,7 +51,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_DISABLE):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_RDB_DISABLE):
         wrapt.wrap_function_wrapper(
             'sqlite3',
             'connect',

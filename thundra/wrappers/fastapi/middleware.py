@@ -98,7 +98,7 @@ class ThundraMiddleware(object):
                             execution_context.platform_data["request"]["body"] += req_body
                         else:
                             execution_context.platform_data["request"]["body"] = req_body
-                        if not ConfigProvider.get(config_names.THUNDRA_TRACE_REQUEST_SKIP, True):
+                        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_REQUEST_SKIP, True):
                             execution_context.root_span.set_tag(constants.HttpTags['BODY'], execution_context.platform_data["request"]["body"])
                 except Exception as e:
                     logger.error("Error during getting req body in fast api: {}".format(e))

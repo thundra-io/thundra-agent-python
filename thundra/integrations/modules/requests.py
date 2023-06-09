@@ -23,7 +23,7 @@ def _wrapper(wrapped, instance, args, kwargs):
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_DISABLE):
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_DISABLE):
         wrapt.wrap_function_wrapper(
             'requests',
             'Session.send',

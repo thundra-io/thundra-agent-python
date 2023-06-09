@@ -33,7 +33,7 @@ class LogPlugin:
 
         with LogPlugin.lock:
             if (not LogPlugin.wrapped) and (
-                    not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE)):
+                    not ConfigProvider.get(config_names.CATCHPOINT_LOG_CONSOLE_DISABLE)):
                 if PY37 or PY38:
                     wrapt.wrap_function_wrapper(
                         'builtins',
@@ -44,7 +44,7 @@ class LogPlugin:
                     sys.stdout = StreamToLogger(self.logger, sys.stdout)
                 LogPlugin.wrapped = True
 
-        if not ConfigProvider.get(config_names.THUNDRA_LOG_CONSOLE_DISABLE):
+        if not ConfigProvider.get(config_names.CATCHPOINT_LOG_CONSOLE_DISABLE):
             handler = ThundraLogHandler()
             has_thundra_log_handler = False
             for log_handlers in self.logger.handlers:
@@ -73,7 +73,7 @@ class LogPlugin:
         execution_context.capture_log = False
         log_data = {
             'type': "Log",
-            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'agentVersion': constants.CATCHPOINT_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': execution_context.trace_id,
             'transactionId': execution_context.transaction_id,

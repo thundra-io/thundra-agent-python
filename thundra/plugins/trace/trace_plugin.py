@@ -87,7 +87,7 @@ class TracePlugin:
         span_data = {
             'id': span.context.span_id,
             'type': "Span",
-            'agentVersion': constants.THUNDRA_AGENT_VERSION,
+            'agentVersion': constants.CATCHPOINT_AGENT_VERSION,
             'dataModelVersion': constants.DATA_FORMAT_VERSION,
             'traceId': span.context.trace_id,
             'transactionId': execution_context.transaction_id,

@@ -36,16 +36,16 @@ class BaseWrapper(ABC):
         if opts is not None:
             self.config = ThundraConfig(opts)
 
-        self.api_key = ConfigProvider.get(config_names.THUNDRA_APIKEY, api_key)
+        self.api_key = ConfigProvider.get(config_names.CATCHPOINT_APIKEY, api_key)
         if not self.api_key:
             self.api_key = self.config.api_key
         if self.api_key is None:
-            logger.error('Please set "thundra_apiKey" from environment variables in order to use Thundra')
+            logger.error('Please set "catchpoint_apiKey" from environment variables in order to use Thundra')
 
         self.reporter = Reporter(self.api_key)
         self.debugger_process = None
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INSTRUMENT_DISABLE):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INSTRUMENT_DISABLE):
             if not PY2:
                 from thundra.plugins.trace.patcher import ImportPatcher
                 self.import_patcher = ImportPatcher()

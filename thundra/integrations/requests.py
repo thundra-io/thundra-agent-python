@@ -17,7 +17,7 @@ class RequestsIntegration(BaseIntegration):
     def get_operation_name(self, wrapped, instance, args, kwargs):
         prepared_request = args[0]
         url_dict = utils.parse_http_url(prepared_request.url,
-                                        ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
+                                        ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
         return url_dict.get('operation_name')
 
     def before_call(self, scope, wrapped, instance, args, kwargs, response, exception):
@@ -25,7 +25,7 @@ class RequestsIntegration(BaseIntegration):
         method = prepared_request.method
 
         url_dict = utils.parse_http_url(prepared_request.url,
-                                        ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
+                                        ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH))
         span = scope.span
 
         span.domain_name = constants.DomainNames['API']
@@ -43,7 +43,7 @@ class RequestsIntegration(BaseIntegration):
 
         span.tags = tags
 
-        if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK):
+        if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_BODY_MASK):
             body = prepared_request.body if prepared_request.body else ""
             scope.span.set_tag(constants.HttpTags["BODY"], body)
 
@@ -70,7 +70,7 @@ class RequestsIntegration(BaseIntegration):
 
             if (response.status_code and \
                     ConfigProvider.get(
-                        config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= response.status_code):
+                        config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN) <= response.status_code):
                 scope.span.set_tag('error.kind', "HttpError")
                 scope.span.set_tag('error', True)
                 scope.span.set_tag('error.message', response.reason)

@@ -58,7 +58,7 @@ class CommandTracer(CommandListener):
                 constants.SpanTags['TOPOLOGY_VERTEX']: True,
             }
 
-            if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK):
+            if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK):
                 try:
                     tags[constants.MongoDBTags['MONGODB_COMMAND']] = dumps(event.command)[
                                                                    :constants.DEFAULT_MONGO_COMMAND_SIZE_LIMIT]

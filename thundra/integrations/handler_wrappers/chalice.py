@@ -14,7 +14,7 @@ def _wrapper(wrapped, _, args, kwargs):
 
 
 def patch(thundra_instance):
-    if (not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_CHALICE_DISABLE)) and thundra_instance:
+    if (not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_CHALICE_DISABLE)) and thundra_instance:
         global _thundra_instance
         _thundra_instance = thundra_instance
         try:

@@ -44,7 +44,7 @@ def _log_exception_wrapper(_wrapped, _handler, args, kwargs):
 
 
 def patch():
-    if not ConfigProvider.get(config_names.THUNDRA_TRACE_INTEGRATIONS_TORNADO_DISABLE) and (
+    if not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_TORNADO_DISABLE) and (
            not utils.get_env_variable(constants.AWS_LAMBDA_FUNCTION_NAME)):
 
         wrapt.wrap_function_wrapper(

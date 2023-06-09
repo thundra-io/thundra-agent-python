@@ -12,10 +12,10 @@ thundra = Thundra()
 handler_found = False
 user_handler = None
 
-handler_path = ConfigProvider.get(config_names.THUNDRA_LAMBDA_HANDLER, None)
+handler_path = ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_HANDLER, None)
 if handler_path is None:
     raise ValueError(
-        "No handler specified for \'thundra_agent_lambda_handler\' environment variable"
+        "No handler specified for \'catchpoint_lambda_handler\' environment variable"
     )
 else:
     handler_found = True

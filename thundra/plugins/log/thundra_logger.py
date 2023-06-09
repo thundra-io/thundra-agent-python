@@ -47,7 +47,7 @@ def log_to_console(message, handler):
 
 
 def debug_logger(msg, handler=None):
-    if ConfigProvider.get(config_names.THUNDRA_DEBUG_ENABLE):
+    if ConfigProvider.get(config_names.CATCHPOINT_DEBUG_ENABLE):
         if hasattr(msg, '__dict__'):
             log_to_console(msg, handler)
             display = vars(msg)
