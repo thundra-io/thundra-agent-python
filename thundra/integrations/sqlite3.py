@@ -32,7 +32,7 @@ class SQLiteIntegration(BaseIntegration, RdbBaseIntegration):
             constants.SpanTags['OPERATION_TYPE']: SQLiteIntegration._OPERATION_TO_TYPE.get(operation, ''),
             constants.SpanTags['DB_INSTANCE']: connection.db_name,
             constants.SpanTags['DB_HOST']: connection.host,
-            constants.SpanTags['DB_TYPE']: "sqlite",
+            constants.SpanTags['DB_TYPE']: self.CLASS_TYPE,
             constants.SpanTags['DB_STATEMENT_TYPE']: operation.upper(),
             constants.SpanTags['TOPOLOGY_VERTEX']: True,
         }
