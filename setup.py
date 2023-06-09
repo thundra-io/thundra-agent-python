@@ -31,7 +31,6 @@ setup(name='thundra',
       install_requires=['requests>=2.16.0', 'opentracing>=2.0', 'wrapt>=1.10.11', 'simplejson', 'enum-compat',
                         'jsonpickle==1.3', 'websocket-client', 'python-dateutil', 'GitPython>=3.1.18', 'fastcounter>=1.1.0', 'pympler'],
       zip_safe=True,
-      entry_points={"pytest11": ["thundra-foresight = foresight.pytest_integration.plugin"]},
       classifiers=[
           "Development Status :: 5 - Production/Stable",
           "Intended Audience :: Developers",

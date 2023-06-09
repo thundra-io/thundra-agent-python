@@ -8,7 +8,6 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.config.thundra_config import ThundraConfig
 from thundra.reporter import Reporter
-from foresight.model import  Terminator
 
 ABC = abc.ABCMeta('ABC', (object,), {})
 
@@ -51,8 +50,6 @@ class BaseWrapper(ABC):
                 from thundra.plugins.trace.patcher import ImportPatcher
                 self.import_patcher = ImportPatcher()
         self.thread_pool_executor = ThreadPoolExecutorWithQueueSizeLimit()
-        terminator = Terminator()
-        terminator.register_task(self)
 
 
     def execute_hook(self, name, data):
