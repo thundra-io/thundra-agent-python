@@ -6,8 +6,6 @@ from thundra.integrations.rdb_base import RdbBaseIntegration
 
 
 class SQLiteIntegration(BaseIntegration, RdbBaseIntegration):
-    CLASS_TYPE = 'sqlite'
-
     def __init__(self):
         super(SQLiteIntegration, self)
 
