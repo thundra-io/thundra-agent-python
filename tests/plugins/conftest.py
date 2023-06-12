@@ -3,7 +3,7 @@ import pytest
 import mock
 
 from thundra import constants
-from thundra.thundra_agent import Catchpoint
+from thundra.catchpoint_agent import Catchpoint
 from thundra.reporter import Reporter
 from thundra.plugins.trace.traceable import Traceable
 from thundra.config.config_provider import ConfigProvider

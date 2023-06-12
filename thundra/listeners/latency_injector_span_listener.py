@@ -3,7 +3,7 @@ import random
 import time
 
 from thundra import constants
-from thundra.listeners.thundra_span_listener import CatchpointSpanListener
+from thundra.listeners.catchpoint_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
 

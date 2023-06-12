@@ -5,7 +5,7 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.plugins.trace.trace_plugin import TracePlugin
-from thundra.thundra_agent import Catchpoint
+from thundra.catchpoint_agent import Catchpoint
 
 
 def test_if_api_key_is_retrieved_from_env_var():

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import imp
 import os
 
-from thundra.thundra_agent import Catchpoint
+from thundra.catchpoint_agent import Catchpoint
 
 thundra = Catchpoint()
 

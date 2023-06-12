@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 
-from thundra.listeners.thundra_span_listener import CatchpointSpanListener
+from thundra.listeners.catchpoint_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,7 @@ def handle_error(exception, exception_handler, execution_context = None):
     }
     exception_handler(error, execution_context)
 
-class ThundraMiddleware(object):
+class CatchpointMiddleware(object):
     def __init__(self, app, wrapper):
         self.app = app
         self._wrapper = wrapper

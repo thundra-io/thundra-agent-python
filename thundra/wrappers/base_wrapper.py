@@ -6,7 +6,7 @@ from concurrent import futures
 from thundra.compat import PY2, queue
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.plugins.config.thundra_config import CatchpointConfig
+from thundra.plugins.config.catchpoint_config import CatchpointConfig
 from thundra.reporter import Reporter
 
 ABC = abc.ABCMeta('ABC', (object,), {})

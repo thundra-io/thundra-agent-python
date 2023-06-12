@@ -1,7 +1,7 @@
 import logging
 from thundra.listeners import CatchpointSpanListener
-from thundra.listeners.thundra_span_filterer import SimpleSpanFilter, SpanFilterer
-from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
+from thundra.listeners.catchpoint_span_filterer import SimpleSpanFilter, SpanFilterer
+from thundra.listeners.catchpoint_span_filterer import StandardSpanFilterer
 from thundra.listeners.composite_span_filter import CompositeSpanFilter
 
 logger = logging.getLogger(__name__)

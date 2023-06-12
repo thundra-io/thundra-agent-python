@@ -1,5 +1,5 @@
 import mock
-from thundra.listeners.thundra_span_filterer import StandardSpanFilterer, SimpleSpanFilter
+from thundra.listeners.catchpoint_span_filterer import StandardSpanFilterer, SimpleSpanFilter
 from thundra.listeners import FilteringSpanListener, ErrorInjectorSpanListener, LatencyInjectorSpanListener
 
 def test_creation():

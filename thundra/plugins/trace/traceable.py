@@ -8,7 +8,7 @@ from opentracing import Scope
 
 from thundra import constants
 from thundra.opentracing.tracer import CatchpointTracer
-from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.plugins.log.catchpoint_logger import debug_logger
 from thundra.serializable import Serializable
 from pympler import asizeof
 import threading

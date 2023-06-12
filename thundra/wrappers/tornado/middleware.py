@@ -1,9 +1,9 @@
 from thundra.wrappers.tornado.tornado_wrapper import TornadoWrapper, logger
 
 
-class ThundraMiddleware(object):
+class CatchpointMiddleware(object):
     def __init__(self):
-        super(ThundraMiddleware, self).__init__()
+        super(CatchpointMiddleware, self).__init__()
         self._wrapper = TornadoWrapper()
 
     def execute(self, handler): 

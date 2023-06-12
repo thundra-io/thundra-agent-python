@@ -1,7 +1,7 @@
 import logging
 import concurrent.futures as futures
 
-from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.plugins.log.catchpoint_logger import debug_logger
 from thundra import constants, utils
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names

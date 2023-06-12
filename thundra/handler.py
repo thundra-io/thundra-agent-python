@@ -5,7 +5,7 @@ import os
 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
-from thundra.thundra_agent import Catchpoint
+from thundra.catchpoint_agent import Catchpoint
 
 thundra = Catchpoint()
 

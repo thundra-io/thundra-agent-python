@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from thundra import constants
-from thundra.listeners.thundra_span_listener import CatchpointSpanListener
+from thundra.listeners.catchpoint_span_listener import CatchpointSpanListener
 from thundra.plugins.invocation import invocation_support
 
 try:

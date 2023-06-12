@@ -98,7 +98,7 @@ async def on_request_exception(session, trace_config_ctx, params):
     scope.close()
 
 
-def ThundraTraceConfig():
+def CatchpointTraceConfig():
     """
     :returns: TraceConfig.
     """

@@ -3,13 +3,13 @@ import wrapt
 from thundra import utils, constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.wrappers.flask.middleware import ThundraMiddleware
+from thundra.wrappers.flask.middleware import CatchpointMiddleware
 
 
 def _wrapper(wrapped, instance, args, kwargs):
     response = wrapped(*args, **kwargs)
     try:
-        thundra_middleware = ThundraMiddleware()
+        thundra_middleware = CatchpointMiddleware()
         thundra_middleware.set_app(instance)
     except:
         pass

@@ -10,8 +10,8 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.config.log_config import LogConfig
 from thundra.plugins.log import log_support
-from thundra.plugins.log.thundra_log_handler import CatchpointLogHandler
-from thundra.plugins.log.thundra_logger import StreamToLogger
+from thundra.plugins.log.catchpoint_log_handler import CatchpointLogHandler
+from thundra.plugins.log.catchpoint_logger import StreamToLogger
 
 
 class LogPlugin:

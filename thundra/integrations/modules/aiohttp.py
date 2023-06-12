@@ -6,9 +6,9 @@ from thundra.config.config_provider import ConfigProvider
 
 def _wrapper(wrapped, instance, args, kwargs):
     try:
-        from thundra.integrations.aiohttp.client import ThundraTraceConfig
+        from thundra.integrations.aiohttp.client import CatchpointTraceConfig
         trace_configs = kwargs.get('trace_configs', [])
-        trace_configs.append(ThundraTraceConfig())
+        trace_configs.append(CatchpointTraceConfig())
         kwargs['trace_configs'] = trace_configs
     except:
         pass

@@ -1,7 +1,7 @@
 from thundra.wrappers.flask.flask_wrapper import FlaskWrapper, logger
 from thundra.utils import Singleton
 
-class ThundraMiddleware(Singleton):
+class CatchpointMiddleware(Singleton):
     def __init__(self):
         self._wrapper = FlaskWrapper()
 

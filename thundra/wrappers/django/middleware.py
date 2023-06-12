@@ -3,9 +3,9 @@ from thundra.wrappers.django.django_wrapper import DjangoWrapper, logger
 from thundra.wrappers.web_wrapper_utils import process_request_route
 
 
-class ThundraMiddleware(object):
+class CatchpointMiddleware(object):
     def __init__(self, get_response=None):
-        super(ThundraMiddleware, self).__init__()
+        super(CatchpointMiddleware, self).__init__()
         self.get_response = get_response
         self._wrapper = DjangoWrapper()
 

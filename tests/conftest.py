@@ -8,7 +8,7 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 from thundra.plugins.invocation import invocation_support
 from thundra.reporter import Reporter
-from thundra.thundra_agent import Catchpoint
+from thundra.catchpoint_agent import Catchpoint
 
 
 class MockContext:

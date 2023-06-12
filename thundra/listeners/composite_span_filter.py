@@ -1,4 +1,4 @@
-from thundra.listeners.thundra_span_filterer import SpanFilter
+from thundra.listeners.catchpoint_span_filterer import SpanFilter
 
 
 class CompositeSpanFilter(SpanFilter):

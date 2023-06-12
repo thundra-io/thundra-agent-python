@@ -3,7 +3,7 @@ import wrapt
 from thundra import utils, constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.wrappers.tornado.middleware import ThundraMiddleware
+from thundra.wrappers.tornado.middleware import CatchpointMiddleware
 
 
 def _init_wrapper(_wrapped, _application, args, kwargs):
@@ -11,7 +11,7 @@ def _init_wrapper(_wrapped, _application, args, kwargs):
 
     middleware = _application.settings.get('_thundra_middleware')
     if middleware is None:
-        _application.settings['_thundra_middleware'] = ThundraMiddleware()
+        _application.settings['_thundra_middleware'] = CatchpointMiddleware()
 
 
 async def _execute_wrapper(_wrapped, _handler, args, kwargs):

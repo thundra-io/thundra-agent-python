@@ -3,7 +3,7 @@ import logging
 from threading import Lock
 from importlib import import_module
 from thundra import constants
-from thundra.listeners.thundra_span_listener import CatchpointSpanListener
+from thundra.listeners.catchpoint_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
 default_error_message = "Error injected by Thundra!"

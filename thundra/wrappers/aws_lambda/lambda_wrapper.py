@@ -15,7 +15,7 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 from thundra.context.plugin_context import PluginContext
 from thundra.integrations import handler_wrappers
-from thundra.plugins.log.thundra_logger import debug_logger
+from thundra.plugins.log.catchpoint_logger import debug_logger
 from thundra.timeout import Timeout
 from thundra.wrappers import wrapper_utils
 from thundra.wrappers.aws_lambda import LambdaApplicationInfoProvider

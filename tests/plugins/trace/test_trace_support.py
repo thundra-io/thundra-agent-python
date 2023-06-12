@@ -4,7 +4,7 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.encoder import to_json
 from thundra.listeners import *
-from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
+from thundra.listeners.catchpoint_span_filterer import StandardSpanFilterer
 from thundra.plugins.trace import trace_support
 
 
