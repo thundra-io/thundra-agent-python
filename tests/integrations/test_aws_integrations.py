@@ -222,7 +222,7 @@ def test_dynamodb_statement_mask():
             assert span.get_tag('aws.dynamodb.table.name') == 'test-table'
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_s3(mock_actual_call, mock_s3_response):
     mock_actual_call.return_value = mock_s3_response
     try:
@@ -246,7 +246,7 @@ def test_s3(mock_actual_call, mock_s3_response):
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['C3D13FE58DE4C810']
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchpoint, mock_event, mock_context):
     mock_actual_call.return_value = mock_lambda_response
 
@@ -259,7 +259,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchp
         )
 
     with mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'):
-        thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
+        _, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
         except:
@@ -289,7 +289,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchp
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_handler_with_catchpoint, mock_event,
                                    mock_context):
     mock_actual_call.return_value = mock_lambda_response
@@ -301,7 +301,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
     tracer = CatchpointTracer.get_instance()
 
     with mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'):
-        thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
+        _, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
         except:
@@ -328,7 +328,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_catchpoint, mock_event,
                                mock_context):
     mock_actual_call.return_value = mock_lambda_response
@@ -343,7 +343,7 @@ def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_hand
         )
 
     with mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'):
-        thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
+        _, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
         except:
@@ -362,7 +362,7 @@ def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_hand
         assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_sqs(mock_actual_call, mock_sqs_response):
     mock_actual_call.return_value = mock_sqs_response
     try:
@@ -387,7 +387,7 @@ def test_sqs(mock_actual_call, mock_sqs_response):
         assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == 'Hello Catchpoint!'
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
     mock_actual_call.return_value = mock_sqs_response
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK, 'true')
@@ -413,7 +413,7 @@ def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
         assert span.get_tag(constants.AwsSQSTags['MESSAGE']) is None
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_sns(mock_actual_call, mock_sns_response):
     mock_actual_call.return_value = mock_sns_response
 
@@ -438,7 +438,7 @@ def test_sns(mock_actual_call, mock_sns_response):
         assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == 'Hello Catchpoint!'
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_sns_message_masked(mock_actual_call, mock_sns_response):
     mock_actual_call.return_value = mock_sns_response
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK, 'true')
@@ -464,7 +464,7 @@ def test_sns_message_masked(mock_actual_call, mock_sns_response):
         assert span.get_tag(constants.AwsSNSTags['MESSAGE']) is None
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_kinesis(mock_actual_call, mock_kinesis_response):
     mock_actual_call.return_value = mock_kinesis_response
 
@@ -496,7 +496,7 @@ def test_kinesis(mock_actual_call, mock_kinesis_response):
             region + ':' + 'STRING_VALUE:' + shard_id + ':' + sequence_number]
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_firehose(mock_actual_call, mock_firehose_response):
     mock_actual_call.return_value = mock_firehose_response
     region = 'us-west-2'
@@ -626,7 +626,7 @@ def test_firehose_get_trace_links_put_record_batch():
     ]
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_exec_response):
     mock_actual_call.return_value = mock_athena_start_query_exec_response
 
@@ -773,7 +773,7 @@ def test_athena_batch_get_query_execution():
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_query_response):
     mock_actual_call.return_value = mock_athena_create_named_query_response
     query = "SELECT * FROM persons where age = 10;"
@@ -908,7 +908,7 @@ def test_athena_get_query_results():
         assert span.get_tag(constants.DBTags['DB_STATEMENT']) is None
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_response):
     mock_actual_call.return_value = mock_eventbridge_put_events_response
 
@@ -953,7 +953,7 @@ def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_re
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-event-id']
 
 
-@mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
+@mock.patch('catchpoint.integrations.botocore.BaseIntegration.actual_call')
 def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_executions_response):
     mock_actual_call.return_value = mock_athena_list_query_executions_response
     try:

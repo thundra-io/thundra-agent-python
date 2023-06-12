@@ -8,7 +8,7 @@ from catchpoint.reporter import Reporter
 from catchpoint.encoder import to_json
 
 
-@mock.patch('thundra.reporter.requests')
+@mock.patch('catchpoint.reporter.requests')
 def test_send_report_to_url(mock_requests, mock_report):
     ConfigProvider.set(config_names.CATCHPOINT_REPORT_REST_BASEURL, 'different_url/api')
     ConfigProvider.set(config_names.CATCHPOINT_REPORT_REST_COMPOSITE_ENABLE, 'false')
@@ -29,7 +29,7 @@ def test_send_report_to_url(mock_requests, mock_report):
         assert response.status_code == 200
 
 
-@mock.patch('thundra.reporter.requests')
+@mock.patch('catchpoint.reporter.requests')
 def test_send_report(mock_requests, mock_invocation_report):
     test_session = mock_requests.Session()
     reporter = Reporter('unauthorized api key', session=test_session)

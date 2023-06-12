@@ -11,9 +11,9 @@ from catchpoint.wrappers.django.django_wrapper import DjangoWrapper
 c = Client()
 
 
-@mock.patch('thundra.wrappers.django.django_wrapper.DjangoWrapper.process_exception')
-@mock.patch('thundra.wrappers.django.django_wrapper.DjangoWrapper.after_request')
-@mock.patch('thundra.wrappers.django.django_wrapper.DjangoWrapper.before_request')
+@mock.patch('catchpoint.wrappers.django.django_wrapper.DjangoWrapper.process_exception')
+@mock.patch('catchpoint.wrappers.django.django_wrapper.DjangoWrapper.after_request')
+@mock.patch('catchpoint.wrappers.django.django_wrapper.DjangoWrapper.before_request')
 def test_django_middleware_wrapper_calls(mock_before_request, mock_after_request, mock_process_exception):
     response = c.get('/')
 
@@ -24,9 +24,9 @@ def test_django_middleware_wrapper_calls(mock_before_request, mock_after_request
     assert not mock_process_exception.called
 
 
-@mock.patch('thundra.wrappers.django.django_wrapper.DjangoWrapper.process_exception')
-@mock.patch('thundra.wrappers.django.django_wrapper.DjangoWrapper.after_request')
-@mock.patch('thundra.wrappers.django.django_wrapper.DjangoWrapper.before_request')
+@mock.patch('catchpoint.wrappers.django.django_wrapper.DjangoWrapper.process_exception')
+@mock.patch('catchpoint.wrappers.django.django_wrapper.DjangoWrapper.after_request')
+@mock.patch('catchpoint.wrappers.django.django_wrapper.DjangoWrapper.before_request')
 def test_erroneous_view(mock_before_request, mock_after_request, mock_process_exception):
     try:
         c.get('/error/')

@@ -685,7 +685,7 @@ class AWSStepFunctionIntegration(BaseIntegration):
             if orig_input != None and ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_AWS_STEPFUNCTIONS):
                 parsed_input = json.loads(orig_input)
                 trace_link = str(uuid.uuid4())
-                parsed_input['_thundra'] = {
+                parsed_input['_catchpoint'] = {
                     "trace_link": trace_link,
                     "step": 0
                 }

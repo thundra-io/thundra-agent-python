@@ -168,7 +168,7 @@ def mock_invocation_report():
 
 
 @pytest.fixture
-@mock.patch('thundra.reporter.requests')
+@mock.patch('catchpoint.reporter.requests')
 def reporter(mock_requests):
     return Reporter('api key', mock_requests.Session())
 

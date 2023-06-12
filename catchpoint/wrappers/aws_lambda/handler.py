@@ -5,7 +5,7 @@ import os
 
 from catchpoint.catchpoint_agent import Catchpoint
 
-thundra = Catchpoint()
+catchpoint = Catchpoint()
 
 handler_found = False
 user_handler = None
@@ -38,5 +38,5 @@ def wrapper(event, context):
     global user_handler
     if handler_found and user_handler:
         if not hasattr(user_handler, "_catchpoint_wrapped"):
-            user_handler = thundra(user_handler)
+            user_handler = catchpoint(user_handler)
         return user_handler(event, context)

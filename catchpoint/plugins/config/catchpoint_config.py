@@ -9,7 +9,7 @@ class CatchpointConfig:
             opts = {}
 
         self.api_key = opts.get('apiKey')
-        self.disable_thundra = opts.get('disableCatchpoint')
+        self.disable_catchpoint = opts.get('disableCatchpoint')
         self.trace_config = TraceConfig(opts.get('traceConfig'))
         self.metric_config = MetricConfig(opts.get('metricConfig'))
         self.log_config = LogConfig(opts.get('logConfig'))

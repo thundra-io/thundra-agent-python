@@ -104,8 +104,8 @@ def trace_calls(frame, event, arg):
     trace_local.trace_call_active = False
 
     # First check whether current call is wrapped
-    wrapped_by_thundra = frame.f_back and frame.f_back.f_code.co_name == '___thundra_trace___'
-    if not wrapped_by_thundra:
+    wrapped_by_catchpoint = frame.f_back and frame.f_back.f_code.co_name == '___catchpoint_trace___'
+    if not wrapped_by_catchpoint:
         return
 
     # Note that "is Catchpoint wrapped check" is applied before "is event call" check.
@@ -121,7 +121,7 @@ def trace_calls(frame, event, arg):
     # Ignore
     # - 'write()' calls from print statements
     # - Catchpoint trace decorator calls
-    ignored = _func_name == 'write' or _func_name == '___thundra_trace___'
+    ignored = _func_name == 'write' or _func_name == '___catchpoint_trace___'
     if ignored:
         return
 
@@ -228,7 +228,7 @@ class Traceable:
 
     def __call__(self, original_func):
         @wraps(original_func)
-        def ___thundra_trace___(*args, **kwargs):
+        def ___catchpoint_trace___(*args, **kwargs):
             parent_scope = self.tracer.scope_manager.active
             parent_span = parent_scope.span if parent_scope is not None else None
 
@@ -320,6 +320,6 @@ class Traceable:
                     raise traced_err
             return response
 
-        return ___thundra_trace___
+        return ___catchpoint_trace___
 
     call = __call__

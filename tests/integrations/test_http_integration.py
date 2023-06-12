@@ -209,7 +209,7 @@ def test_http_path_depth():
         raise
 
 
-@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+@mock.patch('catchpoint.integrations.requests.RequestsIntegration.actual_call')
 def test_apigw_call(mock_actual_call):
     mock_actual_call.return_value = requests.Response()
     mock_actual_call.return_value.headers = {"x-amz-apigw-id": "test_id"}
@@ -239,7 +239,7 @@ def test_apigw_call(mock_actual_call):
         raise
 
 
-@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+@mock.patch('catchpoint.integrations.requests.RequestsIntegration.actual_call')
 def test_apigw_call_v2(mock_actual_call):
     mock_actual_call.return_value = requests.Response()
     mock_actual_call.return_value.headers = {"apigw-requestid": "test_id", constants.TRIGGER_RESOURCE_NAME_KEY: "test"}
@@ -268,7 +268,7 @@ def test_apigw_call_v2(mock_actual_call):
         raise
 
 
-@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+@mock.patch('catchpoint.integrations.requests.RequestsIntegration.actual_call')
 def test_http_4xx_error(mock_actual_call):
     mock_actual_call.return_value = requests.Response()
     mock_actual_call.return_value.status_code = 404
@@ -300,7 +300,7 @@ def test_http_4xx_error(mock_actual_call):
     assert http_span.get_tag('error.message') == 'Not Found'
 
 
-@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+@mock.patch('catchpoint.integrations.requests.RequestsIntegration.actual_call')
 def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN, '500')
     mock_actual_call.return_value = requests.Response()
@@ -333,7 +333,7 @@ def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
     assert http_span.get_tag('error.message') is None
 
 
-@mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
+@mock.patch('catchpoint.integrations.requests.RequestsIntegration.actual_call')
 def test_http_5xx_error(mock_actual_call):
     mock_actual_call.return_value = requests.Response()
     mock_actual_call.return_value.status_code = 500

@@ -12,8 +12,8 @@ class TestHelloApp(AsyncHTTPTestCase):
     def get_app(self):
         return hello.make_app()
 
-    @mock.patch('thundra.wrappers.tornado.tornado_wrapper.TornadoWrapper.after_request')
-    @mock.patch('thundra.wrappers.tornado.tornado_wrapper.TornadoWrapper.before_request')
+    @mock.patch('catchpoint.wrappers.tornado.tornado_wrapper.TornadoWrapper.after_request')
+    @mock.patch('catchpoint.wrappers.tornado.tornado_wrapper.TornadoWrapper.before_request')
     def test_homepage(self, mock_before_request, mock_after_request):
         response = self.fetch('/')
         self.assertEqual(response.code, 200)
@@ -21,7 +21,7 @@ class TestHelloApp(AsyncHTTPTestCase):
         assert mock_before_request.called
         assert mock_after_request.called
 
-    @mock.patch('thundra.wrappers.web_wrapper_utils.finish_trace')
+    @mock.patch('catchpoint.wrappers.web_wrapper_utils.finish_trace')
     def test_successful_view(self, finish_trace):
         query_string={'foo': 'baz'}
         response = self.fetch(url_concat("/query", query_string))

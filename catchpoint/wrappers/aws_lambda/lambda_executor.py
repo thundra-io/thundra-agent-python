@@ -159,11 +159,11 @@ def inject_step_function_info(execution_context, outgoing_trace_links):
         if ConfigProvider.get(config_names.CATCHPOINT_LAMBDA_AWS_STEPFUNCTIONS):
             trace_link = str(uuid.uuid4())
             step = 0
-            if '_thundra' in event:
-                step = event['_thundra']['step']
+            if '_catchpoint' in event:
+                step = event['_catchpoint']['step']
 
             if isinstance(response, dict):
-                response['_thundra'] = {
+                response['_catchpoint'] = {
                     'trace_link': trace_link,
                     'step': step + 1
                 }
@@ -178,7 +178,7 @@ def inject_appsync_function_info(execution_context, outgoing_trace_links):
             trace_id = execution_context.trace_id
 
             if isinstance(response, dict):
-                response['_thundra'] = {
+                response['_catchpoint'] = {
                     'trace_id': trace_id,
                 }
     except Exception as e:

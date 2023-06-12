@@ -19,9 +19,9 @@ def error():
     raise RuntimeError('Test')
 
 
-@mock.patch('thundra.wrappers.flask.flask_wrapper.FlaskWrapper.teardown_request')
-@mock.patch('thundra.wrappers.flask.flask_wrapper.FlaskWrapper.after_request')
-@mock.patch('thundra.wrappers.flask.flask_wrapper.FlaskWrapper.before_request')
+@mock.patch('catchpoint.wrappers.flask.flask_wrapper.FlaskWrapper.teardown_request')
+@mock.patch('catchpoint.wrappers.flask.flask_wrapper.FlaskWrapper.after_request')
+@mock.patch('catchpoint.wrappers.flask.flask_wrapper.FlaskWrapper.before_request')
 def test_flask_hooks_called(mock_before_request, mock_after_request, mock_teardown_request):
     response = client.get('/')
 
@@ -33,7 +33,7 @@ def test_flask_hooks_called(mock_before_request, mock_after_request, mock_teardo
     assert mock_teardown_request.called
 
 
-@mock.patch('thundra.wrappers.web_wrapper_utils.finish_trace')
+@mock.patch('catchpoint.wrappers.web_wrapper_utils.finish_trace')
 def test_successful_view(finish_trace):
     response = client.get('/', query_string={'bar': 'baz'})
     execution_context = ExecutionContextManager.get()
@@ -53,7 +53,7 @@ def test_successful_view(finish_trace):
     ExecutionContextManager.clear()
 
 
-@mock.patch('thundra.wrappers.web_wrapper_utils.finish_trace')
+@mock.patch('catchpoint.wrappers.web_wrapper_utils.finish_trace')
 def test_erroneous_view(finish_trace):
     client.get('/error', query_string={'bar': 'baz'})
     execution_context = ExecutionContextManager.get()
@@ -73,7 +73,7 @@ def test_erroneous_view(finish_trace):
     ExecutionContextManager.clear()
 
 
-@mock.patch('thundra.wrappers.web_wrapper_utils.finish_trace')
+@mock.patch('catchpoint.wrappers.web_wrapper_utils.finish_trace')
 def test_blueprint(finish_trace):
     blueprint = Blueprint('test', __name__)
 

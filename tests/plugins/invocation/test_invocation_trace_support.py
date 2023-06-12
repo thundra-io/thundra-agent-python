@@ -40,7 +40,7 @@ def mocked_span():
     return make_mocked_span
 
 
-@mock.patch('thundra.opentracing.recorder.CatchpointRecorder.get_spans')
+@mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.get_spans')
 def test_get_resources(mocked_get_spans, mocked_span):
 
     span_args = [

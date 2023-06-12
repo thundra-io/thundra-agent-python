@@ -11,7 +11,7 @@ from catchpoint.config import config_names
 
 
 @pytest.fixture
-@mock.patch('thundra.reporter.requests')
+@mock.patch('catchpoint.reporter.requests')
 def reporter(mock_requests):
     return Reporter('api key', mock_requests.Session())
 
@@ -23,9 +23,9 @@ def catchpoint_with_profile(reporter, monkeypatch):
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_VERSION, 'version')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
 
-    thundra = Catchpoint('api key', disable_metric=True)
-    thundra.reporter = reporter
-    return thundra
+    catchpoint = Catchpoint('api key', disable_metric=True)
+    catchpoint.reporter = reporter
+    return catchpoint
 
 
 @pytest.fixture

@@ -91,7 +91,7 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior():
     assert trace_exist is True
 
 
-@mock.patch('thundra.reporter.Reporter')
+@mock.patch('catchpoint.reporter.Reporter')
 def test_if_catchpoint_is_disabled(mock_reporter, handler, mock_event, mock_context):
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
     _, handler = handler
@@ -110,7 +110,7 @@ def test_if_exception_is_handled(handler_with_exception, mock_context, mock_even
     assert ExecutionContextManager.get().error
 
 
-@mock.patch('thundra.catchpoint_agent.Catchpoint.check_and_handle_warmup_request')
+@mock.patch('catchpoint.catchpoint_agent.Catchpoint.check_and_handle_warmup_request')
 def test_if_catchpoint_crashes_user_handler_before(mocked_func, handler, mock_event, mock_context):
     mocked_func.side_effect = RuntimeError('Boom!')
     catchpoint, handler = handler
@@ -120,7 +120,7 @@ def test_if_catchpoint_crashes_user_handler_before(mocked_func, handler, mock_ev
         pytest.fail("User's handler shouldn't fail when Catchpoint raise an exception")
 
 
-@mock.patch('thundra.reporter.Reporter.send_reports')
+@mock.patch('catchpoint.reporter.Reporter.send_reports')
 def test_if_catchpoint_crashes_user_handler_after(mocked_func, handler, mock_event, mock_context):
     mocked_func.side_effect = RuntimeError('Boom!')
     catchpoint, handler = handler
