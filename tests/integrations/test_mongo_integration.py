@@ -102,7 +102,7 @@ if not PY2:
 
 
     def test_mongo_command_masked():
-        ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK, 'true')
+        ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_MONGODB_COMMAND_MASK, 'true')
         client = MongoClient('localhost', 27017)
         db = client.test
         db.list_collection_names()

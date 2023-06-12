@@ -28,7 +28,7 @@ def test_set():
 
 
 def test_set_mask_command():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
 
     try:
         r = redis.Redis(host="test", port="12345", password="pass")
@@ -73,7 +73,7 @@ def test_get():
 
 
 def test_get_mask_command():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_REDIS_COMMAND_MASK, 'true')
 
     try:
         r = redis.Redis(host="test", port="12345", password="pass")

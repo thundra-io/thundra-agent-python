@@ -14,7 +14,7 @@ if not PY2:
 
         @pytest.mark.skip(reason="This functionality not in use!")
         def test_retrieving_function_prefix():
-                ConfigProvider.set(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG, \
+                ConfigProvider.set(config_names.CATCHPOINT_TRACE_INSTRUMENT_TRACEABLECONFIG, \
                         "{}.{}*{}".format(target_module_name ,target_function_prefix, target_trace_arguments))
                 patcher = ImportPatcher()
 
@@ -23,7 +23,7 @@ if not PY2:
 
         @pytest.mark.skip(reason="This functionality not in use!")
         def test_retrieving_trace_args():
-                ConfigProvider.set(config_names.THUNDRA_TRACE_INSTRUMENT_TRACEABLECONFIG, \
+                ConfigProvider.set(config_names.CATCHPOINT_TRACE_INSTRUMENT_TRACEABLECONFIG, \
                         "{}.{}*{}".format(target_module_name ,target_function_prefix, target_trace_arguments))
                 patcher = ImportPatcher()
                 for arg in patcher.get_trace_arguments(target_module_name):

@@ -38,7 +38,7 @@ def test_mysql_integration():
 
 
 def test_mysql_integration_mask_statement():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_RDB_STATEMENT_MASK, 'true')
 
     query = "SELECT 1 + 1 AS solution"
     connection = mysql.connector.connect(

@@ -19,9 +19,9 @@ def reporter(mock_requests):
 @pytest.fixture
 def thundra_with_profile(reporter, monkeypatch):
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_ID, '[]test')
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_VERSION, 'version')
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_ID, '[]test')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_VERSION, 'version')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
 
     thundra = Thundra('api key', disable_metric=True)
     thundra.reporter = reporter
@@ -41,11 +41,11 @@ def handler_with_profile(thundra_with_profile):
 @pytest.fixture
 def thundra_with_request_response_skip(monkeypatch):
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_ID, '[]test')
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_VERSION, 'version')
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
-    ConfigProvider.set(config_names.THUNDRA_TRACE_REQUEST_SKIP, 'true')
-    ConfigProvider.set(config_names.THUNDRA_TRACE_RESPONSE_SKIP, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_ID, '[]test')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_VERSION, 'version')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_REQUEST_SKIP, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_RESPONSE_SKIP, 'true')
     thundra = Thundra('api key', disable_metric=True)
     return thundra
 

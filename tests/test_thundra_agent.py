@@ -9,7 +9,7 @@ from thundra.thundra_agent import Thundra
 
 
 def test_if_api_key_is_retrieved_from_env_var():
-    ConfigProvider.set(config_names.THUNDRA_APIKEY, 'api key')
+    ConfigProvider.set(config_names.CATCHPOINT_APIKEY, 'api key')
     thundra = Thundra()
     assert thundra.api_key == 'api key'
 
@@ -44,7 +44,7 @@ def test_if_disable_trace_is_not_set():
 
 
 def test_disable_trace_plugin_from_environment_variable():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
     thundra = Thundra('api key')
 
     trace_exist = False
@@ -56,7 +56,7 @@ def test_disable_trace_plugin_from_environment_variable():
 
 
 def test_enable_trace_plugin_from_environment_variable():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'false')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'false')
     thundra = Thundra('api key')
 
     trace_exist = False
@@ -68,7 +68,7 @@ def test_enable_trace_plugin_from_environment_variable():
 
 
 def test_if_disable_trace_plugin_from_environment_variable_is_prior():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
     thundra = Thundra('api key', disable_trace=False)
 
     trace_exist = False
@@ -80,7 +80,7 @@ def test_if_disable_trace_plugin_from_environment_variable_is_prior():
 
 
 def test_if_enable_trace_plugin_from_environment_variable_is_prior():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'false')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'false')
     thundra = Thundra('api key', disable_trace=True)
 
     trace_exist = False
@@ -93,7 +93,7 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior():
 
 @mock.patch('thundra.reporter.Reporter')
 def test_if_thundra_is_disabled(mock_reporter, handler, mock_event, mock_context):
-    ConfigProvider.set(config_names.THUNDRA_TRACE_DISABLE, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
     _, handler = handler
 
     handler(mock_event, mock_context)

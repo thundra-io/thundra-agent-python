@@ -68,7 +68,7 @@ def test_http_put():
 
 def test_http_put_body_masked():
     try:
-        ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_BODY_MASK, 'true')
+        ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_BODY_MASK, 'true')
         url = 'https://jsonplaceholder.typicode.com/users/3'
         parsed_url = urlparse(url)
         path = parsed_url.path

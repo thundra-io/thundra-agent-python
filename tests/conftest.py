@@ -449,7 +449,7 @@ def mock_dynamodb_event_trace_injected():
                         "Id": {
                             "N": "101"
                         },
-                        constants.THUNDRA_SPAN_ID_KEY: {
+                        constants.CATCHPOINT_SPAN_ID_KEY: {
                             "S": "test_id1"
                         }
                     },
@@ -489,7 +489,7 @@ def mock_dynamodb_event_trace_injected():
                         "Id": {
                             "N": "101"
                         },
-                        constants.THUNDRA_SPAN_ID_KEY: {
+                        constants.CATCHPOINT_SPAN_ID_KEY: {
                             "S": "test_id2"
                         }
                     },
@@ -520,7 +520,7 @@ def mock_dynamodb_event_trace_injected():
                         "Id": {
                             "N": "101"
                         },
-                        constants.THUNDRA_SPAN_ID_KEY: {
+                        constants.CATCHPOINT_SPAN_ID_KEY: {
                             "S": "test_id3"
                         }
                     },

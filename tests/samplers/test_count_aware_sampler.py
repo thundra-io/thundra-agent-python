@@ -11,7 +11,7 @@ def test_default_count_freq():
 
 def test_freq_from_env():
     count_freq = 37
-    ConfigProvider.set(config_names.THUNDRA_SAMPLER_COUNTAWARE_COUNTFREQ, '{}'.format(count_freq))
+    ConfigProvider.set(config_names.CATCHPOINT_SAMPLER_COUNTAWARE_COUNTFREQ, '{}'.format(count_freq))
 
     cams = CountAwareSampler()
 

@@ -66,9 +66,9 @@ STATIC_URL = '/static/'
 
 THUNDRA = {
     "thundra.apiKey": "test",
-    "thundra.agent.debug.enable": True,
-    "thundra.agent.application.name": "test",
-    "thundra.agent.application.region": "eu-west-1",
-    "thundra.agent.log.disable": False,
-    "thundra.agent.log.console.disable": False
+    "catchpoint.debug.enable": True,
+    "catchpoint.application.name": "test",
+    "catchpoint.application.region": "eu-west-1",
+    "catchpoint.log.disable": False,
+    "catchpoint.log.console.disable": False
 }

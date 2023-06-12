@@ -24,7 +24,7 @@ class ConfigProvider:
         env_variables = os.environ
 
         for var_name in env_variables:
-            if var_name.upper().startswith("THUNDRA_"):
+            if var_name.upper().startswith("CATCHPOINT_"):
                 env_var_name = ConfigProvider.env_var_to_config_name(var_name)
                 val = env_variables.get(var_name).strip()
                 env_var_type = ConfigProvider.get_config_type(env_var_name)

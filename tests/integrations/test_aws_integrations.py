@@ -100,7 +100,7 @@ def test_dynamodb():
 
 
 def test_dynamodb_put_item():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
     item = {
         'id': {'S': "3"},
         'text': {'S': "test2"}
@@ -131,7 +131,7 @@ def test_dynamodb_put_item():
 
 
 def test_dynamodb_put_item_resource():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_DYNAMODB_TRACEINJECTION_ENABLE, 'true')
     item = {
         'id': '3',
         'text': 'test'
@@ -163,7 +163,7 @@ def test_dynamodb_put_item_resource():
 
 
 def test_dynamodb_statement_mask():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_DYNAMODB_STATEMENT_MASK, 'true')
     try:
         # Make a request over the table
         dynamodb = boto3.resource('dynamodb', region_name='eu-west-2')
@@ -332,7 +332,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
 def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event,
                                mock_context):
     mock_actual_call.return_value = mock_lambda_response
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK, 'true')
 
     def handler(event, context):
         lambda_func = boto3.client('lambda', region_name='us-west-2')
@@ -390,7 +390,7 @@ def test_sqs(mock_actual_call, mock_sqs_response):
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
     mock_actual_call.return_value = mock_sqs_response
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SQS_MESSAGE_MASK, 'true')
     try:
         sqs = boto3.client('sqs', region_name='us-west-2')
         sqs.send_message(
@@ -441,7 +441,7 @@ def test_sns(mock_actual_call, mock_sns_response):
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
 def test_sns_message_masked(mock_actual_call, mock_sns_response):
     mock_actual_call.return_value = mock_sns_response
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_SNS_MESSAGE_MASK, 'true')
 
     try:
         sns = boto3.client('sns', region_name='us-west-2')
@@ -665,7 +665,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
 
 
 def test_athena_statement_masked():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_ATHENA_STATEMENT_MASK, 'true')
 
     database = "test"
     table = "persons"
@@ -1133,7 +1133,7 @@ def test_default_aws_service():
 
 
 def test_sfn():
-    ConfigProvider.set(config_names.THUNDRA_LAMBDA_AWS_STEPFUNCTIONS, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_LAMBDA_AWS_STEPFUNCTIONS, 'true')
     try:
         client = boto3.client('stepfunctions', region_name='us-west-2')
         client.start_execution(

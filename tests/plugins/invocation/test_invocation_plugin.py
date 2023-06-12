@@ -6,7 +6,7 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 
 
 def test_coldstarts(handler, mock_context, mock_event):
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
 
     thundra, handler = handler
     handler(mock_event, mock_context)
@@ -21,7 +21,7 @@ def test_coldstarts(handler, mock_context, mock_event):
 
 
 def test_if_error_is_added_to_report(handler_with_exception, mock_context, mock_event):
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_exception
 
     try:
@@ -56,7 +56,7 @@ def test_report(handler_with_profile, mock_context, mock_event):
 
 
 def test_aws_related_tags(handler_with_profile, mock_context, mock_event, monkeypatch):
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
     monkeypatch.setitem(os.environ, "_X_AMZN_TRACE_ID",
                         "Root=1-5759e988-bd862e3fe1be46a994272793;Parent=53995c3f42cd8ad8;Sampled=1")
     thundra, handler = handler_with_profile
@@ -96,7 +96,7 @@ def test_when_app_stage_not_exists(handler, mock_context, mock_event):
 
 
 def test_invocation_support_error_set(handler_with_user_error, mock_context, mock_event):
-    ConfigProvider.set(config_names.THUNDRA_APPLICATION_STAGE, 'dev')
+    ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
     thundra, handler = handler_with_user_error
 
     handler(mock_event, mock_context)

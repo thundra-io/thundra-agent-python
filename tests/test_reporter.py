@@ -10,8 +10,8 @@ from thundra.encoder import to_json
 
 @mock.patch('thundra.reporter.requests')
 def test_send_report_to_url(mock_requests, mock_report):
-    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_BASEURL, 'different_url/api')
-    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_ENABLE, 'false')
+    ConfigProvider.set(config_names.CATCHPOINT_REPORT_REST_BASEURL, 'different_url/api')
+    ConfigProvider.set(config_names.CATCHPOINT_REPORT_REST_COMPOSITE_ENABLE, 'false')
     test_session = mock_requests.Session()
     reporter = Reporter('api key', session=test_session)
     responses = reporter.send_reports([mock_report])
@@ -42,7 +42,7 @@ def test_send_report(mock_requests, mock_invocation_report):
 
 
 def test_get_report_batches(mock_report):
-    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE, '2')
+    ConfigProvider.set(config_names.CATCHPOINT_REPORT_REST_COMPOSITE_BATCH_SIZE, '2')
 
     reporter = Reporter('api key')
     batches = reporter.get_report_batches([mock_report] * 3)
@@ -64,7 +64,7 @@ def test_prepare_report_json(mock_report, mock_report_with_byte_field):
 
 
 def test_prepare_report_json_batch(mock_report):
-    ConfigProvider.set(config_names.THUNDRA_REPORT_REST_COMPOSITE_BATCH_SIZE, '1')
+    ConfigProvider.set(config_names.CATCHPOINT_REPORT_REST_COMPOSITE_BATCH_SIZE, '1')
 
     reporter = Reporter('api key')
 
