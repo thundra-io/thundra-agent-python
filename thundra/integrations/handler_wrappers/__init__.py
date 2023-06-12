@@ -27,7 +27,7 @@ def _import_exists(module_name):
         return False
 
 
-def patch_modules(thundra_instance):
+def patch_modules(catchpoint_instance):
     for module_name, module in MODULES.items():
         if _import_exists(module_name):
-            module.patch(thundra_instance)
+            module.patch(catchpoint_instance)

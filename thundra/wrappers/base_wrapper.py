@@ -40,7 +40,7 @@ class BaseWrapper(ABC):
         if not self.api_key:
             self.api_key = self.config.api_key
         if self.api_key is None:
-            logger.error('Please set "catchpoint_apiKey" from environment variables in order to use Thundra')
+            logger.error('Please set "catchpoint_apiKey" from environment variables in order to use Catchpoint')
 
         self.reporter = Reporter(self.api_key)
         self.debugger_process = None

@@ -40,6 +40,6 @@ else:
 def wrapper(event, context):
     global user_handler
     if handler_found and user_handler:
-        if not hasattr(user_handler, "thundra_wrapper"):
+        if not hasattr(user_handler, "catchpoint_wrapper"):
             user_handler = thundra(user_handler)
         return user_handler(event, context)

@@ -24,7 +24,7 @@ def test_tag():
         assert tag == 'test'
 
 
-@mock.patch('thundra.opentracing.recorder.ThundraRecorder')
+@mock.patch('thundra.opentracing.recorder.CatchpointRecorder')
 def test_finish(mock_recorder):
     tracer = CatchpointTracer.get_instance()
     with tracer.start_active_span(operation_name='operation name', finish_on_close=True) as scope:

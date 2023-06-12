@@ -69,25 +69,25 @@ class FastapiWrapper(BaseWrapper):
     def __call__(self, original_func):
 
         import inspect
-        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
+        if hasattr(original_func, "_catchpoint_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
             return original_func
 
         @wraps(original_func)
         async def wrapper(*args, **kwargs):
             request = kwargs.get("request")
-            if request is None or request.scope.get('_thundra_wrapped', False):
+            if request is None or request.scope.get('_catchpoint_wrapped', False):
                 if inspect.iscoroutinefunction(original_func):
                     return await original_func(*args, **kwargs)
                 else:
                     return original_func(*args, **kwargs)
 
-            request.scope['_thundra_wrapped'] = True
+            request.scope['_catchpoint_wrapped'] = True
             try:
                 req_body = request._body if hasattr(request, "_body") else None
-                request.scope["thundra_execution_context"] = self.before_request(request.scope, req_body)
-                execution_context = request.scope["thundra_execution_context"]
+                request.scope["catchpoint_execution_context"] = self.before_request(request.scope, req_body)
+                execution_context = request.scope["catchpoint_execution_context"]
             except Exception as e:
-                logger.error('Error during the before part of Thundra: {}'.format(e))
+                logger.error('Error during the before part of Catchpoint: {}'.format(e))
                 if inspect.iscoroutinefunction(original_func):
                     return await original_func(*args, **kwargs)
                 else:
@@ -108,15 +108,15 @@ class FastapiWrapper(BaseWrapper):
                     }
                     self.error_handler(error, execution_context)
                 except Exception as e_in:
-                    logger.error("Error during the after part of Thundra: {}".format(e_in))
+                    logger.error("Error during the after part of Catchpoint: {}".format(e_in))
                 raise e
 
             try:
                 execution_context.response = response
                 self.after_request(execution_context)
             except Exception as e:
-                logger.error("Error during the after part of Thundra: {}".format(e))
+                logger.error("Error during the after part of Catchpoint: {}".format(e))
             return response
 
-        setattr(wrapper, '_thundra_wrapped', True)
+        setattr(wrapper, '_catchpoint_wrapped', True)
         return wrapper

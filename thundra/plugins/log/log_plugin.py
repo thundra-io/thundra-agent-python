@@ -46,11 +46,11 @@ class LogPlugin:
 
         if not ConfigProvider.get(config_names.CATCHPOINT_LOG_CONSOLE_DISABLE):
             handler = CatchpointLogHandler()
-            has_thundra_log_handler = False
+            has_catchpoint_log_handler = False
             for log_handlers in self.logger.handlers:
                 if isinstance(log_handlers, CatchpointLogHandler):
-                    has_thundra_log_handler = True
-            if not has_thundra_log_handler:
+                    has_catchpoint_log_handler = True
+            if not has_catchpoint_log_handler:
                 self.logger.addHandler(handler)
             self.logger.setLevel(logging.INFO)
             handler.setLevel(logging.INFO)

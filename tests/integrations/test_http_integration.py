@@ -182,7 +182,7 @@ def test_erroneous_http_call():
 
 
 def test_http_path_depth():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, '2')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_URL_DEPTH, '2')
     try:
         url = 'https://jsonplaceholder.typicode.com/asd/qwe/xyz'
         parsed_url = urlparse(url)
@@ -302,7 +302,7 @@ def test_http_4xx_error(mock_actual_call):
 
 @mock.patch('thundra.integrations.requests.RequestsIntegration.actual_call')
 def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN, '500')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_HTTP_ERROR_STATUS_CODE_MIN, '500')
     mock_actual_call.return_value = requests.Response()
     mock_actual_call.return_value.status_code = 404
     mock_actual_call.return_value.reason = "Not Found"

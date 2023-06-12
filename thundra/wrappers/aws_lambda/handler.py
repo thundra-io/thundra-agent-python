@@ -9,10 +9,10 @@ thundra = Catchpoint()
 
 handler_found = False
 user_handler = None
-handler_path = os.environ.get('thundra_agent_lambda_handler', None)
+handler_path = os.environ.get('catchpoint_agent_lambda_handler', None)
 if handler_path is None:
     raise ValueError(
-        "No handler specified for \'thundra_agent_lambda_handler\' environment variable"
+        "No handler specified for \'catchpoint_agent_lambda_handler\' environment variable"
     )
 else:
     handler_found = True
@@ -37,6 +37,6 @@ else:
 def wrapper(event, context):
     global user_handler
     if handler_found and user_handler:
-        if not hasattr(user_handler, "_thundra_wrapped"):
+        if not hasattr(user_handler, "_catchpoint_wrapped"):
             user_handler = thundra(user_handler)
         return user_handler(event, context)

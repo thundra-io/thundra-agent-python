@@ -5,18 +5,18 @@ from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 import wrapt
 
-_thundra_instance = None
+_catchpoint_instance = None
 
 
 def _wrapper(wrapped, _, args, kwargs):
-    wrapped = _thundra_instance(wrapped)
+    wrapped = _catchpoint_instance(wrapped)
     return wrapped(*args, **kwargs)
 
 
-def patch(thundra_instance):
-    if (not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_CHALICE_DISABLE)) and thundra_instance:
-        global _thundra_instance
-        _thundra_instance = thundra_instance
+def patch(catchpoint_instance):
+    if (not ConfigProvider.get(config_names.CATCHPOINT_TRACE_INTEGRATIONS_CHALICE_DISABLE)) and catchpoint_instance:
+        global _catchpoint_instance
+        _catchpoint_instance = catchpoint_instance
         try:
             import_module("chalice")
             wrapt.wrap_function_wrapper("chalice", "Chalice.__call__", _wrapper)

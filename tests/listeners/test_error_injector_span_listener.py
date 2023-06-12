@@ -1,6 +1,5 @@
 from thundra.listeners import ErrorInjectorSpanListener
 from thundra.listeners.error_injector_span_listener import default_error_message
-from thundra.opentracing.tracer import CatchpointTracer
 from boto3.exceptions import Boto3Error
 from redis import AuthenticationError
 

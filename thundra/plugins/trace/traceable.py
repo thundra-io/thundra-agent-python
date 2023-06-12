@@ -120,7 +120,7 @@ def trace_calls(frame, event, arg):
     _func_name = frame.f_code.co_name
     # Ignore
     # - 'write()' calls from print statements
-    # - Thundra trace decorator calls
+    # - Catchpoint trace decorator calls
     ignored = _func_name == 'write' or _func_name == '___thundra_trace___'
     if ignored:
         return

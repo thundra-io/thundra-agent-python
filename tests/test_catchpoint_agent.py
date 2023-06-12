@@ -10,22 +10,22 @@ from thundra.catchpoint_agent import Catchpoint
 
 def test_if_api_key_is_retrieved_from_env_var():
     ConfigProvider.set(config_names.CATCHPOINT_APIKEY, 'api key')
-    thundra = Catchpoint()
-    assert thundra.api_key == 'api key'
+    catchpoint = Catchpoint()
+    assert catchpoint.api_key == 'api key'
 
 
 def test_if_disable_trace_is_set_to_true():
-    thundra = Catchpoint('api key', disable_trace=True)
+    catchpoint = Catchpoint('api key', disable_trace=True)
 
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         assert not type(plugin) is TracePlugin
 
 
 def test_if_disable_trace_is_set_to_false():
-    thundra = Catchpoint('api key', disable_trace=False)
+    catchpoint = Catchpoint('api key', disable_trace=False)
 
     trace_exist = False
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         if isinstance(plugin, TracePlugin):
             trace_exist = True
 
@@ -33,10 +33,10 @@ def test_if_disable_trace_is_set_to_false():
 
 
 def test_if_disable_trace_is_not_set():
-    thundra = Catchpoint('api key')
+    catchpoint = Catchpoint('api key')
 
     trace_exist = False
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         if isinstance(plugin, TracePlugin):
             trace_exist = True
 
@@ -45,10 +45,10 @@ def test_if_disable_trace_is_not_set():
 
 def test_disable_trace_plugin_from_environment_variable():
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
-    thundra = Catchpoint('api key')
+    catchpoint = Catchpoint('api key')
 
     trace_exist = False
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         if isinstance(plugin, TracePlugin):
             trace_exist = True
 
@@ -57,10 +57,10 @@ def test_disable_trace_plugin_from_environment_variable():
 
 def test_enable_trace_plugin_from_environment_variable():
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'false')
-    thundra = Catchpoint('api key')
+    catchpoint = Catchpoint('api key')
 
     trace_exist = False
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         if isinstance(plugin, TracePlugin):
             trace_exist = True
 
@@ -69,10 +69,10 @@ def test_enable_trace_plugin_from_environment_variable():
 
 def test_if_disable_trace_plugin_from_environment_variable_is_prior():
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
-    thundra = Catchpoint('api key', disable_trace=False)
+    catchpoint = Catchpoint('api key', disable_trace=False)
 
     trace_exist = False
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         if isinstance(plugin, TracePlugin):
             trace_exist = True
 
@@ -81,10 +81,10 @@ def test_if_disable_trace_plugin_from_environment_variable_is_prior():
 
 def test_if_enable_trace_plugin_from_environment_variable_is_prior():
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'false')
-    thundra = Catchpoint('api key', disable_trace=True)
+    catchpoint = Catchpoint('api key', disable_trace=True)
 
     trace_exist = False
-    for plugin in thundra.plugins:
+    for plugin in catchpoint.plugins:
         if isinstance(plugin, TracePlugin):
             trace_exist = True
 
@@ -92,7 +92,7 @@ def test_if_enable_trace_plugin_from_environment_variable_is_prior():
 
 
 @mock.patch('thundra.reporter.Reporter')
-def test_if_thundra_is_disabled(mock_reporter, handler, mock_event, mock_context):
+def test_if_catchpoint_is_disabled(mock_reporter, handler, mock_event, mock_context):
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_DISABLE, 'true')
     _, handler = handler
 
@@ -103,28 +103,28 @@ def test_if_thundra_is_disabled(mock_reporter, handler, mock_event, mock_context
 
 
 def test_if_exception_is_handled(handler_with_exception, mock_context, mock_event):
-    thundra, handler = handler_with_exception
+    catchpoint, handler = handler_with_exception
     with pytest.raises(Exception):
         handler(mock_event, mock_context)
 
     assert ExecutionContextManager.get().error
 
 
-@mock.patch('thundra.thundra_agent.Thundra.check_and_handle_warmup_request')
-def test_if_thundra_crashes_user_handler_before(mocked_func, handler, mock_event, mock_context):
+@mock.patch('thundra.catchpoint_agent.Catchpoint.check_and_handle_warmup_request')
+def test_if_catchpoint_crashes_user_handler_before(mocked_func, handler, mock_event, mock_context):
     mocked_func.side_effect = RuntimeError('Boom!')
-    thundra, handler = handler
+    catchpoint, handler = handler
     try:
         handler(mock_event, mock_context)
     except Exception:
-        pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
+        pytest.fail("User's handler shouldn't fail when Catchpoint raise an exception")
 
 
 @mock.patch('thundra.reporter.Reporter.send_reports')
-def test_if_thundra_crashes_user_handler_after(mocked_func, handler, mock_event, mock_context):
+def test_if_catchpoint_crashes_user_handler_after(mocked_func, handler, mock_event, mock_context):
     mocked_func.side_effect = RuntimeError('Boom!')
-    thundra, handler = handler
+    catchpoint, handler = handler
     try:
         handler(mock_event, mock_context)
     except Exception:
-        pytest.fail("User's handler shouldn't fail when Thundra raise an exception")
+        pytest.fail("User's handler shouldn't fail when Catchpoint raise an exception")

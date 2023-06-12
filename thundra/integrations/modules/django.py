@@ -11,7 +11,7 @@ try:
 except ImportError:
     settings = None
 
-THUNDRA_MIDDLEWARE = "thundra.wrappers.django.middleware.ThundraMiddleware"
+CATCHPOINT_MIDDLEWARE = "thundra.wrappers.django.middleware.CatchpointMiddleware"
 
 django_orm_integration = DjangoORMIntegration()
 
@@ -19,21 +19,21 @@ django_orm_integration = DjangoORMIntegration()
 def _wrapper(wrapped, instance, args, kwargs):
     try:
         if getattr(settings, 'MIDDLEWARE', None):
-            if THUNDRA_MIDDLEWARE in settings.MIDDLEWARE:
+            if CATCHPOINT_MIDDLEWARE in settings.MIDDLEWARE:
                 return wrapped(*args, **kwargs)
 
             if isinstance(settings.MIDDLEWARE, tuple):
-                settings.MIDDLEWARE = (THUNDRA_MIDDLEWARE,) + settings.MIDDLEWARE
+                settings.MIDDLEWARE = (CATCHPOINT_MIDDLEWARE,) + settings.MIDDLEWARE
             elif isinstance(settings.MIDDLEWARE, list):
-                settings.MIDDLEWARE = [THUNDRA_MIDDLEWARE] + settings.MIDDLEWARE
+                settings.MIDDLEWARE = [CATCHPOINT_MIDDLEWARE] + settings.MIDDLEWARE
         elif getattr(settings, 'MIDDLEWARE_CLASSES', None):
-            if THUNDRA_MIDDLEWARE in settings.MIDDLEWARE_CLASSES:
+            if CATCHPOINT_MIDDLEWARE in settings.MIDDLEWARE_CLASSES:
                 return wrapped(*args, **kwargs)
 
             if isinstance(settings.MIDDLEWARE_CLASSES, tuple):
-                settings.MIDDLEWARE = (THUNDRA_MIDDLEWARE,) + settings.MIDDLEWARE_CLASSES
+                settings.MIDDLEWARE = (CATCHPOINT_MIDDLEWARE,) + settings.MIDDLEWARE_CLASSES
             elif isinstance(settings.MIDDLEWARE_CLASSES, list):
-                settings.MIDDLEWARE = [THUNDRA_MIDDLEWARE] + settings.MIDDLEWARE_CLASSES
+                settings.MIDDLEWARE = [CATCHPOINT_MIDDLEWARE] + settings.MIDDLEWARE_CLASSES
 
     except Exception:
         pass

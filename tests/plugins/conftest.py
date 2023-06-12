@@ -17,7 +17,7 @@ def reporter(mock_requests):
 
 
 @pytest.fixture
-def thundra_with_profile(reporter, monkeypatch):
+def catchpoint_with_profile(reporter, monkeypatch):
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_ID, '[]test')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_VERSION, 'version')
@@ -29,33 +29,33 @@ def thundra_with_profile(reporter, monkeypatch):
 
 
 @pytest.fixture
-def handler_with_profile(thundra_with_profile):
-    @thundra_with_profile.call
+def handler_with_profile(catchpoint_with_profile):
+    @catchpoint_with_profile.call
     def _handler(event, context):
         return {
             'message': 'Hello'
         }
-    return thundra_with_profile, _handler
+    return catchpoint_with_profile, _handler
 
 
 @pytest.fixture
-def thundra_with_request_response_skip(monkeypatch):
+def catchpoint_with_request_response_skip(monkeypatch):
     monkeypatch.setitem(os.environ, constants.AWS_REGION, 'region')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_ID, '[]test')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_VERSION, 'version')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_REQUEST_SKIP, 'true')
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_RESPONSE_SKIP, 'true')
-    thundra = Catchpoint('api key', disable_metric=True)
-    return thundra
+    catchpoint = Catchpoint('api key', disable_metric=True)
+    return catchpoint
 
 
 @pytest.fixture
-def handler_with_request_response_skip(thundra_with_request_response_skip):
-    @thundra_with_request_response_skip.call
+def handler_with_request_response_skip(catchpoint_with_request_response_skip):
+    @catchpoint_with_request_response_skip.call
     def _handler(event, context):
         pass
-    return thundra_with_request_response_skip, _handler
+    return catchpoint_with_request_response_skip, _handler
 
 
 @pytest.fixture

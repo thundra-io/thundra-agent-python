@@ -21,7 +21,7 @@ class DjangoWrapper(BaseWrapper):
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
         try:
             from django.conf import settings
-            django_settings = getattr(settings, 'THUNDRA', None)
+            django_settings = getattr(settings, 'CATCHPOINT', None)
             if django_settings is not None:
                 configure({'config': django_settings})
         except:
@@ -63,18 +63,18 @@ class DjangoWrapper(BaseWrapper):
         execution_context.error = exception
 
     def __call__(self, original_func):
-        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
+        if hasattr(original_func, "_catchpoint_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
             return original_func
 
         @wraps(original_func)
         def wrapper(request, *args, **kwargs):
-            if getattr(request, '_thundra_wrapped', False):
+            if getattr(request, '_catchpoint_wrapped', False):
                 return original_func(request, *args, **kwargs)
-            setattr(request, '_thundra_wrapped', True)
+            setattr(request, '_catchpoint_wrapped', True)
             try:
                 execution_context = self.before_request(request)
             except Exception as e:
-                logger.error("Error during the before part of Thundra: {}".format(e))
+                logger.error("Error during the before part of Catchpoint: {}".format(e))
                 return original_func(request, *args, **kwargs)
 
             response = None
@@ -90,16 +90,16 @@ class DjangoWrapper(BaseWrapper):
                     }
                     self.after_request(response)
                 except Exception as e_in:
-                    logger.error("Error during the after part of Thundra: {}".format(e_in))
+                    logger.error("Error during the after part of Catchpoint: {}".format(e_in))
                 raise e
 
             try:
                 self.after_request(response)
             except Exception as e:
-                logger.error("Error during the after part of Thundra: {}".format(e))
+                logger.error("Error during the after part of Catchpoint: {}".format(e))
             return response
 
-        setattr(wrapper, '_thundra_wrapped', True)
+        setattr(wrapper, '_catchpoint_wrapped', True)
         return wrapper
 
     call = __call__

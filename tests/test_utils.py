@@ -39,8 +39,8 @@ def test_get_nearest_collector(monkeypatch):
     for region in regions:
         monkeypatch.setitem(os.environ, constants.AWS_REGION, region)
         collector = utils.get_nearest_collector()
-        assert collector == "{}.collector.thundra.io".format(region)
+        assert collector == "{}.collector.catchpoint.com".format(region)
     
     monkeypatch.delitem(os.environ, constants.AWS_REGION)
     collector = utils.get_nearest_collector()
-    assert collector == "collector.thundra.io"
+    assert collector == "collector.catchpoint.com"

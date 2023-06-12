@@ -49,43 +49,43 @@ class FlaskWrapper(BaseWrapper):
         self.execute_hook('before:invocation', execution_context)
 
         if g is not None:
-            g.thundra_execution_context = execution_context
+            g.catchpoint_execution_context = execution_context
 
         return execution_context
 
     def after_request(self, response):
         try:
-            if g is not None and hasattr(g, 'thundra_execution_context'):
-                execution_context = g.thundra_execution_context
+            if g is not None and hasattr(g, 'catchpoint_execution_context'):
+                execution_context = g.catchpoint_execution_context
                 if response:
                     execution_context.response = response
         except Exception as e:
-            logger.error('Error setting response to context for Thundra: {}'.format(e))
+            logger.error('Error setting response to context for Catchpoint: {}'.format(e))
         return response
 
     def teardown_request(self, exception=None):
         try:
-            if g is not None and hasattr(g, 'thundra_execution_context'):
-                execution_context = g.thundra_execution_context
+            if g is not None and hasattr(g, 'catchpoint_execution_context'):
+                execution_context = g.catchpoint_execution_context
                 if exception:
                     execution_context.error = exception
                 self.prepare_and_send_reports_async(execution_context)
         except Exception as e:
-            logger.error('Error during the request teardown of Thundra: {}'.format(e))
+            logger.error('Error during the request teardown of Catchpoint: {}'.format(e))
 
     def __call__(self, original_func):
-        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
+        if hasattr(original_func, "_catchpoint_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
             return original_func
 
         @wraps(original_func)
         def wrapper(*args, **kwargs):
-            if request is None or getattr(request, '_thundra_wrapped', False):
+            if request is None or getattr(request, '_catchpoint_wrapped', False):
                 return original_func(*args, **kwargs)
-            setattr(request, '_thundra_wrapped', True)
+            setattr(request, '_catchpoint_wrapped', True)
             try:
                 execution_context = self.before_request(request)
             except Exception as e:
-                logger.error('Error during the before part of Thundra: {}'.format(e))
+                logger.error('Error during the before part of Catchpoint: {}'.format(e))
                 return original_func(*args, **kwargs)
 
             response = None
@@ -102,16 +102,16 @@ class FlaskWrapper(BaseWrapper):
                     }
                     self.teardown_request(error)
                 except Exception as e_in:
-                    logger.error("Error during the after part of Thundra: {}".format(e_in))
+                    logger.error("Error during the after part of Catchpoint: {}".format(e_in))
                 raise e
 
             try:
                 self.teardown_request()
             except Exception as e:
-                logger.error("Error during the after part of Thundra: {}".format(e))
+                logger.error("Error during the after part of Catchpoint: {}".format(e))
             return response
 
-        setattr(wrapper, '_thundra_wrapped', True)
+        setattr(wrapper, '_catchpoint_wrapped', True)
         return wrapper
 
     call = __call__

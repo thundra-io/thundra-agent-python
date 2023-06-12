@@ -54,15 +54,15 @@ class CatchpointFinder(PathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if fullname == self.module_name:
             spec = super(CatchpointFinder, self).find_spec(fullname, path, target)
-            loader = ThundraLoader(fullname, spec.origin)
+            loader = CatchpointLoader(fullname, spec.origin)
             return ModuleSpec(fullname, loader)
 
 
 # Loading the module in a load time
-class ThundraLoader(SourceFileLoader):
+class CatchpointLoader(SourceFileLoader):
 
     def exec_module(self, module):
-        super(ThundraLoader, self).exec_module(module)
+        super(CatchpointLoader, self).exec_module(module)
         import_patcher = ImportPatcher()
         module_name = utils.get_module_name(module)
         function_prefix = import_patcher.get_module_function_prefix(module_name)

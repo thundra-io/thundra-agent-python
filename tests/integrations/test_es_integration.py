@@ -87,7 +87,7 @@ def test_refresh():
 
 
 def test_mask_body():
-    ConfigProvider.set(config_names.THUNDRA_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK, 'true')
+    ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_ELASTICSEARCH_BODY_MASK, 'true')
     try:
         es = Elasticsearch([{'host': 'test', 'port': 3737}], max_retries=0)
         author1 = {"name": "Sidney Sheldon", "novels_count": 18}

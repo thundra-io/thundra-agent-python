@@ -10,7 +10,7 @@ class CatchpointMiddleware(object):
         self._wrapper = DjangoWrapper()
 
     def __call__(self, request):
-        setattr(request, '_thundra_wrapped', True)
+        setattr(request, '_catchpoint_wrapped', True)
         # Code to be executed for each request before
         # the view (and later middleware) are called.
         before_done = False
@@ -18,7 +18,7 @@ class CatchpointMiddleware(object):
             self._wrapper.before_request(request)
             before_done = True
         except Exception as e:
-            logger.error("Error during the before part of Thundra: {}".format(e))
+            logger.error("Error during the before part of Catchpoint: {}".format(e))
 
         response = self.get_response(request)
 
@@ -28,7 +28,7 @@ class CatchpointMiddleware(object):
             try:
                 self._wrapper.after_request(response)
             except Exception as e:
-                logger.error("Error during the after part of Thundra: {}".format(e))
+                logger.error("Error during the after part of Catchpoint: {}".format(e))
 
         return response
 

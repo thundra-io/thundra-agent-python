@@ -119,7 +119,7 @@ def test_get_sl_class():
         ('ErrorInjectorSpanListener', ErrorInjectorSpanListener),
         ('LatencyInjectorSpanListener', LatencyInjectorSpanListener),
         ('FilteringSpanListener', FilteringSpanListener),
-        ('ThundraSpanListener', None),
+        ('CatchpointSpanListener', None),
         ('NonExistingListener', None),
     ]
 

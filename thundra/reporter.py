@@ -34,7 +34,7 @@ class Reporter:
 
     def send_reports(self, reports, **opts):
         if not self.api_key:
-            debug_logger("API key not set, not sending report to Thundra.")
+            debug_logger("API key not set, not sending report to Catchpoint.")
             return []
 
         headers = {
@@ -52,7 +52,7 @@ class Reporter:
             responses = [future.result() for future in futures.as_completed(_futures)]
 
         if ConfigProvider.get(config_names.CATCHPOINT_DEBUG_ENABLE):
-            debug_logger("Thundra API responses: " + str(responses))
+            debug_logger("Catchpoint API responses: " + str(responses))
         return responses
 
     def send_batch(self, args):

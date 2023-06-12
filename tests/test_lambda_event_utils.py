@@ -31,7 +31,7 @@ from gzip import GzipFile
 def tracer_and_invocation_support():
     with ExitStack() as stack:
         # Just a fancy way of using contexts to avoid an ugly multi-line with statement
-        stack.enter_context(mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'))
+        stack.enter_context(mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'))
         tracer = CatchpointTracer.get_instance()
         invocation_support = invocation.invocation_support
         invocation_trace_support = invocation.invocation_trace_support
@@ -270,7 +270,7 @@ def test_cloudfront_event_trigger(tracer_and_invocation_support, handler, mock_c
 
 
 def test_firehose_trigger(tracer_and_invocation_support, handler, mock_firehose_event, mock_context):
-    thundra, handler = handler
+    _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
     assert lambda_event_utils.get_lambda_event_type(mock_firehose_event,
                                                     mock_context) == lambda_event_utils.LambdaEventType.Firehose
@@ -358,7 +358,7 @@ def test_s3_trigger(tracer_and_invocation_support, handler, mock_s3_event, mock_
 
 
 def test_lambda_trigger(tracer_and_invocation_support, handler, mock_event, mock_lambda_context):
-    thundra, handler = handler
+    _, handler = handler
     tracer, invocation_support, invocation_trace_support = tracer_and_invocation_support
     assert lambda_event_utils.get_lambda_event_type(mock_event,
                                                     mock_lambda_context) == lambda_event_utils.LambdaEventType.Lambda

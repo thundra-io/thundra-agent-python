@@ -11,7 +11,7 @@ def span():
     return scope.span
 
 
-@mock.patch('thundra.opentracing.recorder.ThundraRecorder')
+@mock.patch('thundra.opentracing.recorder.CatchpointRecorder')
 @mock.patch('opentracing.scope_managers.ThreadLocalScopeManager')
 def test_start_active_span(mock_recorder, mock_scope_manager, span):
     tracer = CatchpointTracer.get_instance()
@@ -28,7 +28,7 @@ def test_start_active_span(mock_recorder, mock_scope_manager, span):
         mock_recorder.record.assert_called_once
 
 
-@mock.patch('thundra.opentracing.recorder.ThundraRecorder')
+@mock.patch('thundra.opentracing.recorder.CatchpointRecorder')
 def test_start_span(mock_recorder, span):
     tracer = CatchpointTracer.get_instance()
     start_time = time.time()

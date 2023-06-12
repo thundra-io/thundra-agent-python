@@ -174,45 +174,45 @@ def reporter(mock_requests):
 
 
 @pytest.fixture
-def thundra(reporter):
-    thundra = Catchpoint(api_key="api_key", disable_metric=True)
-    thundra.reporter = reporter
-    return thundra
+def catchpoint(reporter):
+    catchpoint = Catchpoint(api_key="api_key", disable_metric=True)
+    catchpoint.reporter = reporter
+    return catchpoint
 
 
 @pytest.fixture
-def handler(thundra):
-    @thundra.call
+def handler(catchpoint):
+    @catchpoint.call
     def _handler(event, context):
         pass
 
-    return thundra, _handler
+    return catchpoint, _handler
 
 
 @pytest.fixture
-def handler_with_exception(thundra):
-    @thundra.call
+def handler_with_exception(catchpoint):
+    @catchpoint.call
     def _handler(event, context):
         raise Exception('hello')
 
-    return thundra, _handler
+    return catchpoint, _handler
 
 
 @pytest.fixture
-def handler_with_user_error(thundra):
-    @thundra.call
+def handler_with_user_error(catchpoint):
+    @catchpoint.call
     def _handler(event, context):
         invocation_support.set_error(Exception("test"))
 
-    return thundra, _handler
+    return catchpoint, _handler
 
 
 @pytest.fixture
-def wrap_handler_with_thundra(thundra):
-    def _wrap_handler_with_thundra(handler):
-        return thundra, thundra(handler)
+def wrap_handler_with_catchpoint(catchpoint):
+    def _wrap_handler_with_catchpoint(handler):
+        return catchpoint, catchpoint(handler)
 
-    return _wrap_handler_with_thundra
+    return _wrap_handler_with_catchpoint
 
 
 @pytest.fixture()

@@ -247,7 +247,7 @@ def test_s3(mock_actual_call, mock_s3_response):
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event, mock_context):
+def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchpoint, mock_event, mock_context):
     mock_actual_call.return_value = mock_lambda_response
 
     def handler(event, context):
@@ -258,8 +258,8 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
             Payload=b"{\"name\": \"thundra\"}"
         )
 
-    with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
-        thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+    with mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'):
+        thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
         except:
@@ -290,7 +290,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_thundr
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event,
+def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_handler_with_catchpoint, mock_event,
                                    mock_context):
     mock_actual_call.return_value = mock_lambda_response
 
@@ -300,8 +300,8 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
 
     tracer = CatchpointTracer.get_instance()
 
-    with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
-        thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+    with mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'):
+        thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
         except:
@@ -329,7 +329,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
-def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_thundra, mock_event,
+def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_handler_with_catchpoint, mock_event,
                                mock_context):
     mock_actual_call.return_value = mock_lambda_response
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_INTEGRATIONS_AWS_LAMBDA_PAYLOAD_MASK, 'true')
@@ -342,8 +342,8 @@ def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_hand
             Payload=b"{\"name\": \"thundra\"}"
         )
 
-    with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
-        thundra, wrapped_handler = wrap_handler_with_thundra(handler)
+    with mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'):
+        thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
         except:
@@ -369,7 +369,7 @@ def test_sqs(mock_actual_call, mock_sqs_response):
         sqs = boto3.client('sqs', region_name='us-west-2')
         sqs.send_message(
             QueueUrl='test-queue',
-            MessageBody='Hello Thundra!',
+            MessageBody='Hello Catchpoint!',
             DelaySeconds=123,
         )
     except botocore_errors:
@@ -384,7 +384,7 @@ def test_sqs(mock_actual_call, mock_sqs_response):
         assert span.get_tag('aws.sqs.queue.name') == 'test-queue'
         assert span.get_tag('aws.request.name') == 'SendMessage'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
-        assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == 'Hello Thundra!'
+        assert span.get_tag(constants.AwsSQSTags['MESSAGE']) == 'Hello Catchpoint!'
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -395,7 +395,7 @@ def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
         sqs = boto3.client('sqs', region_name='us-west-2')
         sqs.send_message(
             QueueUrl='test-queue',
-            MessageBody='Hello Thundra!',
+            MessageBody='Hello Catchpoint!',
             DelaySeconds=123,
         )
     except botocore_errors:
@@ -421,7 +421,7 @@ def test_sns(mock_actual_call, mock_sns_response):
         sns = boto3.client('sns', region_name='us-west-2')
         sns.publish(
             TopicArn='Test-topic',
-            Message='Hello Thundra!',
+            Message='Hello Catchpoint!',
         )
     except botocore_errors:
         pass
@@ -435,7 +435,7 @@ def test_sns(mock_actual_call, mock_sns_response):
         assert span.get_tag('aws.sns.topic.name') == 'Test-topic'
         assert span.get_tag('aws.request.name') == 'Publish'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['MessageID_1']
-        assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == 'Hello Thundra!'
+        assert span.get_tag(constants.AwsSNSTags['MESSAGE']) == 'Hello Catchpoint!'
 
 
 @mock.patch('thundra.integrations.botocore.BaseIntegration.actual_call')
@@ -447,7 +447,7 @@ def test_sns_message_masked(mock_actual_call, mock_sns_response):
         sns = boto3.client('sns', region_name='us-west-2')
         sns.publish(
             TopicArn='Test-topic',
-            Message='Hello Thundra!',
+            Message='Hello Catchpoint!',
         )
     except botocore_errors:
         pass

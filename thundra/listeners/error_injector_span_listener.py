@@ -6,7 +6,7 @@ from thundra import constants
 from thundra.listeners.catchpoint_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
-default_error_message = "Error injected by Thundra!"
+default_error_message = "Error injected by Catchpoint!"
 default_error_type = Exception
 
 try:

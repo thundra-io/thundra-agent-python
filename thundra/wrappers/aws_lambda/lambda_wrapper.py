@@ -52,7 +52,7 @@ class LambdaWrapper(BaseWrapper):
             self.initialize_debugger()
 
     def __call__(self, original_func):
-        if hasattr(original_func, "_thundra_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
+        if hasattr(original_func, "_catchpoint_wrapped") or ConfigProvider.get(config_names.CATCHPOINT_DISABLE, False):
             return original_func
 
         @wraps(original_func)
@@ -83,7 +83,7 @@ class LambdaWrapper(BaseWrapper):
 
                 timeout_duration = self.get_timeout_duration(context)
             except Exception as e:
-                logger.error("Error during the before part of Thundra: {}".format(e))
+                logger.error("Error during the before part of Catchpoint: {}".format(e))
                 return original_func(event, context)
 
             # Invoke user handler
@@ -106,7 +106,7 @@ class LambdaWrapper(BaseWrapper):
                     }
                     self.prepare_and_send_reports(execution_context)
                 except Exception as e_in:
-                    logger.error("Error during the after part of Thundra: {}".format(e_in))
+                    logger.error("Error during the after part of Catchpoint: {}".format(e_in))
                     pass
                 raise e
             finally:
@@ -119,12 +119,12 @@ class LambdaWrapper(BaseWrapper):
             try:
                 self.prepare_and_send_reports(execution_context)
             except Exception as e:
-                logger.error("Error during the after part of Thundra: {}".format(e))
+                logger.error("Error during the after part of Catchpoint: {}".format(e))
 
             ExecutionContextManager.clear()
             return response
 
-        setattr(wrapper, '_thundra_wrapped', True)
+        setattr(wrapper, '_catchpoint_wrapped', True)
         return wrapper
 
     call = __call__
@@ -137,7 +137,7 @@ class LambdaWrapper(BaseWrapper):
             import ptvsd
             self.ptvsd_imported = True
         except Exception as e:
-            logger.error("Could not import ptvsd. Thundra ptvsd layer must be added")
+            logger.error("Could not import ptvsd. Catchpoint ptvsd layer must be added")
 
     def start_debugger_tracing(self, context):
         try:
@@ -193,7 +193,7 @@ class LambdaWrapper(BaseWrapper):
         try:
             if self.debugger_process:
                 o, e = self.debugger_process.communicate(b"fin\n")
-                debug_logger("Thundra debugger process output: {}".format(o.decode("utf-8")))
+                debug_logger("Catchpoint debugger process output: {}".format(o.decode("utf-8")))
                 self.debugger_process = None
         except Exception as e:
             self.debugger_process = None

@@ -170,7 +170,7 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
     def inject_trace_link_on_put(self, span, request_data, instance):
 
-        thundra_span = {'S': span.span_id}
+        catchpoint_span = {'S': span.span_id}
         try:
             if PY37:
                 id_handlers = instance.meta.events._emitter._unique_id_handlers
@@ -178,15 +178,15 @@ class AWSDynamoDBIntegration(BaseIntegration):
                 id_handlers = instance.meta.events._unique_id_handlers
 
             if 'dynamodb-attr-value-input' in id_handlers:
-                thundra_span = span.span_id
+                catchpoint_span = span.span_id
         except Exception as e:
             pass
 
         try:
             if 'Item' in request_data:
-                request_data['Item'][constants.CATCHPOINT_SPAN_ID_KEY] = thundra_span
+                request_data['Item'][constants.CATCHPOINT_SPAN_ID_KEY] = catchpoint_span
             else:
-                request_data['Item'] = {constants.CATCHPOINT_SPAN_ID_KEY: thundra_span}
+                request_data['Item'] = {constants.CATCHPOINT_SPAN_ID_KEY: catchpoint_span}
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
         except:
@@ -194,24 +194,24 @@ class AWSDynamoDBIntegration(BaseIntegration):
 
     def inject_trace_link_on_update(self, span, request_data, instance):
 
-        thundra_span = {'S': span.span_id}
+        catchpoint_span = {'S': span.span_id}
         try:
             if PY37:
                 id_handlers = instance.meta.events._emitter._unique_id_handlers
             else:
                 id_handlers = instance.meta.events._unique_id_handlers
             if 'dynamodb-attr-value-input' in id_handlers:
-                thundra_span = span.span_id
+                catchpoint_span = span.span_id
         except Exception as e:
             pass
 
-        thundra_attr = {'Action': 'PUT', 'Value': thundra_span}
+        catchpoint_attr = {'Action': 'PUT', 'Value': catchpoint_span}
 
         try:
             if 'AttributeUpdates' in request_data:
-                request_data['AttributeUpdates'][constants.CATCHPOINT_SPAN_ID_KEY] = thundra_attr
+                request_data['AttributeUpdates'][constants.CATCHPOINT_SPAN_ID_KEY] = catchpoint_attr
             else:
-                request_data['AttributeUpdates'] = {constants.CATCHPOINT_SPAN_ID_KEY: thundra_attr}
+                request_data['AttributeUpdates'] = {constants.CATCHPOINT_SPAN_ID_KEY: catchpoint_attr}
 
             span.set_tag(constants.SpanTags['TRACE_LINKS'], ["SAVE:" + span.span_id])
         except:

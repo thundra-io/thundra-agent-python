@@ -5,7 +5,7 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.plugins.log.catchpoint_log_handler import CatchpointLogHandler
 
 
-def test_when_thundra_log_handler_is_not_added_to_logger(handler, mock_context, mock_event):
+def test_when_catchpoint_log_handler_is_not_added_to_logger(handler, mock_context, mock_event):
     _, handler = handler
 
     handler(mock_event, mock_context)

@@ -25,4 +25,4 @@ class CatchpointLogHandler(logging.Handler):
             execution_context.logs.append(log)
 
 
-logging.ThundraLogHandler = CatchpointLogHandler
+logging.CatchpointLogHandler = CatchpointLogHandler

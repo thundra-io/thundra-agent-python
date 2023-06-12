@@ -36,11 +36,11 @@ class CatchpointMiddleware(object):
             return await self.app(scope, receive, send)
 
         try:
-            scope["_thundra_wrapped"] = True
-            scope["thundra_execution_context"] = self._wrapper.before_request(scope, None)
-            execution_context = scope["thundra_execution_context"]
+            scope["_catchpoint_wrapped"] = True
+            scope["catchpoint_execution_context"] = self._wrapper.before_request(scope, None)
+            execution_context = scope["catchpoint_execution_context"]
         except Exception as e:
-            logger.error("Error during the before part of Thundra fastapi: {}".format(e))
+            logger.error("Error during the before part of Catchpoint fastapi: {}".format(e))
 
         def handle_response(message):
             """ Checking response should be redirect or not. If redirected, then pass the response body by
@@ -73,7 +73,7 @@ class CatchpointMiddleware(object):
                         try:
                             handle_error(e, self._wrapper.error_handler, execution_context)
                         except Exception as exc:
-                            logger.error("Error during the after part of Thundra fastapi: {}".format(exc))
+                            logger.error("Error during the after part of Catchpoint fastapi: {}".format(exc))
             except Exception as e:
                 logger.error("Error during getting res body in fast api: {}".format(e))
     
@@ -84,7 +84,7 @@ class CatchpointMiddleware(object):
 
 
         def handle_request(req):
-            """Manipulate request for thundra tracer. If request has "more_body" field, then add it
+            """Manipulate request for catchpoint tracer. If request has "more_body" field, then add it
             to current request body in execution context request body.
 
             Args:
@@ -105,7 +105,7 @@ class CatchpointMiddleware(object):
 
 
         async def wrapped_receive():
-            """Wrap asgi receive function to get request and add it to thundra tracer
+            """Wrap asgi receive function to get request and add it to catchpoint tracer
 
             Raises:
                 e: Exception occurs in receive function
