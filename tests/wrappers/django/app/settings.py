@@ -64,8 +64,8 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 
-THUNDRA = {
-    "thundra.apiKey": "test",
+CATCHPOINT = {
+    "catchpoint.apiKey": "test",
     "catchpoint.debug.enable": True,
     "catchpoint.application.name": "test",
     "catchpoint.application.region": "eu-west-1",
