@@ -2,7 +2,7 @@ from __future__ import absolute_import
 
 import logging
 
-from thundra.listeners.thundra_span_listener import ThundraSpanListener
+from thundra.listeners.thundra_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ except:
     import __builtin__ as builtins
 
 
-class TagInjectorSpanListener(ThundraSpanListener):
+class TagInjectorSpanListener(CatchpointSpanListener):
     def __init__(self, inject_on_finish=False, tags_to_inject=None):
         self.inject_on_finish = inject_on_finish
         self.tags_to_inject = tags_to_inject

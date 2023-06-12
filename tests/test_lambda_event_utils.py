@@ -17,7 +17,7 @@ except ImportError:
 
 from thundra import constants
 from thundra.wrappers.aws_lambda import lambda_event_utils
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.plugins import invocation
 
 try:
@@ -32,7 +32,7 @@ def tracer_and_invocation_support():
     with ExitStack() as stack:
         # Just a fancy way of using contexts to avoid an ugly multi-line with statement
         stack.enter_context(mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'))
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         invocation_support = invocation.invocation_support
         invocation_trace_support = invocation.invocation_trace_support
         yield tracer, invocation_support, invocation_trace_support

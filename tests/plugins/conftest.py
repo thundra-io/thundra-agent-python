@@ -3,7 +3,7 @@ import pytest
 import mock
 
 from thundra import constants
-from thundra.thundra_agent import Thundra
+from thundra.thundra_agent import Catchpoint
 from thundra.reporter import Reporter
 from thundra.plugins.trace.traceable import Traceable
 from thundra.config.config_provider import ConfigProvider
@@ -23,7 +23,7 @@ def thundra_with_profile(reporter, monkeypatch):
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_VERSION, 'version')
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
 
-    thundra = Thundra('api key', disable_metric=True)
+    thundra = Catchpoint('api key', disable_metric=True)
     thundra.reporter = reporter
     return thundra
 
@@ -46,7 +46,7 @@ def thundra_with_request_response_skip(monkeypatch):
     ConfigProvider.set(config_names.CATCHPOINT_APPLICATION_STAGE, 'dev')
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_REQUEST_SKIP, 'true')
     ConfigProvider.set(config_names.CATCHPOINT_TRACE_RESPONSE_SKIP, 'true')
-    thundra = Thundra('api key', disable_metric=True)
+    thundra = Catchpoint('api key', disable_metric=True)
     return thundra
 
 

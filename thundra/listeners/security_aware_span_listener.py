@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 from thundra import constants
-from thundra.listeners.thundra_span_listener import ThundraSpanListener
+from thundra.listeners.thundra_span_listener import CatchpointSpanListener
 from thundra.plugins.invocation import invocation_support
 
 try:
@@ -10,7 +10,7 @@ except:
     import __builtin__ as builtins
 
 
-class SecurityAwareSpanListener(ThundraSpanListener):
+class SecurityAwareSpanListener(CatchpointSpanListener):
     def __init__(self, block=False, whitelist=None, blacklist=None):
         self.block = block
         self.whitelist = whitelist

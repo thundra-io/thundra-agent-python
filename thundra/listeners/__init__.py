@@ -1,4 +1,4 @@
-from thundra.listeners.thundra_span_listener import ThundraSpanListener
+from thundra.listeners.thundra_span_listener import CatchpointSpanListener
 from thundra.listeners.error_injector_span_listener import ErrorInjectorSpanListener
 from thundra.listeners.latency_injector_span_listener import LatencyInjectorSpanListener
 from thundra.listeners.filtering_span_listener import FilteringSpanListener

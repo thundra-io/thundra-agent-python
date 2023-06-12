@@ -1,5 +1,5 @@
 from thundra.listeners import SecurityAwareSpanListener
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra import constants
 
 def test_create_from_config():
@@ -77,7 +77,7 @@ def test_violate():
     sasl = SecurityAwareSpanListener.from_config(config)
     error_thrown = None
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.create_span(operation_name='test')
     span.set_tag("http.host", "www.google.com")
     span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
@@ -126,7 +126,7 @@ def test_block():
     sasl = SecurityAwareSpanListener.from_config(config)
     error_thrown = None
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.create_span(operation_name='test')
     span.set_tag("http.host", "www.google.com")
     span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
@@ -173,7 +173,7 @@ def test_whitelist():
     error_thrown = None
 
     # Test whitelisted
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.create_span(operation_name='test')
     span.set_tag("http.host", "www.google.com")
     span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
@@ -189,7 +189,7 @@ def test_whitelist():
     assert span.get_tag(constants.SecurityTags["BLOCKED"]) == None
 
     # Test span out of whitelist
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.create_span(operation_name='test')
     span.set_tag("http.host", "www.test.com")
     span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)
@@ -227,7 +227,7 @@ def test_operation_name():
     sasl = SecurityAwareSpanListener.from_config(config)
     error_thrown = None
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.create_span(operation_name='www.google.com/test')
     span.set_tag("http.host", "www.google.com")
     span.set_tag(constants.SpanTags['TOPOLOGY_VERTEX'], True)

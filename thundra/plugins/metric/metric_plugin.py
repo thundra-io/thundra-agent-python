@@ -6,7 +6,7 @@ import uuid
 
 from thundra import utils, constants
 from thundra.compat import PY2
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.plugins.config.metric_config import MetricConfig
 from thundra.plugins.metric import metric_support
 
@@ -18,7 +18,7 @@ class MetricPlugin:
     def __init__(self, plugin_context=None, config=None):
         self.metric_data = {}
         self.plugin_context = plugin_context
-        self.tracer = ThundraTracer.get_instance()
+        self.tracer = CatchpointTracer.get_instance()
         self.system_cpu_usage_start = float(0)
         self.system_cpu_usage_end = float(0)
         self.system_cpu_total_start = float(0)

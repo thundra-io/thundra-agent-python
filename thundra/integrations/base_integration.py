@@ -3,7 +3,7 @@ import logging
 import time
 import traceback
 
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +12,7 @@ ABC = abc.ABCMeta('ABC', (object,), {})
 
 class BaseIntegration(ABC):
     def run_and_trace(self, wrapped, instance, args, kwargs):
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         if not tracer.get_active_span():
             return wrapped(*args, **kwargs)
 

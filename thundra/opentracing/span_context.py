@@ -3,7 +3,7 @@ import copy
 import opentracing
 
 
-class ThundraSpanContext(opentracing.SpanContext):
+class CatchpointSpanContext(opentracing.SpanContext):
 
     def __init__(self,
                  trace_id=None,
@@ -44,8 +44,8 @@ class ThundraSpanContext(opentracing.SpanContext):
     def context_with_baggage_item(self, key, value):
         new_baggage_item = copy.copy(self.baggage)
         new_baggage_item[key] = value
-        return ThundraSpanContext(trace_id=self.trace_id,
-                                  transaction_id=self.transaction_id,
-                                  span_id=self.span_id,
-                                  parent_span_id=self.parent_span_id,
-                                  baggage=new_baggage_item)
+        return CatchpointSpanContext(trace_id=self.trace_id,
+                                     transaction_id=self.transaction_id,
+                                     span_id=self.span_id,
+                                     parent_span_id=self.parent_span_id,
+                                     baggage=new_baggage_item)

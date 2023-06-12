@@ -2,7 +2,7 @@ from functools import wraps
 import logging
 from thundra import constants
 
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.wrappers.base_wrapper import BaseWrapper
 
 from thundra.config.config_provider import ConfigProvider

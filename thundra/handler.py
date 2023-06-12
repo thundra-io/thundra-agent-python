@@ -5,9 +5,9 @@ import os
 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
-from thundra.thundra_agent import Thundra
+from thundra.thundra_agent import Catchpoint
 
-thundra = Thundra()
+thundra = Catchpoint()
 
 handler_found = False
 user_handler = None

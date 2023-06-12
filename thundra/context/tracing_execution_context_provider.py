@@ -1,11 +1,11 @@
 from thundra.context.context_provider import ContextProvider
 from thundra.context.execution_context import ExecutionContext
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 class TracingExecutionContextProvider(ContextProvider):
     def __init__(self):
-        self.tracer = ThundraTracer.get_instance()
+        self.tracer = CatchpointTracer.get_instance()
 
     def get(self):
         execution_context = None

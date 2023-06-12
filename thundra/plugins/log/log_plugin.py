@@ -10,7 +10,7 @@ from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.plugins.config.log_config import LogConfig
 from thundra.plugins.log import log_support
-from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
+from thundra.plugins.log.thundra_log_handler import CatchpointLogHandler
 from thundra.plugins.log.thundra_logger import StreamToLogger
 
 
@@ -45,10 +45,10 @@ class LogPlugin:
                 LogPlugin.wrapped = True
 
         if not ConfigProvider.get(config_names.CATCHPOINT_LOG_CONSOLE_DISABLE):
-            handler = ThundraLogHandler()
+            handler = CatchpointLogHandler()
             has_thundra_log_handler = False
             for log_handlers in self.logger.handlers:
-                if isinstance(log_handlers, ThundraLogHandler):
+                if isinstance(log_handlers, CatchpointLogHandler):
                     has_thundra_log_handler = True
             if not has_thundra_log_handler:
                 self.logger.addHandler(handler)

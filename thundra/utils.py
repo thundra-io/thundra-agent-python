@@ -235,9 +235,9 @@ def get_nearest_collector():
     region = get_env_variable(constants.AWS_REGION)
 
     if region:
-        return '{}.collector.thundra.io'.format(region)
+        return '{}.collector.catchpoint.com'.format(region)
 
-    return "collector.thundra.io"
+    return "collector.catchpoint.com"
 
 
 def get_compiled_operation_type_patterns():
@@ -318,7 +318,7 @@ def arrange_scope_manager(scope_manager):
 # Excluded url's
 EXCLUDED_URLS = {
     str.endswith: [
-        'thundra.io',
+        'catchpoint.com',
     ],
     str.__contains__: [
         'amazonaws.com',

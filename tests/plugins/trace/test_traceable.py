@@ -1,8 +1,8 @@
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 def test_trace_args(trace_args):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     nodes = tracer.get_spans()
     count=0
     for key in nodes:
@@ -43,7 +43,7 @@ def test_trace_args(trace_args):
 
 
 def test_trace_return_values(trace_return_val):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     nodes = tracer.get_spans()
     count = 0
     for key in nodes:
@@ -79,7 +79,7 @@ def test_trace_return_values(trace_return_val):
 
 
 def test_trace_error(trace_error):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     nodes = tracer.get_spans()
     count = 0
     for key in nodes:
@@ -115,7 +115,7 @@ def test_trace_error(trace_error):
 
 
 def test_trace_with_default_configs(trace):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     nodes = tracer.get_spans()
     count = 0
     for key in nodes:

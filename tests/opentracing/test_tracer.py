@@ -1,12 +1,12 @@
 import time
 import mock
 import pytest
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 @pytest.fixture
 def span():
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     scope = tracer.start_active_span(operation_name='operation name')
     return scope.span
 
@@ -14,7 +14,7 @@ def span():
 @mock.patch('thundra.opentracing.recorder.ThundraRecorder')
 @mock.patch('opentracing.scope_managers.ThreadLocalScopeManager')
 def test_start_active_span(mock_recorder, mock_scope_manager, span):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     start_time = time.time()
     with tracer.start_active_span(operation_name='test', child_of=span, start_time=start_time) as active_scope:
         active_span = active_scope.span
@@ -30,7 +30,7 @@ def test_start_active_span(mock_recorder, mock_scope_manager, span):
 
 @mock.patch('thundra.opentracing.recorder.ThundraRecorder')
 def test_start_span(mock_recorder, span):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     start_time = time.time()
     with tracer.start_span(operation_name='test', child_of=span, start_time=start_time) as active_span:
         assert active_span.operation_name == 'test'

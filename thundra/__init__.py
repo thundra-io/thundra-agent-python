@@ -5,7 +5,7 @@ from importlib import import_module as _import_module
 import thundra.integrations.modules as integrations
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.plugins.invocation.invocation_support import (
     set_tag,
     set_tags,

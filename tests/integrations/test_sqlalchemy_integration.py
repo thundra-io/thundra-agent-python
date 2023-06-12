@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 from thundra import constants
 from thundra.compat import PY2
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 Base = declarative_base()
 
@@ -31,7 +31,7 @@ def set_up_engine_and_table(url):
     # create table
     Base.metadata.create_all(engine)
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     tracer.clear()
     return engine
 
@@ -52,7 +52,7 @@ def test_sqlalchemy_session_pqsql():
     session.commit()
     session.close()
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.get_spans()[0]
 
     statement = "INSERT INTO movies (title, release_date) VALUES (%(title)s, %(release_date)s) RETURNING movies.id"
@@ -75,7 +75,7 @@ def test_sqlalchemy_connection_execute_pqsql():
     connection = engine.connect()
     connection.execute(query)
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
@@ -96,7 +96,7 @@ def test_sqlalchemy_connection_execute_mysql():
     connection = engine.connect()
     connection.execute(query)
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
@@ -119,7 +119,7 @@ def test_sqlalchemy_connection_execute_mysql_error():
         connection.execute(query)
     except:
         pass
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     span = tracer.get_spans()[0]
 
     assert span.domain_name == constants.DomainNames['DB']
@@ -142,7 +142,7 @@ def test_sqlalchemy_connection_execute_sqlite():
         connection = engine.connect()
         connection.execute(query)
 
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[0]
 
         assert span.domain_name == constants.DomainNames['DB']

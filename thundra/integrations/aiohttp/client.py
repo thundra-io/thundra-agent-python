@@ -6,13 +6,13 @@ import aiohttp
 from thundra import constants, utils
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 logger = logging.getLogger(__name__)
 
 
 async def on_request_start(session, trace_config_ctx, params):
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     if not tracer.get_active_span():
         return
 

@@ -3,7 +3,7 @@ from elasticsearch import Elasticsearch, ElasticsearchException
 from thundra import constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 def test_create_index():
@@ -15,7 +15,7 @@ def test_create_index():
     except ElasticsearchException as e:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.operation_name == '/authors/authors/1'
@@ -39,7 +39,7 @@ def test_get_doc():
     except ElasticsearchException as e:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         hosts = span.get_tag(constants.ESTags['ES_HOSTS'])
@@ -70,7 +70,7 @@ def test_refresh():
     except ElasticsearchException as e:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.operation_name == '/test-index/_refresh'
@@ -95,7 +95,7 @@ def test_mask_body():
     except ElasticsearchException:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.get_tag(constants.ESTags['ES_BODY']) is None

@@ -1,6 +1,6 @@
 from multiprocessing.pool import ThreadPool
 from threading import Thread
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
 from thundra.plugins.trace.traceable import Traceable
 
@@ -12,7 +12,7 @@ def test_via_threadpool():
 
     assert squared_numbers == expected_result
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     nodes = tracer.get_spans()
     active_span = None
     for key in nodes:
@@ -44,7 +44,7 @@ def test_via_threading():
     thread.start()
     thread.join()
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     nodes = tracer.get_spans()
     active_span = None
     for key in nodes:

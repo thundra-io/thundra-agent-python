@@ -4,7 +4,7 @@ from psycopg2 import Error as PostgreError
 from thundra import constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 def test_postgre_integration():
@@ -23,7 +23,7 @@ def test_postgre_integration():
             print(table)
 
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
@@ -55,7 +55,7 @@ def test_postgre_integration_mask_statement():
             print(table)
 
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
@@ -85,7 +85,7 @@ def test_postgre_integration_with_empty_query():
     except PostgreError:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']
@@ -113,7 +113,7 @@ def test_postgre_integration_callproc():
     except PostgreError:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         postgre_span = tracer.get_spans()[1]
 
         assert postgre_span.domain_name == constants.DomainNames['DB']

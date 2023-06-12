@@ -3,7 +3,7 @@ import abc
 ABC = abc.ABCMeta('ABC', (object,), {})
 
 
-class ThundraSpanListener(ABC):
+class CatchpointSpanListener(ABC):
     @abc.abstractmethod
     def on_span_started(self, operation_name):
         raise Exception("should be implemented")

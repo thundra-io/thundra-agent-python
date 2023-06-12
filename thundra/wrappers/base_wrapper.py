@@ -6,7 +6,7 @@ from concurrent import futures
 from thundra.compat import PY2, queue
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.plugins.config.thundra_config import ThundraConfig
+from thundra.plugins.config.thundra_config import CatchpointConfig
 from thundra.reporter import Reporter
 
 ABC = abc.ABCMeta('ABC', (object,), {})
@@ -32,9 +32,9 @@ class BaseWrapper(ABC):
 
     def __init__(self, api_key=None, disable_trace=False, disable_metric=True, disable_log=True, opts=None):
         self.plugins = None
-        self.config = ThundraConfig()
+        self.config = CatchpointConfig()
         if opts is not None:
-            self.config = ThundraConfig(opts)
+            self.config = CatchpointConfig(opts)
 
         self.api_key = ConfigProvider.get(config_names.CATCHPOINT_APIKEY, api_key)
         if not self.api_key:

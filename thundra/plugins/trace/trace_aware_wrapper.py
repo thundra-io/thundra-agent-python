@@ -1,12 +1,12 @@
 from functools import wraps
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 class TraceAwareWrapper:
 
     def __init__(self, active_span=None):
         if active_span is None:
-            active_scope = ThundraTracer.get_instance().scope_manager.active
+            active_scope = CatchpointTracer.get_instance().scope_manager.active
             active_span = active_scope.span if active_scope is not None else None
         self._parent_span = active_span
 
@@ -17,6 +17,6 @@ class TraceAwareWrapper:
     def __call__(self, original_func):
         @wraps(original_func)
         def wrapper(*args, **kwargs):
-            ThundraTracer.get_instance().scope_manager.activate(self.parent_span, True)
+            CatchpointTracer.get_instance().scope_manager.activate(self.parent_span, True)
             return original_func(*args, **kwargs)
         return wrapper

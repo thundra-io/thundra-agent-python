@@ -2,7 +2,7 @@ import traceback
 import time
 import logging
 from thundra import constants
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
 
@@ -21,7 +21,7 @@ class CommandTracer(CommandListener):
     _scopes = {}
 
     def started(self, event):
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         if not tracer.get_active_span():
             return
 

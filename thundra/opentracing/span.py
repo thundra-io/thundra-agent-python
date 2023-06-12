@@ -7,7 +7,7 @@ import opentracing
 logger = logging.getLogger(__name__)
 
 
-class ThundraSpan(opentracing.Span):
+class CatchpointSpan(opentracing.Span):
 
     def __init__(self,
                  tracer,
@@ -19,7 +19,7 @@ class ThundraSpan(opentracing.Span):
                  start_time=None,
                  span_order=-1,
                  execution_context=None):
-        super(ThundraSpan, self).__init__(tracer, context)
+        super(CatchpointSpan, self).__init__(tracer, context)
         self._tracer = tracer
         self._context = context
         self._lock = Lock()
@@ -60,14 +60,14 @@ class ThundraSpan(opentracing.Span):
     def set_operation_name(self, operation_name):
         with self._lock:
             self.operation_name = operation_name
-        return super(ThundraSpan, self).set_operation_name(operation_name)
+        return super(CatchpointSpan, self).set_operation_name(operation_name)
 
     def set_tag(self, key, value):
         with self._lock:
             if self.tags is None:
                 self.tags = {}
             self.tags[key] = value
-        return super(ThundraSpan, self).set_tag(key, value)
+        return super(CatchpointSpan, self).set_tag(key, value)
 
     def get_tag(self, key):
         if self.tags is not None:
@@ -108,7 +108,7 @@ class ThundraSpan(opentracing.Span):
             log = key_values
             log['timestamp'] = timestamp
             self.logs.append(log)
-        return super(ThundraSpan, self).log_kv(key_values, timestamp)
+        return super(CatchpointSpan, self).log_kv(key_values, timestamp)
 
     def set_baggage_item(self, key, value):
         new_context = self.context.context_with_baggage_item(key, value)

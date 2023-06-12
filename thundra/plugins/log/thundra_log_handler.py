@@ -4,7 +4,7 @@ import uuid
 from thundra.context.execution_context_manager import ExecutionContextManager
 
 
-class ThundraLogHandler(logging.Handler):
+class CatchpointLogHandler(logging.Handler):
 
     def __init__(self):
         logging.Handler.__init__(self)
@@ -25,4 +25,4 @@ class ThundraLogHandler(logging.Handler):
             execution_context.logs.append(log)
 
 
-logging.ThundraLogHandler = ThundraLogHandler
+logging.ThundraLogHandler = CatchpointLogHandler

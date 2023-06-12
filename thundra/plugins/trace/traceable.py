@@ -7,7 +7,7 @@ import jsonpickle
 from opentracing import Scope
 
 from thundra import constants
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.plugins.log.thundra_logger import debug_logger
 from thundra.serializable import Serializable
 from pympler import asizeof
@@ -15,7 +15,7 @@ import threading
 trace_local = threading.local()
 
 DATA_LIMIT = 8 * 1024 # 8KB
-DATA_LIMIT_RETURN_STR = "[THUNDRA] Data is over {} KB".format(DATA_LIMIT / 1024)
+DATA_LIMIT_RETURN_STR = "[Catchpoint] Data is over {} KB".format(DATA_LIMIT / 1024)
 METHOD_LINES_LIMIT = 100
 SERIALIZATION_DEPTH=1
 
@@ -108,8 +108,8 @@ def trace_calls(frame, event, arg):
     if not wrapped_by_thundra:
         return
 
-    # Note that "is Thundra wrapped check" is applied before "is event call" check.
-    # Because most of the time "is Thundra wrapped check" is false but "is event call" is true.
+    # Note that "is Catchpoint wrapped check" is applied before "is event call" check.
+    # Because most of the time "is Catchpoint wrapped check" is false but "is event call" is true.
     # And since most of the time 'trace_calls' will return 'None',
     # it is better to detect false case with less comparison.
 
@@ -177,7 +177,7 @@ class Traceable:
                 self._trace_args = True
 
         self._tracing = False
-        self._tracer = ThundraTracer.get_instance()
+        self._tracer = CatchpointTracer.get_instance()
 
     @property
     def tracer(self):

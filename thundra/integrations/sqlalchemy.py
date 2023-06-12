@@ -6,7 +6,7 @@ from thundra import constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.rdb_base import RdbBaseIntegration
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 try:
     from sqlalchemy.event import listen
@@ -88,7 +88,7 @@ class SqlAlchemyIntegration(RdbBaseIntegration):
     def _before_cursor_execute(self, conn, cursor, statement, parameters, context, executemany):
         if not context:
             return
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
 
         if not tracer.get_active_span():
             return

@@ -8,7 +8,7 @@ from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
 from thundra.plugins.invocation import invocation_support
 from thundra.reporter import Reporter
-from thundra.thundra_agent import Thundra
+from thundra.thundra_agent import Catchpoint
 
 
 class MockContext:
@@ -175,7 +175,7 @@ def reporter(mock_requests):
 
 @pytest.fixture
 def thundra(reporter):
-    thundra = Thundra(api_key="api_key", disable_metric=True)
+    thundra = Catchpoint(api_key="api_key", disable_metric=True)
     thundra.reporter = reporter
     return thundra
 

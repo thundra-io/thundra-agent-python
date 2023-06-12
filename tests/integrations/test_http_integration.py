@@ -5,7 +5,7 @@ from thundra import constants
 from thundra.compat import urlparse
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 def test_successful_http_call():
@@ -17,7 +17,7 @@ def test_successful_http_call():
         host = parsed_url.netloc
 
         requests.get(url)
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + path
@@ -46,7 +46,7 @@ def test_http_put():
         host = parsed_url.netloc
 
         requests.put(url, data={"message": "test"})
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
@@ -77,7 +77,7 @@ def test_http_put_body_masked():
         host = parsed_url.netloc
 
         requests.put(url, data={"message": "test"})
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
@@ -107,7 +107,7 @@ def test_successful_http_call_with_query_params():
         host = parsed_url.netloc
 
         requests.get(url)
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
@@ -134,7 +134,7 @@ def test_http_call_with_session():
         s = requests.Session()
         s.get(url)
 
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.domain_name == constants.DomainNames['API']
@@ -161,7 +161,7 @@ def test_erroneous_http_call():
         except Exception:
             pass
 
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + path
@@ -192,7 +192,7 @@ def test_http_path_depth():
         host = parsed_url.netloc
 
         requests.get(url)
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
@@ -222,7 +222,7 @@ def test_apigw_call(mock_actual_call):
         normalized_path = "/dev"
 
         requests.get(url)
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == host + normalized_path
@@ -251,7 +251,7 @@ def test_apigw_call_v2(mock_actual_call):
         host = parsed_url.netloc
 
         requests.get(url)
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         http_span = tracer.get_spans()[1]
 
         assert http_span.operation_name == "test"
@@ -282,7 +282,7 @@ def test_http_4xx_error(mock_actual_call):
 
     requests.get(url)
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     http_span = tracer.get_spans()[1]
 
     assert http_span.operation_name == host + path
@@ -315,7 +315,7 @@ def test_http_4xx_error_with_min_status_500(mock_actual_call, monkeypatch):
 
     requests.get(url)
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     http_span = tracer.get_spans()[1]
 
     assert http_span.operation_name == host + path
@@ -347,7 +347,7 @@ def test_http_5xx_error(mock_actual_call):
 
     requests.get(url)
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     http_span = tracer.get_spans()[1]
 
     assert http_span.operation_name == host + path

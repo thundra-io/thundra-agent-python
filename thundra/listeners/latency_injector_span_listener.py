@@ -3,12 +3,12 @@ import random
 import time
 
 from thundra import constants
-from thundra.listeners.thundra_span_listener import ThundraSpanListener
+from thundra.listeners.thundra_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
 
 
-class LatencyInjectorSpanListener(ThundraSpanListener):
+class LatencyInjectorSpanListener(CatchpointSpanListener):
     available_distributions = ["normal", "uniform"]
 
     def __init__(self, delay=0, variation=0,

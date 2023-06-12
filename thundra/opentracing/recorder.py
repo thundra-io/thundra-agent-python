@@ -2,7 +2,7 @@ import copy
 from threading import Lock
 
 
-class ThundraRecorder:
+class CatchpointRecorder:
 
     def __init__(self):
         self._lock = Lock()

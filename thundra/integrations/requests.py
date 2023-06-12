@@ -2,7 +2,7 @@ from opentracing import Format
 
 import thundra.constants as constants
 from thundra import utils
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
 from thundra.integrations.base_integration import BaseIntegration
@@ -48,7 +48,7 @@ class RequestsIntegration(BaseIntegration):
             scope.span.set_tag(constants.HttpTags["BODY"], body)
 
         try:
-            tracer = ThundraTracer.get_instance()
+            tracer = CatchpointTracer.get_instance()
             tracer.inject(span.context, Format.HTTP_HEADERS, prepared_request.headers)
             prepared_request.headers[constants.TRIGGER_RESOURCE_NAME_KEY] = url_dict.get('operation_name')
 

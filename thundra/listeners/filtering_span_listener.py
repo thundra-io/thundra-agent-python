@@ -1,12 +1,12 @@
 import logging
-from thundra.listeners import ThundraSpanListener
+from thundra.listeners import CatchpointSpanListener
 from thundra.listeners.thundra_span_filterer import SimpleSpanFilter, SpanFilterer
 from thundra.listeners.thundra_span_filterer import StandardSpanFilterer
 from thundra.listeners.composite_span_filter import CompositeSpanFilter
 
 logger = logging.getLogger(__name__)
 
-class FilteringSpanListener(ThundraSpanListener):
+class FilteringSpanListener(CatchpointSpanListener):
     
     def __init__(self, listener=None, filterer=None):
         self.listener = listener
@@ -84,7 +84,7 @@ class FilteringSpanListener(ThundraSpanListener):
     def _get_span_listener_from_config(config):
         SPAN_LISTENERS = {
             sl_class.__name__: sl_class 
-            for sl_class in ThundraSpanListener.__subclasses__()
+            for sl_class in CatchpointSpanListener.__subclasses__()
         }
         listener_config = None
         if 'listener' not in config:

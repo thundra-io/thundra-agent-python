@@ -3,7 +3,7 @@ import traceback
 import uuid
 
 from thundra import constants
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 from thundra.plugins.config.trace_config import TraceConfig
 from thundra.plugins.invocation import invocation_support
 from thundra.plugins.trace import trace_support
@@ -18,7 +18,7 @@ class TracePlugin:
             'before:invocation': self.before_invocation,
             'after:invocation': self.after_invocation
         }
-        self.tracer = ThundraTracer.get_instance()
+        self.tracer = CatchpointTracer.get_instance()
         self.plugin_context = plugin_context
         if isinstance(config, TraceConfig):
             self.config = config

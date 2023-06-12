@@ -3,7 +3,7 @@ from thundra.plugins.config.metric_config import MetricConfig
 from thundra.plugins.config.trace_config import TraceConfig
 
 
-class ThundraConfig:
+class CatchpointConfig:
     def __init__(self, opts=None):
         if opts is None:
             opts = {}

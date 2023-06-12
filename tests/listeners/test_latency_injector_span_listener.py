@@ -1,11 +1,11 @@
 import mock
 from thundra.listeners import LatencyInjectorSpanListener
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 @mock.patch('time.sleep')
 def test_delay_amount(mocked_time):
     try:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         with tracer.start_active_span(operation_name='foo', finish_on_close=True) as scope:
             span = scope.span
             delay = 370
@@ -27,7 +27,7 @@ def test_delay_amount(mocked_time):
 @mock.patch('time.sleep')
 def test_delay_variaton(mocked_time):
     try:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         with tracer.start_active_span(operation_name='foo', finish_on_close=True) as scope:
             span = scope.span
             delay = 100

@@ -2,7 +2,7 @@ import logging
 from logging.config import fileConfig
 
 from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.plugins.log.thundra_log_handler import ThundraLogHandler
+from thundra.plugins.log.thundra_log_handler import CatchpointLogHandler
 
 
 def test_when_thundra_log_handler_is_not_added_to_logger(handler, mock_context, mock_event):
@@ -15,7 +15,7 @@ def test_when_thundra_log_handler_is_not_added_to_logger(handler, mock_context, 
 
 def test_log_plugin_with_initialization():
     logger = logging.getLogger('test_handler')
-    log_handler = ThundraLogHandler()
+    log_handler = CatchpointLogHandler()
     logger.addHandler(log_handler)
     logger.setLevel(logging.INFO)
     execution_context = ExecutionContextManager.get()

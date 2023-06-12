@@ -6,7 +6,7 @@ from botocore.exceptions import BotoCoreError
 
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.integrations.botocore import *
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
@@ -84,7 +84,7 @@ def test_dynamodb():
                 }
             }
         ]
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         spans = tracer.get_spans()[1:]
         for i in range(len(spans)):
             span = spans[i]
@@ -114,7 +114,7 @@ def test_dynamodb_put_item():
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-DynamoDB'
@@ -146,7 +146,7 @@ def test_dynamodb_put_item_resource():
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-DynamoDB'
@@ -206,7 +206,7 @@ def test_dynamodb_statement_mask():
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         spans = tracer.get_spans()[1:]
 
         for i in range(len(spans)):
@@ -234,7 +234,7 @@ def test_s3(mock_actual_call, mock_s3_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-S3'
@@ -298,7 +298,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
         lambdaFunc = boto3.client('lambda', region_name='us-west-2')
         lambdaFunc.list_functions()
 
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
 
     with mock.patch('thundra.opentracing.recorder.ThundraRecorder.clear'):
         thundra, wrapped_handler = wrap_handler_with_thundra(handler)
@@ -350,7 +350,7 @@ def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_hand
             pass
 
         # Check span tags
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Lambda'
@@ -375,7 +375,7 @@ def test_sqs(mock_actual_call, mock_sqs_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SQS'
@@ -401,7 +401,7 @@ def test_sqs_message_masked(mock_actual_call, mock_sqs_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SQS'
@@ -426,7 +426,7 @@ def test_sns(mock_actual_call, mock_sns_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SNS'
@@ -452,7 +452,7 @@ def test_sns_message_masked(mock_actual_call, mock_sns_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SNS'
@@ -484,7 +484,7 @@ def test_kinesis(mock_actual_call, mock_kinesis_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Kinesis'
@@ -518,7 +518,7 @@ def test_firehose(mock_actual_call, mock_firehose_response):
     except botocore_errors:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Firehose'
@@ -649,7 +649,7 @@ def test_athena_start_query_execution(mock_actual_call, mock_athena_start_query_
     except:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -686,7 +686,7 @@ def test_athena_statement_masked():
     except:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -709,7 +709,7 @@ def test_athena_stop_query_execution():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -733,7 +733,7 @@ def test_athena_batch_get_named_query():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -759,7 +759,7 @@ def test_athena_batch_get_query_execution():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -788,7 +788,7 @@ def test_athena_create_named_query(mock_actual_call, mock_athena_create_named_qu
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -814,7 +814,7 @@ def test_athena_delete_named_query():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -840,7 +840,7 @@ def test_athena_get_named_query():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -865,7 +865,7 @@ def test_athena_get_query_execution():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -891,7 +891,7 @@ def test_athena_get_query_results():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -931,7 +931,7 @@ def test_eventbridge_put_events(mock_actual_call, mock_eventbridge_put_events_re
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == constants.ClassNames['EVENTBRIDGE']
@@ -966,7 +966,7 @@ def test_athena_list_query_executions(mock_actual_call, mock_athena_list_query_e
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-Athena'
@@ -1018,7 +1018,7 @@ def test_ses_send_email():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SES'
@@ -1057,7 +1057,7 @@ def test_ses_send_raw_email():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SES'
@@ -1096,7 +1096,7 @@ def test_ses_send_templated_email():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-SES'
@@ -1122,7 +1122,7 @@ def test_default_aws_service():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWSService'
@@ -1144,7 +1144,7 @@ def test_sfn():
     except Exception as e:
         print(e)
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         span = tracer.get_spans()[1]
 
         assert span.class_name == 'AWS-StepFunctions'

@@ -1,7 +1,7 @@
 from thundra import constants
 
 from thundra.opentracing.propagation.text import TextMapPropagator
-from thundra.opentracing.span_context import ThundraSpanContext
+from thundra.opentracing.span_context import CatchpointSpanContext
 
 
 class HTTPPropagator(TextMapPropagator):
@@ -33,7 +33,7 @@ class HTTPPropagator(TextMapPropagator):
                 if key[0].startswith(constants.CATCHPOINT_BAGGAGE_PREFIX):
                     baggage[key[0][len(constants.CATCHPOINT_BAGGAGE_PREFIX):]] = key[1]
 
-        span_context = ThundraSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
-                                          baggage=baggage)
+        span_context = CatchpointSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
+                                             baggage=baggage)
 
         return span_context

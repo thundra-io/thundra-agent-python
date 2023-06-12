@@ -2,7 +2,7 @@ from opentracing import InvalidCarrierException
 
 from thundra import constants
 from thundra.opentracing.propagation.propagator import Propagator
-from thundra.opentracing.span_context import ThundraSpanContext
+from thundra.opentracing.span_context import CatchpointSpanContext
 
 
 class TextMapPropagator(Propagator):
@@ -39,7 +39,7 @@ class TextMapPropagator(Propagator):
             if key.startswith(constants.CATCHPOINT_BAGGAGE_PREFIX):
                 baggage[key[len(constants.CATCHPOINT_BAGGAGE_PREFIX):]] = carrier[key]
 
-        span_context = ThundraSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
-                                          baggage=baggage)
+        span_context = CatchpointSpanContext(trace_id=trace_id, span_id=span_id, transaction_id=transaction_id,
+                                             baggage=baggage)
 
         return span_context

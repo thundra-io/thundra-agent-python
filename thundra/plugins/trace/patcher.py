@@ -16,7 +16,7 @@ class ImportPatcher(utils.Singleton):
         self.modules_map = self.__process_env_var_modules_to_instrument()
 
         for module_path in self.modules_map.keys():
-            sys.meta_path.insert(0, ThundraFinder(module_path))
+            sys.meta_path.insert(0, CatchpointFinder(module_path))
 
     @staticmethod
     def __process_env_var_modules_to_instrument():
@@ -46,14 +46,14 @@ class ImportPatcher(utils.Singleton):
             return None
 
 
-class ThundraFinder(PathFinder):
+class CatchpointFinder(PathFinder):
 
     def __init__(self, module_name):
         self.module_name = module_name
 
     def find_spec(self, fullname, path=None, target=None):
         if fullname == self.module_name:
-            spec = super(ThundraFinder, self).find_spec(fullname, path, target)
+            spec = super(CatchpointFinder, self).find_spec(fullname, path, target)
             loader = ThundraLoader(fullname, spec.origin)
             return ModuleSpec(fullname, loader)
 

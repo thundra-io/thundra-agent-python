@@ -8,28 +8,28 @@ from thundra import constants
 from thundra.context.execution_context_manager import ExecutionContextManager
 from thundra.opentracing.propagation.http import HTTPPropagator
 from thundra.opentracing.propagation.text import TextMapPropagator
-from thundra.opentracing.span import ThundraSpan
-from thundra.opentracing.span_context import ThundraSpanContext
+from thundra.opentracing.span import CatchpointSpan
+from thundra.opentracing.span_context import CatchpointSpanContext
 from thundra.plugins.trace import trace_support
 
 from thundra.utils import arrange_scope_manager
 
 
-class ThundraTracer(opentracing.Tracer):
+class CatchpointTracer(opentracing.Tracer):
     __instance = None
     
 
     @staticmethod
     def get_instance():
-        return ThundraTracer() if ThundraTracer.__instance is None else ThundraTracer.__instance
+        return CatchpointTracer() if CatchpointTracer.__instance is None else CatchpointTracer.__instance
 
 
     def __init__(self, scope_manager=None):
         scope_manager = arrange_scope_manager(scope_manager)
-        super(ThundraTracer, self).__init__(scope_manager)
+        super(CatchpointTracer, self).__init__(scope_manager)
         self.lock = Lock()
         self.global_span_order = 0
-        ThundraTracer.__instance = self
+        CatchpointTracer.__instance = self
         self._propagators = {
             Format.HTTP_HEADERS: HTTPPropagator(),
             Format.TEXT_MAP: TextMapPropagator(),
@@ -156,19 +156,19 @@ class ThundraTracer(opentracing.Tracer):
             _transaction_id = _transaction_id or _parent_context.transaction_id
             _parent_span_id = _parent_span_id or _parent_context.span_id
 
-        _context = ThundraSpanContext(trace_id=_trace_id,
-                                      transaction_id=_transaction_id,
-                                      span_id=_span_id,
-                                      parent_span_id=_parent_span_id)
-        _span = ThundraSpan(self,
-                            operation_name=operation_name,
-                            class_name=class_name,
-                            domain_name=domain_name,
-                            context=_context,
-                            tags=tags,
-                            start_time=start_time,
-                            span_order=_span_order,
-                            execution_context=execution_context)
+        _context = CatchpointSpanContext(trace_id=_trace_id,
+                                         transaction_id=_transaction_id,
+                                         span_id=_span_id,
+                                         parent_span_id=_parent_span_id)
+        _span = CatchpointSpan(self,
+                               operation_name=operation_name,
+                               class_name=class_name,
+                               domain_name=domain_name,
+                               context=_context,
+                               tags=tags,
+                               start_time=start_time,
+                               span_order=_span_order,
+                               execution_context=execution_context)
 
         return _span
 

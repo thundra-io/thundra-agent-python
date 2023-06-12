@@ -4,7 +4,7 @@ from mysql.connector.errors import Error as MySQLError
 from thundra import constants
 from thundra.config import config_names
 from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 def test_mysql_integration():
@@ -22,7 +22,7 @@ def test_mysql_integration():
             print(table)
 
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
@@ -54,7 +54,7 @@ def test_mysql_integration_mask_statement():
             print(table)
 
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
@@ -84,7 +84,7 @@ def test_mysql_integration_with_empty_query():
     except MySQLError:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']
@@ -112,7 +112,7 @@ def test_mysql_integration_callproc():
     except MySQLError:
         pass
     finally:
-        tracer = ThundraTracer.get_instance()
+        tracer = CatchpointTracer.get_instance()
         mysql_span = tracer.get_spans()[1]
 
         assert mysql_span.domain_name == constants.DomainNames['DB']

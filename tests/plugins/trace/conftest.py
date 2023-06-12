@@ -1,12 +1,12 @@
 import pytest
 
 from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.opentracing.tracer import ThundraTracer
+from thundra.opentracing.tracer import CatchpointTracer
 
 
 @pytest.fixture(autouse=True)
 def start_root_span():
-    tracer = ThundraTracer.get_instance()
+    tracer = CatchpointTracer.get_instance()
     execution_context = ExecutionContextManager.get()
     tracer.start_active_span(operation_name="test",
                              finish_on_close=False,

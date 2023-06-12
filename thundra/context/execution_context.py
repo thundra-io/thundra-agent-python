@@ -1,4 +1,4 @@
-from thundra.opentracing.recorder import ThundraRecorder
+from thundra.opentracing.recorder import CatchpointRecorder
 
 
 class ExecutionContext:
@@ -10,7 +10,7 @@ class ExecutionContext:
     def __init__(self, **opts):
         self.start_timestamp = opts.get('start_timestamp', 0)
         self.finish_timestamp = opts.get('finish_timestamp', 0)
-        self.recorder = opts.get('recorder', ThundraRecorder())
+        self.recorder = opts.get('recorder', CatchpointRecorder())
         self.reports = opts.get('reports', [])
         self.transaction_id = opts.get('transaction_id', '')
         self.span_id = opts.get('span_id', '')

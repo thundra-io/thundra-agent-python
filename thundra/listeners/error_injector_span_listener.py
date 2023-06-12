@@ -3,7 +3,7 @@ import logging
 from threading import Lock
 from importlib import import_module
 from thundra import constants
-from thundra.listeners.thundra_span_listener import ThundraSpanListener
+from thundra.listeners.thundra_span_listener import CatchpointSpanListener
 
 logger = logging.getLogger(__name__)
 default_error_message = "Error injected by Thundra!"
@@ -14,7 +14,7 @@ try:
 except:
     import __builtin__ as builtins
 
-class ErrorInjectorSpanListener(ThundraSpanListener):
+class ErrorInjectorSpanListener(CatchpointSpanListener):
     def __init__(self, error_message=default_error_message,
                  error_type=default_error_type, inject_on_finish=False,
                  inject_count_freq=1, add_info_tags=True):

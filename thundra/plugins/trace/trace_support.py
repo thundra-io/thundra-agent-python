@@ -8,7 +8,7 @@ try:
     from BytesIO import BytesIO
 except ImportError:
     from io import BytesIO
-from thundra.listeners import ThundraSpanListener
+from thundra.listeners import CatchpointSpanListener
 
 from thundra.config.config_provider import ConfigProvider
 from thundra.config import config_names
@@ -20,7 +20,7 @@ _sampler = None
 
 SPAN_LISTENERS = {
     sl_class.__name__: sl_class
-    for sl_class in ThundraSpanListener.__subclasses__()
+    for sl_class in CatchpointSpanListener.__subclasses__()
 }
 
 # To match span listener class type and it's arguments as two groups
