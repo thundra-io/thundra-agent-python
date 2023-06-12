@@ -13,8 +13,8 @@ class ConfigProvider:
         if options is not None:
             config_options = options.get('config', {})
             for opt in config_options:
-                if opt.lower() == config_names.THUNDRA_APIKEY:
-                    ConfigProvider.configs[config_names.THUNDRA_APIKEY] = config_options.get(opt)
+                if opt.lower() == config_names.CATCHPOINT_APIKEY:
+                    ConfigProvider.configs[config_names.CATCHPOINT_APIKEY] = config_options.get(opt)
                 ConfigProvider.traverse_config_object(config_options.get(opt), opt)
         ConfigProvider.initialize_config_from_environment_variables()
         ConfigProvider.add_non_lambda_aliases()
