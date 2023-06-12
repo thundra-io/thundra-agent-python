@@ -5,8 +5,8 @@ from django.test import Client
 from django.test import RequestFactory
 
 from tests.wrappers.django.app.views import index
-from thundra import constants
-from thundra.wrappers.django.django_wrapper import DjangoWrapper
+from catchpoint import constants
+from catchpoint.wrappers.django.django_wrapper import DjangoWrapper
 
 c = Client()
 

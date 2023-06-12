@@ -1,6 +1,6 @@
 import time
 import mock
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 
 def test_set_operation_name():

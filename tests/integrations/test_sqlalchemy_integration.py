@@ -5,9 +5,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from thundra import constants
-from thundra.compat import PY2
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint import constants
+from catchpoint.compat import PY2
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 Base = declarative_base()
 

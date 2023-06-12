@@ -1,11 +1,11 @@
 import json
 
-from thundra.config import config_names
-from thundra.config.config_provider import ConfigProvider
-from thundra.encoder import to_json
-from thundra.listeners import *
-from thundra.listeners.catchpoint_span_filterer import StandardSpanFilterer
-from thundra.plugins.trace import trace_support
+from catchpoint.config import config_names
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.encoder import to_json
+from catchpoint.listeners import *
+from catchpoint.listeners.catchpoint_span_filterer import StandardSpanFilterer
+from catchpoint.plugins.trace import trace_support
 
 
 def test_create_empty_span_listener(empty_span_listener):

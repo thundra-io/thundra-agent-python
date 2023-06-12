@@ -1,8 +1,8 @@
 import os
 
-from thundra.config import config_names
-from thundra.config.config_provider import ConfigProvider
-from thundra.context.execution_context_manager import ExecutionContextManager
+from catchpoint.config import config_names
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.context.execution_context_manager import ExecutionContextManager
 
 
 def test_coldstarts(handler, mock_context, mock_event):

@@ -2,8 +2,8 @@ from unittest import mock
 
 from flask import Flask, Blueprint
 
-from thundra import constants
-from thundra.context.execution_context_manager import ExecutionContextManager
+from catchpoint import constants
+from catchpoint.context.execution_context_manager import ExecutionContextManager
 
 app = Flask(__name__)
 client = app.test_client()

@@ -1,4 +1,4 @@
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 
 def test_trace_args(trace_args):

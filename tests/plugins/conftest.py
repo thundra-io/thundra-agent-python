@@ -2,12 +2,12 @@ import os
 import pytest
 import mock
 
-from thundra import constants
-from thundra.catchpoint_agent import Catchpoint
-from thundra.reporter import Reporter
-from thundra.plugins.trace.traceable import Traceable
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
+from catchpoint import constants
+from catchpoint.catchpoint_agent import Catchpoint
+from catchpoint.reporter import Reporter
+from catchpoint.plugins.trace.traceable import Traceable
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.config import config_names
 
 
 @pytest.fixture

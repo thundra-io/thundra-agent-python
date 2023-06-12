@@ -1,5 +1,5 @@
 import os
-from thundra import utils, constants
+from catchpoint import utils, constants
 
 
 def test_get_default_timeout_margin(monkeypatch):

@@ -4,9 +4,9 @@ from boto3.exceptions import Boto3Error
 from botocore.errorfactory import ClientError
 from botocore.exceptions import BotoCoreError
 
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.integrations.botocore import *
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.context.execution_context_manager import ExecutionContextManager
+from catchpoint.integrations.botocore import *
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 botocore_errors = (ClientError, Boto3Error, BotoCoreError)
 
@@ -255,10 +255,10 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchp
         lambda_func.invoke(
             FunctionName='Test',
             InvocationType='RequestResponse',
-            Payload=b"{\"name\": \"thundra\"}"
+            Payload=b"{\"name\": \"catchpoint\"}"
         )
 
-    with mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'):
+    with mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'):
         thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
@@ -272,7 +272,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchp
         assert span.domain_name == 'API'
         assert span.get_tag('aws.lambda.name') == 'Test'
         assert span.get_tag('aws.lambda.qualifier') is None
-        assert span.get_tag('aws.lambda.invocation.payload') == "{\"name\": \"thundra\"}"
+        assert span.get_tag('aws.lambda.invocation.payload') == "{\"name\": \"catchpoint\"}"
         assert span.get_tag('aws.request.name') == 'Invoke'
         assert span.get_tag('aws.lambda.invocation.type') == 'RequestResponse'
 
@@ -284,7 +284,7 @@ def test_lambda(mock_actual_call, mock_lambda_response, wrap_handler_with_catchp
         assert report['tags']['operation.type'] == 'WRITE'
         assert report['tags']['aws.lambda.name'] == 'Test'
         assert type(report['tags']['aws.lambda.invocation.payload']) == str
-        assert report['tags']['aws.lambda.invocation.payload'] == "{\"name\": \"thundra\"}"
+        assert report['tags']['aws.lambda.invocation.payload'] == "{\"name\": \"catchpoint\"}"
         assert report['tags']['aws.lambda.invocation.type'] == 'RequestResponse'
         assert span.get_tag(constants.SpanTags['TRACE_LINKS']) == ['test-request-id']
 
@@ -300,7 +300,7 @@ def test_lambda_noninvoke_function(mock_actual_call, mock_lambda_response, wrap_
 
     tracer = CatchpointTracer.get_instance()
 
-    with mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'):
+    with mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'):
         thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)
@@ -339,10 +339,10 @@ def test_lambda_payload_masked(mock_actual_call, mock_lambda_response, wrap_hand
         lambda_func.invoke(
             FunctionName='Test',
             InvocationType='RequestResponse',
-            Payload=b"{\"name\": \"thundra\"}"
+            Payload=b"{\"name\": \"catchpoint\"}"
         )
 
-    with mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'):
+    with mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'):
         thundra, wrapped_handler = wrap_handler_with_catchpoint(handler)
         try:
             wrapped_handler(mock_event, mock_context)

@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from thundra.config.config_provider import ConfigProvider
+from catchpoint.config.config_provider import ConfigProvider
 
 
 @pytest.fixture()

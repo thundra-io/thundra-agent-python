@@ -4,7 +4,7 @@ export VERSION=$(python3.6 ../setup.py --version)
 BUCKET_PREFIX=$1
 LAYER_NAME_SUFFIX=$2
 REGIONS=( "ap-northeast-1" "ap-northeast-2" "ap-south-1" "ap-southeast-1" "ap-southeast-2" "ca-central-1" "eu-central-1" "eu-north-1" "eu-west-1" "eu-west-2" "eu-west-3" "sa-east-1" "us-east-1" "us-east-2" "us-west-1" "us-west-2" )
-LAYER_NAME_BASE="thundra-lambda-python-layer"
+LAYER_NAME_BASE="catchpoint-lambda-python-layer"
 LAYER_NAME="$LAYER_NAME_BASE"
 
 if [[ ! -z "$LAYER_NAME_SUFFIX" ]]; then
@@ -18,7 +18,7 @@ do
     echo "Releasing '$LAYER_NAME' layer for region $REGION ..."
 
     ARTIFACT_BUCKET=$BUCKET_PREFIX-$REGION
-    ARTIFACT_OBJECT=layers/python/thundra-agent-lambda-layer-$VERSION.zip
+    ARTIFACT_OBJECT=layers/python/catchpoint-agent-lambda-layer-$VERSION.zip
 
     echo "Publishing '$LAYER_NAME' layer from artifact $ARTIFACT_OBJECT" \
          " at bucket $ARTIFACT_BUCKET ..."

@@ -1,8 +1,8 @@
 import mock
 import pytest
 
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.context.execution_context_manager import ExecutionContextManager
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 
 @pytest.fixture(autouse=True)
@@ -22,5 +22,5 @@ def mock_tracer_get_call(self):
 
 @pytest.fixture(scope="module", autouse=True)
 def mock_get_active_span():
-    with mock.patch('thundra.opentracing.tracer.CatchpointTracer.get_active_span', mock_tracer_get_call):
+    with mock.patch('catchpoint.opentracing.tracer.CatchpointTracer.get_active_span', mock_tracer_get_call):
         yield

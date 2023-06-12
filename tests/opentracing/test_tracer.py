@@ -1,7 +1,7 @@
 import time
 import mock
 import pytest
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 import mock
-from thundra.listeners.catchpoint_span_filterer import StandardSpanFilterer, SimpleSpanFilter
-from thundra.listeners import FilteringSpanListener, ErrorInjectorSpanListener, LatencyInjectorSpanListener
+from catchpoint.listeners.catchpoint_span_filterer import StandardSpanFilterer, SimpleSpanFilter
+from catchpoint.listeners import FilteringSpanListener, ErrorInjectorSpanListener, LatencyInjectorSpanListener
 
 def test_creation():
     f1 = SimpleSpanFilter()

@@ -1,11 +1,11 @@
 import mock
 import requests
 
-from thundra import constants
-from thundra.compat import urlparse
-from thundra.config import config_names
-from thundra.config.config_provider import ConfigProvider
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint import constants
+from catchpoint.compat import urlparse
+from catchpoint.config import config_names
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 
 def test_successful_http_call():

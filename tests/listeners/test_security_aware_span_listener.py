@@ -1,6 +1,6 @@
-from thundra.listeners import SecurityAwareSpanListener
-from thundra.opentracing.tracer import CatchpointTracer
-from thundra import constants
+from catchpoint.listeners import SecurityAwareSpanListener
+from catchpoint.opentracing.tracer import CatchpointTracer
+from catchpoint import constants
 
 def test_create_from_config():
     config = {

@@ -1,15 +1,15 @@
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.config import config_names
 
 target_function_prefix = "get"
 target_module_name = "...testdemo.movie_service.MovieService"
 target_trace_arguments = "[trace_args=True]"
 target_trace_arguments_list = ['trace_args']
 
-from thundra.compat import PY2
+from catchpoint.compat import PY2
 
 if not PY2:
-        from thundra.plugins.trace.patcher import ImportPatcher
+        from catchpoint.plugins.trace.patcher import ImportPatcher
         import pytest
 
         @pytest.mark.skip(reason="This functionality not in use!")

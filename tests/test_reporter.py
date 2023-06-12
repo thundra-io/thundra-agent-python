@@ -1,11 +1,11 @@
 import mock
 import json
 
-from thundra import constants
-from thundra.config import config_names
-from thundra.config.config_provider import ConfigProvider
-from thundra.reporter import Reporter
-from thundra.encoder import to_json
+from catchpoint import constants
+from catchpoint.config import config_names
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.reporter import Reporter
+from catchpoint.encoder import to_json
 
 
 @mock.patch('thundra.reporter.requests')

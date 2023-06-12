@@ -1,6 +1,6 @@
 import mock
-from thundra.listeners import LatencyInjectorSpanListener
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.listeners import LatencyInjectorSpanListener
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 @mock.patch('time.sleep')
 def test_delay_amount(mocked_time):

@@ -1,4 +1,4 @@
-import thundra.plugins.invocation.invocation_support as invocation_support
+import catchpoint.plugins.invocation.invocation_support as invocation_support
 
 
 def test_set_get_tag():

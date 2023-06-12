@@ -7,18 +7,18 @@ import mock
 import pytest
 import simplejson as json
 
-from thundra.compat import str
-from thundra.context.execution_context_manager import ExecutionContextManager
+from catchpoint.compat import str
+from catchpoint.context.execution_context_manager import ExecutionContextManager
 
 try:
     from contextlib import ExitStack
 except ImportError:
     from contextlib2 import ExitStack
 
-from thundra import constants
-from thundra.wrappers.aws_lambda import lambda_event_utils
-from thundra.opentracing.tracer import CatchpointTracer
-from thundra.plugins import invocation
+from catchpoint import constants
+from catchpoint.wrappers.aws_lambda import lambda_event_utils
+from catchpoint.opentracing.tracer import CatchpointTracer
+from catchpoint.plugins import invocation
 
 try:
     from BytesIO import BytesIO
@@ -31,7 +31,7 @@ from gzip import GzipFile
 def tracer_and_invocation_support():
     with ExitStack() as stack:
         # Just a fancy way of using contexts to avoid an ugly multi-line with statement
-        stack.enter_context(mock.patch('thundra.opentracing.recorder.CatchpointRecorder.clear'))
+        stack.enter_context(mock.patch('catchpoint.opentracing.recorder.CatchpointRecorder.clear'))
         tracer = CatchpointTracer.get_instance()
         invocation_support = invocation.invocation_support
         invocation_trace_support = invocation.invocation_trace_support

@@ -1,10 +1,10 @@
 from bson.json_util import loads
 from pymongo import MongoClient
-from thundra import constants
-from thundra.opentracing.tracer import CatchpointTracer
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
-from thundra.compat import PY2
+from catchpoint import constants
+from catchpoint.opentracing.tracer import CatchpointTracer
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.config import config_names
+from catchpoint.compat import PY2
 
 if not PY2:
 

@@ -1,8 +1,8 @@
 from multiprocessing.pool import ThreadPool
 from threading import Thread
-from thundra.opentracing.tracer import CatchpointTracer
-from thundra.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
-from thundra.plugins.trace.traceable import Traceable
+from catchpoint.opentracing.tracer import CatchpointTracer
+from catchpoint.plugins.trace.trace_aware_wrapper import TraceAwareWrapper
+from catchpoint.plugins.trace.traceable import Traceable
 
 
 def test_via_threadpool():

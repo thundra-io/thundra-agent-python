@@ -1,8 +1,8 @@
-from thundra import constants
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.wrappers.fastapi.fastapi_wrapper import FastapiWrapper
-from thundra.context.tracing_execution_context_provider import TracingExecutionContextProvider
-from thundra.wrappers import wrapper_utils
+from catchpoint import constants
+from catchpoint.context.execution_context_manager import ExecutionContextManager
+from catchpoint.wrappers.fastapi.fastapi_wrapper import FastapiWrapper
+from catchpoint.context.tracing_execution_context_provider import TracingExecutionContextProvider
+from catchpoint.wrappers import wrapper_utils
 
 
 def test_fastapi_hooks_called(test_app, monkeypatch):

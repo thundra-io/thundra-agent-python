@@ -1,14 +1,14 @@
 import mock
 import pytest
 
-import thundra.constants as constants
-from thundra.config.config_provider import ConfigProvider
-from thundra.context.execution_context import ExecutionContext
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.context.global_execution_context_provider import GlobalExecutionContextProvider
-from thundra.plugins.invocation import invocation_support
-from thundra.reporter import Reporter
-from thundra.catchpoint_agent import Catchpoint
+import catchpoint.constants as constants
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.context.execution_context import ExecutionContext
+from catchpoint.context.execution_context_manager import ExecutionContextManager
+from catchpoint.context.global_execution_context_provider import GlobalExecutionContextProvider
+from catchpoint.plugins.invocation import invocation_support
+from catchpoint.reporter import Reporter
+from catchpoint.catchpoint_agent import Catchpoint
 
 
 class MockContext:
@@ -899,5 +899,5 @@ def mock_eventbridge_event():
 
 @pytest.fixture(scope='session', autouse=True)
 def mock_context_clear():
-    with mock.patch('thundra.context.execution_context_manager.ExecutionContextManager.clear') as _fixture:
+    with mock.patch('catchpoint.context.execution_context_manager.ExecutionContextManager.clear') as _fixture:
         yield _fixture

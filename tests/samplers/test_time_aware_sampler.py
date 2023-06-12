@@ -1,9 +1,9 @@
 from __future__ import division
 import mock
-from thundra import constants
-from thundra.samplers import TimeAwareSampler
-from thundra.config.config_provider import ConfigProvider
-from thundra.config import config_names
+from catchpoint import constants
+from catchpoint.samplers import TimeAwareSampler
+from catchpoint.config.config_provider import ConfigProvider
+from catchpoint.config import config_names
 
 
 def test_default_time_freq():

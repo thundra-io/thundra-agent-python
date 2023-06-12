@@ -1,6 +1,6 @@
-from thundra.application.application_info_provider import ApplicationInfoProvider
-from thundra.config import config_names
-from thundra.config.config_provider import ConfigProvider
+from catchpoint.application.application_info_provider import ApplicationInfoProvider
+from catchpoint.config import config_names
+from catchpoint.config.config_provider import ConfigProvider
 
 
 def test_if_can_get_integer_tag():

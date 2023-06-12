@@ -1,6 +1,6 @@
 import mock
 import pytest
-from thundra.samplers import CompositeSampler
+from catchpoint.samplers import CompositeSampler
 
 
 @pytest.fixture

@@ -19,13 +19,13 @@ def get_version(rel_path):
         raise RuntimeError("Unable to find version string.")
 
 
-setup(name='thundra',
-      version=get_version('thundra/_version.py'),
-      description='Thundra Python agent',
-      long_description='Thundra Python agent',
+setup(name='catchpoint',
+      version=get_version('catchpoint/_version.py'),
+      description='Catchpoint Python agent',
+      long_description='Catchpoint Python agent',
       url='https://github.com/thundra-agent-python',
-      author='Thundra',
-      author_email='python@thundra.io',
+      author='Catchpoint',
+      author_email='python@catchpoint.io',
       python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*',
       packages=find_packages(exclude=('tests', 'tests.*',)),
       install_requires=['requests>=2.16.0', 'opentracing>=2.0', 'wrapt>=1.10.11', 'simplejson', 'enum-compat',

@@ -1,7 +1,7 @@
 import pytest
 
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra.opentracing.tracer import CatchpointTracer
+from catchpoint.context.execution_context_manager import ExecutionContextManager
+from catchpoint.opentracing.tracer import CatchpointTracer
 
 
 @pytest.fixture(autouse=True)

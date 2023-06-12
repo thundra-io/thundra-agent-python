@@ -1,6 +1,6 @@
 from tornado.testing import AsyncHTTPTestCase
-from thundra.context.execution_context_manager import ExecutionContextManager
-from thundra import constants
+from catchpoint.context.execution_context_manager import ExecutionContextManager
+from catchpoint import constants
 from unittest import mock
 from tornado.httputil import url_concat
 
