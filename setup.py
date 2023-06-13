@@ -2,7 +2,7 @@ import codecs
 import os.path
 
 from setuptools import setup, find_packages
-
+from thundra import vv
 
 def read(rel_path):
     here = os.path.abspath(os.path.dirname(__file__))
@@ -20,7 +20,7 @@ def get_version(rel_path):
 
 
 setup(name='catchpoint',
-      version=get_version('catchpoint/_version.py'),
+      version=vv.get_version(),
       description='Catchpoint Python agent',
       long_description='Catchpoint Python agent',
       url='https://github.com/thundra-agent-python',
