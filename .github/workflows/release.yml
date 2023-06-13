@@ -32,4 +32,4 @@ jobs:
     - name: Publish package to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        password: ${{ secrets.THUNDRA_PYPI_API_TOKEN }}
+        password: 'fggfggfgffg'
